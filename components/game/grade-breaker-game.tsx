@@ -97,6 +97,28 @@ const PUP_WEIGHTS: number[]  = [3, 3, 2, 2, 2]
 
 const EFFECT_FRAMES = { wide: 420, slow: 300, fire: 360, shrink: 300 } as const
 
+// ── Theme color reader ─────────────────────────────────────────────────────
+
+type ThemeColors = {
+  bg: string; fg: string; card: string; cardFg: string
+  primary: string; dest: string; border: string; mutedFg: string
+}
+
+function readThemeColors(): ThemeColors {
+  const s = getComputedStyle(document.documentElement)
+  const r = (v: string) => s.getPropertyValue(v).trim() || undefined
+  return {
+    bg:       r('--background') ?? '#0a0a0e',
+    fg:       r('--foreground') ?? '#ffffff',
+    card:     r('--card')       ?? '#111111',
+    cardFg:   r('--card-foreground') ?? '#ffffff',
+    primary:  r('--primary')    ?? '#6366f1',
+    dest:     r('--destructive') ?? '#ef4444',
+    border:   r('--border')     ?? 'rgba(255,255,255,0.08)',
+    mutedFg:  r('--muted-foreground') ?? '#888888',
+  }
+}
+
 // ── Draw helpers ───────────────────────────────────────────────────────────
 
 function rr(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
@@ -130,7 +152,7 @@ function brickPath(ctx: CanvasRenderingContext2D, b: GameBrick) {
   else rr(ctx, b.x, b.y, b.w, b.h, 8)
 }
 
-function drawBrick(ctx: CanvasRenderingContext2D, b: GameBrick) {
+function drawBrick(ctx: CanvasRenderingContext2D, b: GameBrick, colors: ThemeColors) {
   const damaged  = b.maxHp > 1 && b.hp < b.maxHp
   const flashing = b.hitFlash > 0
 
@@ -138,7 +160,7 @@ function drawBrick(ctx: CanvasRenderingContext2D, b: GameBrick) {
 
   // Fill
   if (flashing) {
-    ctx.fillStyle   = '#ffffff'
+    ctx.fillStyle   = colors.fg
     ctx.globalAlpha = 0.95
   } else if (damaged) {
     ctx.fillStyle   = b.color
@@ -172,7 +194,7 @@ function drawBrick(ctx: CanvasRenderingContext2D, b: GameBrick) {
 
   // Text — skip interior text on diamonds (too cramped)
   ctx.globalAlpha  = 1
-  ctx.fillStyle    = flashing ? '#111111' : '#ffffff'
+  ctx.fillStyle    = flashing ? colors.bg : colors.cardFg
   ctx.textAlign    = 'center'
   ctx.textBaseline = 'middle'
   if (b.shape !== 'diamond') {
@@ -281,6 +303,19 @@ export function GradeBreakerGame() {
   const year     = schoolYears.find((y) => y.id === selectedYearId) ?? schoolYears[0]
   const semester = year?.semesters.find((s) => s.id === selectedSemId) ?? year?.semesters[0]
   const courses  = semester?.courses ?? []
+
+  const colorsRef = useRef<ThemeColors>({
+    bg: '#0a0a0e', fg: '#ffffff', card: '#111111', cardFg: '#ffffff',
+    primary: '#6366f1', dest: '#ef4444', border: 'rgba(255,255,255,0.08)', mutedFg: '#888888',
+  })
+
+  // Re-read CSS vars whenever the theme class on <html> changes
+  useEffect(() => {
+    colorsRef.current = readThemeColors()
+    const mo = new MutationObserver(() => { colorsRef.current = readThemeColors() })
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+    return () => mo.disconnect()
+  }, [])
 
   const G = useRef<{
     phase: Phase; bricks: GameBrick[]
@@ -561,14 +596,16 @@ export function GradeBreakerGame() {
       }
 
       // ── Render ──────────────────────────────────────────────────────────
+      const C = colorsRef.current
 
-      // Dark background
-      ctx.fillStyle = '#0a0a0e'
+      // Theme background
+      ctx.fillStyle = C.bg
       ctx.fillRect(0, 0, cw, CANVAS_H)
 
-      // Subtle grid lines
+      // Subtle grid (uses --border color at very low alpha)
       ctx.save()
-      ctx.strokeStyle = 'rgba(255,255,255,0.025)'
+      ctx.strokeStyle = C.border
+      ctx.globalAlpha = 0.35
       ctx.lineWidth   = 1
       for (let x = 0; x < cw; x += 40) {
         ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, CANVAS_H); ctx.stroke()
@@ -578,18 +615,20 @@ export function GradeBreakerGame() {
       }
       ctx.restore()
 
-      // Stars
+      // Stars — use foreground color so they're visible on any theme
       for (const s of g.stars) {
         s.phase += 0.025
         const a = s.alpha * (0.55 + 0.45 * Math.sin(s.phase))
         ctx.beginPath()
         ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(255,255,255,${a})`
+        ctx.fillStyle = C.fg
+        ctx.globalAlpha = a * 0.5
         ctx.fill()
+        ctx.globalAlpha = 1
       }
 
       // Bricks
-      for (const b of g.bricks) if (b.alive) drawBrick(ctx, b)
+      for (const b of g.bricks) if (b.alive) drawBrick(ctx, b, C)
 
       // Particles
       for (const p of g.particles) {
@@ -639,14 +678,16 @@ export function GradeBreakerGame() {
       if (g.phase === 'active') {
         const def        = LEVEL_DEFS[g.level]
         const speedRatio = Math.min(1, (g.currentSpeed - def.baseSpeed) / (def.maxSpeed - def.baseSpeed))
-        const auraRgb    = speedRatio < 0.33 ? '129,140,248' : speedRatio < 0.66 ? '251,191,36' : '239,68,68'
+        // Paddle/ball color: primary at low speed, destructive at high speed
+        const padColor   = speedRatio < 0.5 ? C.primary : C.dest
         const py         = CANVAS_H - PAD_FLOOR
         const pw         = g.padW
 
         // Paddle
         ctx.save()
-        ctx.fillStyle   = `rgba(${auraRgb},0.88)`
-        ctx.shadowColor = `rgba(${auraRgb},0.6)`
+        ctx.fillStyle   = padColor
+        ctx.globalAlpha = 0.88
+        ctx.shadowColor = padColor
         ctx.shadowBlur  = 12 + speedRatio * 24
         rr(ctx, g.padX, py, pw, PAD_H, 6); ctx.fill()
         // Wide/shrink tint overlay
@@ -665,8 +706,8 @@ export function GradeBreakerGame() {
         // Main ball
         ctx.save()
         ctx.beginPath(); ctx.arc(g.ball.x, g.ball.y, BALL_R, 0, Math.PI * 2)
-        ctx.fillStyle   = g.effects.fire > 0 ? '#fb923c' : '#ffffff'
-        ctx.shadowColor = g.effects.fire > 0 ? '#f97316' : `rgba(${auraRgb},0.9)`
+        ctx.fillStyle   = g.effects.fire > 0 ? '#fb923c' : C.fg
+        ctx.shadowColor = g.effects.fire > 0 ? '#f97316' : padColor
         ctx.shadowBlur  = g.effects.fire > 0 ? 24 : 14 + speedRatio * 14
         ctx.fill()
         ctx.restore()
@@ -729,13 +770,15 @@ export function GradeBreakerGame() {
         <div className="flex items-center justify-between border-b border-border bg-card px-4 py-2.5 gap-2 flex-wrap">
           <div className="flex items-center gap-3">
 
-            {/* Lives — muted hearts, easy on eyes */}
+            {/* Lives — use theme destructive color, dimmed so not harsh */}
             <div className="flex gap-1">
               {[0, 1, 2].map((i) => (
                 <svg key={i} viewBox="0 0 24 24" width="14" height="14"
                   fill={i < ui.lives ? 'currentColor' : 'none'}
                   stroke="currentColor" strokeWidth="2"
-                  className={i < ui.lives ? 'text-rose-700 dark:text-rose-900/80' : 'text-foreground/12'}
+                  style={i < ui.lives
+                    ? { color: 'color-mix(in oklch, var(--destructive) 65%, transparent)' }
+                    : { color: 'color-mix(in oklch, var(--foreground) 12%, transparent)' }}
                   aria-hidden="true"
                 >
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
@@ -793,22 +836,22 @@ export function GradeBreakerGame() {
           </div>
         </div>
 
-        {/* Canvas */}
-        <div className="relative bg-[#0a0a0e]">
+        {/* Canvas — bg-background so there's no flash before canvas paints */}
+        <div className="relative bg-background">
           <canvas ref={canvasRef} className="block w-full" style={{ height: CANVAS_H }} />
 
           {/* Idle overlay */}
           {ui.phase === 'idle' && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-5">
               <div className="text-center">
-                <p className="text-xl font-bold text-white/90">Grade Breaker</p>
-                <p className="mt-1 text-sm text-white/50">{def.badge} {def.label} — {def.sub}</p>
-                <div className="mt-3 flex justify-center gap-5 text-[11px] text-white/40">
+                <p className="text-xl font-bold text-foreground">Grade Breaker</p>
+                <p className="mt-1 text-sm text-muted-foreground">{def.badge} {def.label} — {def.sub}</p>
+                <div className="mt-3 flex justify-center gap-5 text-[11px] text-muted-foreground/70">
                   <span>⬜ Low · rect · 1 hit</span>
                   <span>💊 Med · capsule · 1 hit</span>
                   <span>◆ High · diamond · 2 hits</span>
                 </div>
-                <div className="mt-1.5 flex justify-center gap-5 text-[11px] text-white/30">
+                <div className="mt-1.5 flex justify-center gap-5 text-[11px] text-muted-foreground/50">
                   <span>⬛ Wide pad</span>
                   <span>❄ Slow ball</span>
                   <span>✦ Multi ball</span>
@@ -825,10 +868,10 @@ export function GradeBreakerGame() {
 
           {/* Won overlay */}
           {ui.phase === 'won' && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/75 backdrop-blur-sm">
-              <p className="text-2xl font-bold text-white">All Cleared! 🎉</p>
-              <p className="text-base font-semibold text-emerald-400">Score: {ui.score}</p>
-              <p className="text-xs text-white/40">Now go actually do those assignments</p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-card/80 backdrop-blur-sm">
+              <p className="text-2xl font-bold text-foreground">All Cleared! 🎉</p>
+              <p className="text-base font-semibold text-success">Score: {ui.score}</p>
+              <p className="text-xs text-muted-foreground">Now go actually do those assignments</p>
               <div className="mt-2 flex gap-2">
                 {level < 3 && (
                   <button type="button"
@@ -838,7 +881,7 @@ export function GradeBreakerGame() {
                   </button>
                 )}
                 <button type="button" onClick={() => launch(level)}
-                  className="rounded-xl border border-white/20 bg-white/5 px-5 py-2 text-sm font-medium text-white hover:bg-white/10">
+                  className="rounded-xl border border-border bg-card px-5 py-2 text-sm font-medium text-foreground hover:bg-muted/50">
                   Play Again
                 </button>
               </div>
@@ -847,9 +890,9 @@ export function GradeBreakerGame() {
 
           {/* Dead overlay */}
           {ui.phase === 'dead' && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/75 backdrop-blur-sm">
-              <p className="text-2xl font-bold text-white">Game Over</p>
-              <p className="text-sm text-white/50">Score: {ui.score}</p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-card/80 backdrop-blur-sm">
+              <p className="text-2xl font-bold text-foreground">Game Over</p>
+              <p className="text-sm text-muted-foreground">Score: {ui.score}</p>
               <button type="button" onClick={() => launch(level)}
                 className="mt-2 rounded-xl bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90">
                 Try Again

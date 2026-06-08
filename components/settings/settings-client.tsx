@@ -207,14 +207,21 @@ export function SettingsClient() {
   const setShowBookCard  = useAppStore((s) => s.setShowBookCard)
   const bookTitle        = useAppStore((s) => s.bookTitle)
   const setBookTitle     = useAppStore((s) => s.setBookTitle)
+  const setLastUpdated  = useAppStore((s) => s.setLastUpdated)
+  const setRefreshState = useAppStore((s) => s.setRefreshState)
   const [scrape, setScrape] = useState<ScrapeStatus | null>(null)
   const prevStatus = useRef<{ schoology: string; gmail: string }>({ schoology: '', gmail: '' })
 
   function loadScrapeStatus() {
     fetch('/api/scrape').then(r => r.json()).then((s: ScrapeStatus) => {
-      // If Schoology just finished scraping, refresh grades cache so UI updates
-      if (prevStatus.current.schoology === 'scraping' && s.schoology.status === 'done') {
+      // Refresh grades cache + topbar state whenever any busy phase transitions to done
+      if (BUSY_STATUSES.includes(prevStatus.current.schoology) && s.schoology.status === 'done') {
         refreshGradesCache()
+        setLastUpdated(new Date().toISOString())
+        setRefreshState('fresh')
+      }
+      if (BUSY_STATUSES.includes(prevStatus.current.schoology) && s.schoology.status === 'error') {
+        setRefreshState('failed')
       }
       prevStatus.current = { schoology: s.schoology.status, gmail: s.gmail.status }
       setScrape(s)

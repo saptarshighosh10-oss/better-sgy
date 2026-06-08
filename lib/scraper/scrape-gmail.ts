@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import type { MockEmail } from '@/lib/types'
 import { launchBrowser, hasSession, markSession, clearSession } from './sessions'
+import { isKnownStaff, nameMatchesStaff } from './fuhsd-directory'
 
 const OUT_PATH       = path.join(process.cwd(), 'data', 'emails-cache.json')
 const SCHOOLOGY_PATH = path.join(process.cwd(), 'data', 'schoology-data.json')
@@ -106,10 +107,19 @@ function classifySender(
     }
   }
 
-  // Explicitly school/district domains → teacher
-  const schoolDomain = /\.k12\.|fuhsd\.|schoology\.com|\.edu$/i.test(addrLower)
+  // FUHSD public staff directory (Cupertino High School): known staff email → teacher
+  if (isKnownStaff(emailAddr)) return 'teacher'
+
+  // Sender name matches a known CHS staff member (e.g. teacher using personal email)
+  if (nameMatchesStaff(senderName)) return 'teacher'
+
+  // @fuhsd.org but NOT in staff directory → student using school account → friend
+  if (/@fuhsd\.org$/i.test(addrLower)) return 'friend'
+
+  // Other school/district domains (non-FUHSD) → teacher
+  const otherSchoolDomain = /\.k12\.|schoology\.com|\.edu$/i.test(addrLower)
   const studentDomain = /student|\.stu\.|pupil/i.test(addrLower)
-  if (schoolDomain && !studentDomain) return 'teacher'
+  if (otherSchoolDomain && !studentDomain) return 'teacher'
 
   // Personal email → friend
   if (/@(gmail|yahoo|hotmail|outlook|icloud|me|proton|pm)\.com$/i.test(addrLower))
@@ -237,7 +247,7 @@ export async function connectAndScrapeGmail(onStatus: (s: string) => void): Prom
       { timeout: 5 * 60 * 1000 }
     )
     await new Promise(r => setTimeout(r, 2500))
-    markSession()
+    markSession('gmail')
     await runScrape(page, onStatus)
   } finally {
     // Close (not disconnect) so the profile directory is unlocked before the

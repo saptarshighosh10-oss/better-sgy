@@ -1,4 +1,5 @@
 import fs from 'fs'
+import path from 'path'
 import {
   launchSchoolBrowser,
   hasSavedSession,
@@ -8,36 +9,36 @@ import {
 
 export type ScrapeTarget = 'schoology' | 'gmail'
 
-/**
- * Schoology and Gmail are scraped through ONE shared persistent Chrome
- * profile (`.school-browser-profile/` — the same one `npm run scrape:*` use)
- * logged into the same Google account: authenticating Schoology via Google
- * SSO authenticates that account's Gmail too. So there's really a single
- * underlying session, not two — `target` is accepted (and ignored) purely to
- * keep call sites' existing per-target shape intact.
- *
- * This replaced an earlier per-target cookie-snapshot-and-replay scheme
- * (`data/{target}-session.json`, loaded into a *fresh* headless browser each
- * run) that Google started silently rejecting — bouncing every headless
- * "refresh" to a sign-in page that the old checks didn't recognize as such
- * (see SCRAPER_NOTES.md, 2026-06-07 "In-app Refresh/Sync now was failing").
- * Reusing the *same* browser/profile across runs — what made the standalone
- * CLI scrapers (scripts/scrape-*.mjs) durable against that — fixes it at the
- * root rather than patching the symptom again.
- */
-export function hasSession(_target: ScrapeTarget) {
-  return hasSavedSession()
+// Separate per-service connected flags.
+// SESSION_MARKER = shared Chrome profile has a live Google login.
+// GMAIL_MARKER   = user has explicitly connected Gmail in Settings.
+// This lets Gmail be disconnected independently without wiping the
+// Schoology session (and vice versa for Schoology).
+const GMAIL_MARKER = path.join(process.cwd(), 'data', '.gmail-connected')
+
+export function hasSession(target: ScrapeTarget) {
+  if (!hasSavedSession()) return false
+  if (target === 'gmail') return fs.existsSync(GMAIL_MARKER)
+  return true
 }
 
-export function markSession() {
+export function markSession(target: ScrapeTarget = 'schoology') {
   markSessionOk()
+  if (target === 'gmail') {
+    fs.mkdirSync(path.dirname(GMAIL_MARKER), { recursive: true })
+    fs.writeFileSync(GMAIL_MARKER, Date.now().toString())
+  }
 }
 
-// Forces a fresh login on the next "Connect" without touching the shared
-// profile itself — the CLI scrapers rely on that profile too, and the
-// underlying Google session usually just gets reused instantly anyway.
-export function clearSession(_target: ScrapeTarget) {
-  try { fs.unlinkSync(SESSION_MARKER) } catch {}
+export function clearSession(target: ScrapeTarget) {
+  if (target === 'gmail') {
+    // Gmail disconnect: remove Gmail marker only — Schoology session stays intact
+    try { fs.unlinkSync(GMAIL_MARKER) } catch {}
+  } else {
+    // Schoology disconnect: wipe the shared Chrome session marker (full sign-out)
+    try { fs.unlinkSync(SESSION_MARKER) } catch {}
+    try { fs.unlinkSync(GMAIL_MARKER) } catch {}
+  }
 }
 
 // `headless: true` keeps the old call-site meaning (launchBrowser(true) =

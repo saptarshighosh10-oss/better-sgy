@@ -53,7 +53,7 @@ export function CourseSidebar({ courses, selectedId, onSelect }: Props) {
                       {course.name}
                     </span>
                     <span className={cn('text-[11px] font-semibold tabular-nums', gradeColor(course.grade))}>
-                      {course.grade.toFixed(1)}% · {course.letterGrade}
+                      {course.grade.toFixed(2)}% · {course.letterGrade}
                     </span>
                   </span>
                 </button>

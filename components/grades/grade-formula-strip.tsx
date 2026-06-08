@@ -44,7 +44,7 @@ export function GradeFormulaStrip({ course }: { course: Course }) {
                 'tabular-nums font-medium',
                 t.avg !== null ? 'text-foreground' : 'text-muted-foreground/40'
               )}>
-                {t.avg !== null ? `${t.avg.toFixed(1)}%` : '—'}
+                {t.avg !== null ? `${t.avg.toFixed(2)}%` : '—'}
               </span>
               <span className="ml-1.5 text-muted-foreground/50">{t.name}</span>
             </span>
@@ -55,7 +55,7 @@ export function GradeFormulaStrip({ course }: { course: Course }) {
 
         <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted/60 px-2.5 py-1">
           <span className={cn('text-base font-bold tabular-nums', gradeColor(course.grade))}>
-            {course.grade.toFixed(1)}%
+            {course.grade.toFixed(2)}%
           </span>
           <span className="text-sm font-semibold text-muted-foreground">
             {course.letterGrade}

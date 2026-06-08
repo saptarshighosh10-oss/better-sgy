@@ -69,7 +69,7 @@ export function Gradebook({ course, semesterLabel, isPartial = false }: Props) {
 
             <div className="shrink-0 text-right">
               <p className={cn('text-4xl font-bold leading-none tabular-nums', gradeColor(course.grade))}>
-                {course.grade.toFixed(1)}
+                {course.grade.toFixed(2)}
                 <span className="text-2xl">%</span>
               </p>
               <p className="mt-1.5 text-base font-semibold text-muted-foreground">

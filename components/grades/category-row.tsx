@@ -61,7 +61,7 @@ export function CategoryRow({ category }: Props) {
           'w-16 text-right text-[12px] font-semibold tabular-nums',
           avg !== null ? pctColor(avg) : 'text-muted-foreground/40'
         )}>
-          {avg !== null ? `${avg.toFixed(1)}%` : '—'}
+          {avg !== null ? `${avg.toFixed(2)}%` : '—'}
         </span>
       </button>
 
@@ -112,7 +112,7 @@ export function CategoryRow({ category }: Props) {
                   'text-right tabular-nums font-medium',
                   a.percent !== null ? pctColor(a.percent) : 'text-muted-foreground/40'
                 )}>
-                  {a.percent !== null ? `${a.percent.toFixed(1)}%` : '—'}
+                  {a.percent !== null ? `${a.percent.toFixed(2)}%` : '—'}
                 </span>
 
                 <span>

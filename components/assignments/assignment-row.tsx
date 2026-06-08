@@ -80,7 +80,7 @@ export function AssignmentRow({ assignment: a, course }: Props) {
         'text-xs font-medium tabular-nums text-right',
         a.percent !== null ? pctColor(a.percent) : 'text-muted-foreground/35'
       )}>
-        {a.percent !== null ? `${a.percent.toFixed(1)}%` : '—'}
+        {a.percent !== null ? `${a.percent.toFixed(2)}%` : '—'}
       </span>
 
       {/* Status */}

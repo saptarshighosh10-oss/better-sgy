@@ -148,7 +148,7 @@ function transform(data: ScrapedData): { years: SchoolYear[]; analytics: Analyti
             score: score,
             pointsPossible: max,
             percent: (score !== null && !isNaN(score) && max > 0)
-              ? Math.round(score / max * 1000) / 10
+              ? Math.round(score / max * 10000) / 100
               : null,
             status: mapStatus(a),
             gradedDate: dueDate,

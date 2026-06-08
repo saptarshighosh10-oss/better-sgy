@@ -101,7 +101,7 @@ export function GradeCalculator({ course }: { course: Course }) {
   const [hypsMap, setHypsMap]     = useState<Record<string, Hyp[]>>({})
   const [inputs, setInputs]       = useState<Record<string, { score: string; max: string }>>({})
   const [mode, setMode]           = useState<'whatif' | 'target'>('whatif')
-  const [targetGrade, setTargetGrade] = useState(course.grade.toFixed(1))
+  const [targetGrade, setTargetGrade] = useState(course.grade.toFixed(2))
   const [focusCatId, setFocusCatId]   = useState(
     course.categories.find((c) => c.weight > 0)?.id ?? ''
   )
@@ -203,7 +203,7 @@ export function GradeCalculator({ course }: { course: Course }) {
         <div>
           <p className="mb-0.5 text-[10px] text-muted-foreground">Current</p>
           <p className={cn('text-2xl font-bold tabular-nums leading-none', gradeColor(course.grade))}>
-            {course.grade.toFixed(1)}<span className="text-lg">%</span>
+            {course.grade.toFixed(2)}<span className="text-lg">%</span>
           </p>
         </div>
         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="shrink-0 text-muted-foreground/40" aria-hidden="true">
@@ -212,7 +212,7 @@ export function GradeCalculator({ course }: { course: Course }) {
         <div>
           <p className="mb-0.5 text-[10px] text-muted-foreground">Projected</p>
           <p className={cn('text-2xl font-bold tabular-nums leading-none', gradeColor(projectedDisplay))}>
-            {projectedDisplay.toFixed(1)}<span className="text-lg">%</span>
+            {projectedDisplay.toFixed(2)}<span className="text-lg">%</span>
             <span className="ml-1.5 text-base font-semibold">{letterGrade(projectedDisplay)}</span>
           </p>
         </div>
@@ -266,10 +266,10 @@ export function GradeCalculator({ course }: { course: Course }) {
                     <span className="text-[10px] text-muted-foreground">{cat.weight}% weight</span>
                     {dispPct !== undefined ? (
                       <span className={cn('text-[11px] font-semibold tabular-nums', gradeColor(dispPct))}>
-                        {dispPct.toFixed(1)}%
+                        {dispPct.toFixed(2)}%
                         {projected && current && Math.abs(projected.pct - current.pct) >= 0.01 && (
                           <span className="ml-1 text-[10px] text-muted-foreground">
-                            (was {current.pct.toFixed(1)}%)
+                            (was {current.pct.toFixed(2)}%)
                           </span>
                         )}
                       </span>
@@ -411,7 +411,7 @@ export function GradeCalculator({ course }: { course: Course }) {
               ) : needed > parseFloat(targetMax) ? (
                 <>
                   <p className="text-[13px] font-semibold text-amber-600 dark:text-amber-400">
-                    Impossible with one assignment — you would need {needed.toFixed(1)} / {targetMax} pts ({(needed / parseFloat(targetMax) * 100).toFixed(1)}%).
+                    Impossible with one assignment — you would need {needed.toFixed(2)} / {targetMax} pts ({(needed / parseFloat(targetMax) * 100).toFixed(2)}%).
                   </p>
                   <p className="mt-1 text-[11px] text-muted-foreground">
                     Try a higher-value assignment or add what-if entries first.
@@ -421,9 +421,9 @@ export function GradeCalculator({ course }: { course: Course }) {
                 <p className="text-[13px] font-semibold text-foreground">
                   You need{' '}
                   <span className={cn('tabular-nums', gradeColor((needed / parseFloat(targetMax)) * 100))}>
-                    {needed.toFixed(1)} / {targetMax} pts
+                    {needed.toFixed(2)} / {targetMax} pts
                   </span>
-                  {' '}({((needed / parseFloat(targetMax)) * 100).toFixed(1)}%) in{' '}
+                  {' '}({((needed / parseFloat(targetMax)) * 100).toFixed(2)}%) in{' '}
                   {course.categories.find((c) => c.id === focusCatId)?.name}.
                 </p>
               )}

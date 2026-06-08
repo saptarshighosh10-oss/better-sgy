@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { LottieSpinner } from '@/components/shared/lottie-spinner'
+import { clearGradesCache, refreshGradesCache } from '@/lib/use-grades'
 
 type TargetState = {
   status: string
@@ -28,12 +29,22 @@ export function ScrapeStatusBar() {
   const [dismissed, setDismissed] = useState(false)
   const [pokedAt, setPokedAt] = useState<number | null>(null)
   const alive = useRef(true)
+  const wasBusy = useRef(false)
 
   const load = useCallback(async () => {
     try {
       const r = await fetch('/api/scrape')
       if (!r.ok || !alive.current) return
-      setData(await r.json())
+      const payload: ScrapePayload = await r.json()
+      const nowBusy = BUSY.some(s =>
+        s === payload.schoology.status || s === payload.gmail.status || s === payload.activity.status
+      )
+      if (wasBusy.current && !nowBusy && payload.schoology.connected) {
+        clearGradesCache()
+        refreshGradesCache()
+      }
+      wasBusy.current = nowBusy
+      setData(payload)
     } catch {}
   }, [])
 

@@ -15,6 +15,11 @@ export type GradesData = {
 let cache: GradesData | null = null
 const listeners = new Set<() => void>()
 
+export function clearGradesCache(): void {
+  cache = null
+  notify()
+}
+
 function notify() {
   listeners.forEach(fn => fn())
 }

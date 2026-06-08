@@ -35,7 +35,7 @@ function cleanName(raw: string): string {
     .replace(/Note:\s*This material[^]*?Schoology\.?/i, '')
     // Strip trailing type labels injected by visually-hidden spans (no space before them)
     .replace(/\s*(external-tool-link|external-tool)\s*$/i, '')
-    .replace(/\s*(test-quiz|test-|assignment\b|quiz\b)\s*$/i, '')
+    .replace(/\s*(test-quiz|test-|assignment\b|quiz\b|discussion)\s*$/i, '')
     .replace(/^(test-quiz|test-|assignment\b|quiz\b)\s*/i, '')
     // Strip "Category" suffix on category names
     .replace(/Category$/i, '')

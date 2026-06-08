@@ -106,7 +106,7 @@ async function scrapeAllCourses(page: import('puppeteer-core').Page): Promise<{
           const aName = rawName
             .replace(/Note:\s*This material[^]*?Schoology\.?/i, '')
             .replace(/\s*(external-tool-link|external-tool)\s*$/i, '')
-            .replace(/\s*(test-quiz|test-|assignment\b|quiz\b)\s*$/i, '')
+            .replace(/\s*(test-quiz|test-|assignment\b|quiz\b|discussion)\s*$/i, '')
             .replace(/^(test-quiz|test-|assignment\b|quiz\b)\s*/i, '')
             .trim()
           if (!aName) return

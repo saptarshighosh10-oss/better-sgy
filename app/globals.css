@@ -1,0 +1,882 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-6: var(--chart-6);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* ── Better Schoology – Calm Scholar palette ─────────────────────────────── */
+:root {
+  --background:            oklch(0.985 0.005 95);
+  --foreground:            oklch(0.155 0.012 268);
+  --card:                  oklch(1 0 0);
+  --card-foreground:       oklch(0.155 0.012 268);
+  --popover:               oklch(1 0 0);
+  --popover-foreground:    oklch(0.155 0.012 268);
+  --primary:               oklch(0.52 0.155 268);
+  --primary-foreground:    oklch(0.985 0 0);
+  --secondary:             oklch(0.96 0.01 268);
+  --secondary-foreground:  oklch(0.35 0.05 268);
+  --muted:                 oklch(0.96 0.008 268);
+  --muted-foreground:      oklch(0.50 0.02 268);
+  --accent:                oklch(0.78 0.14 72);
+  --accent-foreground:     oklch(0.20 0.05 72);
+  --destructive:           oklch(0.62 0.14 18);
+  --destructive-foreground:oklch(0.985 0 0);
+  --success:               oklch(0.64 0.13 148);
+  --success-foreground:    oklch(0.985 0 0);
+  --warning:               oklch(0.82 0.12 72);
+  --warning-foreground:    oklch(0.20 0.06 72);
+  --border:                oklch(0.91 0.01 268);
+  --input:                 oklch(0.91 0.01 268);
+  --ring:                  oklch(0.52 0.155 268);
+  --radius:                0.75rem;
+
+  /* Course palette – used by chart series and course accent dots */
+  --chart-1:               oklch(0.55 0.18 268);   /* indigo  – Algebra   */
+  --chart-2:               oklch(0.60 0.15 160);   /* emerald – Biology   */
+  --chart-3:               oklch(0.74 0.16 72);    /* amber   – English   */
+  --chart-4:               oklch(0.52 0.20 295);   /* violet  – French    */
+  --chart-5:               oklch(0.62 0.16 215);   /* cyan    – PE        */
+  --chart-6:               oklch(0.65 0.18 42);    /* orange  – Drama     */
+
+  --sidebar:               oklch(0.975 0.007 268);
+  --sidebar-foreground:    oklch(0.155 0.012 268);
+  --sidebar-primary:       oklch(0.52 0.155 268);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent:        oklch(0.93 0.015 268);
+  --sidebar-accent-foreground: oklch(0.35 0.05 268);
+  --sidebar-border:        oklch(0.90 0.012 268);
+  --sidebar-ring:          oklch(0.52 0.155 268);
+
+  --color-alg: #6366f1;
+  --color-bio: #10b981;
+  --color-eng: #f59e0b;
+  --color-fre: #8b5cf6;
+  --color-pe:  #06b6d4;
+  --color-dra: #f97316;
+  --band-fg:         #ffffff;
+  --band-watermark:  rgba(255,255,255,0.18);
+}
+
+.dark {
+  --background:            oklch(0.14 0.015 268);
+  --foreground:            oklch(0.965 0.004 268);
+  --card:                  oklch(0.19 0.018 268);
+  --card-foreground:       oklch(0.965 0.004 268);
+  --popover:               oklch(0.19 0.018 268);
+  --popover-foreground:    oklch(0.965 0.004 268);
+  --primary:               oklch(0.70 0.15 268);
+  --primary-foreground:    oklch(0.14 0.015 268);
+  --secondary:             oklch(0.25 0.02 268);
+  --secondary-foreground:  oklch(0.85 0.01 268);
+  --muted:                 oklch(0.25 0.02 268);
+  --muted-foreground:      oklch(0.62 0.02 268);
+  --accent:                oklch(0.78 0.14 72);
+  --accent-foreground:     oklch(0.20 0.05 72);
+  --destructive:           oklch(0.72 0.18 18);
+  --destructive-foreground:oklch(0.985 0 0);
+  --success:               oklch(0.70 0.13 148);
+  --success-foreground:    oklch(0.985 0 0);
+  --warning:               oklch(0.82 0.12 72);
+  --warning-foreground:    oklch(0.14 0.015 268);
+  --border:                oklch(1 0 0 / 10%);
+  --input:                 oklch(1 0 0 / 12%);
+  --ring:                  oklch(0.70 0.15 268);
+
+  --chart-1:               oklch(0.65 0.18 268);
+  --chart-2:               oklch(0.68 0.15 160);
+  --chart-3:               oklch(0.80 0.14 72);
+  --chart-4:               oklch(0.64 0.19 295);
+  --chart-5:               oklch(0.70 0.15 215);
+  --chart-6:               oklch(0.72 0.17 42);
+
+  --sidebar:               oklch(0.165 0.018 268);
+  --sidebar-foreground:    oklch(0.965 0.004 268);
+  --sidebar-primary:       oklch(0.70 0.15 268);
+  --sidebar-primary-foreground: oklch(0.14 0.015 268);
+  --sidebar-accent:        oklch(0.23 0.022 268);
+  --sidebar-accent-foreground: oklch(0.85 0.01 268);
+  --sidebar-border:        oklch(1 0 0 / 10%);
+  --sidebar-ring:          oklch(0.70 0.15 268);
+
+  --color-alg: oklch(0.42 0.13 268);
+  --color-bio: oklch(0.40 0.13 155);
+  --color-eng: oklch(0.45 0.12 72);
+  --color-fre: oklch(0.40 0.14 295);
+  --color-pe:  oklch(0.40 0.13 210);
+  --color-dra: oklch(0.42 0.13 40);
+  --band-fg:         oklch(0.97 0.004 268);
+  --band-watermark:  oklch(1 0 0 / 0.20);
+}
+
+/* ── Mono Light: cream-white bg, charcoal fg, zero color ─────────────────── */
+.mono-light {
+  --background:            #faf9f6;
+  --foreground:            #1a1a1a;
+  --card:                  #ffffff;
+  --card-foreground:       #1a1a1a;
+  --popover:               #ffffff;
+  --popover-foreground:    #1a1a1a;
+  --primary:               #1a1a1a;
+  --primary-foreground:    #faf9f6;
+  --secondary:             #f0efec;
+  --secondary-foreground:  #1a1a1a;
+  --muted:                 #f0efec;
+  --muted-foreground:      #6b6b6b;
+  --accent:                #1a1a1a;
+  --accent-foreground:     #faf9f6;
+  --destructive:           #1a1a1a;
+  --destructive-foreground:#faf9f6;
+  --success:               #1a1a1a;
+  --success-foreground:    #faf9f6;
+  --warning:               #1a1a1a;
+  --warning-foreground:    #faf9f6;
+  --border:                rgba(26, 26, 26, 0.18);
+  --input:                 rgba(26, 26, 26, 0.18);
+  --ring:                  #1a1a1a;
+
+  --chart-1: #1a1a1a;
+  --chart-2: #4a4a4a;
+  --chart-3: #6b6b6b;
+  --chart-4: #3a3a3a;
+  --chart-5: #5a5a5a;
+  --chart-6: #2a2a2a;
+
+  --sidebar:               #faf9f6;
+  --sidebar-foreground:    #1a1a1a;
+  --sidebar-primary:       #1a1a1a;
+  --sidebar-primary-foreground: #faf9f6;
+  --sidebar-accent:        #f0efec;
+  --sidebar-accent-foreground: #1a1a1a;
+  --sidebar-border:        rgba(26, 26, 26, 0.18);
+  --sidebar-ring:          #1a1a1a;
+
+  --color-alg: #1a1a1a;
+  --color-bio: #1a1a1a;
+  --color-eng: #1a1a1a;
+  --color-fre: #1a1a1a;
+  --color-pe:  #1a1a1a;
+  --color-dra: #1a1a1a;
+  --band-fg:         #faf9f6;
+  --band-watermark:  rgba(255,255,255,0.18);
+}
+
+/* ── Mono Dark: charcoal bg, cream-white fg, zero color ──────────────────── */
+.mono-dark {
+  --background:            #1a1a1a;
+  --foreground:            #faf9f6;
+  --card:                  #242424;
+  --card-foreground:       #faf9f6;
+  --popover:               #242424;
+  --popover-foreground:    #faf9f6;
+  --primary:               #faf9f6;
+  --primary-foreground:    #1a1a1a;
+  --secondary:             #2e2e2e;
+  --secondary-foreground:  #faf9f6;
+  --muted:                 #2e2e2e;
+  --muted-foreground:      #a0a0a0;
+  --accent:                #faf9f6;
+  --accent-foreground:     #1a1a1a;
+  --destructive:           #faf9f6;
+  --destructive-foreground:#1a1a1a;
+  --success:               #faf9f6;
+  --success-foreground:    #1a1a1a;
+  --warning:               #faf9f6;
+  --warning-foreground:    #1a1a1a;
+  --border:                rgba(250, 249, 246, 0.14);
+  --input:                 rgba(250, 249, 246, 0.14);
+  --ring:                  #faf9f6;
+
+  --chart-1: #faf9f6;
+  --chart-2: #c0c0c0;
+  --chart-3: #a0a0a0;
+  --chart-4: #d0d0d0;
+  --chart-5: #b0b0b0;
+  --chart-6: #e0e0e0;
+
+  --sidebar:               #1a1a1a;
+  --sidebar-foreground:    #faf9f6;
+  --sidebar-primary:       #faf9f6;
+  --sidebar-primary-foreground: #1a1a1a;
+  --sidebar-accent:        #2e2e2e;
+  --sidebar-accent-foreground: #faf9f6;
+  --sidebar-border:        rgba(250, 249, 246, 0.14);
+  --sidebar-ring:          #faf9f6;
+
+  /* Dark gray bands per-course — distinct shades, light foreground text */
+  --color-alg: #2a2a2a;
+  --color-bio: #333333;
+  --color-eng: #363636;
+  --color-fre: #2d2d2d;
+  --color-pe:  #313131;
+  --color-dra: #3d3d3d;
+  --band-fg:         #faf9f6;
+  --band-watermark:  rgba(250, 249, 246, 0.12);
+}
+
+
+
+/* ── Invincible: Mark / Invincible ───────────────────────────────────────── */
+/* Dark navy + electric yellow. html.theme-* beats .dark by specificity.    */
+html.theme-mark {
+  --background:            oklch(0.11 0.04 252);
+  --foreground:            oklch(0.96 0.01 92);
+  --card:                  oklch(0.16 0.04 252);
+  --card-foreground:       oklch(0.96 0.01 92);
+  --popover:               oklch(0.16 0.04 252);
+  --popover-foreground:    oklch(0.96 0.01 92);
+  --primary:               oklch(0.86 0.18 92);
+  --primary-foreground:    oklch(0.11 0.04 252);
+  --secondary:             oklch(0.22 0.04 252);
+  --secondary-foreground:  oklch(0.86 0.01 92);
+  --muted:                 oklch(0.22 0.04 252);
+  --muted-foreground:      oklch(0.64 0.04 252);
+  --accent:                oklch(0.52 0.20 252);
+  --accent-foreground:     oklch(0.96 0 0);
+  --destructive:           oklch(0.65 0.20 25);
+  --destructive-foreground:oklch(0.98 0 0);
+  --success:               oklch(0.68 0.14 148);
+  --success-foreground:    oklch(0.98 0 0);
+  --warning:               oklch(0.86 0.18 92);
+  --warning-foreground:    oklch(0.11 0.04 252);
+  --border:                oklch(1 0 0 / 10%);
+  --input:                 oklch(1 0 0 / 12%);
+  --ring:                  oklch(0.86 0.18 92);
+  --chart-1:               oklch(0.86 0.18 92);
+  --chart-2:               oklch(0.52 0.20 252);
+  --chart-3:               oklch(0.68 0.14 148);
+  --chart-4:               oklch(0.64 0.19 295);
+  --chart-5:               oklch(0.70 0.15 215);
+  --chart-6:               oklch(0.72 0.17 42);
+  --sidebar:               oklch(0.135 0.04 252);
+  --sidebar-foreground:    oklch(0.96 0.01 92);
+  --sidebar-primary:       oklch(0.86 0.18 92);
+  --sidebar-primary-foreground: oklch(0.11 0.04 252);
+  --sidebar-accent:        oklch(0.20 0.04 252);
+  --sidebar-accent-foreground: oklch(0.86 0.01 92);
+  --sidebar-border:        oklch(1 0 0 / 10%);
+  --sidebar-ring:          oklch(0.86 0.18 92);
+  --color-alg: oklch(0.40 0.15 252);
+  --color-bio: oklch(0.38 0.12 148);
+  --color-eng: oklch(0.44 0.14 92);
+  --color-fre: oklch(0.38 0.15 295);
+  --color-pe:  oklch(0.38 0.13 210);
+  --color-dra: oklch(0.40 0.13 40);
+  --band-fg:         oklch(0.97 0.004 0);
+  --band-watermark:  oklch(1 0 0 / 0.20);
+}
+
+/* ── Invincible: Atom Eve ─────────────────────────────────────────────────── */
+/* Light background, vivid hot pink primary. */
+html.theme-eve {
+  --background:            oklch(0.98 0.006 355);
+  --foreground:            oklch(0.14 0.02 355);
+  --card:                  oklch(1.0 0 0);
+  --card-foreground:       oklch(0.14 0.02 355);
+  --popover:               oklch(1.0 0 0);
+  --popover-foreground:    oklch(0.14 0.02 355);
+  --primary:               oklch(0.54 0.26 355);
+  --primary-foreground:    oklch(0.98 0.006 355);
+  --secondary:             oklch(0.94 0.018 355);
+  --secondary-foreground:  oklch(0.14 0.02 355);
+  --muted:                 oklch(0.94 0.018 355);
+  --muted-foreground:      oklch(0.52 0.04 355);
+  --accent:                oklch(0.80 0.14 355);
+  --accent-foreground:     oklch(0.14 0.02 355);
+  --destructive:           oklch(0.55 0.22 25);
+  --destructive-foreground:oklch(0.98 0 0);
+  --success:               oklch(0.52 0.17 148);
+  --success-foreground:    oklch(0.98 0 0);
+  --warning:               oklch(0.65 0.16 72);
+  --warning-foreground:    oklch(0.14 0.02 72);
+  --border:                oklch(0 0 0 / 10%);
+  --input:                 oklch(0 0 0 / 12%);
+  --ring:                  oklch(0.54 0.26 355);
+  --chart-1:               oklch(0.54 0.26 355);
+  --chart-2:               oklch(0.68 0.18 355);
+  --chart-3:               oklch(0.52 0.17 148);
+  --chart-4:               oklch(0.60 0.18 295);
+  --chart-5:               oklch(0.58 0.16 210);
+  --chart-6:               oklch(0.62 0.16 40);
+  --sidebar:               oklch(0.98 0.006 355);
+  --sidebar-foreground:    oklch(0.14 0.02 355);
+  --sidebar-primary:       oklch(0.54 0.26 355);
+  --sidebar-primary-foreground: oklch(0.98 0.006 355);
+  --sidebar-accent:        oklch(0.94 0.018 355);
+  --sidebar-accent-foreground: oklch(0.14 0.02 355);
+  --sidebar-border:        oklch(0 0 0 / 10%);
+  --sidebar-ring:          oklch(0.54 0.26 355);
+  --color-alg: #6366f1;
+  --color-bio: #10b981;
+  --color-eng: #f59e0b;
+  --color-fre: #8b5cf6;
+  --color-pe:  #06b6d4;
+  --color-dra: #f97316;
+  --band-fg:         #ffffff;
+  --band-watermark:  rgba(255,255,255,0.22);
+}
+
+/* ── Invincible: Thragg ───────────────────────────────────────────────────── */
+/* Near-black bg with red tint, deep blood-red primary. */
+html.theme-thragg {
+  --background:            oklch(0.10 0.018 20);
+  --foreground:            oklch(0.94 0.008 20);
+  --card:                  oklch(0.15 0.020 20);
+  --card-foreground:       oklch(0.94 0.008 20);
+  --popover:               oklch(0.15 0.020 20);
+  --popover-foreground:    oklch(0.94 0.008 20);
+  --primary:               oklch(0.50 0.22 25);
+  --primary-foreground:    oklch(0.96 0 0);
+  --secondary:             oklch(0.20 0.018 20);
+  --secondary-foreground:  oklch(0.85 0.008 20);
+  --muted:                 oklch(0.20 0.018 20);
+  --muted-foreground:      oklch(0.60 0.02 20);
+  --accent:                oklch(0.36 0.18 25);
+  --accent-foreground:     oklch(0.96 0 0);
+  --destructive:           oklch(0.62 0.22 18);
+  --destructive-foreground:oklch(0.96 0 0);
+  --success:               oklch(0.62 0.14 148);
+  --success-foreground:    oklch(0.96 0 0);
+  --warning:               oklch(0.76 0.14 72);
+  --warning-foreground:    oklch(0.10 0.018 20);
+  --border:                oklch(1 0 0 / 10%);
+  --input:                 oklch(1 0 0 / 12%);
+  --ring:                  oklch(0.50 0.22 25);
+  --chart-1:               oklch(0.50 0.22 25);
+  --chart-2:               oklch(0.62 0.14 148);
+  --chart-3:               oklch(0.76 0.14 72);
+  --chart-4:               oklch(0.58 0.18 295);
+  --chart-5:               oklch(0.58 0.16 210);
+  --chart-6:               oklch(0.60 0.16 40);
+  --sidebar:               oklch(0.12 0.018 20);
+  --sidebar-foreground:    oklch(0.94 0.008 20);
+  --sidebar-primary:       oklch(0.50 0.22 25);
+  --sidebar-primary-foreground: oklch(0.96 0 0);
+  --sidebar-accent:        oklch(0.18 0.018 20);
+  --sidebar-accent-foreground: oklch(0.85 0.008 20);
+  --sidebar-border:        oklch(1 0 0 / 10%);
+  --sidebar-ring:          oklch(0.50 0.22 25);
+  --color-alg: oklch(0.36 0.14 268);
+  --color-bio: oklch(0.36 0.12 155);
+  --color-eng: oklch(0.40 0.12 72);
+  --color-fre: oklch(0.36 0.14 295);
+  --color-pe:  oklch(0.36 0.12 210);
+  --color-dra: oklch(0.38 0.14 40);
+  --band-fg:         oklch(0.97 0.004 0);
+  --band-watermark:  oklch(1 0 0 / 0.20);
+}
+
+/* ── Invincible: Omni-Man ─────────────────────────────────────────────────── */
+/* White background, bright red primary — red-and-white suit. */
+html.theme-omni-man {
+  --background:            oklch(0.98 0.004 20);
+  --foreground:            oklch(0.12 0.01 20);
+  --card:                  oklch(1.0 0 0);
+  --card-foreground:       oklch(0.12 0.01 20);
+  --popover:               oklch(1.0 0 0);
+  --popover-foreground:    oklch(0.12 0.01 20);
+  --primary:               oklch(0.50 0.24 25);
+  --primary-foreground:    oklch(0.98 0 0);
+  --secondary:             oklch(0.94 0.008 20);
+  --secondary-foreground:  oklch(0.12 0.01 20);
+  --muted:                 oklch(0.94 0.008 20);
+  --muted-foreground:      oklch(0.52 0.01 20);
+  --accent:                oklch(0.70 0.20 25);
+  --accent-foreground:     oklch(0.12 0.01 20);
+  --destructive:           oklch(0.50 0.24 25);
+  --destructive-foreground:oklch(0.98 0 0);
+  --success:               oklch(0.52 0.17 148);
+  --success-foreground:    oklch(0.98 0 0);
+  --warning:               oklch(0.65 0.16 72);
+  --warning-foreground:    oklch(0.12 0.01 20);
+  --border:                oklch(0 0 0 / 10%);
+  --input:                 oklch(0 0 0 / 12%);
+  --ring:                  oklch(0.50 0.24 25);
+  --chart-1:               oklch(0.50 0.24 25);
+  --chart-2:               oklch(0.52 0.17 148);
+  --chart-3:               oklch(0.65 0.16 72);
+  --chart-4:               oklch(0.58 0.18 295);
+  --chart-5:               oklch(0.56 0.16 210);
+  --chart-6:               oklch(0.60 0.16 40);
+  --sidebar:               oklch(0.97 0.004 20);
+  --sidebar-foreground:    oklch(0.12 0.01 20);
+  --sidebar-primary:       oklch(0.50 0.24 25);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent:        oklch(0.93 0.008 20);
+  --sidebar-accent-foreground: oklch(0.12 0.01 20);
+  --sidebar-border:        oklch(0 0 0 / 10%);
+  --sidebar-ring:          oklch(0.50 0.24 25);
+  --color-alg: #6366f1;
+  --color-bio: #10b981;
+  --color-eng: #f59e0b;
+  --color-fre: #8b5cf6;
+  --color-pe:  #06b6d4;
+  --color-dra: #f97316;
+  --band-fg:         #ffffff;
+  --band-watermark:  rgba(255,255,255,0.18);
+}
+
+/* ── Cyberpunk 2077 ───────────────────────────────────────────────────────── */
+/* Near-black blue-tinted bg, electric yellow primary, neon cyan accent.       */
+html.theme-cyberpunk {
+  --background:            oklch(0.09 0.04 248);
+  --foreground:            oklch(0.95 0.015 248);
+  --card:                  oklch(0.13 0.045 248);
+  --card-foreground:       oklch(0.95 0.015 248);
+  --popover:               oklch(0.13 0.045 248);
+  --popover-foreground:    oklch(0.95 0.015 248);
+  --primary:               oklch(0.88 0.20 95);
+  --primary-foreground:    oklch(0.09 0.04 248);
+  --secondary:             oklch(0.20 0.045 248);
+  --secondary-foreground:  oklch(0.88 0.05 248);
+  --muted:                 oklch(0.20 0.045 248);
+  --muted-foreground:      oklch(0.58 0.06 248);
+  --accent:                oklch(0.72 0.20 200);
+  --accent-foreground:     oklch(0.09 0.04 248);
+  --destructive:           oklch(0.66 0.24 15);
+  --destructive-foreground:oklch(0.98 0 0);
+  --success:               oklch(0.70 0.18 148);
+  --success-foreground:    oklch(0.98 0 0);
+  --warning:               oklch(0.88 0.20 95);
+  --warning-foreground:    oklch(0.09 0.04 248);
+  --border:                oklch(1 0 0 / 12%);
+  --input:                 oklch(1 0 0 / 14%);
+  --ring:                  oklch(0.88 0.20 95);
+  --chart-1:               oklch(0.88 0.20 95);
+  --chart-2:               oklch(0.72 0.20 200);
+  --chart-3:               oklch(0.72 0.26 340);
+  --chart-4:               oklch(0.62 0.22 285);
+  --chart-5:               oklch(0.70 0.22 148);
+  --chart-6:               oklch(0.72 0.22 25);
+  --sidebar:               oklch(0.11 0.045 248);
+  --sidebar-foreground:    oklch(0.95 0.015 248);
+  --sidebar-primary:       oklch(0.88 0.20 95);
+  --sidebar-primary-foreground: oklch(0.09 0.04 248);
+  --sidebar-accent:        oklch(0.18 0.045 248);
+  --sidebar-accent-foreground: oklch(0.88 0.05 248);
+  --sidebar-border:        oklch(1 0 0 / 12%);
+  --sidebar-ring:          oklch(0.88 0.20 95);
+  --color-alg: oklch(0.64 0.22 95);
+  --color-bio: oklch(0.58 0.22 200);
+  --color-eng: oklch(0.68 0.26 340);
+  --color-fre: oklch(0.56 0.22 285);
+  --color-pe:  oklch(0.62 0.24 148);
+  --color-dra: oklch(0.68 0.22 25);
+  --band-fg:         oklch(0.09 0.04 248);
+  --band-watermark:  oklch(0 0 0 / 0.20);
+}
+
+/* ── Minecraft ────────────────────────────────────────────────────────────── */
+/* Pale sky bg, grass green primary, dirt brown accent. Light mode.            */
+html.theme-minecraft {
+  --background:            oklch(0.90 0.025 215);
+  --foreground:            oklch(0.18 0.04 80);
+  --card:                  oklch(0.97 0.008 115);
+  --card-foreground:       oklch(0.18 0.04 80);
+  --popover:               oklch(0.97 0.008 115);
+  --popover-foreground:    oklch(0.18 0.04 80);
+  --primary:               oklch(0.52 0.18 135);
+  --primary-foreground:    oklch(0.98 0 0);
+  --secondary:             oklch(0.88 0.025 220);
+  --secondary-foreground:  oklch(0.25 0.04 135);
+  --muted:                 oklch(0.90 0.022 135);
+  --muted-foreground:      oklch(0.42 0.04 135);
+  --accent:                oklch(0.58 0.10 65);
+  --accent-foreground:     oklch(0.98 0 0);
+  --destructive:           oklch(0.62 0.20 18);
+  --destructive-foreground:oklch(0.98 0 0);
+  --success:               oklch(0.52 0.18 135);
+  --success-foreground:    oklch(0.98 0 0);
+  --warning:               oklch(0.72 0.15 72);
+  --warning-foreground:    oklch(0.18 0.04 80);
+  --border:                oklch(0.78 0.04 135);
+  --input:                 oklch(0.78 0.04 135);
+  --ring:                  oklch(0.52 0.18 135);
+  --chart-1:               oklch(0.48 0.18 135);
+  --chart-2:               oklch(0.44 0.12 155);
+  --chart-3:               oklch(0.50 0.12 72);
+  --chart-4:               oklch(0.46 0.14 280);
+  --chart-5:               oklch(0.46 0.15 220);
+  --chart-6:               oklch(0.52 0.16 42);
+  --sidebar:               oklch(0.88 0.028 220);
+  --sidebar-foreground:    oklch(0.18 0.04 80);
+  --sidebar-primary:       oklch(0.52 0.18 135);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent:        oklch(0.83 0.025 220);
+  --sidebar-accent-foreground: oklch(0.25 0.04 80);
+  --sidebar-border:        oklch(0.78 0.04 135);
+  --sidebar-ring:          oklch(0.52 0.18 135);
+  --color-alg: oklch(0.44 0.16 135);
+  --color-bio: oklch(0.40 0.12 155);
+  --color-eng: oklch(0.46 0.12 72);
+  --color-fre: oklch(0.42 0.14 280);
+  --color-pe:  oklch(0.42 0.14 220);
+  --color-dra: oklch(0.48 0.14 42);
+  --band-fg:         #ffffff;
+  --band-watermark:  rgba(255,255,255,0.22);
+}
+
+/* ── Stranger Things ─────────────────────────────────────────────────────── */
+/* Dark warm charcoal, Christmas-lights red, VHS amber. Retro dark.           */
+html.theme-stranger-things {
+  --background:            oklch(0.10 0.025 35);
+  --foreground:            oklch(0.94 0.018 65);
+  --card:                  oklch(0.15 0.028 35);
+  --card-foreground:       oklch(0.94 0.018 65);
+  --popover:               oklch(0.15 0.028 35);
+  --popover-foreground:    oklch(0.94 0.018 65);
+  --primary:               oklch(0.64 0.24 20);
+  --primary-foreground:    oklch(0.98 0 0);
+  --secondary:             oklch(0.22 0.028 35);
+  --secondary-foreground:  oklch(0.85 0.015 65);
+  --muted:                 oklch(0.22 0.028 35);
+  --muted-foreground:      oklch(0.56 0.04 35);
+  --accent:                oklch(0.72 0.15 65);
+  --accent-foreground:     oklch(0.10 0.025 35);
+  --destructive:           oklch(0.64 0.24 20);
+  --destructive-foreground:oklch(0.98 0 0);
+  --success:               oklch(0.62 0.18 148);
+  --success-foreground:    oklch(0.98 0 0);
+  --warning:               oklch(0.72 0.15 65);
+  --warning-foreground:    oklch(0.10 0.025 35);
+  --border:                oklch(1 0 0 / 10%);
+  --input:                 oklch(1 0 0 / 12%);
+  --ring:                  oklch(0.64 0.24 20);
+  --chart-1:               oklch(0.64 0.24 20);
+  --chart-2:               oklch(0.72 0.15 65);
+  --chart-3:               oklch(0.60 0.18 148);
+  --chart-4:               oklch(0.62 0.16 285);
+  --chart-5:               oklch(0.64 0.18 210);
+  --chart-6:               oklch(0.66 0.20 335);
+  --sidebar:               oklch(0.12 0.028 35);
+  --sidebar-foreground:    oklch(0.94 0.018 65);
+  --sidebar-primary:       oklch(0.64 0.24 20);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent:        oklch(0.20 0.028 35);
+  --sidebar-accent-foreground: oklch(0.85 0.015 65);
+  --sidebar-border:        oklch(1 0 0 / 10%);
+  --sidebar-ring:          oklch(0.64 0.24 20);
+  --color-alg: oklch(0.54 0.22 20);
+  --color-bio: oklch(0.50 0.16 148);
+  --color-eng: oklch(0.54 0.14 65);
+  --color-fre: oklch(0.50 0.16 285);
+  --color-pe:  oklch(0.50 0.16 210);
+  --color-dra: oklch(0.52 0.16 40);
+  --band-fg:         oklch(0.97 0.004 0);
+  --band-watermark:  oklch(1 0 0 / 0.20);
+}
+
+/* ── Arcane ──────────────────────────────────────────────────────────────── */
+/* Deep purple-black, Vi hot-pink primary, Jinx teal accent, copper warmth.  */
+html.theme-arcane {
+  --background:            oklch(0.10 0.05 285);
+  --foreground:            oklch(0.95 0.01 285);
+  --card:                  oklch(0.15 0.055 285);
+  --card-foreground:       oklch(0.95 0.01 285);
+  --popover:               oklch(0.15 0.055 285);
+  --popover-foreground:    oklch(0.95 0.01 285);
+  --primary:               oklch(0.72 0.26 340);
+  --primary-foreground:    oklch(0.98 0 0);
+  --secondary:             oklch(0.22 0.055 285);
+  --secondary-foreground:  oklch(0.86 0.015 285);
+  --muted:                 oklch(0.22 0.055 285);
+  --muted-foreground:      oklch(0.58 0.07 285);
+  --accent:                oklch(0.64 0.20 200);
+  --accent-foreground:     oklch(0.10 0.05 285);
+  --destructive:           oklch(0.68 0.22 15);
+  --destructive-foreground:oklch(0.98 0 0);
+  --success:               oklch(0.64 0.18 148);
+  --success-foreground:    oklch(0.98 0 0);
+  --warning:               oklch(0.72 0.14 65);
+  --warning-foreground:    oklch(0.10 0.05 285);
+  --border:                oklch(1 0 0 / 12%);
+  --input:                 oklch(1 0 0 / 14%);
+  --ring:                  oklch(0.72 0.26 340);
+  --chart-1:               oklch(0.72 0.26 340);
+  --chart-2:               oklch(0.64 0.20 200);
+  --chart-3:               oklch(0.72 0.14 65);
+  --chart-4:               oklch(0.62 0.22 285);
+  --chart-5:               oklch(0.64 0.18 148);
+  --chart-6:               oklch(0.68 0.16 42);
+  --sidebar:               oklch(0.12 0.055 285);
+  --sidebar-foreground:    oklch(0.95 0.01 285);
+  --sidebar-primary:       oklch(0.72 0.26 340);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent:        oklch(0.20 0.055 285);
+  --sidebar-accent-foreground: oklch(0.86 0.015 285);
+  --sidebar-border:        oklch(1 0 0 / 12%);
+  --sidebar-ring:          oklch(0.72 0.26 340);
+  --color-alg: oklch(0.58 0.24 340);
+  --color-bio: oklch(0.52 0.18 200);
+  --color-eng: oklch(0.58 0.14 65);
+  --color-fre: oklch(0.52 0.20 285);
+  --color-pe:  oklch(0.52 0.16 148);
+  --color-dra: oklch(0.54 0.16 40);
+  --band-fg:         oklch(0.97 0.004 0);
+  --band-watermark:  oklch(1 0 0 / 0.20);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+/* ── Music visualizer bar animation ─────────────────────────────────────── */
+@keyframes musicBar {
+  from { transform: scaleY(0.25); opacity: 0.5; }
+  to   { transform: scaleY(1);    opacity: 1;   }
+}
+
+/* ── Chip particle effects ───────────────────────────────────────────────── */
+@keyframes particle-rise {
+  0%   { transform: translateY(0px)   scale(1);    opacity: 0;   }
+  18%  { opacity: 0.75; }
+  100% { transform: translateY(-56px) scale(0.25); opacity: 0;   }
+}
+@keyframes particle-drift-l {
+  0%   { transform: translate(0px, 0px)    scale(1);    opacity: 0;   }
+  18%  { opacity: 0.65; }
+  100% { transform: translate(-18px,-48px) scale(0.2);  opacity: 0;   }
+}
+@keyframes particle-drift-r {
+  0%   { transform: translate(0px, 0px)   scale(1);    opacity: 0;   }
+  18%  { opacity: 0.65; }
+  100% { transform: translate(18px,-48px) scale(0.2);  opacity: 0;   }
+}
+
+/* ── Chip mascot animations ──────────────────────────────────────────────── */
+@keyframes chip-float {
+  0%, 100% { transform: translateY(0px); }
+  50%      { transform: translateY(-6px); }
+}
+@keyframes chip-blink {
+  0%, 88%, 100% { transform: scaleY(1); }
+  94%           { transform: scaleY(0.06); }
+}
+@keyframes chip-wag {
+  0%, 100% { transform: rotate(0deg); }
+  35%      { transform: rotate(16deg); }
+  70%      { transform: rotate(-10deg); }
+}
+@keyframes chip-paw-tap {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50%      { transform: translateY(-8px) rotate(-18deg); }
+}
+@keyframes chip-bubble-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes detail-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.985); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+@keyframes slide-out-left {
+  from { opacity: 1; transform: translateX(0)     scale(1); }
+  to   { opacity: 0; transform: translateX(-28px) scale(0.98); }
+}
+@keyframes slide-out-right {
+  from { opacity: 1; transform: translateX(0)    scale(1); }
+  to   { opacity: 0; transform: translateX(28px) scale(0.98); }
+}
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-28px) scale(0.98); }
+  to   { opacity: 1; transform: translateX(0)     scale(1); }
+}
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(28px) scale(0.98); }
+  to   { opacity: 1; transform: translateX(0)    scale(1); }
+}
+@keyframes grid-card-out {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.96); }
+}
+@keyframes lamp-glow-in {
+  from { opacity: 0; transform: scale(0.55); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes lamp-beam-in {
+  from { opacity: 0; transform: scaleX(0.2); }
+  to   { opacity: 1; transform: scaleX(1); }
+}
+.lamp-glow {
+  animation: lamp-glow-in 1.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: center;
+}
+.lamp-beam {
+  animation: lamp-beam-in 1.3s 0.12s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: center;
+}
+
+@keyframes info-panel-in {
+  from { opacity: 0; transform: translateY(-6px) scaleY(0.96); }
+  to   { opacity: 1; transform: translateY(0)    scaleY(1); }
+}
+.info-panel-in {
+  animation: info-panel-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: top;
+}
+
+@keyframes scrape-bar-in {
+  from { opacity: 0; transform: translateY(-100%); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.scrape-bar-in {
+  animation: scrape-bar-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Family sprite animations ───────────────────────────────────────────── */
+@keyframes familyBobAnim {
+  0%, 100% { transform: translateY(0px); }
+  50%      { transform: translateY(-4px); }
+}
+@keyframes allenBlink {
+  0%, 86%, 100% { transform: scaleY(1); }
+  90%, 94%      { transform: scaleY(0.05); }
+}
+@keyframes allenWaveAnim {
+  0%, 100% { transform: rotate(0deg); }
+  20%      { transform: rotate(-14deg); }
+  35%      { transform: rotate(4deg); }
+  50%      { transform: rotate(-14deg); }
+  65%      { transform: rotate(4deg); }
+  80%      { transform: rotate(0deg); }
+}
+
+/* ── Theme mascot animations (cyberpunk / minecraft / stranger-things / arcane) ─ */
+@keyframes mascotGlowPulse {
+  0%, 100% { opacity: 0.45; }
+  50%      { opacity: 1; }
+}
+@keyframes mascotSwingAnim {
+  0%, 100% { transform: rotate(0deg); }
+  30%      { transform: rotate(-22deg); }
+  55%      { transform: rotate(10deg); }
+  100%     { transform: rotate(0deg); }
+}
+@keyframes mascotHairShiftAnim {
+  0%, 100% { transform: translateX(0px); }
+  50%      { transform: translateX(1.5px); }
+}
+@keyframes cameraFlashAnim {
+  0%, 74%, 100% { opacity: 0; }
+  77%, 79%      { opacity: 0.92; }
+  82%           { opacity: 0.35; }
+  85%, 87%      { opacity: 0.92; }
+  90%           { opacity: 0; }
+}
+@keyframes eveGlowAnim {
+  0%, 100% { opacity: 0.18; }
+  50%      { opacity: 0.55; }
+}
+@keyframes capeSway {
+  0%, 100% { transform: skewX(0deg); }
+  50%      { transform: skewX(2.5deg); }
+}
+
+/* ── Mascot entrance (springy bounce) ───────────────────────────────────── */
+@keyframes mascot-spring-in {
+  0%   { opacity: 0; transform: translateY(20px) scale(0.82); }
+  55%  { opacity: 1; transform: translateY(-5px) scale(1.04); }
+  75%  { transform: translateY(2px) scale(0.98); }
+  90%  { transform: translateY(-1px) scale(1.01); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/* ── Stagger card entrance ───────────────────────────────────────────────── */
+@keyframes card-slide-up {
+  from { opacity: 0; transform: translateY(18px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+/* ── Right panel section fade-slide ─────────────────────────────────────── */
+@keyframes panel-fade-in {
+  from { opacity: 0; transform: translateX(12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Card press interaction ──────────────────────────────────────────────── */
+.card-press {
+  transition: transform 150ms cubic-bezier(0.22, 1, 0.36, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+.card-press:active {
+  transform: scale(0.97);
+}
+
+/* ── Reduced motion ──────────────────────────────────────────────────────── */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  transition-duration: 0.01ms !important;
+  animation-duration: 0.01ms !important;
+}
+
+/* ── Scrollbar styling ───────────────────────────────────────────────────── */
+@layer base {
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: oklch(0 0 0 / 15%);
+    border-radius: 999px;
+  }
+  .dark ::-webkit-scrollbar-thumb,
+  html.theme-mark ::-webkit-scrollbar-thumb,
+  html.theme-thragg ::-webkit-scrollbar-thumb { background: oklch(1 0 0 / 15%); }
+}

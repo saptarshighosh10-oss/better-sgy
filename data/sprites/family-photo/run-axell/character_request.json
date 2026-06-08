@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "character_id": "axell",
+  "display_name": "Axell",
+  "description": "A configurable 2D game character sprite: original large orange alien character with a bulky rounded muscular body. Bright orange skin. Bald head. Most distinctive feature: one single large round eye centered in the face (cyclops). Wide friendly mouth. No normal nose. Big thick arms, large hands. Wears simple dark gray shorts or minimal outfit. Stands slightly wider than a human, thick legs, shorter proportions than the hero characters but much wider and bulkier.",
+  "created_at": "2026-06-06T10:54:15.161981+00:00",
+  "atlas": {
+    "columns": 8,
+    "rows": 1,
+    "cell_width": 128,
+    "cell_height": 192,
+    "width": 1024,
+    "height": 192
+  },
+  "animations": [
+    {
+      "name": "idle-lineup",
+      "row": 0,
+      "frames": 8,
+      "action": "standing in a lineup for a family photo with the hero group, weight shifting slightly, single eye blinking slowly once during the loop, wide friendly smile, big arms at sides looking oddly cheerful about the whole thing",
+      "fps": 12
+    }
+  ],
+  "layout_guides": [
+    {
+      "animation": "idle-lineup",
+      "path": "references/layout-guides/idle-lineup.png",
+      "width": 1024,
+      "height": 192,
+      "frames": 8,
+      "cell_width": 128,
+      "cell_height": 192,
+      "safe_margin_x": 12,
+      "safe_margin_y": 19,
+      "usage": "layout guide input only; do not copy visible guide lines into generated sprite strips"
+    }
+  ],
+  "references": [],
+  "chroma_key": {
+    "hex": "#FF00FF",
+    "rgb": [
+      255,
+      0,
+      255
+    ],
+    "name": "magenta",
+    "selection": "fallback"
+  },
+  "character_notes": "original large orange alien character with a bulky rounded muscular body. Bright orange skin. Bald head. Most distinctive feature: one single large round eye centered in the face (cyclops). Wide friendly mouth. No normal nose. Big thick arms, large hands. Wears simple dark gray shorts or minimal outfit. Stands slightly wider than a human, thick legs, shorter proportions than the hero characters but much wider and bulkier.",
+  "style_preset": "cartoon-hd",
+  "style_notes": "clean 2D comic flat colors, thick black outlines, orange and blue single eye, bold alien silhouette, no gradients, friendly expression despite massive size, animated series style",
+  "style_contract": "clean 2D cartoon game sprite style, vector-clean edges but raster output, bold outline, flat cel shading, readable full-body poses, no 3D render, no glossy app icon lighting. Additional user style notes: clean 2D comic flat colors, thick black outlines, orange and blue single eye, bold alien silhouette, no gradients, friendly expression despite massive size, animated series style",
+  "view": "front-facing",
+  "mirror_pairs": {},
+  "primary_generation_skill": "$imagegen"
+}

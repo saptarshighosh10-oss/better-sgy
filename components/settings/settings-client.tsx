@@ -137,12 +137,33 @@ function fmtAge(ms: number | null) {
 
 const BUSY_STATUSES = ['opening_browser', 'waiting_login', 'checkingSession', 'scraping', 'parsing', 'saving']
 
-function ConnectButton({ target, st, onRefresh }: { target: 'schoology' | 'gmail'; st: ScrapeTargetState; onRefresh: () => void }) {
+function ConnectButton({
+  target, st, onRefresh, onDone,
+}: {
+  target: 'schoology' | 'gmail'
+  st: ScrapeTargetState
+  onRefresh: () => void
+  onDone: (succeeded: boolean) => void
+}) {
   const busy = BUSY_STATUSES.includes(st.status)
 
   async function trigger(action: 'connect' | 'refresh' | 'disconnect') {
     await fetch('/api/scrape', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target, action }) })
     onRefresh()
+
+    if (action === 'disconnect') return
+
+    // Poll until the scraper finishes, then let the parent know
+    const poll = async (): Promise<void> => {
+      const s: ScrapeStatus = await fetch('/api/scrape').then(r => r.json())
+      onRefresh() // keep the status UI live
+      if (BUSY_STATUSES.includes(s[target].status)) {
+        await new Promise(r => setTimeout(r, 1500))
+        return poll()
+      }
+      onDone(s[target].status === 'done')
+    }
+    await poll()
   }
 
   if (busy) {
@@ -210,33 +231,33 @@ export function SettingsClient() {
   const setLastUpdated  = useAppStore((s) => s.setLastUpdated)
   const setRefreshState = useAppStore((s) => s.setRefreshState)
   const [scrape, setScrape] = useState<ScrapeStatus | null>(null)
-  const prevStatus = useRef<{ schoology: string; gmail: string }>({ schoology: '', gmail: '' })
 
   function loadScrapeStatus() {
     fetch('/api/scrape').then(r => r.json()).then((s: ScrapeStatus) => {
-      // Refresh grades cache + topbar state whenever any busy phase transitions to done
-      if (BUSY_STATUSES.includes(prevStatus.current.schoology) && s.schoology.status === 'done') {
-        refreshGradesCache()
-        setLastUpdated(new Date().toISOString())
-        setRefreshState('fresh')
-      }
-      if (BUSY_STATUSES.includes(prevStatus.current.schoology) && s.schoology.status === 'error') {
-        setRefreshState('failed')
-      }
-      prevStatus.current = { schoology: s.schoology.status, gmail: s.gmail.status }
       setScrape(s)
     }).catch(() => {})
   }
 
+  // Called by ConnectButton once it has polled and confirmed the scrape finished
+  function handleDone(target: 'schoology' | 'gmail', succeeded: boolean) {
+    loadScrapeStatus()
+    if (target === 'schoology') {
+      if (succeeded) {
+        refreshGradesCache()
+        setLastUpdated(new Date().toISOString())
+        setRefreshState('fresh')
+      } else {
+        setRefreshState('failed')
+      }
+    }
+  }
+
   useEffect(() => {
     loadScrapeStatus()
-    const interval = setInterval(() => {
-      if (scrape && (BUSY_STATUSES.includes(scrape.gmail.status) || BUSY_STATUSES.includes(scrape.schoology.status))) {
-        loadScrapeStatus()
-      }
-    }, 2000)
-    return () => clearInterval(interval)
-  }, [scrape?.gmail.status, scrape?.schoology.status]) // eslint-disable-line react-hooks/exhaustive-deps
+    // Lightweight background poll — keeps the status row fresh while busy
+    const id = setInterval(loadScrapeStatus, 2000)
+    return () => clearInterval(id)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Apply reduced-motion class to <html> so CSS transitions respect it
   useEffect(() => {
@@ -501,7 +522,7 @@ export function SettingsClient() {
             }
           >
             {scrape ? (
-              <ConnectButton target="schoology" st={scrape.schoology} onRefresh={loadScrapeStatus} />
+              <ConnectButton target="schoology" st={scrape.schoology} onRefresh={loadScrapeStatus} onDone={(ok) => handleDone('schoology', ok)} />
             ) : (
               <span className="text-[11px] text-muted-foreground">…</span>
             )}
@@ -528,7 +549,7 @@ export function SettingsClient() {
             }
           >
             {scrape ? (
-              <ConnectButton target="gmail" st={scrape.gmail} onRefresh={loadScrapeStatus} />
+              <ConnectButton target="gmail" st={scrape.gmail} onRefresh={loadScrapeStatus} onDone={(ok) => handleDone('gmail', ok)} />
             ) : (
               <span className="text-[11px] text-muted-foreground">…</span>
             )}

@@ -228,11 +228,10 @@ export function Topbar() {
         status = await fetch('/api/scrape').then((r) => r.json())
       } while (inFlight(status.schoology) || inFlight(status.gmail))
 
-      const failed = status.schoology.status === 'error' || status.gmail.status === 'error'
+      // Schoology is the primary data source — its failure = real failure.
+      // Gmail is optional; if it was never connected it will error and that's fine.
+      const failed = status.schoology.status === 'error'
       setRefreshState(failed ? 'failed' : 'fresh')
-      // On success, record now as the update timestamp.
-      // On failure, keep the existing lastUpdated so the label reflects the last
-      // GOOD data age rather than implying fresh data just landed.
       if (!failed) {
         setLastUpdated(new Date().toISOString())
         refreshGradesCache()

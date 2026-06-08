@@ -348,11 +348,11 @@ function GradeTimelineChart({
                           <text x={tipX} y={tipY + 13} textAnchor="middle"
                             fontSize="9" fontWeight="600" className="fill-card-foreground"
                             style={{ pointerEvents: 'none' }}>
-                            {p.whatIfGrade.toFixed(1)}%
+                            {p.whatIfGrade.toFixed(2)}%
                           </text>
                           <text x={tipX} y={tipY + 24} textAnchor="middle" fontSize="7"
                             className="fill-muted-foreground" style={{ pointerEvents: 'none' }}>
-                            was {p.origGrade.toFixed(1)}% before changes
+                            was {p.origGrade.toFixed(2)}% before changes
                           </text>
                           <text x={tipX} y={tipY + 36} textAnchor="middle" fontSize="7.5"
                             className="fill-muted-foreground" style={{ pointerEvents: 'none' }}>
@@ -372,7 +372,7 @@ function GradeTimelineChart({
                           <text x={tipX} y={tipY + 13} textAnchor="middle"
                             fontSize="9" fontWeight="600" className="fill-card-foreground"
                             style={{ pointerEvents: 'none' }}>
-                            {p.origGrade.toFixed(1)}%
+                            {p.origGrade.toFixed(2)}%
                           </text>
                           <text x={tipX} y={tipY + 26} textAnchor="middle" fontSize="7.5"
                             className="fill-muted-foreground" style={{ pointerEvents: 'none' }}>
@@ -479,7 +479,7 @@ function WhatIfCalculator({
                        : 'bg-red-500/10 text-red-500 dark:text-red-400'
             )}>
               {diff >= 0 ? '+' : ''}{diff.toFixed(2)}%
-              <span className="font-medium opacity-70">→ {calcedGrade.toFixed(1)}% {gradeLetterFrom(calcedGrade)}</span>
+              <span className="font-medium opacity-70">→ {calcedGrade.toFixed(2)}% {gradeLetterFrom(calcedGrade)}</span>
             </div>
           )}
           {hasChanges && (
@@ -720,7 +720,7 @@ export function CourseDetail({ course, semesterLabel, onBack, courses, courseInd
   const delta = course.trendData.length >= 2
     ? course.trendData[course.trendData.length - 1] - course.trendData[0]
     : 0
-  const deltaLabel = delta === 0 ? null : `${delta > 0 ? '+' : ''}${delta.toFixed(1)}%`
+  const deltaLabel = delta === 0 ? null : `${delta > 0 ? '+' : ''}${delta.toFixed(2)}%`
   const deltaColor = delta > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'
 
   const allMissing = course.categories.flatMap(cat =>
@@ -799,7 +799,7 @@ export function CourseDetail({ course, semesterLabel, onBack, courses, courseInd
           </div>
           <div className="text-right">
             <p className={cn('text-4xl font-bold tabular-nums leading-none', gradeColor(displayGrade))}>
-              {displayGrade.toFixed(1)}<span className="text-2xl">%</span>
+              {displayGrade.toFixed(2)}<span className="text-2xl">%</span>
             </p>
             <p className="mt-1 text-base font-semibold text-muted-foreground">{displayLetter}</p>
             {gradeDiff !== null && (
@@ -843,7 +843,7 @@ export function CourseDetail({ course, semesterLabel, onBack, courses, courseInd
                       <span className="text-[10px] text-muted-foreground">{cat.weight}% weight</span>
                       <span className={cn('text-[12px] font-semibold tabular-nums',
                         avg !== null ? gradeColor(avg) : 'text-muted-foreground/40')}>
-                        {avg !== null ? `${avg.toFixed(1)}%` : '—'}
+                        {avg !== null ? `${avg.toFixed(2)}%` : '—'}
                       </span>
                     </div>
                   </div>
@@ -879,7 +879,7 @@ export function CourseDetail({ course, semesterLabel, onBack, courses, courseInd
                     <p className="text-[10px] text-muted-foreground">{a.catName}</p>
                   </div>
                   <span className="shrink-0 text-[12px] font-semibold tabular-nums text-red-500 dark:text-red-400">
-                    {a.percent?.toFixed(1)}%
+                    {a.percent?.toFixed(2)}%
                   </span>
                 </div>
               ))}
@@ -901,7 +901,7 @@ export function CourseDetail({ course, semesterLabel, onBack, courses, courseInd
                     <p className="text-[10px] text-muted-foreground">{a.catName}</p>
                   </div>
                   <span className="shrink-0 text-[12px] font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
-                    {a.percent?.toFixed(1)}%
+                    {a.percent?.toFixed(2)}%
                   </span>
                 </div>
               ))}

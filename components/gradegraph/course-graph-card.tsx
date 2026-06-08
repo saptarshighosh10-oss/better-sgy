@@ -87,7 +87,7 @@ export function CourseGraphCard({ course, onClick, exiting }: Props) {
   const delta = course.trendData.length >= 2
     ? course.trendData[course.trendData.length - 1] - course.trendData[0]
     : 0
-  const deltaLabel = delta === 0 ? '—' : `${delta > 0 ? '+' : ''}${delta.toFixed(1)}%`
+  const deltaLabel = delta === 0 ? '—' : `${delta > 0 ? '+' : ''}${delta.toFixed(2)}%`
   const deltaColor = delta > 0 ? 'text-emerald-600 dark:text-emerald-400' : delta < 0 ? 'text-red-500 dark:text-red-400' : 'text-muted-foreground'
 
   // 5 most recently graded assignments by dueDate desc
@@ -135,7 +135,7 @@ export function CourseGraphCard({ course, onClick, exiting }: Props) {
         </div>
         <div className="shrink-0 text-right">
           <p className={cn('text-xl font-bold tabular-nums leading-tight', gradeColor(course.grade))}>
-            {course.grade.toFixed(1)}<span className="text-sm">%</span>
+            {course.grade.toFixed(2)}<span className="text-sm">%</span>
           </p>
           <p className="text-[11px] font-semibold text-muted-foreground leading-none">{course.letterGrade}</p>
           <p className={cn('text-[10px] font-semibold tabular-nums mt-0.5', deltaColor)}>

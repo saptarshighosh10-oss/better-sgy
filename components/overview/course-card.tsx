@@ -204,7 +204,7 @@ export function CourseCard({ course, semesterProgress }: Props) {
           </div>
           <div className="shrink-0 text-right">
             <p className={cn('text-xl font-bold tabular-nums leading-tight', gradeTextColor(course.grade))}>
-              {course.grade.toFixed(1)}
+              {course.grade.toFixed(2)}
               <span className="text-sm">%</span>
             </p>
             <p className="text-xs font-medium text-muted-foreground">{course.letterGrade}</p>

@@ -47,7 +47,7 @@ const STATE_CONFIG: Record<ChipState, {
   good: {
     title: 'All caught up.',
     message: (p) =>
-      `Nothing overdue. Semester average sitting at ${p.avgGrade.toFixed(1)}%. Solid work.`,
+      `Nothing overdue. Semester average sitting at ${p.avgGrade.toFixed(2)}%. Solid work.`,
     color: 'text-emerald-600 dark:text-emerald-400',
     tagBg: 'bg-emerald-500/10',
     tagText: 'text-emerald-600 dark:text-emerald-400',
@@ -56,7 +56,7 @@ const STATE_CONFIG: Record<ChipState, {
   great: {
     title: 'Crushing it.',
     message: (p) =>
-      `Semester average ${p.avgGrade.toFixed(1)}% and nothing overdue. That's the grade you want.`,
+      `Semester average ${p.avgGrade.toFixed(2)}% and nothing overdue. That's the grade you want.`,
     color: 'text-emerald-600 dark:text-emerald-400',
     tagBg: 'bg-emerald-500/10',
     tagText: 'text-emerald-600 dark:text-emerald-400',
@@ -133,7 +133,7 @@ export function ChipZone(props: Props) {
             <span className="inline-flex items-center gap-1 rounded-md border border-border bg-muted/60 px-2.5 py-1 text-[11px] text-muted-foreground">
               Avg grade
               <span className="font-semibold text-foreground tabular-nums ml-0.5">
-                {props.avgGrade.toFixed(1)}%
+                {props.avgGrade.toFixed(2)}%
               </span>
             </span>
             {props.missingCount > 0 && (

@@ -140,7 +140,7 @@ function SemesterAccordion({
         <div className="flex shrink-0 items-center gap-3">
           {avgGrade !== null && !isUpcoming && (
             <span className="text-[13px] font-semibold tabular-nums text-muted-foreground">
-              {avgGrade.toFixed(1)}% avg
+              {avgGrade.toFixed(2)}% avg
             </span>
           )}
           {!isUpcoming && (

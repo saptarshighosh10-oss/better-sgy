@@ -35,8 +35,8 @@ function cleanName(raw: string): string {
     .replace(/Note:\s*This material[^]*?Schoology\.?/i, '')
     // Strip trailing type labels injected by visually-hidden spans (no space before them)
     .replace(/\s*(external-tool-link|external-tool)\s*$/i, '')
-    .replace(/\s*(test-quiz|test-|assignment|quiz)\s*$/i, '')
-    .replace(/^(test-quiz|test-|assignment|quiz)\s*/i, '')
+    .replace(/\s*(test-quiz|test-|assignment\b|quiz\b)\s*$/i, '')
+    .replace(/^(test-quiz|test-|assignment\b|quiz\b)\s*/i, '')
     // Strip "Category" suffix on category names
     .replace(/Category$/i, '')
     .trim()
@@ -131,7 +131,12 @@ function transform(data: ScrapedData): { years: SchoolYear[]; analytics: Analyti
 
         const assignments: Assignment[] = cat.assignments.map((a, ai) => {
           const aName = cleanName(a.name) || a.name
-          const score = a.score ? parseFloat(String(a.score)) : null
+          const rawScore = a.score ? parseFloat(String(a.score)) : null
+          // Round to 2 decimal places — Schoology stores unrounded internal values
+          // (e.g. 9.65517) but displays rounded scores (9.66). Match that.
+          const score = (rawScore !== null && !isNaN(rawScore))
+            ? Math.round(rawScore * 100) / 100
+            : null
           const max   = cleanMaxGrade(String(a.maxGrade ?? ''))
           const dueDate = parseDateUS(a.dueDate)
           return {
@@ -140,7 +145,7 @@ function transform(data: ScrapedData): { years: SchoolYear[]; analytics: Analyti
             courseId,
             categoryId: catId,
             categoryName: catName,
-            score: (score !== null && isNaN(score)) ? null : score,
+            score: score,
             pointsPossible: max,
             percent: (score !== null && !isNaN(score) && max > 0)
               ? Math.round(score / max * 1000) / 10

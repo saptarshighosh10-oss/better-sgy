@@ -67,22 +67,30 @@ async function scrapeAllCourses(page: import('puppeteer-core').Page): Promise<{
 
       const categories: ScrapedCategory[] = []
       let currentCat: ScrapedCategory | null = null
+      // Track whether we're inside a hidden grading-period section (e.g. the
+      // "(no grading period)" phantom section Schoology appends at the bottom).
+      // Skipping at the period level rather than per-row means individual item
+      // rows that happen to carry the `hidden` class (e.g. submitted-pending
+      // assignments) are still processed in the real grading period.
+      let inHiddenSection = false
 
       courseDiv.querySelectorAll('.report-row').forEach(row => {
         const cl = row.classList
 
-        // Schoology renders a hidden "(no grading period)" placeholder section
-        // that re-lists every category name with zero assignments — skip it or
-        // each course ends up with duplicate empty categories.
-        if (cl.contains('hidden')) return
-
         if (cl.contains('period-row')) {
-          // Capture grading period name (e.g. "25-26 T2")
-          const periodText = row.querySelector('.title')?.textContent
-            ?.replace(/\bGrading Period\b/g, '').trim() ?? ''
-          if (periodText && !gradingPeriod) gradingPeriod = periodText
+          inHiddenSection = cl.contains('hidden')
+          if (!inHiddenSection) {
+            // Capture grading period name (e.g. "25-26 T2")
+            const periodText = row.querySelector('.title')?.textContent
+              ?.replace(/\bGrading Period\b/g, '').trim() ?? ''
+            if (periodText && !gradingPeriod) gradingPeriod = periodText
+          }
+          return
+        }
 
-        } else if (cl.contains('category-row')) {
+        if (inHiddenSection) return
+
+        if (cl.contains('category-row')) {
           const rawName = row.querySelector('.title')?.textContent
             ?.replace(/\bCategory\b/g, '').trim() ?? ''
           const weight  = row.querySelector('.percentage-contrib')
@@ -98,8 +106,8 @@ async function scrapeAllCourses(page: import('puppeteer-core').Page): Promise<{
           const aName = rawName
             .replace(/Note:\s*This material[^]*?Schoology\.?/i, '')
             .replace(/\s*(external-tool-link|external-tool)\s*$/i, '')
-            .replace(/\s*(test-quiz|test-|assignment|quiz)\s*$/i, '')
-            .replace(/^(test-quiz|test-|assignment|quiz)\s*/i, '')
+            .replace(/\s*(test-quiz|test-|assignment\b|quiz\b)\s*$/i, '')
+            .replace(/^(test-quiz|test-|assignment\b|quiz\b)\s*/i, '')
             .trim()
           if (!aName) return
 

@@ -147,17 +147,24 @@ export function GradeCalculator({ course }: { course: Course }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex w-full items-center justify-between rounded-xl border border-dashed border-border bg-card px-4 py-3 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:bg-card/80 hover:text-foreground"
+        className="group flex w-full items-center gap-0 overflow-hidden rounded-xl border border-border bg-card transition-all hover:shadow-sm"
       >
-        <span className="flex items-center gap-2">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <rect x="2" y="3" width="20" height="14" rx="2"/>
-            <line x1="8" y1="21" x2="16" y2="21"/>
-            <line x1="12" y1="17" x2="12" y2="21"/>
-          </svg>
-          Grade Calculator
-        </span>
-        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
+        {/* Left accent stripe in course color */}
+        <div className="w-1 self-stretch" style={{ backgroundColor: course.color }} aria-hidden="true" />
+        <div className="flex flex-1 items-center gap-3 px-4 py-3">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground" aria-hidden="true">
+              <rect x="2" y="3" width="20" height="14" rx="2"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+          </div>
+          <div className="text-left">
+            <p className="text-[12px] font-semibold text-foreground">Grade Calculator</p>
+            <p className="text-[10px] text-muted-foreground">What-if grades · target score</p>
+          </div>
+        </div>
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true" className="mr-4 shrink-0 text-muted-foreground/50 transition-transform group-hover:translate-x-0.5">
           <polyline points="9 18 15 12 9 6"/>
         </svg>
       </button>

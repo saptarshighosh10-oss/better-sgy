@@ -3,7 +3,7 @@
 import { useAppStore } from '@/store/use-app-store'
 import { MASCOT_PRESETS } from '@/components/mascot/preset-mascots'
 
-type ChipState = 'alert' | 'focus' | 'good' | 'great'
+type ChipState = 'alert' | 'focus' | 'cruising' | 'solid' | 'great'
 
 type Props = {
   missingCount: number
@@ -12,10 +12,11 @@ type Props = {
 }
 
 const BUTCHER_IMG: Record<ChipState, string> = {
-  alert: '/mascot/butcher-angry.png',
-  focus: '/mascot/butcher-smirk.png',
-  good:  '/mascot/butcher-happy.png',
-  great: '/mascot/butcher-happy.png',
+  alert:    '/mascot/butcher-angry.png',
+  focus:    '/mascot/butcher-smirk.png',
+  cruising: '/mascot/butcher-smirk.png',
+  solid:    '/mascot/butcher-happy.png',
+  great:    '/mascot/butcher-happy.png',
 }
 
 const STATE_CONFIG: Record<ChipState, {
@@ -44,19 +45,28 @@ const STATE_CONFIG: Record<ChipState, {
     tagText: 'text-primary',
     tagLabel: 'On track',
   },
-  good: {
-    title: 'All caught up.',
+  cruising: {
+    title: 'Hanging in there.',
     message: (p) =>
-      `Nothing overdue. Semester average sitting at ${p.avgGrade.toFixed(2)}%. Solid work.`,
+      `Nothing overdue. Average at ${p.avgGrade.toFixed(2)}% — there's room to push. Check what's dragging things down.`,
+    color: 'text-amber-600 dark:text-amber-400',
+    tagBg: 'bg-amber-500/10',
+    tagText: 'text-amber-600 dark:text-amber-400',
+    tagLabel: 'Steady',
+  },
+  solid: {
+    title: 'Looking good.',
+    message: (p) =>
+      `Nothing overdue and a solid ${p.avgGrade.toFixed(2)}% average. Keep that energy going.`,
     color: 'text-emerald-600 dark:text-emerald-400',
     tagBg: 'bg-emerald-500/10',
     tagText: 'text-emerald-600 dark:text-emerald-400',
     tagLabel: 'All clear',
   },
   great: {
-    title: 'Crushing it.',
+    title: 'Absolutely crushing it.',
     message: (p) =>
-      `Semester average ${p.avgGrade.toFixed(2)}% and nothing overdue. That's the grade you want.`,
+      `${p.avgGrade.toFixed(2)}% average and zero overdue work. That's the GPA you brag about.`,
     color: 'text-emerald-600 dark:text-emerald-400',
     tagBg: 'bg-emerald-500/10',
     tagText: 'text-emerald-600 dark:text-emerald-400',
@@ -67,8 +77,9 @@ const STATE_CONFIG: Record<ChipState, {
 function resolveState(p: Props): ChipState {
   if (p.missingCount > 0) return 'alert'
   if (p.upcomingCount > 0) return 'focus'
-  if (p.avgGrade >= 93) return 'great'
-  return 'good'
+  if (p.avgGrade >= 95) return 'great'
+  if (p.avgGrade >= 88) return 'solid'
+  return 'cruising'
 }
 
 export function ChipZone(props: Props) {

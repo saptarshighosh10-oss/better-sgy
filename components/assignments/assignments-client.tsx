@@ -22,6 +22,20 @@ const GROUP_LABELS: Record<GroupKey, string> = {
 }
 const GROUP_ORDER: GroupKey[] = ['thisWeek', 'nextWeek', 'later', 'past']
 
+const GROUP_ACCENT: Record<GroupKey, string> = {
+  thisWeek: 'bg-primary',
+  nextWeek: 'bg-amber-500',
+  later:    'bg-muted-foreground/30',
+  past:     'bg-muted-foreground/20',
+}
+
+const GROUP_BADGE: Record<GroupKey, string> = {
+  thisWeek: 'bg-primary/10 text-primary',
+  nextWeek: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+  later:    'bg-muted text-muted-foreground',
+  past:     'bg-muted text-muted-foreground',
+}
+
 function getGroup(a: Assignment): GroupKey {
   // Anything already actioned — graded, submitted, missing, excused, incomplete, late — goes to past
   if (
@@ -211,11 +225,15 @@ export function AssignmentsClient() {
 
           return (
             <section key={key} aria-label={GROUP_LABELS[key]}>
-              <div className="mb-2 flex items-center gap-2">
-                <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <div className="mb-2 flex items-center gap-2.5">
+                <div className={cn('h-3.5 w-1 shrink-0 rounded-full', GROUP_ACCENT[key])} aria-hidden="true" />
+                <h2 className={cn(
+                  'text-xs font-semibold uppercase tracking-wider',
+                  key === 'thisWeek' ? 'text-foreground' : 'text-muted-foreground'
+                )}>
                   {key === 'past' ? pastLabel(statusFilter) : GROUP_LABELS[key]}
                 </h2>
-                <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground tabular-nums">
+                <span className={cn('rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums', GROUP_BADGE[key])}>
                   {items.length}
                 </span>
               </div>

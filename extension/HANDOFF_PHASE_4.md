@@ -301,8 +301,9 @@ Walk each course's Materials page:
 
 ### Files changed
 - `components/CourseGradebook.tsx` — updated (added dynamic timeline math + custom interactive chart component)
+- `components/pages/GradesPage.tsx` — updated (removed sidebar "missing" tag for clean alignment)
 
 ### Build result
 - `npx tsc --noEmit` → clean ✅
-- `npm run build` → 379.52 kB ✅
+- `npm run build` → 379.43 kB ✅
 

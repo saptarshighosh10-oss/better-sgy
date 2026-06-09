@@ -188,6 +188,27 @@ All same-origin (fuhsd.schoology.com), so the content script does it directly �
 
 ---
 
+## NEXT SESSION — start here
+
+**Done so far (all committed, all verified live):** materials tree, inline PDF/image viewer (zoom+download via bg-worker relay past files-cdn CORS), Google Slides/Drive/YouTube embeds (inline + auto-shown on pages), rich page rendering, discussions (read/post/delete), assignment submissions (text + file upload), grade chips, file sizes in tree, native Calendar (month grid + clickable day detail). De-FUHSD'd: works on any `*.schoology.com`.
+
+**Build/verify loop:** `cd ~/better-schoology/extension && npx tsc --noEmit && npm run build`, reload at chrome://extensions. Real-HTML dumps for testing parsers live in `extension/.debug/` (gitignored); reusable dumpers in `scripts/dump-*.mjs` + `scripts/verify-full-upload.mjs`.
+
+**Golden rules (learned the hard way):**
+- Don't guess Schoology selectors — dump the real page first (`scripts/dump-*.mjs` use the authenticated `.school-browser-profile`; if login auto-fails at Google account chooser, the raw-click recovery in `dump-materials.mjs` handles it; kill orphan Chrome with `ps aux | grep school-browser-profile | grep -v Frameworks`).
+- Always fetch Schoology pages via `sgyFetch` (browser Accept header — image pages 202-empty otherwise) and check `isWafChallenge`.
+- Forms with multiple `op` submit buttons: pick "Submit" explicitly (else you save a Draft / wrong action).
+
+**Remaining features, EASIEST → HARDEST:**
+1. **Updates feed** (recommended next, highest value): teacher announcements/posts. Recon: dump `/course/{id}/feed` or the home `/home` updates widget + `/course/{id}/updates`. Likely a comment-style list like discussions — reuse `RichBody` + the comment-post replay. New page + nav item (copy CalendarPage/AssignmentsPage pattern; nav icon in ExtSidebar NAV_ITEMS).
+2. **Messages** (`/messages`): inbox list + thread view + send. Send = form replay like comments. Moderate.
+3. **Calendar polish**: pull events (not just gradebook due dates) from `/calendar/feed` if assignment due dates feel incomplete.
+4. **Quizzes/tests** (HARDEST, maybe infeasible): Schoology renders these as a heavy JS SPA — taking them inline likely can't be replayed; may have to stay "open in Schoology". Recon before committing to it.
+
+**Pattern to add a page:** new `components/pages/XPage.tsx` (take `{ grades }` or fetch its own data via `sgyFetch`), add to `Page` type + render switch in `ExtRouter.tsx`, add nav entry in `ExtSidebar.tsx` NAV_ITEMS. Inline styles only, `T` color map at top of file.
+
+---
+
 ## Constraints Status
 
 - "No iframes for displaying Schoology content" — still honored for HTML content (everything is parsed + natively rendered). PDFs use `<embed>` with a **blob URL** (raw file bytes, not a Schoology page) — that's the only way to render a PDF without shipping a JS PDF renderer.

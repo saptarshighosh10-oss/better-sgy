@@ -60,3 +60,9 @@ next-env.d.ts
 /data/gmail-debug.png
 /data/schoology-debug.png
 /verify-overview.png
+
+# extension build artifacts + debug dumps (real student data — never commit)
+extension/node_modules/
+extension/.output/
+extension/.wxt/
+extension/.debug/

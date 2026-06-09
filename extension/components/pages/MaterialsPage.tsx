@@ -9,6 +9,7 @@ import {
   postDiscussionComment,
   deleteDiscussionComment,
   submitDropboxText,
+  submitDropboxFiles,
   resolveMaterialsUrl,
   resolveLinkWrapper,
   googleEmbedUrl,
@@ -181,6 +182,15 @@ export function MaterialsPage({ grades }: Props) {
     const result = await submitDropboxText(submitHref, text);
     if (result.success) {
       // Re-fetch the assignment page so the new revision shows in the panel
+      const data = await fetchItemContent(url);
+      setViewer(v => (v?.kind === 'content' && v.url === url) ? { kind: 'content', data, url, title } : v);
+    }
+    return result;
+  }
+
+  async function submitAssignmentFiles(url: string, title: string, submitHref: string, files: File[], text: string, onProgress: (m: string) => void) {
+    const result = await submitDropboxFiles(submitHref, files, text || undefined, onProgress);
+    if (result.success) {
       const data = await fetchItemContent(url);
       setViewer(v => (v?.kind === 'content' && v.url === url) ? { kind: 'content', data, url, title } : v);
     }
@@ -361,6 +371,7 @@ export function MaterialsPage({ grades }: Props) {
                 onBack={() => setViewer(null)}
                 onNavigate={openHref}
                 onSubmit={(submitHref, text) => submitAssignment(viewer.url, viewer.title, submitHref, text)}
+                onSubmitFiles={(submitHref, files, text, onProgress) => submitAssignmentFiles(viewer.url, viewer.title, submitHref, files, text, onProgress)}
               />
             </div>
           )}
@@ -1029,29 +1040,40 @@ function collectEmbeds(data: FetchedContent): { embedUrl: string; originalUrl: s
 
 // ── Submissions panel (assignment dropbox) ────────────────────────────────────
 
-function SubmissionsPanel({ info, assignmentUrl, onSubmit }: {
+function SubmissionsPanel({ info, assignmentUrl, onSubmit, onSubmitFiles }: {
   info: NonNullable<FetchedContent['submission']>;
   assignmentUrl: string;
   onSubmit: (submitHref: string, text: string) => Promise<{ success: boolean; error: string | null }>;
+  onSubmitFiles: (submitHref: string, files: File[], text: string, onProgress: (m: string) => void) => Promise<{ success: boolean; error: string | null }>;
 }) {
   const [composerOpen, setComposerOpen] = useState(false);
+  const [mode, setMode] = useState<'files' | 'text'>('files');
   const [draft, setDraft] = useState('');
+  const [files, setFiles] = useState<File[]>([]);
   const [state, setState] = useState<'idle' | 'sending' | 'done'>('idle');
+  const [progress, setProgress] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  function reset() {
+    setComposerOpen(false); setDraft(''); setFiles([]); setProgress('');
+  }
 
   async function handleSubmit() {
-    const text = draft.trim();
-    if (!text || state === 'sending') return;
-    setState('sending');
-    setError(null);
-    const result = await onSubmit(info.submitHref, text);
-    if (result.success) {
-      setState('done');
-      setDraft('');
-      setComposerOpen(false);
+    if (state === 'sending') return;
+    if (mode === 'text') {
+      const text = draft.trim();
+      if (!text) return;
+      setState('sending'); setError(null);
+      const result = await onSubmit(info.submitHref, text);
+      if (result.success) { setState('done'); reset(); }
+      else { setState('idle'); setError(result.error ?? 'Submission failed'); }
     } else {
-      setState('idle');
-      setError(result.error ?? 'Submission failed');
+      if (files.length === 0) return;
+      setState('sending'); setError(null); setProgress('');
+      const result = await onSubmitFiles(info.submitHref, files, draft.trim(), setProgress);
+      if (result.success) { setState('done'); reset(); }
+      else { setState('idle'); setProgress(''); setError(result.error ?? 'Upload failed'); }
     }
   }
 
@@ -1096,22 +1118,63 @@ function SubmissionsPanel({ info, assignmentUrl, onSubmit }: {
 
       {composerOpen && (
         <div style={{ marginTop: 10 }}>
-          <textarea
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            placeholder="Type your submission…"
-            rows={6}
-            style={{ width: '100%', boxSizing: 'border-box', resize: 'vertical', background: '#0d1019', border: `1px solid ${T.border}`, borderRadius: 8, padding: '9px 11px', fontSize: 13, color: T.text, lineHeight: 1.5, fontFamily: 'inherit', outline: 'none' }}
-          />
+          {/* Mode tabs */}
+          <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+            {(['files', 'text'] as const).map((m) => (
+              <button key={m} onClick={() => setMode(m)}
+                style={{ all: 'unset', cursor: 'pointer', fontSize: 12, fontWeight: 600, padding: '4px 12px', borderRadius: 7,
+                  background: mode === m ? T.activeBg : 'transparent', color: mode === m ? T.text : T.muted,
+                  border: `1px solid ${mode === m ? T.activeBorder + '60' : 'transparent'}` }}>
+                {m === 'files' ? 'Upload files' : 'Type text'}
+              </button>
+            ))}
+          </div>
+
+          {mode === 'files' && (
+            <div>
+              <input ref={fileInputRef} type="file" multiple style={{ display: 'none' }}
+                onChange={(e) => { setFiles(Array.from(e.target.files ?? [])); }} />
+              <button onClick={() => fileInputRef.current?.click()}
+                style={{ all: 'unset', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12, fontWeight: 600, color: '#c8d5e8', background: '#0d1019', border: `1px dashed ${T.border}`, borderRadius: 8, padding: '9px 14px' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" /></svg>
+                Choose file{files.length !== 1 ? 's' : ''}
+              </button>
+              {files.length > 0 && (
+                <div style={{ marginTop: 8 }}>
+                  {files.map((f, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#c8d5e8', padding: '3px 0' }}>
+                      <ItemIcon type={detectFileKind(f.name, f.name) === 'image' ? 'media' : 'document'} size={13} />
+                      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
+                      <span style={{ fontSize: 10, color: T.faint }}>{(f.size / 1024).toFixed(0)} KB</span>
+                      <button onClick={() => setFiles(files.filter((_, j) => j !== i))} style={{ all: 'unset', cursor: 'pointer', color: T.faint, fontSize: 13 }} title="Remove">×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <textarea value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Optional comment…" rows={2}
+                style={{ width: '100%', boxSizing: 'border-box', resize: 'vertical', marginTop: 8, background: '#0d1019', border: `1px solid ${T.border}`, borderRadius: 8, padding: '8px 11px', fontSize: 13, color: T.text, fontFamily: 'inherit', outline: 'none' }} />
+            </div>
+          )}
+
+          {mode === 'text' && (
+            <textarea value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Type your submission…" rows={6}
+              style={{ width: '100%', boxSizing: 'border-box', resize: 'vertical', background: '#0d1019', border: `1px solid ${T.border}`, borderRadius: 8, padding: '9px 11px', fontSize: 13, color: T.text, lineHeight: 1.5, fontFamily: 'inherit', outline: 'none' }} />
+          )}
+
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8 }}>
-            <button onClick={handleSubmit} disabled={!draft.trim() || state === 'sending'}
-              style={{ all: 'unset', cursor: !draft.trim() || state === 'sending' ? 'default' : 'pointer', background: !draft.trim() ? T.border : T.primary, color: !draft.trim() ? T.muted : '#fff', fontSize: 12, fontWeight: 600, padding: '6px 14px', borderRadius: 7, opacity: state === 'sending' ? 0.6 : 1 }}>
-              {state === 'sending' ? 'Submitting…' : 'Submit'}
-            </button>
-            <button onClick={() => setComposerOpen(false)} style={{ all: 'unset', cursor: 'pointer', fontSize: 12, color: T.muted }}>Cancel</button>
+            {(() => {
+              const canSubmit = mode === 'text' ? !!draft.trim() : files.length > 0;
+              return (
+                <button onClick={handleSubmit} disabled={!canSubmit || state === 'sending'}
+                  style={{ all: 'unset', cursor: !canSubmit || state === 'sending' ? 'default' : 'pointer', background: !canSubmit ? T.border : T.primary, color: !canSubmit ? T.muted : '#fff', fontSize: 12, fontWeight: 600, padding: '6px 14px', borderRadius: 7, opacity: state === 'sending' ? 0.6 : 1 }}>
+                  {state === 'sending' ? (progress || 'Submitting…') : 'Submit'}
+                </button>
+              );
+            })()}
+            <button onClick={reset} style={{ all: 'unset', cursor: 'pointer', fontSize: 12, color: T.muted }}>Cancel</button>
             <span style={{ flex: 1 }} />
             <a href={info.submitHref || assignmentUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: T.muted, textDecoration: 'none' }}>
-              Upload files in Schoology ↗
+              Open in Schoology ↗
             </a>
           </div>
           {error && (
@@ -1125,7 +1188,7 @@ function SubmissionsPanel({ info, assignmentUrl, onSubmit }: {
   );
 }
 
-function ContentViewer({ data, url, title, grade, onBack, onNavigate, onSubmit }: {
+function ContentViewer({ data, url, title, grade, onBack, onNavigate, onSubmit, onSubmitFiles }: {
   data: FetchedContent | null;
   url: string;
   title: string;
@@ -1133,6 +1196,7 @@ function ContentViewer({ data, url, title, grade, onBack, onNavigate, onSubmit }
   onBack: () => void;
   onNavigate: NavigateFn;
   onSubmit: (submitHref: string, text: string) => Promise<{ success: boolean; error: string | null }>;
+  onSubmitFiles: (submitHref: string, files: File[], text: string, onProgress: (m: string) => void) => Promise<{ success: boolean; error: string | null }>;
 }) {
   if (data === null) {
     return (
@@ -1227,7 +1291,7 @@ function ContentViewer({ data, url, title, grade, onBack, onNavigate, onSubmit }
 
           {/* Assignment dropbox: revision history + submit */}
           {data.submission && (
-            <SubmissionsPanel info={data.submission} assignmentUrl={url} onSubmit={onSubmit} />
+            <SubmissionsPanel info={data.submission} assignmentUrl={url} onSubmit={onSubmit} onSubmitFiles={onSubmitFiles} />
           )}
 
           {data.attachments.length > 0 && (

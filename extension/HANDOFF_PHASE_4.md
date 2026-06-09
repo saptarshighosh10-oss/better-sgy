@@ -172,7 +172,19 @@ Recon (all verified live, dumps in `.debug/raw-assignment.html` + `.debug/raw-su
 Implemented:
 - `fetch-materials.ts`: `SubmissionInfo`/`SubmissionRevision` types, `FetchedContent.submission`, `parseSubmissionInfo(doc, baseUrl)` (runs inside `fetchItemContent`), `submitDropboxText(submitUrl, text)` (form replay, WAF + session checks).
 - `MaterialsPage.tsx`: `SubmissionsPanel` in ContentViewer — revision list (status chip green/red, timestamp, view link → new tab) + Submit/Re-submit button → textarea composer → POST → re-fetch shows the new revision. The bare-file auto-redirect is suppressed when a dropbox exists so the panel can't be skipped.
-- **Text submission is UNTESTED live** (needs the user to actually submit something — teacher-visible). If POST succeeds but no new revision appears, dump the POST response and check whether the Create tab form needs `op` from its own submit button (multiple `op` inputs exist across the page's forms).
+- **Text submission VERIFIED live** (revision created end-to-end). Fix that mattered: the form has TWO submit buttons named `op` ("Submit" / "Save Draft") — replaying all inputs set both and the last (Save Draft) won, silently saving a draft. Now picks `op=Submit` explicitly.
+
+### File uploads (Phase 5b — VERIFIED live, revision 6 created with a real file)
+
+Decoded the full flow by capturing real uploads via CDP (`scripts/verify-full-upload.mjs` proves it end-to-end):
+1. GET `/assignment/{id}/dropbox/submit` → the page embeds `"file_service_upload":{"enabled":true,"url":"/file/upload-service","token":"<JWT>"}`. The JWT is short-lived (~1h, `iss:schoology`) — **always re-fetch the submit page right before uploading; never cache the token.**
+2. For each file: POST multipart to `/file/upload-service` with **header `Authorization: Bearer <token>`** and parts `name=<filename>`, `use_plain=1`, `file=<blob>` → `201 {"fileMetadataId":"<uuid>"}`. (Missing the Bearer header → 401; missing `name`/`use_plain` → 500. All three discovered via CDP `Network.getRequestPostData`.)
+3. POST the Upload-tab form (the one with `input[name="file[files]"]`) as **FormData** with `file[files]` = JSON `{ "<uuid>": { "title": "<filename>", "encode": true } }`, `op=Submit`, plus hidden form fields. Optional `submission` textarea text can ride along.
+All same-origin (fuhsd.schoology.com), so the content script does it directly — NO background worker (unlike file *downloads*, which cross to files-cdn).
+
+`submitDropboxFiles(submitUrl, files, text?, onProgress?)` in fetch-materials.ts. UI: SubmissionsPanel now has "Upload files" / "Type text" tabs; file mode uses a hidden `<input type=file multiple>` → chosen-file list (remove/size) + optional comment → progress text during upload. `submitDropboxText` kept for text-only.
+
+**Reusable probe scripts kept:** `scripts/dump-assignment*.mjs`, `dump-submit-form.mjs`, `verify-full-upload.mjs` (the canonical upload-flow reference). One-off capture scripts removed.
 
 ---
 

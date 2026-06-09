@@ -802,6 +802,97 @@ export async function submitDropboxText(submitUrl: string, text: string): Promis
   }
 }
 
+/**
+ * Submit FILES to an assignment dropbox. Verified-live flow:
+ *   1. GET the submit page → extract file_service_upload.token (JWT, ~1h) + url,
+ *      and the Upload-tab form (the one with input[name="file[files]"]).
+ *   2. For each file: POST multipart to /file/upload-service with parts
+ *      name=<filename>, use_plain=1, file=<blob>, header Authorization: Bearer
+ *      <token> → { fileMetadataId: uuid }.
+ *   3. POST the form (FormData) with file[files] = JSON map of
+ *      { uuid: { title, encode:true } }, op="Submit", + hidden fields.
+ * All same-origin, so the content script does it directly (no bg worker).
+ * Optional `text` also fills the submission textarea if present.
+ */
+export async function submitDropboxFiles(
+  submitUrl: string,
+  files: File[],
+  text?: string,
+  onProgress?: (msg: string) => void,
+): Promise<{ success: boolean; error: string | null }> {
+  try {
+    const res = await sgyFetch(submitUrl);
+    if (!res.ok) return { success: false, error: `HTTP ${res.status}` };
+    const html = await res.text();
+    if (isWafChallenge(html)) return { success: false, error: WAF_ERROR };
+    if (html.includes('id="edit-mail"') || html.includes('accounts.google.com')) {
+      return { success: false, error: 'Session expired' };
+    }
+
+    const tk = html.match(/"file_service_upload":\{"enabled":true,"url":"([^"]+)","token":"([^"]+)"/);
+    if (!tk) return { success: false, error: 'Upload not available for this assignment' };
+    const uploadUrl = new URL(tk[1].replace(/\\\//g, '/'), submitUrl).toString();
+    const token = tk[2];
+
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    let form: HTMLFormElement | null = null;
+    for (const f of Array.from(doc.querySelectorAll('form'))) {
+      if (f.querySelector('input[name="file[files]"]')) { form = f as HTMLFormElement; break; }
+    }
+    if (!form) return { success: false, error: 'No file-submission form found' };
+
+    // 1. upload each file
+    const fileMap: Record<string, { title: string; encode: boolean }> = {};
+    for (const file of files) {
+      onProgress?.(`Uploading ${file.name}…`);
+      const fd = new FormData();
+      fd.append('name', file.name);
+      fd.append('use_plain', '1');
+      fd.append('file', file, file.name);
+      const up = await fetch(uploadUrl, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { Authorization: 'Bearer ' + token },
+        body: fd,
+      });
+      if (!up.ok) return { success: false, error: `Upload of ${file.name} failed: HTTP ${up.status}` };
+      const meta = await up.json().catch(() => null) as { fileMetadataId?: string } | null;
+      if (!meta?.fileMetadataId) return { success: false, error: `Upload of ${file.name} returned no file id` };
+      fileMap[meta.fileMetadataId] = { title: file.name, encode: true };
+    }
+
+    // 2. submit the form referencing the uploaded files
+    onProgress?.('Submitting…');
+    const actionUrl = new URL(form.getAttribute('action') || submitUrl, submitUrl).toString();
+    const body = new FormData();
+    const submitButtons: string[] = [];
+    form.querySelectorAll('input').forEach((inp) => {
+      const name = inp.getAttribute('name');
+      if (!name || name === 'file[files]') return;
+      const type = (inp.getAttribute('type') || 'text').toLowerCase();
+      if (type === 'submit') { submitButtons.push(inp.getAttribute('value') ?? ''); return; }
+      if (type === 'button' || type === 'image' || type === 'file') return;
+      if ((type === 'checkbox' || type === 'radio') && !inp.hasAttribute('checked')) return;
+      body.append(name, inp.getAttribute('value') ?? '');
+    });
+    body.set('file[files]', JSON.stringify(fileMap));
+    if (text && form.querySelector('textarea[name="submission"]')) body.set('submission', text);
+    const opValue =
+      submitButtons.find((v) => /^submit$/i.test(v.trim())) ??
+      submitButtons.find((v) => /submit/i.test(v) && !/draft/i.test(v)) ??
+      'Submit';
+    body.set('op', opValue);
+
+    const post = await fetch(actionUrl, { method: 'POST', credentials: 'include', redirect: 'follow', body });
+    if (!post.ok) return { success: false, error: `Submit failed: HTTP ${post.status}` };
+    const postHtml = await post.text();
+    if (isWafChallenge(postHtml)) return { success: false, error: WAF_ERROR };
+    return { success: true, error: null };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 // ── Discussion comment posting ────────────────────────────────────────────────
 
 /**

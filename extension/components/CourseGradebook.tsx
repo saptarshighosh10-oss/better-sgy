@@ -56,6 +56,11 @@ const TH: React.CSSProperties = {
   userSelect: 'none',
 };
 
+function formatScoreNumber(val: number): string {
+  if (val % 1 === 0) return val.toFixed(0);
+  return val.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+}
+
 // ── Grade calculator math (ported from components/grades/grade-calculator.tsx) ──
 
 /** Parse weight string like "80%" → 80, "" → 0 */
@@ -607,7 +612,7 @@ function AssignmentRow({
   const color  = pct !== null ? gradeColor(pct) : assignment.status === 'unsubmitted' ? T.red : T.muted;
 
   const maxDisplay = maxNum !== null
-    ? `/${maxNum.toFixed(maxNum % 1 === 0 ? 0 : 2).replace(/\.?0+$/, '')}`
+    ? `/${formatScoreNumber(maxNum)}`
     : '';
 
   const statusBadge =
@@ -676,7 +681,7 @@ function AssignmentRow({
         ) : (
           <>
             {displayScore !== null
-              ? displayScore.toFixed(displayScore % 1 === 0 ? 0 : 2).replace(/\.?0+$/, '')
+              ? formatScoreNumber(displayScore)
               : '—'}
             {maxDisplay}
           </>

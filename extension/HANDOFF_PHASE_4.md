@@ -242,3 +242,47 @@ Walk each course's Materials page:
 - Drama → "Vote for Drama Awards!" (discussion thread)
 - Lit/Writ → "Welcome to Literature and Writing" (rich page w/ image), Unit 6 → Assignments → links (Google Docs → new tab)
 - PE 9 → Sports Handouts → "Tennis Handout.pdf" (inline), "Volleyball Handout.docx" (new tab)
+
+---
+
+## Phase 6 — grade calculator + sparklines
+
+**Date:** 2026-06-09
+
+### What was done
+
+**Task 1 — What-if grade calculator** (`components/CourseGradebook.tsx`):
+- Added a "What-if" toggle button with a visual switch in the course header.
+- When on, each assignment's score cell becomes a numeric `<input>` (prefilled with the real score; blank for ungraded so the user can type a hypothetical).
+- Grade recomputes live on every keystroke:
+  - Per-category: `catPct = Σscore / Σmax` over assignments that have a numeric score.
+  - Course grade: `Σ(catPct × weight) / Σweight`, summing only categories that have at least one scored assignment (renormalize).
+  - If ALL weights are empty/zero, falls back to total-points (unweighted) across all assignments.
+  - Weight strings like `"80%"` parsed to numbers; `maxGrade` strings like `"/ 20"` stripped to digits.
+- Shows recalculated course % next to the real one with a colored delta badge (green up / red down).
+- "Reset" button restores real scores.
+- Category average % shown in category headers when what-if is on.
+- Modified inputs get a subtle blue highlight.
+- All state local with `useState`; nothing persisted.
+- Math ported from `components/grades/grade-calculator.tsx` (read-only reference).
+
+**Task 2 — Grade history + sparklines**:
+- **(a)** `lib/grade-history.ts`: `appendGradeHistory(courses)` reads `chrome.storage.local` key `bs-grade-history` (shape: `Record<courseName, Array<{ ts: number; percent: number }>>`), appends today's percent per course (parsed from `ScrapedCourse.grade` strings like `"A (97.44%)"`), replaces any existing entry from the same calendar day, caps at 60 entries per course, writes back.
+- **(b)** Wired into `entrypoints/schoology.content.ts`: 1 import line + 1 call line after successful `saveGradeData()` — total 2 lines added.
+- **(c)** `components/pages/GradesPage.tsx`: loads history on mount via `loadGradeHistory()`, passes points to each `CourseListRow`. Each course renders a ~80×24px inline SVG sparkline: `<polyline>` for ≥2 points, single `<circle>` dot for 1 point, nothing for 0 points. No chart library.
+
+### Files changed
+- `components/CourseGradebook.tsx` — rewritten (34 → 323 lines)
+- `lib/grade-history.ts` — **NEW**
+- `components/pages/GradesPage.tsx` — updated (sparklines + history loading)
+- `entrypoints/schoology.content.ts` — 2 lines added (import + call)
+
+### Build result
+- `npx tsc --noEmit` → clean ✅
+- `npm run build` → 368.68 kB content script ✅
+
+### Left to do
+- Sparklines will show a single dot until history accumulates over multiple scrapes on different days — this is expected.
+- The "What Do I Need?" (target score) mode from the reference calculator was NOT ported — only what-if mode, per spec.
+- Grade history is never pruned beyond the 60-entry cap; old courses (from previous semesters) will persist until storage is cleared.
+

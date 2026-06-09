@@ -9,8 +9,9 @@
  * category averages (or total-points fallback if no weights exist).
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import type { ScrapedCourse, ScrapedCategory, ScrapedAssignment } from '../lib/schemas';
+import type { GradePoint } from '../lib/grade-history';
 import {
   parseGradeString,
   gradeColor,
@@ -136,9 +137,10 @@ function computeCourseGrade(
 
 interface Props {
   course: ScrapedCourse;
+  historyPoints?: GradePoint[];
 }
 
-export function CourseGradebook({ course }: Props) {
+export function CourseGradebook({ course, historyPoints = [] }: Props) {
   const { letter, percent } = parseGradeString(course.grade);
   const color = gradeColor(percent);
 
@@ -311,6 +313,11 @@ export function CourseGradebook({ course }: Props) {
           )}
         </div>
       </div>
+
+      {/* ── Grade history chart ─────────────────────────────────────── */}
+      {historyPoints.length > 0 && (
+        <GradeChart points={historyPoints} color={displayColor} />
+      )}
 
       {/* ── Assignment table ────────────────────────────────────────── */}
       {filledCategories.length === 0 ? (
@@ -521,5 +528,247 @@ function AssignmentRow({
         {formatDueDate(assignment.dueDate)}
       </td>
     </tr>
+  );
+}
+
+// ── Grade history chart ───────────────────────────────────────────────────────
+
+const CHART_W = 600;
+const CHART_H = 160;
+const PAD = { top: 20, right: 16, bottom: 28, left: 44 };
+
+function GradeChart({ points, color }: { points: GradePoint[]; color: string }) {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+
+  const sorted = useMemo(
+    () => [...points].sort((a, b) => a.ts - b.ts),
+    [points]
+  );
+
+  if (sorted.length === 0) return null;
+
+  const percents = sorted.map((p) => p.percent);
+  const rawMin = Math.min(...percents);
+  const rawMax = Math.max(...percents);
+  // Give some vertical breathing room
+  const minP = Math.max(0, Math.floor(rawMin - 2));
+  const maxP = Math.min(100, Math.ceil(rawMax + 2));
+  const range = maxP - minP || 1;
+
+  const innerW = CHART_W - PAD.left - PAD.right;
+  const innerH = CHART_H - PAD.top - PAD.bottom;
+
+  function xPos(i: number): number {
+    if (sorted.length === 1) return PAD.left + innerW / 2;
+    return PAD.left + (i / (sorted.length - 1)) * innerW;
+  }
+  function yPos(pct: number): number {
+    return PAD.top + innerH - ((pct - minP) / range) * innerH;
+  }
+
+  // Build polyline points
+  const polyPoints = sorted.map((p, i) => `${xPos(i).toFixed(1)},${yPos(p.percent).toFixed(1)}`).join(' ');
+
+  // Build gradient fill area (closed polygon)
+  const areaPoints =
+    `${xPos(0).toFixed(1)},${(PAD.top + innerH).toFixed(1)} ` +
+    polyPoints +
+    ` ${xPos(sorted.length - 1).toFixed(1)},${(PAD.top + innerH).toFixed(1)}`;
+
+  // Grid lines (horizontal)
+  const gridLines: number[] = [];
+  const step = range <= 5 ? 1 : range <= 15 ? 2 : 5;
+  for (let v = Math.ceil(minP / step) * step; v <= maxP; v += step) {
+    gridLines.push(v);
+  }
+
+  // Date labels
+  const firstDate = new Date(sorted[0].ts);
+  const lastDate = new Date(sorted[sorted.length - 1].ts);
+  const fmtDate = (d: Date) =>
+    d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+  // Hover handling
+  function handleMouseMove(e: React.MouseEvent<SVGSVGElement>) {
+    const svg = svgRef.current;
+    if (!svg || sorted.length < 2) return;
+    const rect = svg.getBoundingClientRect();
+    const mouseX = ((e.clientX - rect.left) / rect.width) * CHART_W;
+    let closest = 0;
+    let closestDist = Infinity;
+    for (let i = 0; i < sorted.length; i++) {
+      const dist = Math.abs(xPos(i) - mouseX);
+      if (dist < closestDist) {
+        closestDist = dist;
+        closest = i;
+      }
+    }
+    setHoverIdx(closest);
+  }
+
+  const hoverPoint = hoverIdx !== null ? sorted[hoverIdx] : null;
+
+  return (
+    <div
+      style={{
+        background: T.card,
+        border: `1px solid ${T.border}`,
+        borderRadius: 11,
+        padding: '12px 16px',
+        marginBottom: 12,
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+          Grade History
+        </span>
+        <span style={{ fontSize: 10, color: T.faint }}>
+          {sorted.length === 1
+            ? fmtDate(firstDate)
+            : `${fmtDate(firstDate)} — ${fmtDate(lastDate)}`}
+        </span>
+      </div>
+
+      <svg
+        ref={svgRef}
+        viewBox={`0 0 ${CHART_W} ${CHART_H}`}
+        width="100%"
+        style={{ display: 'block' }}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={() => setHoverIdx(null)}
+      >
+        {/* Grid lines */}
+        {gridLines.map((v) => (
+          <g key={v}>
+            <line
+              x1={PAD.left}
+              y1={yPos(v)}
+              x2={CHART_W - PAD.right}
+              y2={yPos(v)}
+              stroke={T.border}
+              strokeWidth={1}
+            />
+            <text
+              x={PAD.left - 6}
+              y={yPos(v) + 3.5}
+              fill={T.faint}
+              fontSize={9}
+              textAnchor="end"
+              fontFamily="inherit"
+            >
+              {v}%
+            </text>
+          </g>
+        ))}
+
+        {/* Gradient fill under line */}
+        <defs>
+          <linearGradient id="gradeAreaGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity={0.15} />
+            <stop offset="100%" stopColor={color} stopOpacity={0.02} />
+          </linearGradient>
+        </defs>
+        {sorted.length >= 2 && (
+          <polygon
+            points={areaPoints}
+            fill="url(#gradeAreaGrad)"
+          />
+        )}
+
+        {/* Line */}
+        {sorted.length >= 2 ? (
+          <polyline
+            points={polyPoints}
+            fill="none"
+            stroke={color}
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        ) : (
+          <circle cx={xPos(0)} cy={yPos(sorted[0].percent)} r={4} fill={color} />
+        )}
+
+        {/* Data point dots */}
+        {sorted.map((p, i) => (
+          <circle
+            key={i}
+            cx={xPos(i)}
+            cy={yPos(p.percent)}
+            r={hoverIdx === i ? 5 : 2.5}
+            fill={hoverIdx === i ? '#fff' : color}
+            stroke={hoverIdx === i ? color : 'none'}
+            strokeWidth={2}
+          />
+        ))}
+
+        {/* Date axis labels */}
+        {sorted.length >= 2 && (
+          <>
+            <text
+              x={PAD.left}
+              y={CHART_H - 4}
+              fill={T.faint}
+              fontSize={9}
+              textAnchor="start"
+              fontFamily="inherit"
+            >
+              {fmtDate(firstDate)}
+            </text>
+            <text
+              x={CHART_W - PAD.right}
+              y={CHART_H - 4}
+              fill={T.faint}
+              fontSize={9}
+              textAnchor="end"
+              fontFamily="inherit"
+            >
+              {fmtDate(lastDate)}
+            </text>
+          </>
+        )}
+
+        {/* Hover tooltip */}
+        {hoverPoint && hoverIdx !== null && (
+          <g>
+            {/* Vertical guide line */}
+            <line
+              x1={xPos(hoverIdx)}
+              y1={PAD.top}
+              x2={xPos(hoverIdx)}
+              y2={PAD.top + innerH}
+              stroke={color}
+              strokeWidth={1}
+              strokeDasharray="3,3"
+              opacity={0.4}
+            />
+            {/* Tooltip background */}
+            <rect
+              x={xPos(hoverIdx) - 42}
+              y={yPos(hoverPoint.percent) - 30}
+              width={84}
+              height={22}
+              rx={5}
+              fill="#0d1019"
+              stroke={T.border}
+              strokeWidth={1}
+            />
+            {/* Tooltip text */}
+            <text
+              x={xPos(hoverIdx)}
+              y={yPos(hoverPoint.percent) - 15}
+              fill={color}
+              fontSize={11}
+              fontWeight={700}
+              textAnchor="middle"
+              fontFamily="inherit"
+            >
+              {hoverPoint.percent.toFixed(2)}% · {new Date(hoverPoint.ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            </text>
+          </g>
+        )}
+      </svg>
+    </div>
   );
 }

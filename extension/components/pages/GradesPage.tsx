@@ -92,7 +92,10 @@ export function GradesPage({ grades, selectedCourseName, onCourseSelect }: Props
         }}
       >
         {effectiveCourse ? (
-          <CourseGradebook course={effectiveCourse} />
+          <CourseGradebook
+            course={effectiveCourse}
+            historyPoints={history[effectiveCourse.name] ?? []}
+          />
         ) : (
           <div
             style={{

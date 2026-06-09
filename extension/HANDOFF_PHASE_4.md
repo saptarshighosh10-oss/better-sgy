@@ -300,10 +300,10 @@ Walk each course's Materials page:
 - **Interactive tooltip**: Hovering over any point displays a rich tooltip box showing the grade percent, date, assignment name, category, and what-if delta (if active), complete with a vertical guide line.
 
 ### Files changed
-- `components/CourseGradebook.tsx` — updated (added dynamic timeline math + custom interactive chart component)
+- `components/CourseGradebook.tsx` — updated (added dynamic timeline math + custom interactive chart component, updated math to support undated assignments)
 - `components/pages/GradesPage.tsx` — updated (removed sidebar "missing" tag for clean alignment)
 
 ### Build result
 - `npx tsc --noEmit` → clean ✅
-- `npm run build` → 379.43 kB ✅
+- `npm run build` → 379.61 kB ✅
 

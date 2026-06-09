@@ -84,6 +84,9 @@ export function CalendarPage({ grades }: Props) {
 
   const monthCount = items.filter((i) => i.date.getFullYear() === year && i.date.getMonth() === month).length;
 
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const selectedItems = selectedDay ? (byDay.get(selectedDay) ?? []) : [];
+
   return (
     <div style={{ padding: 24, display: 'flex', flexDirection: 'column', height: '100%', boxSizing: 'border-box' }}>
       {/* Header */}
@@ -111,12 +114,15 @@ export function CalendarPage({ grades }: Props) {
         {cells.map((d, i) => {
           if (d === null) return <div key={i} />;
           const isToday = year === now.getFullYear() && month === now.getMonth() && d === now.getDate();
-          const dayItems = byDay.get(`${year}-${month}-${d}`) ?? [];
+          const cellKey = `${year}-${month}-${d}`;
+          const dayItems = byDay.get(cellKey) ?? [];
+          const isSelected = selectedDay === cellKey;
           return (
-            <div key={i} style={{
+            <div key={i} onClick={() => dayItems.length > 0 && setSelectedDay(isSelected ? null : cellKey)} style={{
               background: isToday ? T.today : T.card,
-              border: `1px solid ${isToday ? T.primary + '60' : T.border}`,
+              border: `1px solid ${isSelected ? T.primary : isToday ? T.primary + '60' : T.border}`,
               borderRadius: 8, padding: '5px 6px', overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 0,
+              cursor: dayItems.length > 0 ? 'pointer' : 'default',
             }}>
               <div style={{ fontSize: 11, fontWeight: isToday ? 700 : 500, color: isToday ? T.primary : T.muted, marginBottom: 3 }}>{d}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2, overflow: 'hidden' }}>
@@ -138,8 +144,29 @@ export function CalendarPage({ grades }: Props) {
         })}
       </div>
 
+      {/* Selected-day detail */}
+      {selectedDay && selectedItems.length > 0 && (
+        <div style={{ marginTop: 12, background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, padding: '12px 14px', maxHeight: 200, overflowY: 'auto' }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: T.text }}>
+              {(() => { const [y, m, d] = selectedDay.split('-').map(Number); return `${MONTHS[m]} ${d}, ${y}`; })()}
+            </span>
+            <span style={{ fontSize: 11, color: T.faint, marginLeft: 8 }}>{selectedItems.length} due</span>
+            <span style={{ flex: 1 }} />
+            <button onClick={() => setSelectedDay(null)} style={{ all: 'unset', cursor: 'pointer', fontSize: 14, color: T.faint }}>×</button>
+          </div>
+          {selectedItems.map((it, j) => (
+            <div key={j} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', borderTop: j > 0 ? `1px solid ${T.rowBorder}` : 'none' }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: it.color, flexShrink: 0 }} />
+              <span style={{ flex: 1, fontSize: 12, color: '#c8d0df', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.name}</span>
+              <span style={{ fontSize: 10, color: T.faint, flexShrink: 0 }}>{it.courseName}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div style={{ fontSize: 11, color: T.faint, marginTop: 10 }}>
-        {monthCount > 0 ? `${monthCount} due this month` : 'Nothing due this month'} · from your gradebook due dates
+        {monthCount > 0 ? `${monthCount} due this month` : 'Nothing due this month'} · click a day for details
       </div>
     </div>
   );

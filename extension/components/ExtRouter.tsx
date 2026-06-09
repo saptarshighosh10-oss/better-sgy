@@ -13,8 +13,9 @@ import { OverviewPage } from './pages/OverviewPage';
 import { GradesPage } from './pages/GradesPage';
 import { AssignmentsPage } from './pages/AssignmentsPage';
 import { MaterialsPage } from './pages/MaterialsPage';
+import { CalendarPage } from './pages/CalendarPage';
 
-export type Page = 'overview' | 'grades' | 'assignments' | 'materials';
+export type Page = 'overview' | 'grades' | 'assignments' | 'calendar' | 'materials';
 
 const IN_PROGRESS = new Set([
   'checking_session',
@@ -121,6 +122,7 @@ export function ExtRouter({ scrapeResult }: Props) {
           />
         )}
         {page === 'assignments' && <AssignmentsPage grades={grades} />}
+        {page === 'calendar' && <CalendarPage grades={grades} />}
         {page === 'materials' && <MaterialsPage grades={grades} />}
       </main>
     </div>

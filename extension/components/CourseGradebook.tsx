@@ -145,10 +145,10 @@ interface TimelinePoint {
   assignmentKey: string;
 }
 
-function categoryAvgAtDate(
+function categoryAvgWithAllowed(
   cat: ScrapedCategory,
   overrides: Map<string, number> | null,
-  cutoffTime: number
+  allowedKeys: Set<string>
 ): { pct: number; sumScore: number; sumMax: number } | null {
   let sumScore = 0;
   let sumMax = 0;
@@ -156,9 +156,7 @@ function categoryAvgAtDate(
   for (let ai = 0; ai < cat.assignments.length; ai++) {
     const a = cat.assignments[ai];
     const key = `${cat.name}::${ai}`;
-    
-    const due = parseDueDate(a.dueDate);
-    if (due && due.getTime() > cutoffTime) continue;
+    if (!allowedKeys.has(key)) continue;
 
     const max = parseMaxGrade(a.maxGrade);
     if (max === null || max === 0) continue;
@@ -178,10 +176,10 @@ function categoryAvgAtDate(
   return sumMax > 0 ? { pct: (sumScore / sumMax) * 100, sumScore, sumMax } : null;
 }
 
-function computeCourseGradeAtDate(
+function computeCourseGradeWithAllowed(
   categories: ScrapedCategory[],
   overrides: Map<string, number> | null,
-  cutoffTime: number
+  allowedKeys: Set<string>
 ): number | null {
   const hasWeights = categories.some((c) => parseWeight(c.weight) > 0);
 
@@ -189,7 +187,7 @@ function computeCourseGradeAtDate(
     let totalScore = 0;
     let totalMax = 0;
     for (const cat of categories) {
-      const avg = categoryAvgAtDate(cat, overrides, cutoffTime);
+      const avg = categoryAvgWithAllowed(cat, overrides, allowedKeys);
       if (avg) {
         totalScore += avg.sumScore;
         totalMax += avg.sumMax;
@@ -203,7 +201,7 @@ function computeCourseGradeAtDate(
   for (const cat of categories) {
     const w = parseWeight(cat.weight);
     if (w === 0) continue;
-    const avg = categoryAvgAtDate(cat, overrides, cutoffTime);
+    const avg = categoryAvgWithAllowed(cat, overrides, allowedKeys);
     if (!avg) continue;
     wSum += avg.pct * w;
     wTotal += w;
@@ -215,11 +213,11 @@ function buildGradeTimeline(
   categories: ScrapedCategory[],
   overrides: Map<string, number> | null
 ): TimelinePoint[] {
-  const list: Array<{
+  const graded: Array<{
     assignment: ScrapedAssignment;
     catName: string;
     overrideKey: string;
-    dueDate: Date;
+    dueDate: Date | null;
   }> = [];
 
   for (const cat of categories) {
@@ -233,9 +231,7 @@ function buildGradeTimeline(
       if (score === null && !hasOverride) continue;
 
       const due = parseDueDate(a.dueDate);
-      if (!due) continue;
-
-      list.push({
+      graded.push({
         assignment: a,
         catName: cat.name,
         overrideKey: `${cat.name}::${ai}`,
@@ -244,12 +240,40 @@ function buildGradeTimeline(
     }
   }
 
-  list.sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
+  if (graded.length === 0) return [];
+
+  // Dated assignments in date order; undated ones keep gradebook order at the end
+  const dated = graded.filter((g) => g.dueDate !== null) as Array<{
+    assignment: ScrapedAssignment;
+    catName: string;
+    overrideKey: string;
+    dueDate: Date;
+  }>;
+  dated.sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
+
+  const undated = graded.filter((g) => g.dueDate === null);
+  const lastTime = dated.length > 0 ? dated[dated.length - 1].dueDate.getTime() : Date.now();
+
+  const ordered: Array<{
+    assignment: ScrapedAssignment;
+    catName: string;
+    overrideKey: string;
+    dueDate: Date;
+  }> = [
+    ...dated,
+    ...undated.map((g, idx) => ({
+      ...g,
+      dueDate: new Date(lastTime + (idx + 1) * 86400000), // sequential fallback dates
+    })),
+  ];
 
   const points: TimelinePoint[] = [];
-  for (const item of list) {
-    const origGrade = computeCourseGradeAtDate(categories, null, item.dueDate.getTime());
-    const whatIfGrade = computeCourseGradeAtDate(categories, overrides, item.dueDate.getTime());
+  const allowedKeys = new Set<string>();
+
+  for (const item of ordered) {
+    allowedKeys.add(item.overrideKey);
+    const origGrade = computeCourseGradeWithAllowed(categories, null, allowedKeys);
+    const whatIfGrade = computeCourseGradeWithAllowed(categories, overrides, allowedKeys);
     if (origGrade === null) continue;
     points.push({
       date: item.dueDate,

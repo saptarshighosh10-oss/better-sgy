@@ -71,12 +71,26 @@ export type RichNode =
   | { t: 'text'; text: string }
   | { t: 'el'; tag: string; href?: string; src?: string; children: RichNode[] };
 
+export interface SubmissionRevision {
+  title: string;   // "Revision 1 submitted"
+  status: string;  // "On time" | "Late" | ''
+  time: string;    // "Apr 17, 2026 at 8:02 pm" | ''
+  href: string | null;
+}
+
+export interface SubmissionInfo {
+  submitHref: string;   // /assignment/{id}/dropbox/submit
+  submitLabel: string;  // "Submit Assignment" | "Re-submit Assignment"
+  revisions: SubmissionRevision[];
+}
+
 export interface FetchedContent {
   success: boolean;
   title: string;
   paragraphs: ContentParagraph[];
   body: RichNode[];
   attachments: ContentAttachment[];
+  submission: SubmissionInfo | null; // present when the assignment has a dropbox
   error: string | null;
 }
 
@@ -676,6 +690,118 @@ export async function fetchDiscussion(url: string): Promise<FetchedDiscussion> {
   }
 }
 
+// ── Assignment submissions (dropbox) ──────────────────────────────────────────
+
+/**
+ * Parse the server-rendered "Submissions" right-rail on an assignment page
+ * (.drop-item-display-own): revision list + the submit/re-submit popup link.
+ * Verified live in extension/.debug/raw-assignment.html.
+ */
+function parseSubmissionInfo(doc: Document, baseUrl: string): SubmissionInfo | null {
+  const submitAnchor = doc.querySelector('.submit-assignment a[href*="/dropbox/submit"], a.dropbox-submit') as HTMLAnchorElement | null;
+  const rail = doc.querySelector('.drop-item-display-own, #dropbox-revisions');
+  if (!submitAnchor && !rail) return null;
+
+  const revisions: SubmissionRevision[] = [];
+  rail?.querySelectorAll('li').forEach((li) => {
+    const a = li.querySelector('a[href*="/dropbox/view/"]') as HTMLAnchorElement | null;
+    const clone = li.cloneNode(true) as Element;
+    clone.querySelectorAll('script, .infotip-content').forEach((n) => n.remove());
+    // Normalize NBSP etc. before matching
+    const text = (clone.textContent ?? '').replace(/[\s ]+/g, ' ').trim();
+    let title = a ? cleanText(a) : text.match(/Revision \d+\s*\w*/)?.[0] ?? '';
+    // Anchor text glues on the subtitle ("Revision 1 submitted1 item · On time")
+    title = title.replace(/(\d+\s*items?\b|·).*$/i, '').replace(/submitted.*$/i, 'submitted').trim();
+    if (!title) return;
+    const status = text.replace(/ /g, ' ').match(/(On time|Late|Missing)/)?.[1] ?? '';
+    const time = text.match(/\w{3} \d{1,2}, \d{4} at [\d:]+ [ap]m/)?.[0] ?? '';
+    revisions.push({ title, status, time, href: a?.href ?? null });
+  });
+
+  let submitHref = submitAnchor?.getAttribute('href') ?? null;
+  if (submitHref) {
+    try { submitHref = new URL(submitHref, baseUrl).toString(); } catch { /* keep */ }
+  }
+  if (!submitHref && revisions.length === 0) return null;
+
+  return {
+    submitHref: submitHref ?? '',
+    submitLabel: submitAnchor ? cleanText(submitAnchor) || 'Submit Assignment' : '',
+    revisions,
+  };
+}
+
+/**
+ * Submit a TEXT submission ("Create" mode) by replaying Schoology's dropbox
+ * submit form: GET /assignment/{id}/dropbox/submit, find the form containing
+ * textarea[name="submission"], copy hidden fields (form_token etc.), set the
+ * text, POST back. File uploads are a separate flow (plupload) — not here.
+ */
+export async function submitDropboxText(submitUrl: string, text: string): Promise<{ success: boolean; error: string | null }> {
+  try {
+    const res = await sgyFetch(submitUrl);
+    if (!res.ok) return { success: false, error: `HTTP ${res.status}` };
+    const html = await res.text();
+    if (isWafChallenge(html)) return { success: false, error: WAF_ERROR };
+    if (html.includes('id="edit-mail"') || html.includes('accounts.google.com')) {
+      return { success: false, error: 'Session expired' };
+    }
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+
+    // The submit page has multiple forms (upload / create tabs) — we want the
+    // one with the "submission" textarea (typed text submission)
+    let form: HTMLFormElement | null = null;
+    let taName = 'submission';
+    for (const f of Array.from(doc.querySelectorAll('form'))) {
+      if (f.querySelector('textarea[name="submission"]')) { form = f as HTMLFormElement; break; }
+    }
+    if (!form) {
+      // fall back to any dropbox form with a textarea
+      for (const f of Array.from(doc.querySelectorAll('form[action*="dropbox/submit"]'))) {
+        const ta = f.querySelector('textarea');
+        if (ta?.getAttribute('name')) { form = f as HTMLFormElement; taName = ta.getAttribute('name')!; break; }
+      }
+    }
+    if (!form) return { success: false, error: 'No text-submission form found — use Schoology to submit files' };
+
+    const actionUrl = new URL(form.getAttribute('action') || submitUrl, submitUrl).toString();
+    const body = new URLSearchParams();
+    // The form has MULTIPLE submit buttons sharing name="op" (Submit / Save
+    // Draft) — setting all of them made the last one win and saved a DRAFT
+    // instead of submitting. Collect them and pick the real Submit.
+    const submitButtons: string[] = [];
+    form.querySelectorAll('input').forEach((inp) => {
+      const name = inp.getAttribute('name');
+      if (!name || name === taName) return;
+      const type = (inp.getAttribute('type') || 'text').toLowerCase();
+      if (type === 'submit') { submitButtons.push(inp.getAttribute('value') ?? ''); return; }
+      if (type === 'button' || type === 'image' || type === 'file') return;
+      if ((type === 'checkbox' || type === 'radio') && !inp.hasAttribute('checked')) return;
+      body.set(name, inp.getAttribute('value') ?? '');
+    });
+    const opValue =
+      submitButtons.find((v) => /^submit$/i.test(v.trim())) ??
+      submitButtons.find((v) => /submit/i.test(v) && !/draft/i.test(v)) ??
+      submitButtons[0] ?? 'Submit';
+    body.set('op', opValue);
+    body.set(taName, text);
+
+    const post = await fetch(actionUrl, {
+      method: 'POST',
+      credentials: 'include',
+      redirect: 'follow',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString(),
+    });
+    if (!post.ok) return { success: false, error: `Submit failed: HTTP ${post.status}` };
+    const postHtml = await post.text();
+    if (isWafChallenge(postHtml)) return { success: false, error: WAF_ERROR };
+    return { success: true, error: null };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 // ── Discussion comment posting ────────────────────────────────────────────────
 
 /**
@@ -827,13 +953,13 @@ export async function fetchFileBlobUrl(url: string, mime: string): Promise<{ blo
 export async function fetchItemContent(url: string): Promise<FetchedContent> {
   try {
     const res = await sgyFetch(url);
-    if (!res.ok) return { success: false, title: '', paragraphs: [], body: [], attachments: [], error: `HTTP ${res.status}` };
+    if (!res.ok) return { success: false, title: '', paragraphs: [], body: [], attachments: [], submission: null, error: `HTTP ${res.status}` };
     const html = await res.text();
     if (html.includes('id="edit-mail"') || html.includes('accounts.google.com')) {
-      return { success: false, title: '', paragraphs: [], body: [], attachments: [], error: 'Session expired' };
+      return { success: false, title: '', paragraphs: [], body: [], attachments: [], submission: null, error: 'Session expired' };
     }
     if (isWafChallenge(html)) {
-      return { success: false, title: '', paragraphs: [], body: [], attachments: [], error: WAF_ERROR };
+      return { success: false, title: '', paragraphs: [], body: [], attachments: [], submission: null, error: WAF_ERROR };
     }
 
     const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -920,7 +1046,7 @@ export async function fetchItemContent(url: string): Promise<FetchedContent> {
       });
     }
 
-    return { success: true, title, paragraphs, body, attachments, error: null };
+    return { success: true, title, paragraphs, body, attachments, submission: parseSubmissionInfo(doc, url), error: null };
   } catch (err) {
     return {
       success: false,
@@ -928,6 +1054,7 @@ export async function fetchItemContent(url: string): Promise<FetchedContent> {
       paragraphs: [],
       body: [],
       attachments: [],
+      submission: null,
       error: err instanceof Error ? err.message : String(err),
     };
   }

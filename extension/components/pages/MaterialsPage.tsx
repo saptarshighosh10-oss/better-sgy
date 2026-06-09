@@ -8,6 +8,7 @@ import {
   fetchFileBlobUrl,
   postDiscussionComment,
   deleteDiscussionComment,
+  submitDropboxText,
   resolveMaterialsUrl,
   resolveLinkWrapper,
   googleEmbedUrl,
@@ -139,7 +140,9 @@ export function MaterialsPage({ grades }: Props) {
     const data = await fetchItemContent(url);
     // A bare file page (no real text, single viewable attachment) → jump
     // straight to the inline file viewer instead of an empty content page.
-    if (data.success && data.body.length === 0 && data.paragraphs.length <= 2 && data.attachments.length === 1) {
+    // Never redirect away from an assignment with a dropbox — the submit
+    // panel must stay visible.
+    if (data.success && !data.submission && data.body.length === 0 && data.paragraphs.length <= 2 && data.attachments.length === 1) {
       const fk = detectFileKind(data.attachments[0].href, data.attachments[0].title);
       if (fk === 'pdf' || fk === 'image') {
         setViewer({ kind: 'file', fileKind: fk, url: data.attachments[0].href, title });
@@ -170,6 +173,16 @@ export function MaterialsPage({ grades }: Props) {
     if (result.success) {
       const data = await fetchDiscussion(url);
       setViewer(v => (v?.kind === 'discussion' && v.url === url) ? { kind: 'discussion', data, url, title } : v);
+    }
+    return result;
+  }
+
+  async function submitAssignment(url: string, title: string, submitHref: string, text: string) {
+    const result = await submitDropboxText(submitHref, text);
+    if (result.success) {
+      // Re-fetch the assignment page so the new revision shows in the panel
+      const data = await fetchItemContent(url);
+      setViewer(v => (v?.kind === 'content' && v.url === url) ? { kind: 'content', data, url, title } : v);
     }
     return result;
   }
@@ -347,6 +360,7 @@ export function MaterialsPage({ grades }: Props) {
                 grade={findGrade(viewer.title)}
                 onBack={() => setViewer(null)}
                 onNavigate={openHref}
+                onSubmit={(submitHref, text) => submitAssignment(viewer.url, viewer.title, submitHref, text)}
               />
             </div>
           )}
@@ -1013,13 +1027,112 @@ function collectEmbeds(data: FetchedContent): { embedUrl: string; originalUrl: s
   return out;
 }
 
-function ContentViewer({ data, url, title, grade, onBack, onNavigate }: {
+// ── Submissions panel (assignment dropbox) ────────────────────────────────────
+
+function SubmissionsPanel({ info, assignmentUrl, onSubmit }: {
+  info: NonNullable<FetchedContent['submission']>;
+  assignmentUrl: string;
+  onSubmit: (submitHref: string, text: string) => Promise<{ success: boolean; error: string | null }>;
+}) {
+  const [composerOpen, setComposerOpen] = useState(false);
+  const [draft, setDraft] = useState('');
+  const [state, setState] = useState<'idle' | 'sending' | 'done'>('idle');
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit() {
+    const text = draft.trim();
+    if (!text || state === 'sending') return;
+    setState('sending');
+    setError(null);
+    const result = await onSubmit(info.submitHref, text);
+    if (result.success) {
+      setState('done');
+      setDraft('');
+      setComposerOpen(false);
+    } else {
+      setState('idle');
+      setError(result.error ?? 'Submission failed');
+    }
+  }
+
+  return (
+    <div style={{ marginTop: 20, background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, padding: '14px 16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: info.revisions.length > 0 ? 10 : 0 }}>
+        <span style={{ fontSize: 10, fontWeight: 700, color: T.faint, textTransform: 'uppercase', letterSpacing: '0.5px', flex: 1 }}>
+          Submissions
+        </span>
+        {info.submitHref && !composerOpen && (
+          <button onClick={() => { setComposerOpen(true); setError(null); }}
+            style={{ all: 'unset', cursor: 'pointer', background: T.primary, color: '#fff', fontSize: 12, fontWeight: 600, padding: '5px 13px', borderRadius: 7 }}>
+            {info.submitLabel || 'Submit Assignment'}
+          </button>
+        )}
+      </div>
+
+      {info.revisions.map((rev, i) => (
+        <div key={i} style={{ display: 'flex', alignItems: 'baseline', gap: 8, padding: '6px 0', borderTop: i > 0 ? `1px solid ${T.rowBorder}` : 'none' }}>
+          <span style={{ fontSize: 13, color: '#c8d5e8' }}>
+            {rev.href ? (
+              <a href={rev.href} target="_blank" rel="noopener noreferrer" style={{ color: '#c8d5e8', textDecoration: 'underline', textUnderlineOffset: 2 }}>{rev.title}</a>
+            ) : rev.title}
+          </span>
+          {rev.status && (
+            <span style={{ fontSize: 10, fontWeight: 600, color: rev.status === 'On time' ? T.assign : T.failed, border: `1px solid ${rev.status === 'On time' ? T.assign : T.failed}40`, borderRadius: 5, padding: '1px 7px' }}>
+              {rev.status}
+            </span>
+          )}
+          <span style={{ flex: 1 }} />
+          {rev.time && <span style={{ fontSize: 11, color: T.faint }}>{rev.time}</span>}
+        </div>
+      ))}
+
+      {info.revisions.length === 0 && !composerOpen && (
+        <div style={{ fontSize: 12, color: T.muted, marginTop: 4 }}>No submissions yet.</div>
+      )}
+
+      {state === 'done' && (
+        <div style={{ marginTop: 8, fontSize: 12, color: T.assign }}>Submitted ✓</div>
+      )}
+
+      {composerOpen && (
+        <div style={{ marginTop: 10 }}>
+          <textarea
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder="Type your submission…"
+            rows={6}
+            style={{ width: '100%', boxSizing: 'border-box', resize: 'vertical', background: '#0d1019', border: `1px solid ${T.border}`, borderRadius: 8, padding: '9px 11px', fontSize: 13, color: T.text, lineHeight: 1.5, fontFamily: 'inherit', outline: 'none' }}
+          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8 }}>
+            <button onClick={handleSubmit} disabled={!draft.trim() || state === 'sending'}
+              style={{ all: 'unset', cursor: !draft.trim() || state === 'sending' ? 'default' : 'pointer', background: !draft.trim() ? T.border : T.primary, color: !draft.trim() ? T.muted : '#fff', fontSize: 12, fontWeight: 600, padding: '6px 14px', borderRadius: 7, opacity: state === 'sending' ? 0.6 : 1 }}>
+              {state === 'sending' ? 'Submitting…' : 'Submit'}
+            </button>
+            <button onClick={() => setComposerOpen(false)} style={{ all: 'unset', cursor: 'pointer', fontSize: 12, color: T.muted }}>Cancel</button>
+            <span style={{ flex: 1 }} />
+            <a href={info.submitHref || assignmentUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: T.muted, textDecoration: 'none' }}>
+              Upload files in Schoology ↗
+            </a>
+          </div>
+          {error && (
+            <div style={{ marginTop: 8, fontSize: 12, color: T.failed }}>
+              {error} — <a href={info.submitHref || assignmentUrl} target="_blank" rel="noopener noreferrer" style={{ color: T.primary }}>submit in Schoology</a>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ContentViewer({ data, url, title, grade, onBack, onNavigate, onSubmit }: {
   data: FetchedContent | null;
   url: string;
   title: string;
   grade: ScrapedAssignment | null;
   onBack: () => void;
   onNavigate: NavigateFn;
+  onSubmit: (submitHref: string, text: string) => Promise<{ success: boolean; error: string | null }>;
 }) {
   if (data === null) {
     return (
@@ -1111,6 +1224,11 @@ function ContentViewer({ data, url, title, grade, onBack, onNavigate }: {
               />
             </div>
           ))}
+
+          {/* Assignment dropbox: revision history + submit */}
+          {data.submission && (
+            <SubmissionsPanel info={data.submission} assignmentUrl={url} onSubmit={onSubmit} />
+          )}
 
           {data.attachments.length > 0 && (
             <div style={{ marginTop: data.body.length > 0 || data.paragraphs.length > 0 ? 20 : 0 }}>

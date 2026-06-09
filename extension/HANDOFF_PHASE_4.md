@@ -162,6 +162,20 @@ User reports: Slides embed scrolls the page up on every slide change; "No commen
 
 ---
 
+## Phase 5 (started) — assignment submissions (dropbox)
+
+Recon (all verified live, dumps in `.debug/raw-assignment.html` + `.debug/raw-submit-form.html`):
+- Assignment pages server-render a "Submissions" right-rail (`.drop-item-display-own` / `#dropbox-revisions`): `li` per revision with `a[href*="/dropbox/view/{uid}?revision=N"]`, "On time"/"Late" status, timestamp. The submit popup link is `.submit-assignment a[href$="/dropbox/submit"]` ("Submit Assignment" / "Re-submit Assignment").
+- `/assignment/{id}/dropbox/submit` is a Drupal form page with multiple forms (Upload / Create tabs). The TEXT submission ("Create") form has `textarea[name="submission"]` + form_build_id/form_token/op → POST urlencoded back to the same action. **File uploads use plupload (separate upload step → ids into `file[files]`) — NOT implemented; the UI links "Upload files in Schoology ↗" instead.**
+- Anchor text quirk: revision link text glues on the subtitle ("Revision 1 submitted1 item · On time") and uses NBSPs — parser strips `(\d+ items?|·).*` and normalizes NBSP before status matching. Validated via `.debug/test-submission2.mjs`.
+
+Implemented:
+- `fetch-materials.ts`: `SubmissionInfo`/`SubmissionRevision` types, `FetchedContent.submission`, `parseSubmissionInfo(doc, baseUrl)` (runs inside `fetchItemContent`), `submitDropboxText(submitUrl, text)` (form replay, WAF + session checks).
+- `MaterialsPage.tsx`: `SubmissionsPanel` in ContentViewer — revision list (status chip green/red, timestamp, view link → new tab) + Submit/Re-submit button → textarea composer → POST → re-fetch shows the new revision. The bare-file auto-redirect is suppressed when a dropbox exists so the panel can't be skipped.
+- **Text submission is UNTESTED live** (needs the user to actually submit something — teacher-visible). If POST succeeds but no new revision appears, dump the POST response and check whether the Create tab form needs `op` from its own submit button (multiple `op` inputs exist across the page's forms).
+
+---
+
 ## Constraints Status
 
 - "No iframes for displaying Schoology content" — still honored for HTML content (everything is parsed + natively rendered). PDFs use `<embed>` with a **blob URL** (raw file bytes, not a Schoology page) — that's the only way to render a PDF without shipping a JS PDF renderer.

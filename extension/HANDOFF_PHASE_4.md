@@ -286,3 +286,23 @@ Walk each course's Materials page:
 - The "What Do I Need?" (target score) mode from the reference calculator was NOT ported — only what-if mode, per spec.
 - Grade history is never pruned beyond the 60-entry cap; old courses (from previous semesters) will persist until storage is cleared.
 
+---
+
+## Phase 6 Update — Interactive Grade History Chart with What-If Live Updates
+
+**Date:** 2026-06-09
+
+### What was done
+
+- **Calculated timeline dynamically from assignments**: Updated the grade history chart in `components/CourseGradebook.tsx` to calculate points dynamically by sorting the course's graded assignments chronologically and calculating the cumulative weighted course grade at each point in time. This replicates the Next.js app's approach, retroactively populating the full trend line immediately without waiting for daily snapshots, and ensuring it matches the actual weighted grading formula.
+- **Interactive SVG chart**: Implemented a highly premium line chart with a smooth polyline, gradient area fill, grid lines with percentages on the Y-axis, date labels on the X-axis, and zoom/pan controls.
+- **What-If integration**: When What-If mode is active and overrides are added, the chart dynamically overlays a second line plotting the What-If grade trajectory.
+- **Interactive tooltip**: Hovering over any point displays a rich tooltip box showing the grade percent, date, assignment name, category, and what-if delta (if active), complete with a vertical guide line.
+
+### Files changed
+- `components/CourseGradebook.tsx` — updated (added dynamic timeline math + custom interactive chart component)
+
+### Build result
+- `npx tsc --noEmit` → clean ✅
+- `npm run build` → 379.52 kB ✅
+

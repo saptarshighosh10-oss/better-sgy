@@ -19,6 +19,7 @@ import {
   formatDueDate,
   parseScore,
   parseMaxGrade,
+  parseDueDate,
 } from '../lib/grade-utils';
 
 // ── Column widths ─────────────────────────────────────────────────────────────
@@ -133,6 +134,136 @@ function computeCourseGrade(
   return wTotal > 0 ? wSum / wTotal : null;
 }
 
+// ── Dynamic timeline calculations (replicates the Next.js app graph builder) ──
+
+interface TimelinePoint {
+  date: Date;
+  origPercent: number;
+  whatIfPercent: number;
+  assignmentName: string;
+  categoryName: string;
+  assignmentKey: string;
+}
+
+function categoryAvgAtDate(
+  cat: ScrapedCategory,
+  overrides: Map<string, number> | null,
+  cutoffTime: number
+): { pct: number; sumScore: number; sumMax: number } | null {
+  let sumScore = 0;
+  let sumMax = 0;
+
+  for (let ai = 0; ai < cat.assignments.length; ai++) {
+    const a = cat.assignments[ai];
+    const key = `${cat.name}::${ai}`;
+    
+    const due = parseDueDate(a.dueDate);
+    if (due && due.getTime() > cutoffTime) continue;
+
+    const max = parseMaxGrade(a.maxGrade);
+    if (max === null || max === 0) continue;
+
+    let score: number | null = null;
+    if (overrides && overrides.has(key)) {
+      score = overrides.get(key)!;
+    } else {
+      score = parseScore(a.score);
+    }
+    if (score === null) continue;
+
+    sumScore += score;
+    sumMax += max;
+  }
+
+  return sumMax > 0 ? { pct: (sumScore / sumMax) * 100, sumScore, sumMax } : null;
+}
+
+function computeCourseGradeAtDate(
+  categories: ScrapedCategory[],
+  overrides: Map<string, number> | null,
+  cutoffTime: number
+): number | null {
+  const hasWeights = categories.some((c) => parseWeight(c.weight) > 0);
+
+  if (!hasWeights) {
+    let totalScore = 0;
+    let totalMax = 0;
+    for (const cat of categories) {
+      const avg = categoryAvgAtDate(cat, overrides, cutoffTime);
+      if (avg) {
+        totalScore += avg.sumScore;
+        totalMax += avg.sumMax;
+      }
+    }
+    return totalMax > 0 ? (totalScore / totalMax) * 100 : null;
+  }
+
+  let wSum = 0;
+  let wTotal = 0;
+  for (const cat of categories) {
+    const w = parseWeight(cat.weight);
+    if (w === 0) continue;
+    const avg = categoryAvgAtDate(cat, overrides, cutoffTime);
+    if (!avg) continue;
+    wSum += avg.pct * w;
+    wTotal += w;
+  }
+  return wTotal > 0 ? wSum / wTotal : null;
+}
+
+function buildGradeTimeline(
+  categories: ScrapedCategory[],
+  overrides: Map<string, number> | null
+): TimelinePoint[] {
+  const list: Array<{
+    assignment: ScrapedAssignment;
+    catName: string;
+    overrideKey: string;
+    dueDate: Date;
+  }> = [];
+
+  for (const cat of categories) {
+    for (let ai = 0; ai < cat.assignments.length; ai++) {
+      const a = cat.assignments[ai];
+      const max = parseMaxGrade(a.maxGrade);
+      if (max === null || max === 0) continue;
+
+      const score = parseScore(a.score);
+      const hasOverride = overrides && overrides.has(`${cat.name}::${ai}`);
+      if (score === null && !hasOverride) continue;
+
+      const due = parseDueDate(a.dueDate);
+      if (!due) continue;
+
+      list.push({
+        assignment: a,
+        catName: cat.name,
+        overrideKey: `${cat.name}::${ai}`,
+        dueDate: due,
+      });
+    }
+  }
+
+  list.sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
+
+  const points: TimelinePoint[] = [];
+  for (const item of list) {
+    const origGrade = computeCourseGradeAtDate(categories, null, item.dueDate.getTime());
+    const whatIfGrade = computeCourseGradeAtDate(categories, overrides, item.dueDate.getTime());
+    if (origGrade === null) continue;
+    points.push({
+      date: item.dueDate,
+      origPercent: origGrade,
+      whatIfPercent: whatIfGrade !== null ? whatIfGrade : origGrade,
+      assignmentName: item.assignment.name,
+      categoryName: item.catName,
+      assignmentKey: item.overrideKey,
+    });
+  }
+
+  return points;
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 interface Props {
@@ -161,6 +292,10 @@ export function CourseGradebook({ course, historyPoints = [] }: Props) {
     () => computeCourseGrade(course.categories, whatIfOn ? overrides : null),
     [course.categories, whatIfOn, overrides]
   );
+
+  const timelinePoints = useMemo(() => {
+    return buildGradeTimeline(course.categories, whatIfOn ? overrides : null);
+  }, [course.categories, whatIfOn, overrides]);
 
   const delta = projectedGrade !== null && percent !== null
     ? projectedGrade - percent
@@ -315,9 +450,11 @@ export function CourseGradebook({ course, historyPoints = [] }: Props) {
       </div>
 
       {/* ── Grade history chart ─────────────────────────────────────── */}
-      {historyPoints.length > 0 && (
-        <GradeChart points={historyPoints} color={displayColor} />
-      )}
+      <GradeChart
+        points={timelinePoints}
+        color={displayColor}
+        hasOverrides={whatIfOn && overrides.size > 0}
+      />
 
       {/* ── Assignment table ────────────────────────────────────────── */}
       {filledCategories.length === 0 ? (
@@ -533,72 +670,150 @@ function AssignmentRow({
 
 // ── Grade history chart ───────────────────────────────────────────────────────
 
-const CHART_W = 600;
-const CHART_H = 160;
-const PAD = { top: 20, right: 16, bottom: 28, left: 44 };
+const buttonStyle = (disabled: boolean): React.CSSProperties => ({
+  display: 'flex',
+  height: 24,
+  width: 24,
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderRadius: 4,
+  border: `1px solid ${T.border}`,
+  background: T.inputBg,
+  color: T.muted,
+  cursor: disabled ? 'default' : 'pointer',
+  opacity: disabled ? 0.3 : 1,
+  outline: 'none',
+  padding: 0,
+  transition: 'background 0.2s, color 0.2s',
+});
 
-function GradeChart({ points, color }: { points: GradePoint[]; color: string }) {
-  const svgRef = useRef<SVGSVGElement>(null);
+interface GradeChartProps {
+  points: TimelinePoint[];
+  color: string;
+  hasOverrides: boolean;
+}
+
+function GradeChart({ points, color, hasOverrides }: GradeChartProps) {
+  const [zoom, setZoom] = useState(1);
+  const [offset, setOffset] = useState(0);
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
 
-  const sorted = useMemo(
-    () => [...points].sort((a, b) => a.ts - b.ts),
-    [points]
-  );
-
-  if (sorted.length === 0) return null;
-
-  const percents = sorted.map((p) => p.percent);
-  const rawMin = Math.min(...percents);
-  const rawMax = Math.max(...percents);
-  // Give some vertical breathing room
-  const minP = Math.max(0, Math.floor(rawMin - 2));
-  const maxP = Math.min(100, Math.ceil(rawMax + 2));
-  const range = maxP - minP || 1;
-
-  const innerW = CHART_W - PAD.left - PAD.right;
-  const innerH = CHART_H - PAD.top - PAD.bottom;
-
-  function xPos(i: number): number {
-    if (sorted.length === 1) return PAD.left + innerW / 2;
-    return PAD.left + (i / (sorted.length - 1)) * innerW;
+  if (points.length === 0) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 12,
+          padding: '40px 20px',
+          background: T.card,
+          border: `1px solid ${T.border}`,
+          borderRadius: 11,
+          marginBottom: 12,
+        }}
+      >
+        <svg viewBox="0 0 44 26" width="44" height="26" fill="none" aria-hidden="true">
+          <polyline
+            points="2,22 11,14 20,17 29,8 38,11"
+            stroke={T.border}
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          {([2, 11, 20, 29, 38] as number[]).map((ptx, idx) => (
+            <circle
+              key={ptx}
+              cx={ptx}
+              cy={([22, 14, 17, 8, 11])[idx]}
+              r="2"
+              fill={T.border}
+            />
+          ))}
+        </svg>
+        <p style={{ fontSize: 12, color: T.muted, margin: 0 }}>
+          No graded assignments yet.
+        </p>
+      </div>
+    );
   }
-  function yPos(pct: number): number {
-    return PAD.top + innerH - ((pct - minP) / range) * innerH;
+
+  const windowSize = Math.max(4, Math.ceil(points.length / zoom));
+  const maxOffset = Math.max(0, points.length - windowSize);
+  const safeOffset = Math.min(offset, maxOffset);
+  const visible = points.slice(safeOffset, safeOffset + windowSize);
+
+  const VH = 180;
+  const PAD = { top: 20, right: 16, bottom: 28, left: 44 };
+  const PH = VH - PAD.top - PAD.bottom;
+  const pxPerPt = Math.max(48, 800 / Math.max(visible.length - 1, 1));
+  const VW = PAD.left + PAD.right + pxPerPt * Math.max(visible.length - 1, 1);
+
+  const allPercents = visible.flatMap((p) => [p.origPercent, p.whatIfPercent]);
+  const rawMin = Math.min(...allPercents);
+  const rawMax = Math.max(...allPercents);
+  const yMin = Math.max(0, Math.floor((rawMin - 8) / 5) * 5);
+  const yMax = Math.min(102, Math.ceil((rawMax + 5) / 5) * 5);
+  const yRange = yMax - yMin || 1;
+
+  const cx = (i: number) => PAD.left + i * pxPerPt;
+  const cy = (v: number) => PAD.top + (1 - (v - yMin) / yRange) * PH;
+
+  const gridY: number[] = [];
+  for (let y = Math.ceil(yMin / 5) * 5; y <= yMax; y += 5) {
+    gridY.push(y);
   }
 
-  // Build polyline points
-  const polyPoints = sorted.map((p, i) => `${xPos(i).toFixed(1)},${yPos(p.percent).toFixed(1)}`).join(' ');
-
-  // Build gradient fill area (closed polygon)
-  const areaPoints =
-    `${xPos(0).toFixed(1)},${(PAD.top + innerH).toFixed(1)} ` +
-    polyPoints +
-    ` ${xPos(sorted.length - 1).toFixed(1)},${(PAD.top + innerH).toFixed(1)}`;
-
-  // Grid lines (horizontal)
-  const gridLines: number[] = [];
-  const step = range <= 5 ? 1 : range <= 15 ? 2 : 5;
-  for (let v = Math.ceil(minP / step) * step; v <= maxP; v += step) {
-    gridLines.push(v);
+  function buildPath(pts: Array<{ x: number; y: number | null }>) {
+    let d = '';
+    let penDown = false;
+    for (const pt of pts) {
+      if (pt.y === null) {
+        penDown = false;
+        continue;
+      }
+      const coord = `${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`;
+      d += penDown ? ` L${coord}` : `M${coord}`;
+      penDown = true;
+    }
+    return d;
   }
 
-  // Date labels
-  const firstDate = new Date(sorted[0].ts);
-  const lastDate = new Date(sorted[sorted.length - 1].ts);
+  const origPath = buildPath(visible.map((p, i) => ({ x: cx(i), y: cy(p.origPercent) })));
+  const whatIfPath = hasOverrides
+    ? buildPath(visible.map((p, i) => ({ x: cx(i), y: cy(p.whatIfPercent) })))
+    : null;
+
+  function zoomIn() {
+    setZoom((z) => Math.min(z * 2, 8));
+    setOffset(safeOffset);
+  }
+  function zoomOut() {
+    setZoom((z) => Math.max(z / 2, 1));
+    setOffset(0);
+  }
+  function pan(dir: -1 | 1) {
+    setOffset((o) =>
+      Math.min(maxOffset, Math.max(0, o + dir * Math.max(1, Math.floor(windowSize / 4))))
+    );
+  }
+
+  const firstDate = visible[0].date;
+  const lastDate = visible[visible.length - 1].date;
   const fmtDate = (d: Date) =>
     d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
-  // Hover handling
   function handleMouseMove(e: React.MouseEvent<SVGSVGElement>) {
     const svg = svgRef.current;
-    if (!svg || sorted.length < 2) return;
+    if (!svg || visible.length < 2) return;
     const rect = svg.getBoundingClientRect();
-    const mouseX = ((e.clientX - rect.left) / rect.width) * CHART_W;
+    const mouseX = ((e.clientX - rect.left) / rect.width) * VW;
     let closest = 0;
     let closestDist = Infinity;
-    for (let i = 0; i < sorted.length; i++) {
-      const dist = Math.abs(xPos(i) - mouseX);
+    for (let i = 0; i < visible.length; i++) {
+      const dist = Math.abs(cx(i) - mouseX);
       if (dist < closestDist) {
         closestDist = dist;
         closest = i;
@@ -607,7 +822,7 @@ function GradeChart({ points, color }: { points: GradePoint[]; color: string }) 
     setHoverIdx(closest);
   }
 
-  const hoverPoint = hoverIdx !== null ? sorted[hoverIdx] : null;
+  const hoverPoint = hoverIdx !== null ? visible[hoverIdx] : null;
 
   return (
     <div
@@ -620,155 +835,305 @@ function GradeChart({ points, color }: { points: GradePoint[]; color: string }) 
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-        <span style={{ fontSize: 11, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.4px' }}>
-          Grade History
-        </span>
-        <span style={{ fontSize: 10, color: T.faint }}>
-          {sorted.length === 1
-            ? fmtDate(firstDate)
-            : `${fmtDate(firstDate)} — ${fmtDate(lastDate)}`}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+            Grade History
+          </span>
+          <span style={{ fontSize: 10, color: T.muted, opacity: 0.6 }}>
+            {zoom > 1 ? `Showing ${visible.length} of ${points.length}` : `${points.length} assignments`}
+          </span>
+          {hasOverrides && (
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                borderRadius: 9999,
+                border: '1px solid rgba(59, 130, 246, 0.25)',
+                background: 'rgba(59, 130, 246, 0.08)',
+                padding: '1px 8px',
+                fontSize: 10,
+                fontWeight: 500,
+                color: T.primary,
+              }}
+            >
+              <svg viewBox="0 0 8 8" width="6" height="6" aria-hidden="true" style={{ display: 'block' }}>
+                <line x1="0" y1="4" x2="8" y2="4" stroke="currentColor" strokeWidth="1.5" strokeDasharray="2 1.5"/>
+              </svg>
+              what-if active
+            </span>
+          )}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          {zoom > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={() => pan(-1)}
+                disabled={safeOffset === 0}
+                style={buttonStyle(safeOffset === 0)}
+                title="Pan left"
+              >
+                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={() => pan(1)}
+                disabled={safeOffset >= maxOffset}
+                style={buttonStyle(safeOffset >= maxOffset)}
+                title="Pan right"
+              >
+                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+            </>
+          )}
+          <button
+            type="button"
+            onClick={zoomIn}
+            disabled={zoom >= 8}
+            style={buttonStyle(zoom >= 8)}
+            title="Zoom in"
+          >
+            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              <line x1="11" y1="8" x2="11" y2="14"/>
+              <line x1="8" y1="11" x2="14" y2="11"/>
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={zoomOut}
+            disabled={zoom <= 1}
+            style={buttonStyle(zoom <= 1)}
+            title="Zoom out"
+          >
+            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              <line x1="8" y1="11" x2="14" y2="11"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
-      <svg
-        ref={svgRef}
-        viewBox={`0 0 ${CHART_W} ${CHART_H}`}
-        width="100%"
-        style={{ display: 'block' }}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={() => setHoverIdx(null)}
-      >
-        {/* Grid lines */}
-        {gridLines.map((v) => (
-          <g key={v}>
-            <line
-              x1={PAD.left}
-              y1={yPos(v)}
-              x2={CHART_W - PAD.right}
-              y2={yPos(v)}
-              stroke={T.border}
-              strokeWidth={1}
+      <div style={{ overflowX: 'auto', borderRadius: 8, background: '#0d1019' }}>
+        <svg
+          ref={svgRef}
+          viewBox={`0 0 ${VW} ${VH}`}
+          width={VW}
+          height={VH}
+          style={{ minWidth: VW, display: 'block' }}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={() => setHoverIdx(null)}
+        >
+          {/* Grid lines */}
+          {gridY.map((v) => (
+            <g key={v}>
+              <line
+                x1={PAD.left}
+                y1={cy(v)}
+                x2={VW - PAD.right}
+                y2={cy(v)}
+                stroke={T.border}
+                strokeWidth={0.5}
+                strokeDasharray={v % 10 === 0 ? undefined : '3 4'}
+                opacity={v % 10 === 0 ? 0.3 : 0.15}
+              />
+              <text
+                x={PAD.left - 6}
+                y={cy(v) + 3.5}
+                fill={T.muted}
+                fontSize={8.5}
+                textAnchor="end"
+                fontFamily="inherit"
+                opacity={0.65}
+              >
+                {v}%
+              </text>
+            </g>
+          ))}
+
+          {/* Gradient area */}
+          <defs>
+            <linearGradient id="gradeAreaGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={color} stopOpacity={0.15} />
+              <stop offset="100%" stopColor={color} stopOpacity={0.02} />
+            </linearGradient>
+          </defs>
+          {visible.length >= 2 && !hasOverrides && (
+            <polygon
+              points={
+                `${cx(0).toFixed(1)},${(PAD.top + PH).toFixed(1)} ` +
+                visible.map((p, i) => `${cx(i).toFixed(1)},${cy(p.origPercent).toFixed(1)}`).join(' ') +
+                ` ${cx(visible.length - 1).toFixed(1)},${(PAD.top + PH).toFixed(1)}`
+              }
+              fill="url(#gradeAreaGrad)"
             />
-            <text
-              x={PAD.left - 6}
-              y={yPos(v) + 3.5}
-              fill={T.faint}
-              fontSize={9}
-              textAnchor="end"
-              fontFamily="inherit"
-            >
-              {v}%
-            </text>
-          </g>
-        ))}
+          )}
 
-        {/* Gradient fill under line */}
-        <defs>
-          <linearGradient id="gradeAreaGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={color} stopOpacity={0.15} />
-            <stop offset="100%" stopColor={color} stopOpacity={0.02} />
-          </linearGradient>
-        </defs>
-        {sorted.length >= 2 && (
-          <polygon
-            points={areaPoints}
-            fill="url(#gradeAreaGrad)"
-          />
-        )}
+          {/* Original line */}
+          {visible.length >= 2 && (
+            <path
+              d={origPath}
+              fill="none"
+              stroke={hasOverrides ? '#ffffff' : color}
+              strokeWidth={hasOverrides ? 1.5 : 2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              opacity={hasOverrides ? 0.35 : 1}
+              strokeDasharray={hasOverrides ? '4 3' : undefined}
+            />
+          )}
 
-        {/* Line */}
-        {sorted.length >= 2 ? (
-          <polyline
-            points={polyPoints}
-            fill="none"
-            stroke={color}
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        ) : (
-          <circle cx={xPos(0)} cy={yPos(sorted[0].percent)} r={4} fill={color} />
-        )}
-
-        {/* Data point dots */}
-        {sorted.map((p, i) => (
-          <circle
-            key={i}
-            cx={xPos(i)}
-            cy={yPos(p.percent)}
-            r={hoverIdx === i ? 5 : 2.5}
-            fill={hoverIdx === i ? '#fff' : color}
-            stroke={hoverIdx === i ? color : 'none'}
-            strokeWidth={2}
-          />
-        ))}
-
-        {/* Date axis labels */}
-        {sorted.length >= 2 && (
-          <>
-            <text
-              x={PAD.left}
-              y={CHART_H - 4}
-              fill={T.faint}
-              fontSize={9}
-              textAnchor="start"
-              fontFamily="inherit"
-            >
-              {fmtDate(firstDate)}
-            </text>
-            <text
-              x={CHART_W - PAD.right}
-              y={CHART_H - 4}
-              fill={T.faint}
-              fontSize={9}
-              textAnchor="end"
-              fontFamily="inherit"
-            >
-              {fmtDate(lastDate)}
-            </text>
-          </>
-        )}
-
-        {/* Hover tooltip */}
-        {hoverPoint && hoverIdx !== null && (
-          <g>
-            {/* Vertical guide line */}
-            <line
-              x1={xPos(hoverIdx)}
-              y1={PAD.top}
-              x2={xPos(hoverIdx)}
-              y2={PAD.top + innerH}
+          {/* What-if line */}
+          {hasOverrides && whatIfPath && visible.length >= 2 && (
+            <path
+              d={whatIfPath}
+              fill="none"
               stroke={color}
-              strokeWidth={1}
-              strokeDasharray="3,3"
-              opacity={0.4}
+              strokeWidth={2.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              opacity={0.85}
             />
-            {/* Tooltip background */}
-            <rect
-              x={xPos(hoverIdx) - 42}
-              y={yPos(hoverPoint.percent) - 30}
-              width={84}
-              height={22}
-              rx={5}
-              fill="#0d1019"
-              stroke={T.border}
-              strokeWidth={1}
-            />
-            {/* Tooltip text */}
-            <text
-              x={xPos(hoverIdx)}
-              y={yPos(hoverPoint.percent) - 15}
-              fill={color}
-              fontSize={11}
-              fontWeight={700}
-              textAnchor="middle"
-              fontFamily="inherit"
-            >
-              {hoverPoint.percent.toFixed(2)}% · {new Date(hoverPoint.ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-            </text>
-          </g>
-        )}
-      </svg>
+          )}
+
+          {/* Dots */}
+          {visible.map((p, i) => {
+            const x = cx(i);
+            const origY = cy(p.origPercent);
+            const whatIfY = cy(p.whatIfPercent);
+            const isTip = hoverIdx === i;
+
+            return (
+              <g key={i}>
+                <rect
+                  x={x - 14}
+                  y={PAD.top - 4}
+                  width={28}
+                  height={PH + 8}
+                  fill="rgba(0,0,0,0)"
+                  style={{ cursor: 'pointer' }}
+                />
+
+                <circle
+                  cx={x}
+                  cy={origY}
+                  r={hasOverrides ? 2 : isTip ? 5 : 3.5}
+                  fill={isTip && !hasOverrides ? '#ffffff' : color}
+                  stroke={isTip && !hasOverrides ? color : 'none'}
+                  strokeWidth={isTip ? 2 : 0}
+                  opacity={hasOverrides ? 0.3 : 1}
+                />
+
+                {hasOverrides && (
+                  <circle
+                    cx={x}
+                    cy={whatIfY}
+                    r={isTip ? 5 : 3.5}
+                    fill={isTip ? '#ffffff' : color}
+                    stroke={isTip ? color : 'none'}
+                    strokeWidth={isTip ? 2 : 0}
+                  />
+                )}
+
+                {(visible.length <= 8 || i % Math.ceil(visible.length / 8) === 0) && (
+                  <text
+                    x={x}
+                    y={PAD.top + PH + 14}
+                    textAnchor="middle"
+                    fontSize={7.5}
+                    fill={T.muted}
+                    opacity={0.65}
+                  >
+                    {p.date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })}
+                  </text>
+                )}
+              </g>
+            );
+          })}
+
+          {/* Tooltip */}
+          {hoverPoint && hoverIdx !== null && (() => {
+            const x = cx(hoverIdx);
+            const origY = cy(hoverPoint.origPercent);
+            const whatIfY = cy(hoverPoint.whatIfPercent);
+            const activeY = hasOverrides ? whatIfY : origY;
+            
+            const tipW = 144;
+            const tipH = hasOverrides ? 66 : 44;
+            
+            const tipX = Math.min(Math.max(x, PAD.left + tipW / 2), VW - PAD.right - tipW / 2);
+            const tipY = Math.max(PAD.top, activeY - tipH - 8);
+
+            const gradeDiff = hoverPoint.whatIfPercent - hoverPoint.origPercent;
+
+            return (
+              <g style={{ pointerEvents: 'none' }}>
+                <line
+                  x1={x}
+                  y1={PAD.top}
+                  x2={x}
+                  y2={PAD.top + PH}
+                  stroke={color}
+                  strokeWidth={1}
+                  strokeDasharray="3 3"
+                  opacity={0.4}
+                />
+
+                <rect
+                  x={tipX - tipW / 2}
+                  y={tipY}
+                  width={tipW}
+                  height={tipH}
+                  rx={5}
+                  fill="#0d1019"
+                  stroke={T.border}
+                  strokeWidth={1}
+                  style={{ filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.3))' }}
+                />
+
+                {hasOverrides ? (
+                  <>
+                    <text x={tipX} y={tipY + 13} textAnchor="middle" fontSize={9.5} fontWeight="700" fill={T.text}>
+                      {hoverPoint.whatIfPercent.toFixed(2)}%
+                    </text>
+                    <text x={tipX} y={tipY + 24} textAnchor="middle" fontSize={7.5} fill={T.muted}>
+                      was {hoverPoint.origPercent.toFixed(2)}% before
+                    </text>
+                    <text x={tipX} y={tipY + 36} textAnchor="middle" fontSize={8} fill={T.text}>
+                      {hoverPoint.assignmentName.length > 22 ? hoverPoint.assignmentName.slice(0, 22) + '…' : hoverPoint.assignmentName}
+                    </text>
+                    <text x={tipX} y={tipY + 47} textAnchor="middle" fontSize={7.5} fill={color}>
+                      {hoverPoint.categoryName}
+                    </text>
+                    <text x={tipX} y={tipY + 58} textAnchor="middle" fontSize={7.5} fill={gradeDiff >= 0 ? T.green : T.red} fontWeight="600">
+                      {gradeDiff >= 0 ? '+' : ''}{gradeDiff.toFixed(2)}% delta
+                    </text>
+                  </>
+                ) : (
+                  <>
+                    <text x={tipX} y={tipY + 13} textAnchor="middle" fontSize={9.5} fontWeight="700" fill={T.text}>
+                      {hoverPoint.origPercent.toFixed(2)}%
+                    </text>
+                    <text x={tipX} y={tipY + 26} textAnchor="middle" fontSize={8} fill={T.text}>
+                      {hoverPoint.assignmentName.length > 22 ? hoverPoint.assignmentName.slice(0, 22) + '…' : hoverPoint.assignmentName}
+                    </text>
+                    <text x={tipX} y={tipY + 37} textAnchor="middle" fontSize={7.5} fill={color}>
+                      {hoverPoint.categoryName}
+                    </text>
+                  </>
+                )}
+              </g>
+            );
+          })()}
+        </svg>
+      </div>
     </div>
   );
 }

@@ -201,11 +201,6 @@ function CourseListRow({
           {course.name}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
-          {missingCount > 0 && (
-            <span style={{ fontSize: 9, color: T.failed }}>
-              {missingCount} missing
-            </span>
-          )}
           <Sparkline points={sparklinePoints} color={gradeClr} />
         </div>
       </div>

@@ -534,15 +534,20 @@ function TreeRow({ item, depth, folderEntry, onToggle, onOpen }: {
 
       {/* Title + meta */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{
-          fontSize: 13,
-          color: isFolder ? '#d4b896' : '#c8d5e8',
-          fontWeight: isFolder ? 500 : 400,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-        }}>
-          {item.title}
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, minWidth: 0 }}>
+          <span style={{
+            fontSize: 13,
+            color: isFolder ? '#d4b896' : '#c8d5e8',
+            fontWeight: isFolder ? 500 : 400,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}>
+            {item.title}
+          </span>
+          {item.fileSize && (
+            <span style={{ fontSize: 10, color: T.faint, flexShrink: 0 }}>{item.fileSize}</span>
+          )}
         </div>
         {item.dueDate && (
           <div style={{ fontSize: 11, color: T.primary, marginTop: 2 }}>Due {item.dueDate}</div>

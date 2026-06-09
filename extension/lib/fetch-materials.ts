@@ -50,6 +50,7 @@ export interface MaterialItem {
   dueDate?: string | null;
   description?: string | null;
   fileName?: string | null; // real filename w/ extension from aria-label (file items)
+  fileSize?: string | null; // e.g. "40 KB" (file items)
 }
 
 // ── Content view types ────────────────────────────────────────────────────────
@@ -381,9 +382,13 @@ function parseMaterialsDoc(doc: Document, courseId: string, currentFolderId: str
 
     seen.add(href || title);
 
-    // Real filename (with extension) lives in the tooltip aria-label
+    // Real filename (with extension) lives in the tooltip aria-label; the
+    // file size is a sibling span inside .attachments-file
     const fileName = isFileLink
       ? (anchor.getAttribute('aria-label') ?? anchor.querySelector('[aria-label]')?.getAttribute('aria-label') ?? null)
+      : null;
+    const fileSize = isFileLink
+      ? (anchor.closest('.attachments-file, .document-body-title')?.querySelector('.attachments-file-size, .file-size')?.textContent?.trim() ?? null)
       : null;
 
     const fk = isFileLink ? detectFileKind(href, `${title} ${fileName ?? ''}`) : null;
@@ -398,6 +403,7 @@ function parseMaterialsDoc(doc: Document, courseId: string, currentFolderId: str
       dueDate: null,
       description: null,
       fileName,
+      fileSize,
     });
   });
 

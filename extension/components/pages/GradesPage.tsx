@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import type { ScrapedCourse } from '../../lib/schemas';
 import { parseGradeString, gradeColor, isMissing } from '../../lib/grade-utils';
 import { courseColor, courseAbbr, abbrFontSize } from '../../lib/course-colors';
 import { CourseGradebook } from '../CourseGradebook';
+import { loadGradeHistory } from '../../lib/grade-history';
+import type { GradePoint } from '../../lib/grade-history';
 
 const T = {
   text: '#e8eaf0',
@@ -28,6 +30,11 @@ interface Props {
 
 export function GradesPage({ grades, selectedCourseName, onCourseSelect }: Props) {
   const { courses } = grades;
+  const [history, setHistory] = useState<Record<string, GradePoint[]>>({});
+
+  useEffect(() => {
+    loadGradeHistory().then(setHistory).catch(() => {});
+  }, []);
 
   const effectiveCourse =
     courses.find((c) => c.name === selectedCourseName) ?? courses[0] ?? null;
@@ -70,6 +77,7 @@ export function GradesPage({ grades, selectedCourseName, onCourseSelect }: Props
             course={course}
             isSelected={course.name === effectiveCourse?.name}
             onClick={() => onCourseSelect(course.name)}
+            sparklinePoints={history[course.name] ?? []}
           />
         ))}
       </div>
@@ -110,10 +118,12 @@ function CourseListRow({
   course,
   isSelected,
   onClick,
+  sparklinePoints,
 }: {
   course: ScrapedCourse;
   isSelected: boolean;
   onClick: () => void;
+  sparklinePoints: GradePoint[];
 }) {
   const color = courseColor(course.name);
   const abbr = courseAbbr(course.name);
@@ -172,7 +182,7 @@ function CourseListRow({
         </span>
       </div>
 
-      {/* Name + teacher */}
+      {/* Name + sparkline */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div
           style={{
@@ -187,11 +197,14 @@ function CourseListRow({
         >
           {course.name}
         </div>
-        {missingCount > 0 && (
-          <div style={{ fontSize: 9, color: T.failed, marginTop: 1 }}>
-            {missingCount} missing
-          </div>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
+          {missingCount > 0 && (
+            <span style={{ fontSize: 9, color: T.failed }}>
+              {missingCount} missing
+            </span>
+          )}
+          <Sparkline points={sparklinePoints} color={gradeClr} />
+        </div>
       </div>
 
       {/* Grade */}
@@ -204,5 +217,60 @@ function CourseListRow({
         )}
       </div>
     </button>
+  );
+}
+
+// ── Sparkline SVG ─────────────────────────────────────────────────────────────
+
+const SPARK_W = 80;
+const SPARK_H = 24;
+
+function Sparkline({ points, color }: { points: GradePoint[]; color: string }) {
+  if (points.length === 0) return null;
+
+  // Single point → dot
+  if (points.length === 1) {
+    return (
+      <svg width={SPARK_W} height={SPARK_H} viewBox={`0 0 ${SPARK_W} ${SPARK_H}`} style={{ flexShrink: 0 }}>
+        <circle cx={SPARK_W / 2} cy={SPARK_H / 2} r={2.5} fill={color} />
+      </svg>
+    );
+  }
+
+  // Multiple points → polyline
+  const sorted = [...points].sort((a, b) => a.ts - b.ts);
+  const percents = sorted.map((p) => p.percent);
+  const minP = Math.min(...percents);
+  const maxP = Math.max(...percents);
+  const range = maxP - minP || 1; // avoid divide by zero
+
+  const padY = 3;
+  const innerH = SPARK_H - padY * 2;
+  const step = (SPARK_W - 4) / (sorted.length - 1);
+
+  const pts = sorted.map((p, i) => {
+    const x = 2 + i * step;
+    const y = padY + innerH - ((p.percent - minP) / range) * innerH;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+
+  return (
+    <svg width={SPARK_W} height={SPARK_H} viewBox={`0 0 ${SPARK_W} ${SPARK_H}`} style={{ flexShrink: 0 }}>
+      <polyline
+        points={pts}
+        fill="none"
+        stroke={color}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* End dot */}
+      {(() => {
+        const lastPt = sorted[sorted.length - 1];
+        const x = 2 + (sorted.length - 1) * step;
+        const y = padY + innerH - ((lastPt.percent - minP) / range) * innerH;
+        return <circle cx={x} cy={y} r={2} fill={color} />;
+      })()}
+    </svg>
   );
 }

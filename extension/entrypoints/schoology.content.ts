@@ -23,6 +23,7 @@ import { countAssignments } from '../lib/transform';
 import { runFetchExperiment } from '../lib/fetch-experiment';
 import type { ScrapeResult } from '../lib/scrape-status';
 import { INITIAL_SCRAPE_RESULT } from '../lib/scrape-status';
+import { appendGradeHistory } from '../lib/grade-history';
 
 const MOUNT_ID = '__better-schoology-root__';
 const ESCAPE_ID = '__better-schoology-escape__';
@@ -175,6 +176,7 @@ async function runScrape() {
     // Step 6: saving
     updateScrapeResult({ status: 'saving' });
     await saveGradeData(data);
+    await appendGradeHistory(data.courses);
     await saveScrapeMeta({
       status: 'fresh',
       scrapedAt: data.scrapedAt,

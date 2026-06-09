@@ -45,6 +45,12 @@ function parseDue(raw: string): Date | null {
 
 const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 
+const MISSING_RED = '#ef4444';
+// Unsubmitted work whose due date has passed = overdue (shown in red)
+function isOverdue(it: CalItem, now: Date): boolean {
+  return it.status === 'unsubmitted' && it.date < new Date(now.getFullYear(), now.getMonth(), now.getDate());
+}
+
 export function CalendarPage({ grades }: Props) {
   // Build all dated items once
   const items: CalItem[] = [];
@@ -126,15 +132,19 @@ export function CalendarPage({ grades }: Props) {
             }}>
               <div style={{ fontSize: 11, fontWeight: isToday ? 700 : 500, color: isToday ? T.primary : T.muted, marginBottom: 3 }}>{d}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2, overflow: 'hidden' }}>
-                {dayItems.slice(0, 4).map((it, j) => (
-                  <div key={j} title={`${it.name} · ${it.courseName}`} style={{
-                    display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: '#c8d0df',
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  }}>
-                    <span style={{ width: 5, height: 5, borderRadius: '50%', background: it.color, flexShrink: 0 }} />
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.name}</span>
-                  </div>
-                ))}
+                {dayItems.slice(0, 4).map((it, j) => {
+                  const overdue = isOverdue(it, now);
+                  return (
+                    <div key={j} title={`${it.name} · ${it.courseName}${overdue ? ' · overdue' : ''}`} style={{
+                      display: 'flex', alignItems: 'center', gap: 4, fontSize: 10,
+                      color: overdue ? MISSING_RED : '#c8d0df',
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}>
+                      <span style={{ width: 5, height: 5, borderRadius: '50%', background: overdue ? MISSING_RED : it.color, flexShrink: 0 }} />
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.name}</span>
+                    </div>
+                  );
+                })}
                 {dayItems.length > 4 && (
                   <div style={{ fontSize: 9, color: T.faint }}>+{dayItems.length - 4} more</div>
                 )}
@@ -157,8 +167,9 @@ export function CalendarPage({ grades }: Props) {
           </div>
           {selectedItems.map((it, j) => (
             <div key={j} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', borderTop: j > 0 ? `1px solid ${T.rowBorder}` : 'none' }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: it.color, flexShrink: 0 }} />
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: isOverdue(it, now) ? MISSING_RED : it.color, flexShrink: 0 }} />
               <span style={{ flex: 1, fontSize: 12, color: '#c8d0df', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.name}</span>
+              {isOverdue(it, now) && <span style={{ fontSize: 9, fontWeight: 700, color: MISSING_RED, border: `1px solid ${MISSING_RED}40`, borderRadius: 4, padding: '0 5px', flexShrink: 0 }}>OVERDUE</span>}
               <span style={{ fontSize: 10, color: T.faint, flexShrink: 0 }}>{it.courseName}</span>
             </div>
           ))}

@@ -3,7 +3,7 @@ import type { ScrapedCourse } from '../../lib/schemas';
 import { parseGradeString, gradeColor, isMissing } from '../../lib/grade-utils';
 import { courseColor, courseAbbr, abbrFontSize } from '../../lib/course-colors';
 import { CourseGradebook } from '../CourseGradebook';
-import { loadGradeHistory } from '../../lib/grade-history';
+import { loadGradeHistory, computeSemesterTrend } from '../../lib/grade-history';
 import type { GradePoint } from '../../lib/grade-history';
 
 const T = {
@@ -77,7 +77,7 @@ export function GradesPage({ grades, selectedCourseName, onCourseSelect }: Props
             course={course}
             isSelected={course.name === effectiveCourse?.name}
             onClick={() => onCourseSelect(course.name)}
-            sparklinePoints={history[course.name] ?? []}
+            sparklinePoints={computeSemesterTrend(course)}
           />
         ))}
       </div>
@@ -94,7 +94,7 @@ export function GradesPage({ grades, selectedCourseName, onCourseSelect }: Props
         {effectiveCourse ? (
           <CourseGradebook
             course={effectiveCourse}
-            historyPoints={history[effectiveCourse.name] ?? []}
+            historyPoints={computeSemesterTrend(effectiveCourse)}
           />
         ) : (
           <div

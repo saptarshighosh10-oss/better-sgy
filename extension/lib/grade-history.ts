@@ -79,3 +79,48 @@ export async function appendGradeHistory(courses: ScrapedCourse[]): Promise<void
   await browser.storage.local.set({ [HISTORY_KEY]: history });
   console.log('[BS] Grade history updated:', Object.keys(history).length, 'courses');
 }
+
+// ── Derived semester trend (Desmos-style, no stored history needed) ──────────
+
+/**
+ * Replay the semester: sort graded assignments by due date and recompute the
+ * cumulative grade (running Σscore/Σmax) after each one — the same approach
+ * as the main app's trendData, but one point PER graded assignment so the
+ * line visibly steps up/down as each grade lands. ts = assignment due date
+ * (fallback: even spacing) so the x-axis is real time.
+ */
+export function computeSemesterTrend(course: ScrapedCourse): GradePoint[] {
+  interface G { score: number; max: number; ts: number | null }
+  const graded: G[] = [];
+  for (const cat of course.categories) {
+    for (const a of cat.assignments) {
+      const score = parseFloat(a.score);
+      const max = parseFloat((a.maxGrade ?? '').replace(/[^\d.]/g, ''));
+      if (isNaN(score) || isNaN(max) || max <= 0) continue;
+      const md = (a.dueDate ?? '').match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+      let ts: number | null = null;
+      if (md) {
+        const y = md[3].length === 2 ? 2000 + parseInt(md[3], 10) : parseInt(md[3], 10);
+        ts = new Date(y, parseInt(md[1], 10) - 1, parseInt(md[2], 10)).getTime();
+      }
+      graded.push({ score, max, ts });
+    }
+  }
+  if (graded.length === 0) return [];
+  // Dated assignments in date order; undated ones keep gradebook order at the end
+  const dated = graded.filter((g) => g.ts !== null).sort((a, b) => a.ts! - b.ts!);
+  const undated = graded.filter((g) => g.ts === null);
+  const ordered = [...dated, ...undated];
+  const lastTs = dated.length > 0 ? dated[dated.length - 1].ts! : Date.now();
+
+  const points: GradePoint[] = [];
+  let tot = 0, max = 0;
+  ordered.forEach((g, i) => {
+    tot += g.score; max += g.max;
+    points.push({
+      ts: g.ts ?? lastTs + (i + 1) * 86400000,
+      percent: Math.round((tot / max) * 1000) / 10,
+    });
+  });
+  return points;
+}

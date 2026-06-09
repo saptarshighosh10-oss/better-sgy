@@ -205,6 +205,10 @@ All same-origin (fuhsd.schoology.com), so the content script does it directly �
 3. **Calendar polish**: pull events (not just gradebook due dates) from `/calendar/feed` if assignment due dates feel incomplete.
 4. **Quizzes/tests** (HARDEST, maybe infeasible): Schoology renders these as a heavy JS SPA — taking them inline likely can't be replayed; may have to stay "open in Schoology". Recon before committing to it.
 
+**Grade calculator + graph (USER REQUESTED — do this):**
+- **What-if calculator (feasible now, pure local math):** data is already in storage — `ScrapedCourse.categories[].weight` (e.g. "80%") and `.assignments[].score`/`.maxGrade`. Build into `GradesPage`/`CourseGradebook` (gradebook already shows categories). Math: per category, `catPct = Σscore / Σmax` over scored assignments; `courseGrade = Σ(catPct × weight) / Σweight` (renormalize over categories that have scores, since empty categories shouldn't count). Make each assignment's score an editable input; recompute live on change; show delta vs current grade. The main Next.js app's `components/grades/grade-calculator.tsx` + SmartPriorities have the exact proven formula — port it (HANDOFF.md in repo root documents it: `impact = (pointsPossible/totalCatPts) × categoryWeight`).
+- **Grade graph (needs a data step FIRST):** the extension schema has NO history (`scrape-dom.ts` saves only the current snapshot). To graph a trend, first append a `{ ts, courseName, percent }` row to a new `chrome.storage.local` key (e.g. `bs-grade-history`) on each successful scrape (in `use-extension-grades`/scrape save path), capped to ~60 points. THEN draw an inline SVG sparkline/line chart per course (no chart lib — a simple `<polyline>` in a viewBox, like the main app's `gradegraph-client.tsx`). Until history accumulates it'll show one point — that's expected.
+
 **Pattern to add a page:** new `components/pages/XPage.tsx` (take `{ grades }` or fetch its own data via `sgyFetch`), add to `Page` type + render switch in `ExtRouter.tsx`, add nav entry in `ExtSidebar.tsx` NAV_ITEMS. Inline styles only, `T` color map at top of file.
 
 ---

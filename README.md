@@ -32,9 +32,24 @@ everything **on your device** — no accounts, no servers, no analytics, no trac
 makes no network requests except to your own Schoology site. See the full
 **[privacy policy](./PRIVACY.md)**.
 
-> **On the source code:** while it's in private testing, Better SGY ships as a built
-> package rather than full source. If you'd like to verify what it does, open an issue —
-> happy to walk through it.
+> **Verify it yourself:** the full extension source is in [`extension/`](./extension) —
+> read it, or build it from scratch (see below). It only ever talks to your own
+> Schoology site.
+
+## 🛠️ Build from source
+
+The full source is in [`extension/`](./extension) — a [WXT](https://wxt.dev) + React
+(MV3) project. To build it yourself:
+
+```bash
+cd extension
+npm install
+npm run build      # → extension/.output/chrome-mv3
+```
+
+Then load `extension/.output/chrome-mv3` via **Load unpacked**. `npm run zip` packages a
+distributable zip. (No license is set yet, so all rights are reserved for now — the
+source is published for transparency and testing.)
 
 ## 🐞 Feedback
 

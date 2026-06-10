@@ -71,4 +71,5 @@ will be posted at this URL.
 
 ## Contact
 
-Questions about this policy? Contact: **<add-your-contact-email-here>**
+Questions or concerns about this policy? **Open an issue on this repository** and the
+developer will respond there.

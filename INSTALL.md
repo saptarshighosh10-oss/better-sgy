@@ -7,9 +7,8 @@ so it installs manually (not from the Chrome Web Store yet).
 
 ## Install (2 minutes)
 
-1. **Download** `better-sgy-1.0.0-chrome.zip` from the
-   [Releases page](../../releases) and **unzip it.** You'll get a folder
-   (e.g. `better-sgy-1.0.0-chrome/`) with a `manifest.json` inside.
+1. **[Download the latest release](../../releases/latest)** (`better-sgy-chrome.zip`)
+   and **unzip it.** You'll get a folder with a `manifest.json` inside.
 2. Open your browser and go to **`chrome://extensions`**
    (Edge: `edge://extensions`).
 3. Turn on **Developer mode** (toggle, top-right).
@@ -22,8 +21,8 @@ toggle the extension off on the extensions page.
 ## Notes for testers
 - It only runs on `*.schoology.com` and keeps everything **on your device** — no
   accounts, no servers, nothing is sent anywhere.
-- Because it's loaded unpacked, Chrome may show a "Disable developer mode extensions"
-  popup on startup — that's normal for test builds; just close it.
+- Chrome may warn about unpacked / developer-mode extensions on startup — that's normal
+  for test builds; just dismiss it.
 - It won't auto-update. To get a new version, download the new zip and click the
   **refresh** icon on the extension card (or remove + Load unpacked again).
 

@@ -1,5 +1,6 @@
 /**
- * DueSoon.tsx — "due in the next 72 hours" nudge strip (Overview).
+ * DueSoon.tsx — "due today or tomorrow" nudge strip (Overview). Day-based, not a
+ * rolling 72h clock: a Tuesday-due item is flagged all of Monday regardless of time.
  *
  * Pure read of already-scraped data; no network. Follows v2 language:
  * card surface + 1px border, label row, amber due pills.
@@ -16,9 +17,14 @@ interface DueItem {
   due: Date;
 }
 
-function collectDueSoon(courses: ScrapedCourse[], hours = 72): DueItem[] {
-  const now = Date.now();
-  const horizon = now + hours * 3_600_000;
+function collectDueSoon(courses: ScrapedCourse[]): DueItem[] {
+  // Day-based window: flag anything due TODAY or TOMORROW, regardless of the time of
+  // day. So an assignment due Tuesday shows all day Monday (and Tuesday), no matter
+  // what the clock says.
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const start = startOfToday.getTime();
+  const endExclusive = start + 2 * 86_400_000; // start of the day AFTER tomorrow
   const items: DueItem[] = [];
   for (const c of courses) {
     for (const cat of c.categories) {
@@ -27,9 +33,10 @@ function collectDueSoon(courses: ScrapedCourse[], hours = 72): DueItem[] {
         if (a.exception) continue; // excused/incomplete — not actionable here
         const d = parseDueDate(a.dueDate);
         if (!d) continue;
-        // include things due today (even if the clock already passed midnight)
-        const t = d.getTime() + 23 * 3_600_000; // end of due day
-        if (t >= now && d.getTime() <= horizon) items.push({ course: c.name, name: a.name, due: d });
+        const day = new Date(d);
+        day.setHours(0, 0, 0, 0);
+        const dayTime = day.getTime();
+        if (dayTime >= start && dayTime < endExclusive) items.push({ course: c.name, name: a.name, due: d });
       }
     }
   }
@@ -60,7 +67,7 @@ export function DueSoon({ courses }: { courses: ScrapedCourse[] }) {
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '13px 20px', borderBottom: `1px solid ${T.border}` }}>
         <span style={{ fontSize: 14, fontWeight: 700, color: T.text }}>Due soon</span>
-        <span style={{ fontSize: 11.5, color: T.muted }}>next 3 days · {items.length} item{items.length > 1 ? 's' : ''}</span>
+        <span style={{ fontSize: 11.5, color: T.muted }}>today &amp; tomorrow · {items.length} item{items.length > 1 ? 's' : ''}</span>
       </div>
       {items.map((it, i) => (
         <div key={`${it.course}-${it.name}-${i}`} style={{

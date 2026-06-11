@@ -37,6 +37,26 @@ export default defineBackground(() => {
         return Promise.resolve({ type: 'pong', ts: Date.now() });
       }
 
+      // OS notification for grade changes (content script detects them at scrape
+      // time and asks us to toast — workers outlive the tab's visibility state).
+      // Local-only: title/body are built on-device from the scrape diff.
+      if (msg.type === 'notify') {
+        const m = message as { type: string; title?: string; body?: string };
+        return (async () => {
+          try {
+            await browser.notifications.create({
+              type: 'basic',
+              iconUrl: browser.runtime.getURL('/icon/128.png'),
+              title: m.title || 'Better SGY',
+              message: m.body || '',
+            });
+            return { ok: true };
+          } catch (err) {
+            return { ok: false, error: err instanceof Error ? err.message : String(err) };
+          }
+        })();
+      }
+
       // Fetch a Schoology file on behalf of the content script. Attachments
       // 302 from the school's schoology.com subdomain to files-cdn.schoology.com
       // — a content script fetch dies on CORS there; the background worker is

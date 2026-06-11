@@ -26,7 +26,7 @@ import { looksLikeLoginPage, reportSessionExpired, reportConnectionOk } from '..
 import type { ScrapeResult } from '../lib/scrape-status';
 import { INITIAL_SCRAPE_RESULT } from '../lib/scrape-status';
 import { appendGradeHistory } from '../lib/grade-history';
-import { recordChanges } from '../lib/grade-changes';
+import { recordChanges, describeChange, type ChangeEvent } from '../lib/grade-changes';
 
 const MOUNT_ID = '__better-schoology-root__';
 const ESCAPE_ID = '__better-schoology-escape__';
@@ -113,6 +113,9 @@ export default defineContentScript({
       // ── Hide native Schoology UI ───────────────────────────────
       const hiddenCount = hideNativeUI();
       console.log(`[BS] Hidden ${hiddenCount} native container(s)`);
+
+      // ── Our logo in the tab while the overlay owns the page ────
+      applyBranding(true);
     }
 
     // ── Phase 1: Scrape trigger ────────────────────────────────
@@ -198,7 +201,7 @@ async function runScrape() {
 
     // Step 6: saving (diff against the previous snapshot first → change feed)
     updateScrapeResult({ status: 'saving' });
-    await recordChanges(previousData, data);
+    notifyChanges(await recordChanges(previousData, data));
     await saveGradeData(data);
     await appendGradeHistory(data.courses);
     await saveScrapeMeta({
@@ -237,6 +240,59 @@ async function runScrape() {
       assignmentCount: 0,
       error: msg,
     }).catch(() => {});
+  }
+}
+
+/**
+ * OS notification for fresh grade changes — only when this tab isn't visible
+ * (if you're looking at the dashboard, the "What changed" feed already shows
+ * it). The background worker shows the toast so it pops over any app/tab.
+ */
+function notifyChanges(events: ChangeEvent[]) {
+  if (events.length === 0 || !document.hidden) return;
+  const lines = events.slice(0, 3).map(describeChange);
+  const extra = events.length > 3 ? `\n+${events.length - 3} more` : '';
+  browser.runtime.sendMessage({
+    type: 'notify',
+    title: events.length === 1 ? 'Grade update' : `${events.length} grade updates`,
+    body: lines.join('\n') + extra,
+  }).catch(() => { /* worker asleep or messaging unavailable — feed still has it */ });
+}
+
+// ── Branding: our logo in the tab while the overlay is active ────────────────
+
+let originalFavicons: Array<{ el: HTMLLinkElement; href: string }> | null = null;
+
+/** Swap the page favicon to the Better SGY logo (and back). */
+function applyBranding(active: boolean) {
+  try {
+    if (active) {
+      if (!originalFavicons) {
+        originalFavicons = [];
+        document.querySelectorAll<HTMLLinkElement>('link[rel*="icon"]').forEach((el) => {
+          originalFavicons!.push({ el, href: el.href });
+        });
+      }
+      const url = browser.runtime.getURL('/icon/32.png');
+      if (originalFavicons.length === 0) {
+        const link = document.createElement('link');
+        link.rel = 'icon';
+        link.href = url;
+        link.setAttribute('data-bs-favicon', '1');
+        document.head.appendChild(link);
+        originalFavicons.push({ el: link, href: '' });
+      } else {
+        originalFavicons.forEach(({ el }) => { el.href = url; });
+      }
+    } else if (originalFavicons) {
+      originalFavicons.forEach(({ el, href }) => {
+        if (el.getAttribute('data-bs-favicon')) el.remove();
+        else el.href = href;
+      });
+      originalFavicons = null;
+    }
+  } catch (e) {
+    console.warn('[BS] favicon swap failed', e);
   }
 }
 
@@ -290,7 +346,7 @@ async function runBackgroundScrape() {
       return;
     }
 
-    await recordChanges(previousData, data);
+    notifyChanges(await recordChanges(previousData, data));
     await saveGradeData(data);
     await appendGradeHistory(data.courses);
     await saveScrapeMeta({
@@ -334,6 +390,7 @@ async function runBackgroundScrape() {
     if (host) host.style.display = '';   // show overlay first
     if (btn) btn.style.display = 'none';
     try { hideNativeUI(); } catch (e) { console.warn('[BS] hideNativeUI failed', e); }
+    applyBranding(true);
     // Re-activate the extension (it was unmounted when we went native).
     if (!reactRootRef && reactRootEl) {
       reactRootRef = ReactDOM.createRoot(reactRootEl);
@@ -349,6 +406,7 @@ async function runBackgroundScrape() {
     if (host) host.style.display = 'none';
     if (btn) btn.style.display = 'flex';
     try { restoreNativeUI(); } catch (e) { console.warn('[BS] restoreNativeUI failed', e); }
+    applyBranding(false); // native Schoology gets its own favicon back
     // Fully deactivate: unmount React so NOTHING runs (no polling, no animations,
     // no timers) until the user presses "Show Better SGY". Defer one tick —
     // this is triggered from a button INSIDE React, and sync self-unmount glitches.

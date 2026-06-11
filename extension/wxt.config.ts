@@ -19,7 +19,9 @@ export default defineConfig({
     // Only ever runs on a school's own Schoology site (any *.schoology.com subdomain).
     // The background worker fetches attachments/feeds with the user's own session.
     host_permissions: ['https://*.schoology.com/*'],
-    permissions: ['storage'],
+    // 'notifications' = OS toasts for grade changes (local data only — nothing
+    // is transmitted; the notification is built from the on-device scrape diff).
+    permissions: ['storage', 'notifications'],
     // three.js ships in its own chunk (entrypoints/three-bundle.ts) and is
     // dynamic-imported by the content script only when an Arcade game opens.
     // web_accessible_resources is required for a content script to import() an
@@ -27,7 +29,10 @@ export default defineConfig({
     // Schoology pages only (still school-agnostic).
     web_accessible_resources: [
       {
-        resources: ['three-bundle.js'],
+        // three-bundle.js: lazy-loaded Arcade chunk. icon/*: lets the Schoology
+        // page's <link rel="icon"> point at our logo (favicon swap while the
+        // overlay is active). Still restricted to Schoology origins.
+        resources: ['three-bundle.js', 'icon/*.png'],
         matches: ['https://*.schoology.com/*'],
       },
     ],

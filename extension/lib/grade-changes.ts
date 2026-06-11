@@ -88,19 +88,35 @@ export function computeChanges(prev: SchoologyData, next: SchoologyData, now = D
   return events;
 }
 
-/** Diff + persist. Call right before saving a new validated snapshot. */
-export async function recordChanges(prev: SchoologyData | null, next: SchoologyData): Promise<void> {
-  if (!prev) return;
+/**
+ * Diff + persist. Call right before saving a new validated snapshot.
+ * Returns the fresh events so callers can e.g. fire an OS notification.
+ */
+export async function recordChanges(prev: SchoologyData | null, next: SchoologyData): Promise<ChangeEvent[]> {
+  if (!prev) return [];
   try {
     const fresh = computeChanges(prev, next);
-    if (fresh.length === 0) return;
+    if (fresh.length === 0) return [];
     const result = await browser.storage.local.get(EVENTS_KEY);
     const existing = (result[EVENTS_KEY] as ChangeEvent[] | undefined) ?? [];
     const all = [...existing, ...fresh].slice(-MAX_EVENTS);
     await browser.storage.local.set({ [EVENTS_KEY]: all });
+    return fresh;
   } catch (e) {
     console.error('[BS] recordChanges failed:', e);
+    return [];
   }
+}
+
+/** One-line human summary for a change event (used by the OS notification). */
+export function describeChange(e: ChangeEvent): string {
+  if (e.kind === 'course' && e.fromPct !== undefined && e.toPct !== undefined) {
+    return `${e.course}: ${e.fromPct.toFixed(1)}% → ${e.toPct.toFixed(1)}%`;
+  }
+  if (e.kind === 'graded') {
+    return `${e.name} graded${e.scorePct !== undefined ? ` · ${e.scorePct.toFixed(0)}%` : ''} (${e.course})`;
+  }
+  return `${e.name} marked Missing (${e.course})`;
 }
 
 export async function loadChanges(): Promise<ChangeEvent[]> {

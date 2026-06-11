@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { T, inkOnAccent } from '../../lib/theme';
 import type { UseAnnouncements } from '../../lib/use-announcements';
 import type { Announcement } from '../../lib/fetch-announcements';
-import { fetchMessageBody } from '../../lib/fetch-announcements';
+import { fetchMessageBody, sanitizeHtml } from '../../lib/fetch-announcements';
 import { SkeletonList, EmptyState } from '../Primitives';
 
 interface Props {
@@ -321,7 +321,7 @@ function InboxRow({ item: a, index, isNew, important, onStar }: {
             <div style={{ padding: '16px 18px', overflowY: 'auto' }}>
               <style>{`.bs-announce-body{font-size:13px;line-height:1.7;color:${T.text};word-break:break-word}.bs-announce-body img,.bs-announce-body svg{max-width:100%;height:auto}.bs-announce-body a{color:${T.primary};text-decoration:underline}.bs-announce-body p{margin:0 0 10px}.bs-announce-body ul,.bs-announce-body ol{margin:0 0 10px 18px}`}</style>
               {a.bodyHtml ? (
-                <div className="bs-announce-body" dangerouslySetInnerHTML={{ __html: a.bodyHtml }} />
+                <div className="bs-announce-body" dangerouslySetInnerHTML={{ __html: sanitizeHtml(a.bodyHtml) }} />
               ) : full.html ? (
                 <div className="bs-announce-body" dangerouslySetInnerHTML={{ __html: full.html }} />
               ) : full.loading ? (

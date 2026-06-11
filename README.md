@@ -16,12 +16,12 @@ _Coming soon — a peek at the dashboard. (Want to help? Send a screenshot!)_
 
 ## ⬇️ Download & install
 
-> ⭐ **Recommended (developer's pick): Better SGY v2 — the redesign.** The
-> `releases/latest` download below *is* the v2 redesign — the version the developer
-> prefers and recommends. A lighter alternative that keeps Schoology's original look
-> (with the same quality-of-life features) is available on the
+> ⭐ **This is the flagship — Better SGY v2 (the full redesign).** The `releases/latest`
+> download below is the flagship build, and it's what `main` ships. A lighter **"Lite"**
+> version that keeps Schoology's original look (fewer moving parts, same core
+> quality-of-life features) lives on the
 > [`improve` branch](../../tree/improve/arcade-split-robustness-calculator) ·
-> [PR #1](../../pull/1). The redesign lives in [PR #2](../../pull/2).
+> [PR #1](../../pull/1).
 
 1. **[Download the latest release](../../releases/latest)** (`better-sgy-chrome.zip`)
    and unzip it → you'll get a folder with a `manifest.json` inside.
@@ -55,8 +55,11 @@ npm run build      # → extension/.output/chrome-mv3
 ```
 
 Then load `extension/.output/chrome-mv3` via **Load unpacked**. `npm run zip` packages a
-distributable zip. (No license is set yet, so all rights are reserved for now — the
-source is published for transparency and testing.)
+distributable zip.
+
+## 📄 License
+
+[MIT](./LICENSE) — free to use, modify, and share.
 
 ## 🐞 Feedback
 

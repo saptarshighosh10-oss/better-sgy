@@ -232,6 +232,28 @@ function splitSubject(raw: string): { course: string; subject: string } {
 }
 
 /**
+ * Strip scripts, inline event handlers, and dangerous URLs from untrusted HTML before
+ * it's rendered via innerHTML. Keeps formatting, images, and links.
+ */
+export function sanitizeHtml(html: string): string {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  doc.querySelectorAll('script, style, iframe, object, embed, form, link, meta, base, noscript, button').forEach((n) => n.remove());
+  doc.querySelectorAll('*').forEach((el) => {
+    for (const attr of Array.from(el.attributes)) {
+      const name = attr.name.toLowerCase();
+      const val = attr.value.trim().toLowerCase();
+      if (name.startsWith('on')) { el.removeAttribute(attr.name); continue; }
+      if ((name === 'href' || name === 'src' || name === 'xlink:href') &&
+          (val.startsWith('javascript:') || val.startsWith('vbscript:') || val.startsWith('data:text/html'))) {
+        el.removeAttribute(attr.name); continue;
+      }
+      if (name === 'style' && /expression\s*\(|javascript:/i.test(attr.value)) el.removeAttribute(attr.name);
+    }
+  });
+  return doc.body.innerHTML.trim();
+}
+
+/**
  * Fetch the FULL body of a message thread (or update permalink). The inbox list only
  * carries a short, server-truncated preview — the real content lives on the linked page.
  */
@@ -255,12 +277,10 @@ export async function fetchMessageBody(url: string): Promise<{ ok: boolean; html
       if (main) nodes = [main];
     }
     if (!nodes.length) return { ok: false, html: '', error: 'Could not find the message content.' };
-    const clean = (el: Element): string => {
-      const c = el.cloneNode(true) as HTMLElement;
-      c.querySelectorAll('script, style, form, nav, .actions, .quickbar, .reply, .comment-form, button').forEach((n) => n.remove());
-      return c.innerHTML.trim();
-    };
-    const html = nodes.map(clean).filter(Boolean).join('<hr style="border:none;border-top:1px solid currentColor;opacity:.12;margin:14px 0">');
+    // Drop obvious page chrome, then run the shared sanitizer (scripts/handlers/etc.).
+    nodes.forEach((el) => el.querySelectorAll('nav, .actions, .quickbar, .reply, .comment-form').forEach((n) => n.remove()));
+    const combined = nodes.map((el) => (el as HTMLElement).innerHTML).join('<hr style="border:none;border-top:1px solid currentColor;opacity:.12;margin:14px 0">');
+    const html = sanitizeHtml(combined);
     return html ? { ok: true, html, error: null } : { ok: false, html: '', error: 'Message body was empty.' };
   } catch (e) {
     return { ok: false, html: '', error: e instanceof Error ? e.message : 'Failed to load the message.' };

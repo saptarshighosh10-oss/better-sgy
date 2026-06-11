@@ -12,6 +12,7 @@ import { FloatingNav } from './FloatingNav';
 import { QuickNav } from './QuickNav';
 import { ConnectionBanner } from './ConnectionBanner';
 import { CommandPalette } from './CommandPalette';
+import { GradeTransfer } from './GradeTransfer';
 import { OverviewPage } from './pages/OverviewPage';
 import { GradesPage } from './pages/GradesPage';
 import { AssignmentsPage } from './pages/AssignmentsPage';
@@ -22,7 +23,7 @@ import { AnnouncementsPage } from './pages/AnnouncementsPage';
 import { NostalgiaPage } from './pages/NostalgiaPage';
 import { type GradeSnapshot } from '../lib/storage';
 import { useAnnouncements } from '../lib/use-announcements';
-import { T } from '../lib/theme';
+import { T, inkOnAccent } from '../lib/theme';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 
 export type Page = 'overview' | 'grades' | 'assignments' | 'calendar' | 'materials' | 'game' | 'announcements' | 'nostalgia';
@@ -203,25 +204,32 @@ export function ExtRouter({ scrapeResult }: Props) {
   if (!grades.data) {
     const isInProgress = IN_PROGRESS.has(scrapeResult.status);
     const isFailed = scrapeResult.status === 'failed';
+    // "Must have at least 1 course" usually just means the current term is empty
+    // (e.g. over summer) — not a real failure. Show calm copy for that case.
+    const emptyTerm = !!scrapeResult.error && /at least 1 course|at least one course/i.test(scrapeResult.error);
     return (
       <div style={BASE} role="status">
         {isInProgress && <BootRings />}
-        <div style={{ fontSize: 16, fontWeight: 600, color: T.text, maxWidth: 420 }}>
+        <div style={{ fontSize: 16, fontWeight: 600, color: T.text, maxWidth: 440 }}>
           {isInProgress
             ? 'Reading grades from Schoology…'
+            : emptyTerm
+            ? 'No active courses this term'
             : isFailed
             ? "Couldn't read your grades"
             : 'No saved grades yet'}
         </div>
-        {isFailed && scrapeResult.error && (
+        {isFailed && scrapeResult.error && !emptyTerm && (
           <div style={{ fontSize: 12, color: T.failed, maxWidth: 400, lineHeight: 1.6 }}>
             {scrapeResult.error}
           </div>
         )}
         {!isInProgress && (
           <>
-            <div style={{ fontSize: 12, color: T.muted, maxWidth: 400, lineHeight: 1.6 }}>
-              Open your Schoology grades page once and the extension reads it automatically.
+            <div style={{ fontSize: 12, color: T.muted, maxWidth: 420, lineHeight: 1.6 }}>
+              {emptyTerm
+                ? 'Schoology has no graded courses for the current grading period (this is normal over breaks). Open your Grades page to load a term that has them — or restore a backup you saved earlier.'
+                : 'Open your Schoology grades page once and the extension reads it automatically — or restore a backup you saved on another device.'}
             </div>
             <a
               href="/grades/grades"
@@ -232,7 +240,7 @@ export function ExtRouter({ scrapeResult }: Props) {
                 alignItems: 'center',
                 gap: 6,
                 background: T.primary,
-                color: '#fff',
+                color: inkOnAccent(),
                 fontSize: 13,
                 fontWeight: 600,
                 borderRadius: 8,
@@ -242,6 +250,7 @@ export function ExtRouter({ scrapeResult }: Props) {
             >
               Open the Grades page
             </a>
+            <GradeTransfer variant="inline" />
           </>
         )}
       </div>
@@ -319,6 +328,7 @@ export function ExtRouter({ scrapeResult }: Props) {
         onJump={(p, courseName) => navigate(p, courseName)}
       />
       <ConnectionBanner />
+      <GradeTransfer variant="pill" />
       <CommandPalette
         open={paletteOpen}
         onClose={() => setPaletteOpen(false)}

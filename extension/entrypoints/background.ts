@@ -6,6 +6,25 @@
  * NOTE: MV3 service workers are NOT always-on. They die ~30s after idle.
  * Never architect Phase 1+ refresh as if this is an always-running server.
  */
+/**
+ * fetch() with 429/503 retry for the worker. The content script funnels its requests
+ * through lib/sgy-net's global queue, but the worker is a separate context and can't
+ * share it — so it gets its own small retry (Retry-After, else backoff + jitter).
+ */
+async function workerFetch(url: string, init?: RequestInit, retries = 4): Promise<Response> {
+  let res = await fetch(url, init);
+  for (let i = 0; (res.status === 429 || res.status === 503) && i < retries; i++) {
+    const ra = res.headers.get('Retry-After');
+    const secs = ra ? Number(ra) : NaN;
+    const wait = Number.isFinite(secs)
+      ? Math.min(secs * 1000, 15000)
+      : Math.min(500 * 2 ** i, 8000) + Math.random() * 250;
+    await new Promise((r) => setTimeout(r, wait));
+    res = await fetch(url, init);
+  }
+  return res;
+}
+
 export default defineBackground(() => {
   console.log('[BS] Background service worker started');
 
@@ -31,7 +50,7 @@ export default defineBackground(() => {
             if (!u.hostname.endsWith('.schoology.com') && u.hostname !== 'schoology.com') {
               return { ok: false, error: 'Host not allowed' };
             }
-            const res = await fetch(msg.url!, { credentials: 'include', redirect: 'follow' });
+            const res = await workerFetch(msg.url!, { credentials: 'include', redirect: 'follow' });
             if (!res.ok) return { ok: false, error: `HTTP ${res.status}` };
             const contentType = res.headers.get('content-type') ?? '';
             if (contentType.includes('text/html')) {

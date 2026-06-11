@@ -20,6 +20,7 @@ import { scrapeGradesFromDoc, buildSchoologyData, checkSafetyGuards } from '../l
 import { validateSchoologyData } from '../lib/schemas';
 import { saveGradeData, loadGradeData, saveScrapeMeta } from '../lib/storage';
 import { countAssignments } from '../lib/transform';
+import { queuedFetch } from '../lib/sgy-net';
 import type { ScrapeResult } from '../lib/scrape-status';
 import { INITIAL_SCRAPE_RESULT } from '../lib/scrape-status';
 import { appendGradeHistory } from '../lib/grade-history';
@@ -239,7 +240,7 @@ async function runBackgroundScrape() {
   console.log('[BS] Running background scrape...');
   try {
     const url = `${location.origin}/grades/grades`;
-    const response = await fetch(url, {
+    const response = await queuedFetch(url, {
       credentials: 'include',
       redirect: 'follow',
     });

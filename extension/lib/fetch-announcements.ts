@@ -13,6 +13,7 @@
  */
 
 import { SGY_ORIGIN, sgyFetch, isWafChallenge } from './fetch-materials';
+import { queuedFetch } from './sgy-net';
 
 export interface CourseRef { name: string; href: string }
 
@@ -37,17 +38,6 @@ export interface AnnouncementsResult {
 const WAF_ERROR =
   'Schoology bot-check blocked the request — reload this Schoology tab once, then retry';
 
-const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
-
-/** Run a fetch, retrying a few times on HTTP 429 (Schoology rate-limits bursts). */
-async function fetchWithRetry(run: () => Promise<Response>, retries = 3): Promise<Response> {
-  let res = await run();
-  for (let i = 0; res.status === 429 && i < retries; i++) {
-    await sleep(500 * (i + 1));
-    res = await run();
-  }
-  return res;
-}
 
 /** First non-empty text from a list of selectors within `root`. */
 function pickText(root: Element, selectors: string[]): string {
@@ -187,7 +177,7 @@ export async function fetchAnnouncements(): Promise<AnnouncementsResult> {
 
   for (const url of urls) {
     try {
-      const res = await fetchWithRetry(() => sgyFetch(url));
+      const res = await sgyFetch(url);
       const raw = await res.text();
       if (isWafChallenge(raw)) {
         lastError = WAF_ERROR;
@@ -253,7 +243,7 @@ export async function fetchMessages(): Promise<AnnouncementsResult> {
 
   for (const url of urls) {
     try {
-      const res = await fetchWithRetry(() => sgyFetch(url));
+      const res = await sgyFetch(url);
       const raw = await res.text();
       if (isWafChallenge(raw)) {
         lastError = WAF_ERROR;
@@ -356,7 +346,7 @@ export async function fetchNotifications(): Promise<AnnouncementsResult> {
 
   for (const url of urls) {
     try {
-      const res = await fetchWithRetry(() => sgyFetch(url));
+      const res = await sgyFetch(url);
       let raw = await res.text();
       if (isWafChallenge(raw)) { lastError = WAF_ERROR; continue; }
       // Popup may answer with JSON { content: "<html>" }.
@@ -496,10 +486,10 @@ export async function fetchCourseUpdates(courses: CourseRef[]): Promise<Announce
       try {
         // Mimic Schoology's own AJAX call — Accept: text/html (sgyFetch's default)
         // makes /feed return the empty page shell; the XHR headers return the JSON.
-        const res = await fetchWithRetry(() => fetch(url, {
+        const res = await queuedFetch(url, {
           credentials: 'include',
           headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json, text/javascript, */*; q=0.01' },
-        }));
+        });
         let raw = await res.text();
         if (isWafChallenge(raw)) continue;
         const trimmed = raw.trimStart();

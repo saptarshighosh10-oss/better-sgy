@@ -3,6 +3,14 @@
 All notable changes to Better SGY are documented here. This project aims to follow
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+- Every Schoology request now goes through one global rate-limiter (concurrency cap +
+  request spacing + retry on 429/503 honoring `Retry-After`), so bursts no longer trip
+  Schoology's "Too Many Requests" and silently drop data (Messages, Notifications,
+  Materials).
+
 ## [1.0.0] — 2026-06-10
 
 First public test build.

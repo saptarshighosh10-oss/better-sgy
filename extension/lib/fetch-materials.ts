@@ -5,6 +5,8 @@
  * Uses the course href captured during grade scraping to derive the materials URL.
  */
 
+import { queuedFetch } from './sgy-net';
+
 export type MaterialType = 'folder' | 'document' | 'link' | 'assignment' | 'quiz' | 'media' | 'discussion' | 'unknown';
 
 // ── School-agnostic origin + fetch ────────────────────────────────────────────
@@ -26,7 +28,8 @@ export const SGY_ORIGIN = typeof location !== 'undefined' ? location.origin : ''
  * `Accept: * / *`, and only render HTML for browser-like Accept values.
  */
 export function sgyFetch(url: string): Promise<Response> {
-  return fetch(url, {
+  // Routed through the global rate-limiter so bursts can't trip Schoology's 429.
+  return queuedFetch(url, {
     credentials: 'include',
     redirect: 'follow',
     headers: { Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' },

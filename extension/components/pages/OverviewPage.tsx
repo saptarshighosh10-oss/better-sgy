@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import type { ScrapedCourse, SchoologyData } from '../../lib/schemas';
+import type { GradesMode } from '../../lib/use-extension-grades';
 import { parseGradeString, isMissing, scorePercent, gradeColor } from '../../lib/grade-utils';
 import { courseColor, courseAbbr, abbrFontSize } from '../../lib/course-colors';
 import { SmartPriorities } from '../SmartPriorities';
@@ -68,6 +69,7 @@ interface GradesState {
   data: SchoologyData | null;
   courseCount: number;
   assignmentCount: number;
+  mode: GradesMode;
 }
 
 interface Props {
@@ -91,12 +93,14 @@ function recentGraded(course: ScrapedCourse, limit = 5) {
 }
 
 function CourseCard({
-  course, offset, isActive, onClick,
+  course, offset, isActive, onClick, archive = false,
 }: {
   course: ScrapedCourse;
   offset: number;
   isActive: boolean;
   onClick: () => void;
+  /** Summer/archive mode: no assignment data exists — hide the Recent list + missing badge. */
+  archive?: boolean;
 }) {
   const absOff   = Math.abs(offset);
   const colorBg  = courseColor(course.name, false);
@@ -175,7 +179,7 @@ function CourseCard({
           )}
         </div>
         {/* Missing badge — top left */}
-        {missCt > 0 && (
+        {missCt > 0 && !archive && (
           <div style={{
             position: 'absolute', top: 12, left: 12,
             fontSize: 9, fontWeight: 700,
@@ -207,9 +211,13 @@ function CourseCard({
       {/* ── Recent assignments — fills rest ───────────────────── */}
       <div style={{ flex: 1, padding: '14px 14px 12px', overflow: 'hidden', display: 'flex', flexDirection: 'column', width: '100%', boxSizing: 'border-box' }}>
         <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>
-          Recent
+          {archive ? 'Final grade' : 'Recent'}
         </div>
-        {recent.length === 0 ? (
+        {archive ? (
+          <div style={{ fontSize: 11, color: T.muted, fontStyle: 'italic', lineHeight: 1.5 }}>
+            Assignments aren't available for this term.
+          </div>
+        ) : recent.length === 0 ? (
           <div style={{ fontSize: 11, color: T.muted, fontStyle: 'italic' }}>No graded work yet</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
@@ -333,6 +341,9 @@ function StatCard({ label, value, subText, accent, borderAccent }: {
 
 export function OverviewPage({ grades, onCourseSelect }: Props) {
   const { courses } = grades;
+  // Summer/archive: Schoology wiped the per-assignment gradebook — hide
+  // everything assignment-derived; keep grades, GPA, timer, tasks.
+  const archive = grades.mode !== 'full';
   const N = courses.length;
   const [activeIdx, setActiveIdx] = useState(0);
   const dragRef = useRef({ x0: 0, on: false, moved: false });
@@ -421,6 +432,11 @@ export function OverviewPage({ grades, onCourseSelect }: Props) {
               </span>
             )}
           </div>
+          {archive && (
+            <div style={{ fontSize: 11.5, color: T.muted, marginTop: 8, fontStyle: 'italic' }}>
+              Assignments aren't available for this term — showing final grades{grades.mode === 'graphOnly' ? ' and saved history' : ''}.
+            </div>
+          )}
         </div>
         <div style={{ display: 'flex', gap: 12, marginLeft: 8 }}>
           <StatCard
@@ -430,20 +446,25 @@ export function OverviewPage({ grades, onCourseSelect }: Props) {
             accent={T.primary}
             borderAccent={T.primary}
           />
-          <StatCard
-            label="Due Today"
-            value={String(dueTodayCount)}
-            subText="Assignments"
-            accent={dueTodayCount > 0 ? T.amber : T.fresh}
-            borderAccent={dueTodayCount > 0 ? T.amber : T.fresh}
-          />
-          <StatCard
-            label="Missing"
-            value={missingTotal === 0 ? 'None' : String(missingTotal)}
-            subText="Action Required"
-            accent={missingTotal > 0 ? T.failed : T.text}
-            borderAccent={missingTotal > 0 ? T.failed : undefined}
-          />
+          {/* Assignment-derived stats would read a misleading 0 in archive modes */}
+          {!archive && (
+            <StatCard
+              label="Due Today"
+              value={String(dueTodayCount)}
+              subText="Assignments"
+              accent={dueTodayCount > 0 ? T.amber : T.fresh}
+              borderAccent={dueTodayCount > 0 ? T.amber : T.fresh}
+            />
+          )}
+          {!archive && (
+            <StatCard
+              label="Missing"
+              value={missingTotal === 0 ? 'None' : String(missingTotal)}
+              subText="Action Required"
+              accent={missingTotal > 0 ? T.failed : T.text}
+              borderAccent={missingTotal > 0 ? T.failed : undefined}
+            />
+          )}
         </div>
       </div>
 
@@ -485,6 +506,7 @@ export function OverviewPage({ grades, onCourseSelect }: Props) {
                 <CourseCard
                   course={course}
                   offset={offset}
+                  archive={archive}
                   isActive={offset === 0}
                   onClick={() => {
                     if (dragRef.current.moved) return;
@@ -535,8 +557,9 @@ export function OverviewPage({ grades, onCourseSelect }: Props) {
       {/* ── What changed + due soon | timer + tasks ───────────────── */}
       <div style={{ padding: '4px 28px 0', flexShrink: 0, display: 'grid', gridTemplateColumns: '1fr 340px', gap: 16, alignItems: 'start' }}>
         <div>
-          <GradeChanges />
-          <DueSoon courses={courses} />
+          {!archive && <GradeChanges />}
+          {!archive && <DueSoon courses={courses} />}
+          {archive && <CurrentGradesMiniGraph courses={courses} />}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <FocusTimer />
@@ -544,10 +567,12 @@ export function OverviewPage({ grades, onCourseSelect }: Props) {
         </div>
       </div>
 
-      {/* ── Smart Priorities — below the fold ─────────────────────── */}
-      <div style={{ padding: '16px 28px 32px', flexShrink: 0 }}>
-        <SmartPriorities courses={courses} />
-      </div>
+      {/* ── Smart Priorities — assignment-driven, hidden in archive modes ── */}
+      {!archive && (
+        <div style={{ padding: '16px 28px 32px', flexShrink: 0 }}>
+          <SmartPriorities courses={courses} />
+        </div>
+      )}
 
     </div>
   );

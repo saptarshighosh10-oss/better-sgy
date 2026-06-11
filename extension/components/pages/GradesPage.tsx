@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import type { ScrapedCourse, SchoologyData } from '../../lib/schemas';
+import type { GradesMode } from '../../lib/use-extension-grades';
+import { loadGradeHistory, type GradeHistory } from '../../lib/grade-history';
+import { EmptyState } from '../Primitives';
 import { parseGradeString, gradeColor, checkBorderline } from '../../lib/grade-utils';
 import { courseAbbr } from '../../lib/course-colors';
 import { CourseGradebook } from '../CourseGradebook';
@@ -10,6 +13,7 @@ import { T, inkOnAccent } from '../../lib/theme';
 import type { GradeSnapshot } from '../../lib/storage';
 import { downloadGradesCsv } from '../../lib/export-csv';
 import { GpaPlanner } from '../GpaPlanner';
+import { CurrentGradesMiniGraph } from '../CurrentGradesMiniGraph';
 
 function getGPAPointsForCourse(gradeStr: string): number | null {
   const { letter, percent } = parseGradeString(gradeStr);
@@ -50,6 +54,7 @@ function isWeightedCourse(courseName: string, nickname?: string): boolean {
 interface GradesState {
   courses: ScrapedCourse[];
   data: SchoologyData | null;
+  mode: GradesMode;
 }
 
 interface Props {
@@ -62,7 +67,20 @@ interface Props {
 
 export function GradesPage({ grades, selectedCourseName, onCourseSelect, activeSnapshot, setActiveSnapshot }: Props) {
   const { courses } = grades;
+  // Snapshot mode always has assignment data inside the snapshot — treat as full.
+  const mode: GradesMode = activeSnapshot ? 'full' : grades.mode;
   const [nicknames, setNicknames] = useState<Record<string, string>>({});
+
+  // Archive modes draw trends from the persisted grade-history log (it survives
+  // Schoology's end-of-term gradebook wipe; computeSemesterTrend can't — it
+  // needs the assignments that were wiped).
+  const [historyMap, setHistoryMap] = useState<GradeHistory>({});
+  useEffect(() => {
+    if (mode === 'full') return;
+    let alive = true;
+    loadGradeHistory().then((h) => { if (alive) setHistoryMap(h); }).catch(() => {});
+    return () => { alive = false; };
+  }, [mode]);
 
   useEffect(() => {
     browser.storage.local.get(['bs_course_nicknames']).then((result) => {
@@ -107,6 +125,27 @@ export function GradesPage({ grades, selectedCourseName, onCourseSelect, activeS
 
   const effectiveCourse =
     effectiveCourses.find((c) => c.name === selectedCourseName) ?? effectiveCourses[0] ?? null;
+
+  // 'empty' — nothing scraped at all: clean empty state, nothing else.
+  if (mode === 'empty') {
+    return (
+      <div style={{ display: 'flex', position: 'absolute', inset: 0, alignItems: 'center', justifyContent: 'center' }}>
+        <EmptyState
+          icon={
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          }
+          title="No grades yet"
+          text="Open your Schoology grades page once and Better SGY will read it automatically."
+        />
+      </div>
+    );
+  }
+
+  /** Trend points for a course in archive modes (persisted history log). */
+  const archiveTrend = (name: string): GradePoint[] =>
+    mode === 'graphOnly' ? (historyMap[name] ?? []) : [];
 
   return (
     <div
@@ -194,7 +233,7 @@ export function GradesPage({ grades, selectedCourseName, onCourseSelect, activeS
             course={course}
             isSelected={course.name === effectiveCourse?.name}
             onClick={() => onCourseSelect(course.name)}
-            sparklinePoints={computeSemesterTrend(course)}
+            sparklinePoints={mode === 'full' ? computeSemesterTrend(course) : archiveTrend(course.name)}
             nickname={nicknames[course.name]}
             onSaveNickname={saveNickname}
           />
@@ -254,7 +293,46 @@ export function GradesPage({ grades, selectedCourseName, onCourseSelect, activeS
           </div>
         )}
 
-        {effectiveCourse ? (
+        {effectiveCourse && mode !== 'full' ? (
+          /* ── Summer / archive view: Schoology wiped the gradebook. Show what
+                survives — the course grade (+ trend from the history log in
+                'graphOnly'). No assignment lists, no what-if, no calculator. */
+          <div>
+            <div style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 12, padding: '20px 22px', marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24 }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 20, fontWeight: 800, color: T.text, letterSpacing: '-0.015em', lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {nicknames[effectiveCourse.name] || effectiveCourse.name}
+                  </div>
+                  <div style={{ fontSize: 12.5, color: T.muted, marginTop: 5 }}>{effectiveCourse.teacher || '—'}</div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexShrink: 0 }}>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: 36, fontWeight: 800, color: T.text, lineHeight: 1, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>
+                      {(() => { const p = parseGradeString(effectiveCourse.grade).percent; return p !== null ? `${p.toFixed(2)}%` : '—'; })()}
+                    </div>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: T.muted, marginTop: 4 }}>Final grade</div>
+                  </div>
+                  {(() => { const l = parseGradeString(effectiveCourse.grade).letter; return l ? (
+                    <div aria-hidden="true" style={{ fontSize: 22, fontWeight: 800, width: 54, height: 54, borderRadius: 10, display: 'grid', placeItems: 'center', background: `${T.primary}1f`, color: T.primary }}>
+                      {l}
+                    </div>
+                  ) : null; })()}
+                </div>
+              </div>
+              <div style={{ fontSize: 12, color: T.muted, marginTop: 14, paddingTop: 12, borderTop: `1px solid ${T.rowBorder}`, lineHeight: 1.5 }}>
+                Assignments aren't available for this term — Schoology clears the gradebook between terms.
+                {mode === 'graphOnly' ? ' Your saved grade history is shown below.' : ''}
+              </div>
+            </div>
+
+            {mode === 'graphOnly' && archiveTrend(effectiveCourse.name).length > 0 && (
+              <HistoryTrend points={archiveTrend(effectiveCourse.name)} />
+            )}
+
+            <CurrentGradesMiniGraph courses={effectiveCourses} />
+          </div>
+        ) : effectiveCourse ? (
           <>
             <CourseGradebook
               course={effectiveCourse}
@@ -502,6 +580,46 @@ function CourseListRow({
     </button>
   );
 
+}
+
+// ── Archive trend chart (graphOnly mode) ──────────────────────────────────────
+// Plots the persisted grade-history log for one course: a simple accent line
+// with min/max labels. Intentionally axis-light — it's a "shape of the
+// semester" view, not an analysis tool.
+
+function HistoryTrend({ points }: { points: GradePoint[] }) {
+  const W = 640, H = 180, PX = 14, PY = 18;
+  const sorted = [...points].sort((a, b) => a.ts - b.ts);
+  const ps = sorted.map((p) => p.percent);
+  const minP = Math.floor(Math.min(...ps) - 1);
+  const maxP = Math.ceil(Math.max(...ps) + 1);
+  const range = Math.max(1, maxP - minP);
+  const x = (i: number) => PX + (sorted.length > 1 ? (i / (sorted.length - 1)) * (W - PX * 2) : (W - PX * 2) / 2);
+  const y = (p: number) => PY + (1 - (p - minP) / range) * (H - PY * 2);
+  const path = sorted.map((p, i) => `${x(i).toFixed(1)},${y(p.percent).toFixed(1)}`).join(' ');
+  const first = sorted[0], last = sorted[sorted.length - 1];
+  const fmt = (ts: number) => new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+
+  return (
+    <div style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: 12, padding: '16px 18px 10px', marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+        <span style={{ fontSize: 10.5, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          Grade history
+        </span>
+        <span style={{ fontSize: 11, color: T.muted }}>{fmt(first.ts)} – {fmt(last.ts)} · {sorted.length} points</span>
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={`Grade history from ${fmt(first.ts)} to ${fmt(last.ts)}, ending at ${last.percent.toFixed(1)}%`}>
+        <text x={PX} y={y(maxP) + 4} fontSize="10" fill={T.muted}>{maxP}%</text>
+        <text x={PX} y={y(minP) + 4} fontSize="10" fill={T.muted}>{minP}%</text>
+        <polyline points={path} fill="none" stroke={T.primary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+        {sorted.length === 1 && <circle cx={x(0)} cy={y(first.percent)} r={3} fill={T.primary} />}
+        <circle cx={x(sorted.length - 1)} cy={y(last.percent)} r={3.5} fill={T.primary} />
+        <text x={Math.min(x(sorted.length - 1) + 8, W - 44)} y={y(last.percent) + 4} fontSize="11" fontWeight="800" fill={T.text}>
+          {last.percent.toFixed(1)}%
+        </text>
+      </svg>
+    </div>
+  );
 }
 
 // ── Sparkline SVG ─────────────────────────────────────────────────────────────

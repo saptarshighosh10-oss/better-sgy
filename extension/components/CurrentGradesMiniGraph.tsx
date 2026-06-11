@@ -1,14 +1,15 @@
 /**
- * CurrentGradesMiniGraph.tsx — Phase 2
+ * CurrentGradesMiniGraph.tsx — horizontal current-grade bars, one per course.
  *
- * Horizontal grade bars for current grades across all courses.
- * No fake historical trends — only current grade percentages.
- * Shows a placeholder note about future trend capability.
+ * Used by the summer/archive views ('gradeOnly' / 'graphOnly' modes): when
+ * Schoology has wiped the per-assignment gradebook, this shows what survives —
+ * the overall course grades. Token-driven (recolors with theme/accent).
  */
 
 import React from 'react';
 import type { ScrapedCourse } from '../lib/schemas';
 import { parseGradeString, gradeColor } from '../lib/grade-utils';
+import { T } from '../lib/theme';
 
 interface Props {
   courses: ScrapedCourse[];
@@ -23,30 +24,13 @@ export function CurrentGradesMiniGraph({ courses }: Props) {
     percent: number;
   }>;
 
-  if (entries.length === 0) {
-    return (
-      <div
-        style={{
-          background: '#111827',
-          border: '1px solid #1e2535',
-          borderRadius: 10,
-          padding: '16px 18px',
-          marginBottom: 16,
-          color: '#4a5568',
-          fontSize: 12,
-          textAlign: 'center',
-        }}
-      >
-        No grade percentages available yet.
-      </div>
-    );
-  }
+  if (entries.length === 0) return null;
 
   return (
     <div
       style={{
-        background: '#111827',
-        border: '1px solid #1e2535',
+        background: T.card,
+        border: `1px solid ${T.border}`,
         borderRadius: 10,
         padding: '16px 18px',
         marginBottom: 16,
@@ -54,11 +38,11 @@ export function CurrentGradesMiniGraph({ courses }: Props) {
     >
       <div
         style={{
-          fontSize: 10,
+          fontSize: 10.5,
           fontWeight: 700,
-          color: '#8892a4',
+          color: T.muted,
           textTransform: 'uppercase',
-          letterSpacing: '0.5px',
+          letterSpacing: '0.06em',
           marginBottom: 14,
         }}
       >
@@ -69,75 +53,23 @@ export function CurrentGradesMiniGraph({ courses }: Props) {
         {entries.map((entry, i) => {
           const color = gradeColor(entry.percent);
           const barWidth = `${Math.min(100, Math.max(0, entry.percent))}%`;
-
           return (
             <div key={i}>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'baseline',
-                  marginBottom: 4,
-                  gap: 8,
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: 12,
-                    color: '#c8d0df',
-                    flex: 1,
-                    minWidth: 0,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4, gap: 10 }}>
+                <span style={{ fontSize: 12.5, fontWeight: 600, color: T.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
                   {entry.name}
                 </span>
-                <span
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 700,
-                    color,
-                    flexShrink: 0,
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {entry.percent.toFixed(1)}% {entry.letter}
+                <span style={{ fontSize: 12.5, fontWeight: 800, color: T.text, flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
+                  {entry.percent.toFixed(1)}%
+                  {entry.letter && <span style={{ fontSize: 10.5, fontWeight: 700, color: color, marginLeft: 6 }}>{entry.letter}</span>}
                 </span>
               </div>
-              <div
-                style={{
-                  height: 4,
-                  background: '#1e2535',
-                  borderRadius: 2,
-                  overflow: 'hidden',
-                }}
-              >
-                <div
-                  style={{
-                    width: barWidth,
-                    height: '100%',
-                    background: color,
-                    borderRadius: 2,
-                  }}
-                />
+              <div style={{ height: 6, borderRadius: 999, background: T.faint, overflow: 'hidden' }} aria-hidden="true">
+                <div style={{ height: '100%', width: barWidth, background: T.primary, borderRadius: 999 }} />
               </div>
             </div>
           );
         })}
-      </div>
-
-      <div
-        style={{
-          marginTop: 14,
-          fontSize: 10,
-          color: '#2d3748',
-          textAlign: 'center',
-          fontStyle: 'italic',
-        }}
-      >
-        Grade trends will appear after more snapshots are collected.
       </div>
     </div>
   );

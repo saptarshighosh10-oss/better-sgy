@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import type { Page } from './ExtRouter';
 import {
   T, ACCENT_PRESETS, getAccentColor, setAccentColor,
@@ -121,13 +121,44 @@ export function FloatingNav({ page, onNavigate, announcementsUnread = 0, onBell 
   const next = NAV_ITEMS[(idx + 1) % NAV_ITEMS.length];
   const current = NAV_ITEMS[idx];
 
+  // Auto-hide after inactivity: the bar slides/fades away once the mouse, keyboard, and
+  // scroll have been idle for a few seconds, and snaps back on any movement. Stays put
+  // while you're hovering it or the color drawer is open.
+  const [idle, setIdle] = useState(false);
+  const [hovering, setHovering] = useState(false);
+  const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    const IDLE_MS = 4000;
+    const wake = () => {
+      setIdle(false);
+      if (idleTimer.current) clearTimeout(idleTimer.current);
+      idleTimer.current = setTimeout(() => setIdle(true), IDLE_MS);
+    };
+    wake();
+    window.addEventListener('mousemove', wake, { passive: true });
+    window.addEventListener('mousedown', wake);
+    window.addEventListener('keydown', wake);
+    window.addEventListener('scroll', wake, { passive: true, capture: true });
+    return () => {
+      if (idleTimer.current) clearTimeout(idleTimer.current);
+      window.removeEventListener('mousemove', wake);
+      window.removeEventListener('mousedown', wake);
+      window.removeEventListener('keydown', wake);
+      window.removeEventListener('scroll', wake, true);
+    };
+  }, []);
+  const hidden = idle && !hovering && !showColorDrawer;
+
   return (
     <nav
       aria-label="Better SGY pages"
       style={{
-        position: 'fixed', bottom: 18, left: '50%', transform: 'translateX(-50%)',
+        position: 'fixed', bottom: 18, left: '50%',
+        transform: hidden ? 'translateX(-50%) translateY(180%)' : 'translateX(-50%)',
+        opacity: hidden ? 0 : 1,
         zIndex: 50, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
         pointerEvents: 'none',
+        transition: 'opacity .35s ease, transform .4s cubic-bezier(.16,1,.3,1)',
       }}
     >
       <AnimatePresence>
@@ -182,7 +213,10 @@ export function FloatingNav({ page, onNavigate, announcementsUnread = 0, onBell 
           the "Show Original Schoology" eye is ALWAYS here so you can always turn the
           overlay off in one click (no hover/expand needed). */}
       {!expanded && (
-        <div style={{
+        <div
+          onMouseEnter={() => setHovering(true)}
+          onMouseLeave={() => setHovering(false)}
+          style={{
           display: 'flex', alignItems: 'center', gap: 2, position: 'relative', pointerEvents: 'auto',
           background: T.panel, border: `1px solid ${T.border}`, borderRadius: 999,
           padding: '4px 6px', boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
@@ -227,8 +261,8 @@ export function FloatingNav({ page, onNavigate, announcementsUnread = 0, onBell 
 
       {expanded && (
       <div
-        onMouseEnter={cancelCollapse}
-        onMouseLeave={scheduleCollapse}
+        onMouseEnter={() => { cancelCollapse(); setHovering(true); }}
+        onMouseLeave={() => { scheduleCollapse(); setHovering(false); }}
         style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, pointerEvents: 'auto' }}
       >
       <div

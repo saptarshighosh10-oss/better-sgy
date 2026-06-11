@@ -21,6 +21,8 @@ import { validateSchoologyData } from '../lib/schemas';
 import { saveGradeData, loadGradeData, saveScrapeMeta } from '../lib/storage';
 import { countAssignments } from '../lib/transform';
 import { queuedFetch } from '../lib/sgy-net';
+import { isWafChallenge } from '../lib/fetch-materials';
+import { looksLikeLoginPage, reportSessionExpired, reportConnectionOk } from '../lib/connection-status';
 import type { ScrapeResult } from '../lib/scrape-status';
 import { INITIAL_SCRAPE_RESULT } from '../lib/scrape-status';
 import { appendGradeHistory } from '../lib/grade-history';
@@ -251,14 +253,17 @@ async function runBackgroundScrape() {
     }
 
     const html = await response.text();
-    if (
-      html.includes('id="edit-mail"') ||
-      html.includes('accounts.google.com') ||
-      html.includes('Sign in')
-    ) {
-      console.warn('[BS] Background fetch returned login/auth page — session expired');
+    if (isWafChallenge(html)) {
+      // isWafChallenge already reported it — the ConnectionBanner takes it from here.
+      console.warn('[BS] Background fetch hit the WAF bot-challenge');
       return;
     }
+    if (looksLikeLoginPage(html)) {
+      console.warn('[BS] Background fetch returned login/auth page — session expired');
+      reportSessionExpired();
+      return;
+    }
+    reportConnectionOk();
 
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');

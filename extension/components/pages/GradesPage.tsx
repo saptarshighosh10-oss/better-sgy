@@ -3,6 +3,7 @@ import type { ScrapedCourse, SchoologyData } from '../../lib/schemas';
 import { parseGradeString, gradeColor, checkBorderline } from '../../lib/grade-utils';
 import { courseColor, courseAbbr, abbrFontSize } from '../../lib/course-colors';
 import { CourseGradebook } from '../CourseGradebook';
+import { GradeCalculator } from '../GradeCalculator';
 import { computeSemesterTrend } from '../../lib/grade-history';
 import type { GradePoint } from '../../lib/grade-history';
 import { T, isLightTheme } from '../../lib/theme';
@@ -245,11 +246,17 @@ export function GradesPage({ grades, selectedCourseName, onCourseSelect, activeS
         )}
 
         {effectiveCourse ? (
-          <CourseGradebook
-            course={effectiveCourse}
-            historyPoints={computeSemesterTrend(effectiveCourse)}
-            nickname={nicknames[effectiveCourse.name]}
-          />
+          <>
+            <CourseGradebook
+              course={effectiveCourse}
+              historyPoints={computeSemesterTrend(effectiveCourse)}
+              nickname={nicknames[effectiveCourse.name]}
+            />
+            <GradeCalculator
+              courseName={effectiveCourse.name}
+              currentPercent={parseGradeString(effectiveCourse.grade).percent}
+            />
+          </>
         ) : (
           <div
             style={{

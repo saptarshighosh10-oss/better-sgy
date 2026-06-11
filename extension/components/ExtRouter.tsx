@@ -2,7 +2,7 @@
  * ExtRouter.tsx — Phase 3A
  *
  * Full-screen layout shell: sidebar nav + page content.
- * Replaces MiniDashboard as the root component rendered by App.tsx.
+ * The root component rendered by App.tsx.
  */
 
 import React, { useState } from 'react';
@@ -10,6 +10,7 @@ import { useExtensionGrades } from '../lib/use-extension-grades';
 import type { ScrapeResult } from '../lib/scrape-status';
 import { FloatingNav } from './FloatingNav';
 import { QuickNav } from './QuickNav';
+import { ConnectionBanner } from './ConnectionBanner';
 import { OverviewPage } from './pages/OverviewPage';
 import { GradesPage } from './pages/GradesPage';
 import { AssignmentsPage } from './pages/AssignmentsPage';
@@ -303,6 +304,7 @@ export function ExtRouter({ scrapeResult }: Props) {
         courses={grades.courses}
         onJump={(p, courseName) => navigate(p, courseName)}
       />
+      <ConnectionBanner />
     </div>
   );
 }

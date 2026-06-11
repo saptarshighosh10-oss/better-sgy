@@ -20,6 +20,17 @@ export default defineConfig({
     // The background worker fetches attachments/feeds with the user's own session.
     host_permissions: ['https://*.schoology.com/*'],
     permissions: ['storage'],
+    // three.js ships in its own chunk (entrypoints/three-bundle.ts) and is
+    // dynamic-imported by the content script only when an Arcade game opens.
+    // web_accessible_resources is required for a content script to import() an
+    // extension resource; it is NOT a permission, and it's restricted to
+    // Schoology pages only (still school-agnostic).
+    web_accessible_resources: [
+      {
+        resources: ['three-bundle.js'],
+        matches: ['https://*.schoology.com/*'],
+      },
+    ],
     icons: ICONS,
     action: {
       default_title: 'Better SGY',

@@ -6,6 +6,7 @@
  */
 
 import { queuedFetch } from './sgy-net';
+import { reportWafChallenge, reportConnectionOk, getConnectionState } from './connection-status';
 
 export type MaterialType = 'folder' | 'document' | 'link' | 'assignment' | 'quiz' | 'media' | 'discussion' | 'unknown';
 
@@ -42,7 +43,12 @@ export function sgyFetch(url: string): Promise<Response> {
  * solves the challenge and sets a cookie; a fetch can't run its JS.
  */
 export function isWafChallenge(html: string): boolean {
-  return html.length < 20000 && (html.includes('awsWafCookieDomainList') || html.includes('window.gokuProps'));
+  const blocked = html.length < 20000 && (html.includes('awsWafCookieDomainList') || html.includes('window.gokuProps'));
+  // Every page-fetching code path already runs this check, so it doubles as the
+  // central detector for the reconnect banner (and auto-clears on recovery).
+  if (blocked) reportWafChallenge();
+  else if (getConnectionState() === 'waf') reportConnectionOk();
+  return blocked;
 }
 
 const WAF_ERROR = 'Schoology bot-check blocked the request — reload this Schoology tab once, then retry';

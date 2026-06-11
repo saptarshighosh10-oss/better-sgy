@@ -101,6 +101,8 @@ interface Props {
   announcementsUnread?: number;
   /** Bell tap: opens Announcements, or leaves it (back to previous page) if there. */
   onBell?: () => void;
+  /** Opens the ⌘K search palette. */
+  onSearch?: () => void;
 }
 
 /**
@@ -108,7 +110,7 @@ interface Props {
  * full-width content. Lets you jump straight back to Overview, or step
  * to the page before/after the current one — that's the whole surface.
  */
-export function FloatingNav({ page, onNavigate, announcementsUnread = 0, onBell }: Props) {
+export function FloatingNav({ page, onNavigate, announcementsUnread = 0, onBell, onSearch }: Props) {
   const [showColorDrawer, setShowColorDrawer] = useState(false);
   const [expanded, setExpanded] = useState(false); // popout: collapsed handle → full bar on hover
   // Forgiving collapse — a brief mouse-out won't snap it shut (so the far-right
@@ -294,6 +296,12 @@ export function FloatingNav({ page, onNavigate, announcementsUnread = 0, onBell 
         <NavBtn onClick={() => onNavigate(next.id)} title={`Next: ${next.label}`}>
           <Icon d="M9 5l7 7-7 7" size={16} />
         </NavBtn>
+
+        {onSearch && (
+          <NavBtn onClick={onSearch} title="Search (⌘K)">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+          </NavBtn>
+        )}
 
         {/* Persistent Announcements bell — always visible; badge pings until the
             Announcements page is opened (which clears the seen state in storage). */}

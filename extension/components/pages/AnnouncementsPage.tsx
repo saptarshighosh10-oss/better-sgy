@@ -242,43 +242,66 @@ function Chip({ label, active, onClick }: { label: string; active: boolean; onCl
 function InboxRow({ item: a, index, isNew, important, onStar }: {
   item: Announcement; index: number; isNew: boolean; important: boolean; onStar: () => void;
 }) {
-  const open = () => { if (a.link) window.open(a.link, '_blank', 'noopener,noreferrer'); };
+  const [expanded, setExpanded] = useState(false);
+  const toggle = () => setExpanded((v) => !v);
   return (
-    <button type="button" onClick={open} className="bs-row-enter bs-focusable"
-      style={{
-        all: 'unset', cursor: a.link ? 'pointer' : 'default', display: 'flex', gap: 9, alignItems: 'flex-start',
-        width: '100%', boxSizing: 'border-box', padding: '10px 14px', borderBottom: `1px solid ${T.rowBorder}`,
-        borderLeft: `3px solid ${important ? '#fbbf24' : isNew ? T.primary : 'transparent'}`,
-        animationDelay: `${Math.min(index, 12) * 30}ms`,
-      }}>
-      <span role="button" tabIndex={0} aria-label={important ? 'Unmark important' : 'Mark important'} title="Mark important"
-        onClick={(e) => { e.stopPropagation(); onStar(); }}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onStar(); } }}
-        style={{ flexShrink: 0, cursor: 'pointer', fontSize: 15, lineHeight: '30px', color: important ? '#fbbf24' : T.faint, width: 16, textAlign: 'center' }}>
-        {important ? '★' : '☆'}
-      </span>
-      <div aria-hidden="true" style={{
-        width: 30, height: 30, flexShrink: 0, borderRadius: '50%', background: T.primary, color: inkOnAccent(),
-        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700,
-      }}>{initials(a.author)}</div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-          <span style={{ fontSize: 12.5, fontWeight: isNew ? 800 : 600, color: T.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {a.author}
-          </span>
-          {isNew && <span style={{ width: 6, height: 6, borderRadius: '50%', background: T.primary, flexShrink: 0 }} />}
-          <div style={{ flex: 1 }} />
-          <span style={{ fontSize: 10, color: T.muted, flexShrink: 0 }}>{a.timeText}</span>
-        </div>
-        {a.courseName && (
-          <div style={{ fontSize: 10.5, color: T.primary, fontWeight: 600, marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {a.courseName}
+    <div className="bs-row-enter" style={{
+      borderBottom: `1px solid ${T.rowBorder}`,
+      borderLeft: `3px solid ${important ? '#fbbf24' : isNew ? T.primary : 'transparent'}`,
+      animationDelay: `${Math.min(index, 12) * 30}ms`,
+    }}>
+      <div role="button" tabIndex={0} aria-expanded={expanded} className="bs-focusable"
+        onClick={toggle}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } }}
+        style={{ cursor: 'pointer', display: 'flex', gap: 9, alignItems: 'flex-start', width: '100%', boxSizing: 'border-box', padding: '10px 14px' }}>
+        <span role="button" tabIndex={0} aria-label={important ? 'Unmark important' : 'Mark important'} title="Mark important"
+          onClick={(e) => { e.stopPropagation(); onStar(); }}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onStar(); } }}
+          style={{ flexShrink: 0, cursor: 'pointer', fontSize: 15, lineHeight: '30px', color: important ? '#fbbf24' : T.faint, width: 16, textAlign: 'center' }}>
+          {important ? '★' : '☆'}
+        </span>
+        <div aria-hidden="true" style={{
+          width: 30, height: 30, flexShrink: 0, borderRadius: '50%', background: T.primary, color: inkOnAccent(),
+          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700,
+        }}>{initials(a.author)}</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+            <span style={{ fontSize: 12.5, fontWeight: isNew ? 800 : 600, color: T.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {a.author}
+            </span>
+            {isNew && <span style={{ width: 6, height: 6, borderRadius: '50%', background: T.primary, flexShrink: 0 }} />}
+            <div style={{ flex: 1 }} />
+            <span style={{ fontSize: 10, color: T.muted, flexShrink: 0 }}>{a.timeText}</span>
           </div>
-        )}
-        <div style={{ fontSize: 11.5, color: T.muted, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {a.body}
+          {a.courseName && (
+            <div style={{ fontSize: 10.5, color: T.primary, fontWeight: 600, marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {a.courseName}
+            </div>
+          )}
+          {!expanded && (
+            <div style={{ fontSize: 11.5, color: T.muted, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {a.body}
+            </div>
+          )}
         </div>
+        <span aria-hidden="true" style={{ flexShrink: 0, marginTop: 8, color: T.faint, transition: 'transform .2s', transform: expanded ? 'rotate(180deg)' : 'none' }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
+        </span>
       </div>
-    </button>
+      {expanded && (
+        <div style={{ padding: '0 16px 14px 55px' }}>
+          <style>{`.bs-announce-body{font-size:12.5px;line-height:1.65;color:${T.text};word-break:break-word}.bs-announce-body img,.bs-announce-body svg{max-width:100%;height:auto}.bs-announce-body a{color:${T.primary};text-decoration:underline}.bs-announce-body p{margin:0 0 8px}.bs-announce-body ul,.bs-announce-body ol{margin:0 0 8px 18px}`}</style>
+          {a.bodyHtml
+            ? <div className="bs-announce-body" dangerouslySetInnerHTML={{ __html: a.bodyHtml }} />
+            : <div style={{ fontSize: 12.5, lineHeight: 1.65, color: T.text, whiteSpace: 'pre-wrap' }}>{a.body || 'No additional content.'}</div>}
+          {a.link && (
+            <a href={a.link} target="_blank" rel="noopener noreferrer"
+              style={{ display: 'inline-block', marginTop: 10, fontSize: 12, fontWeight: 600, color: T.primary, textDecoration: 'none' }}>
+              View on Schoology ↗
+            </a>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

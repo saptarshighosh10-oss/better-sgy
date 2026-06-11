@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { T, inkOnAccent } from '../../lib/theme';
 import type { UseAnnouncements } from '../../lib/use-announcements';
 import type { Announcement } from '../../lib/fetch-announcements';
+import { fetchMessageBody } from '../../lib/fetch-announcements';
 import { SkeletonList, EmptyState } from '../Primitives';
 
 interface Props {
@@ -243,10 +244,18 @@ function InboxRow({ item: a, index, isNew, important, onStar }: {
   item: Announcement; index: number; isNew: boolean; important: boolean; onStar: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [full, setFull] = useState<{ loading: boolean; html?: string; error?: string }>({ loading: false });
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
     document.addEventListener('keydown', onKey);
+    // Messages carry only a short inbox preview — fetch the full body on open.
+    if (!a.bodyHtml && a.link && !full.html && !full.loading) {
+      setFull({ loading: true });
+      fetchMessageBody(a.link).then((r) =>
+        setFull(r.ok ? { loading: false, html: r.html } : { loading: false, error: r.error || 'Could not load the full message.' }),
+      );
+    }
     return () => document.removeEventListener('keydown', onKey);
   }, [open]);
   return (
@@ -311,9 +320,18 @@ function InboxRow({ item: a, index, isNew, important, onStar }: {
             </div>
             <div style={{ padding: '16px 18px', overflowY: 'auto' }}>
               <style>{`.bs-announce-body{font-size:13px;line-height:1.7;color:${T.text};word-break:break-word}.bs-announce-body img,.bs-announce-body svg{max-width:100%;height:auto}.bs-announce-body a{color:${T.primary};text-decoration:underline}.bs-announce-body p{margin:0 0 10px}.bs-announce-body ul,.bs-announce-body ol{margin:0 0 10px 18px}`}</style>
-              {a.bodyHtml
-                ? <div className="bs-announce-body" dangerouslySetInnerHTML={{ __html: a.bodyHtml }} />
-                : <div style={{ fontSize: 13, lineHeight: 1.7, color: T.text, whiteSpace: 'pre-wrap' }}>{a.body || 'No additional content.'}</div>}
+              {a.bodyHtml ? (
+                <div className="bs-announce-body" dangerouslySetInnerHTML={{ __html: a.bodyHtml }} />
+              ) : full.html ? (
+                <div className="bs-announce-body" dangerouslySetInnerHTML={{ __html: full.html }} />
+              ) : full.loading ? (
+                <div style={{ fontSize: 12.5, color: T.muted }}>Loading the full message…</div>
+              ) : (
+                <div style={{ fontSize: 13, lineHeight: 1.7, color: T.text, whiteSpace: 'pre-wrap' }}>
+                  {a.body || 'No additional content.'}
+                  {full.error && <div style={{ marginTop: 8, fontSize: 11, color: T.muted }}>Couldn’t load the full message inline — open it on Schoology below.</div>}
+                </div>
+              )}
               {a.link && (
                 <a href={a.link} target="_blank" rel="noopener noreferrer"
                   style={{ display: 'inline-block', marginTop: 14, fontSize: 12.5, fontWeight: 600, color: T.primary, textDecoration: 'none' }}>

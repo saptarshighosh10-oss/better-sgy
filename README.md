@@ -16,6 +16,13 @@ _Coming soon — a peek at the dashboard. (Want to help? Send a screenshot!)_
 
 ## ⬇️ Download & install
 
+> ⭐ **Recommended (developer's pick): Better SGY v2 — the redesign.** The
+> `releases/latest` download below *is* the v2 redesign — the version the developer
+> prefers and recommends. A lighter alternative that keeps Schoology's original look
+> (with the same quality-of-life features) is available on the
+> [`improve` branch](../../tree/improve/arcade-split-robustness-calculator) ·
+> [PR #1](../../pull/1). The redesign lives in [PR #2](../../pull/2).
+
 1. **[Download the latest release](../../releases/latest)** (`better-sgy-chrome.zip`)
    and unzip it → you'll get a folder with a `manifest.json` inside.
 2. Go to **`chrome://extensions`** (Edge: `edge://extensions`).

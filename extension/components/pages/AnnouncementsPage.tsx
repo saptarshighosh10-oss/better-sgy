@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { T, inkOnAccent } from '../../lib/theme';
 import type { UseAnnouncements } from '../../lib/use-announcements';
 import type { Announcement } from '../../lib/fetch-announcements';
+import { SkeletonList, EmptyState } from '../Primitives';
 
 interface Props {
   announcements: UseAnnouncements;
@@ -76,14 +77,38 @@ export function AnnouncementsPage({ announcements }: Props) {
       </div>
 
       {loading ? (
-        <div role="status" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-          <span className="bs-spinner" style={{ color: T.muted }} aria-hidden="true" />
-          <span style={{ color: T.muted, fontSize: 13 }}>Loading announcements…</span>
+        /* v2: skeleton feed instead of a bare spinner */
+        <div style={{ flex: 1, overflow: 'hidden', padding: '8px 22px' }}>
+          <div style={{ maxWidth: 640, margin: '0 auto', background: T.card, border: `1px solid ${T.border}`, borderRadius: 16, overflow: 'hidden' }}>
+            <SkeletonList rows={6} label="Loading announcements" />
+          </div>
         </div>
       ) : error && items.length === 0 ? (
-        <div style={{ padding: 24 }}>
-          <div style={{ padding: '14px 18px', background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, fontSize: 13, color: T.muted, lineHeight: 1.6 }}>{error}</div>
-        </div>
+        <EmptyState
+          icon={
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4m0 4h.01" />
+            </svg>
+          }
+          title="Couldn't load announcements"
+          text={error}
+          action={
+            <button type="button" className="bs-focusable" onClick={() => announcements.refresh()}
+              style={{ all: 'unset', cursor: 'pointer', background: T.primary, color: inkOnAccent(), fontSize: 12.5, fontWeight: 700, borderRadius: 8, padding: '8px 16px' }}>
+              Try again
+            </button>
+          }
+        />
+      ) : items.length === 0 ? (
+        <EmptyState
+          icon={
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" />
+            </svg>
+          }
+          title="All caught up"
+          text="No announcements yet — new teacher messages, updates, and course posts will land here."
+        />
       ) : (
         <div style={{ flex: 1, minHeight: 420, position: 'relative', perspective: '1500px', overflow: 'visible' }}>
           {buckets.map((b, i) => {

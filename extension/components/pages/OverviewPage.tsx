@@ -3,6 +3,8 @@ import type { ScrapedCourse, SchoologyData } from '../../lib/schemas';
 import { parseGradeString, isMissing, scorePercent, gradeColor } from '../../lib/grade-utils';
 import { courseColor, courseAbbr, abbrFontSize } from '../../lib/course-colors';
 import { SmartPriorities } from '../SmartPriorities';
+import { DueSoon } from '../DueSoon';
+import { FocusTimer } from '../FocusTimer';
 import { T, isLightTheme } from '../../lib/theme';
 
 const CARD_W     = 252;
@@ -371,8 +373,6 @@ export function OverviewPage({ grades, onCourseSelect }: Props) {
   const avg = gradedCourses.length
     ? gradedCourses.reduce((s, c) => s + (parseGradeString(c.grade).percent ?? 0), 0) / gradedCourses.length
     : null;
-  const avgClr = gradeColor(avg);
-
   const gpas = gradedCourses.map((c) => {
     const { percent } = parseGradeString(c.grade);
     return percent !== null ? percentToGpa(percent) : null;
@@ -404,10 +404,11 @@ export function OverviewPage({ grades, onCourseSelect }: Props) {
       {/* ── Header strip ──────────────────────────────────────────── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 28, padding: '20px 28px 14px', flexShrink: 0 }}>
         <div>
-          <h1 style={{ margin: '0 0 3px', fontSize: 10, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <h1 style={{ margin: '0 0 3px', fontSize: 11, fontWeight: 800, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
             {period || 'Current Semester'}
           </h1>
-          <div style={{ fontSize: 56, fontWeight: 800, color: avgClr ?? T.text, lineHeight: 0.9, letterSpacing: '-2px', fontVariantNumeric: 'tabular-nums' }}>
+          {/* v2: hero number is neutral text — color is reserved for status, not scale */}
+          <div style={{ fontSize: 64, fontWeight: 800, color: T.text, lineHeight: 1, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums', margin: '6px 0 8px' }}>
             {avg !== null ? `${avg.toFixed(2)}%` : '—'}
           </div>
           <div style={{ fontSize: 11, color: T.muted, marginTop: 6 }}>
@@ -529,8 +530,14 @@ export function OverviewPage({ grades, onCourseSelect }: Props) {
         ))}
       </div>
 
+      {/* ── Due soon + focus timer ────────────────────────────────── */}
+      <div style={{ padding: '4px 28px 0', flexShrink: 0, display: 'grid', gridTemplateColumns: '1fr 340px', gap: 16, alignItems: 'start' }}>
+        <DueSoon courses={courses} />
+        <FocusTimer />
+      </div>
+
       {/* ── Smart Priorities — below the fold ─────────────────────── */}
-      <div style={{ padding: '4px 28px 32px', flexShrink: 0 }}>
+      <div style={{ padding: '16px 28px 32px', flexShrink: 0 }}>
         <SmartPriorities courses={courses} />
       </div>
 

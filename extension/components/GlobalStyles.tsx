@@ -141,6 +141,27 @@ export function GlobalStyles() {
         flex-shrink: 0;
       }
 
+      /* ── Redesign v2 primitives ──────────────────────────────────── */
+      /* Skeleton shimmer — flat tint under reduced motion */
+      .bs2-skel {
+        background: rgba(128, 142, 163, 0.16);
+        border-radius: 6px;
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .bs2-skel {
+          background: linear-gradient(90deg,
+            rgba(128, 142, 163, 0.11) 25%,
+            rgba(128, 142, 163, 0.22) 37%,
+            rgba(128, 142, 163, 0.11) 63%);
+          background-size: 400% 100%;
+          animation: bs2Shimmer 1.4s ease infinite;
+        }
+      }
+      @keyframes bs2Shimmer {
+        0% { background-position: 100% 0; }
+        100% { background-position: -100% 0; }
+      }
+
       @media (prefers-reduced-motion: reduce) {
         .bs-page-enter, .bs-row-enter, .bs-fade-in, .bs-collapse,
         .bs-collapse-content, .bs-expand-in, .bs-nav-btn, .bs-card-fly,

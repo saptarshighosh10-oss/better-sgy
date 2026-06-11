@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import type { ScrapedCourse, SchoologyData } from '../../lib/schemas';
 import { parseGradeString, gradeColor, checkBorderline } from '../../lib/grade-utils';
-import { courseColor, courseAbbr, abbrFontSize } from '../../lib/course-colors';
+import { courseAbbr } from '../../lib/course-colors';
 import { CourseGradebook } from '../CourseGradebook';
 import { GradeCalculator } from '../GradeCalculator';
 import { computeSemesterTrend } from '../../lib/grade-history';
 import type { GradePoint } from '../../lib/grade-history';
-import { T, isLightTheme } from '../../lib/theme';
+import { T, inkOnAccent } from '../../lib/theme';
 import type { GradeSnapshot } from '../../lib/storage';
+import { downloadGradesCsv } from '../../lib/export-csv';
 
 function getGPAPointsForCourse(gradeStr: string): number | null {
   const { letter, percent } = parseGradeString(gradeStr);
@@ -127,57 +128,61 @@ export function GradesPage({ grades, selectedCourseName, onCourseSelect, activeS
           background: T.panel,
         }}
       >
-        {/* GPA Dashboard Card */}
+        {/* GPA Dashboard — v2: two equal cells split by a hairline (gpa-dash) */}
         {gradedClassesCount > 0 && (
           <div
+            role="group"
+            aria-label="GPA dashboard"
             style={{
-              background: T.card,
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: 1,
+              background: T.border,
               border: `1px solid ${T.border}`,
               borderRadius: 10,
-              padding: '12px 14px',
-              marginBottom: 16,
+              overflow: 'hidden',
+              marginBottom: 14,
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <span style={{ fontSize: 9, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                GPA Dashboard
-              </span>
-              <span style={{ fontSize: 9, color: T.primary, fontWeight: 600 }}>
-                {gradedClassesCount} {gradedClassesCount === 1 ? 'Class' : 'Classes'}
-              </span>
+            <div style={{ background: T.card, padding: '13px 14px' }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: T.text, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums' }}>
+                {unweightedGPA !== null ? unweightedGPA.toFixed(2) : '—'}
+              </div>
+              <div style={{ fontSize: 10, fontWeight: 600, color: T.muted, marginTop: 2 }}>Unweighted</div>
             </div>
-            <div style={{ display: 'flex', gap: 16 }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 18, fontWeight: 800, color: T.text, lineHeight: 1.1 }}>
-                  {unweightedGPA !== null ? unweightedGPA.toFixed(2) : '—'}
-                </div>
-                <div style={{ fontSize: 9, color: T.muted, fontWeight: 500, marginTop: 2 }}>
-                  Unweighted
-                </div>
+            <div style={{ background: T.card, padding: '13px 14px' }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: T.primary, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums' }}>
+                {weightedGPA !== null ? weightedGPA.toFixed(2) : '—'}
               </div>
-              <div style={{ flex: 1, borderLeft: `1px solid ${T.border}`, paddingLeft: 16 }}>
-                <div style={{ fontSize: 18, fontWeight: 800, color: T.primary, lineHeight: 1.1 }}>
-                  {weightedGPA !== null ? weightedGPA.toFixed(2) : '—'}
-                </div>
-                <div style={{ fontSize: 9, color: T.muted, fontWeight: 500, marginTop: 2 }}>
-                  Weighted
-                </div>
-              </div>
+              <div style={{ fontSize: 10, fontWeight: 600, color: T.muted, marginTop: 2 }}>Weighted</div>
             </div>
           </div>
         )}
 
         <div
           style={{
-            fontSize: 10,
-            fontWeight: 700,
-            color: T.muted,
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-            padding: '0 6px 8px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '6px 8px 10px',
           }}
         >
-          Courses
+          <span style={{ fontSize: 10.5, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            Courses
+          </span>
+          {/* Export grades → CSV (on-device; built from the already-scraped data) */}
+          <button
+            type="button"
+            className="bs-focusable"
+            title="Export all grades as a CSV file (stays on your device)"
+            onClick={() => downloadGradesCsv(effectiveCourses)}
+            style={{
+              all: 'unset', cursor: 'pointer', fontSize: 10.5, fontWeight: 700,
+              color: T.primary, padding: '2px 4px', borderRadius: 6,
+            }}
+          >
+            Export CSV
+          </button>
         </div>
         {effectiveCourses.map((course) => (
           <CourseListRow
@@ -293,9 +298,7 @@ function CourseListRow({
   nickname?: string;
   onSaveNickname: (name: string, nickname: string) => void;
 }) {
-  const color = courseColor(course.name, false);
   const abbr = courseAbbr(course.name);
-  const fontSize = abbrFontSize(abbr);
   const { percent, letter } = parseGradeString(course.grade);
   const gradeClr = gradeColor(percent);
 
@@ -389,6 +392,9 @@ function CourseListRow({
     );
   }
 
+  /* ── v2 row (csr): % leads at 15/800, letter is a quiet sub-label, sparkline
+     sits muted under the course name. Borderline = inset amber edge tick + tiny
+     pill — present ONLY when actually borderline, so it earns attention. */
   return (
     <button
       type="button"
@@ -397,108 +403,96 @@ function CourseListRow({
       className="bs-focusable"
       style={{
         all: 'unset',
-        display: 'flex',
+        display: 'grid',
+        gridTemplateColumns: '34px 1fr auto',
         alignItems: 'center',
         gap: 10,
         width: '100%',
-        padding: '9px 8px',
+        padding: '11px 10px',
         borderRadius: 8,
         cursor: 'pointer',
         background: isSelected ? T.activeBg : 'transparent',
-        border: `1px solid ${isSelected ? T.activeBorder + '60' : 'transparent'}`,
+        boxShadow: isSelected
+          ? `inset 2px 0 0 ${T.primary}${borderInfo ? `, inset -3px 0 0 ${T.amber}` : ''}`
+          : borderInfo ? `inset -3px 0 0 ${T.amber}` : 'none',
         boxSizing: 'border-box',
         marginBottom: 2,
       }}
     >
-      {/* Color band mini badge */}
+      {/* Abbreviation chip — accent-filled when active */}
       <div
+        aria-hidden="true"
         style={{
-          width: 32,
-          height: 32,
-          borderRadius: 7,
-          background: color,
-          flexShrink: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          width: 34,
+          height: 34,
+          borderRadius: 8,
+          background: isSelected ? T.primary : T.panel,
+          border: `1px solid ${isSelected ? T.primary : T.border}`,
+          color: isSelected ? inkOnAccent() : T.muted,
+          display: 'grid',
+          placeItems: 'center',
+          fontSize: 9,
+          fontWeight: 800,
+          letterSpacing: '0.02em',
+          textAlign: 'center',
+          lineHeight: 1.1,
+          boxSizing: 'border-box',
           overflow: 'hidden',
-          position: 'relative',
         }}
       >
-        <span
-          style={{
-            position: 'absolute',
-            fontSize: Math.round(fontSize * 0.45),
-            fontWeight: 900,
-            color: isLightTheme() ? 'rgba(26,26,26,0.35)' : 'rgba(255,255,255,0.25)',
-            userSelect: 'none',
-            lineHeight: 1,
-          }}
-          aria-hidden="true"
-        >
-          {abbr}
-        </span>
+        {abbr}
       </div>
 
-      {/* Name + sparkline */}
-      <div style={{ flex: 1, minWidth: 0 }}>
+      {/* Name + quiet sparkline */}
+      <div style={{ minWidth: 0 }}>
         <div
+          onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
+          title="Press the name to rename"
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 4,
-            width: '100%',
+            fontSize: 12.5,
+            fontWeight: 600,
+            color: isSelected ? T.text : T.muted,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            lineHeight: 1.3,
+            cursor: 'text',
           }}
         >
-          <div
-            onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
-            title="Press the name to rename"
-            style={{
-              fontSize: 12,
-              fontWeight: isSelected ? 600 : 400,
-              color: isSelected ? T.text : '#a0aec0',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              lineHeight: 1.3,
-              flex: 1,
-              cursor: 'text',
-            }}
-          >
-            {nickname || course.name}
-          </div>
+          {nickname || course.name}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
-          <Sparkline points={sparklinePoints} color={gradeClr} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3, opacity: 0.85 }}>
+          <Sparkline points={sparklinePoints} color={T.muted} />
+          {borderInfo && (
+            <span
+              title={`Borderline — close to ${borderInfo.nextLetter}`}
+              style={{
+                fontSize: 9,
+                fontWeight: 700,
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                color: T.amber,
+                background: `${T.amber}24`,
+                border: `1px solid ${T.amber}52`,
+                borderRadius: 999,
+                padding: '2px 7px',
+                lineHeight: 1.2,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              ↗ {borderInfo.nextLetter}
+            </span>
+          )}
         </div>
       </div>
 
-      {/* Grade */}
-      <div style={{ textAlign: 'right', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: gradeClr, lineHeight: 1 }}>
+      {/* Grade — % leads, letter quiet */}
+      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+        <div style={{ fontSize: 15, fontWeight: 800, color: T.text, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
           {percent !== null ? `${percent.toFixed(1)}%` : '—'}
         </div>
-        {borderInfo ? (
-          <div
-            style={{
-              fontSize: 8.5,
-              fontWeight: 700,
-              color: '#fbbf24',
-              background: 'rgba(251, 191, 36, 0.12)',
-              border: '1px solid rgba(251, 191, 36, 0.3)',
-              borderRadius: 4,
-              padding: '1px 4px',
-              lineHeight: 1,
-              whiteSpace: 'nowrap',
-            }}
-            title={`Borderline! Close to ${borderInfo.nextLetter}`}
-          >
-            ↗ {borderInfo.nextLetter}
-          </div>
-        ) : (
-          letter && (
-            <div style={{ fontSize: 10, color: gradeClr, lineHeight: 1.2 }}>{letter}</div>
-          )
+        {letter && (
+          <div style={{ fontSize: 10, fontWeight: 700, color: gradeClr, lineHeight: 1.2, marginTop: 3 }}>{letter}</div>
         )}
       </div>
     </button>

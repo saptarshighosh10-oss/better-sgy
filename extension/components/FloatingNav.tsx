@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import type { Page } from './ExtRouter';
 import {
   T, ACCENT_PRESETS, getAccentColor, setAccentColor,
-  getActiveTheme, cycleTheme, THEME_ORDER, THEME_LABELS,
+  getActiveTheme, cycleTheme, THEME_ORDER, THEME_LABELS, inkOnAccent,
 } from '../lib/theme';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -84,8 +84,9 @@ function NavBtn({ children, onClick, title, active, ariaCurrent, ariaExpanded }:
       style={{
         all: 'unset', display: 'flex', alignItems: 'center', justifyContent: 'center',
         width: 34, height: 34, borderRadius: '50%', cursor: 'pointer',
-        color: active ? T.primary : T.text,
-        background: active ? T.primary + '1c' : 'transparent',
+        // v2: active nav item = accent fill + readable ink (not a tint)
+        color: active ? inkOnAccent() : T.text,
+        background: active ? T.primary : 'transparent',
         boxSizing: 'border-box', flexShrink: 0,
       }}
     >
@@ -273,8 +274,8 @@ export function FloatingNav({ page, onNavigate, announcementsUnread = 0, onBell 
           style={{
             all: 'unset', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center',
             width: 34, height: 34, borderRadius: '50%', cursor: 'pointer', boxSizing: 'border-box', flexShrink: 0,
-            color: page === 'announcements' ? T.primary : T.text,
-            background: page === 'announcements' ? T.primary + '1c' : 'transparent',
+            color: page === 'announcements' ? inkOnAccent() : T.text,
+            background: page === 'announcements' ? T.primary : 'transparent',
           }}
           aria-current={page === 'announcements' ? 'page' : undefined}
         >

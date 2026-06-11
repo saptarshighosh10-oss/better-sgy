@@ -910,31 +910,45 @@ export function CourseGradebook({ course, nickname }: Props) {
 
   return (
     <div>
-      {/* ── Course header ─────────────────────────────────────────── */}
-      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: '16px 16px 0 0', padding: '12px 18px 10px' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>
+      {/* ── Course header — v2 gb-head: title leads left, metric + letter tile right ── */}
+      <div style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: '12px 12px 0 0', padding: '20px 22px 14px' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24, marginBottom: 12 }}>
           <div style={{ minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 28, fontWeight: 800, color: displayColor ?? T.text, lineHeight: 1, letterSpacing: '-0.5px', fontVariantNumeric: 'tabular-nums' }}>
-                {animatedDisplayPct !== null ? `${animatedDisplayPct.toFixed(2)}%` : '—'}
-              </span>
-              <span style={{ fontSize: 14, fontWeight: 600, color: T.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {nickname || course.name}
-              </span>
-              <span style={{ fontSize: 16, fontWeight: 700, color: displayColor ?? T.muted }}>{letter}</span>
+            <div style={{ fontSize: 20, fontWeight: 800, color: T.text, letterSpacing: '-0.015em', lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {nickname || course.name}
             </div>
-            {nickname && <div style={{ fontSize: 10, color: T.muted, opacity: 0.8, marginTop: 2 }}>{course.name}</div>}
+            <div style={{ fontSize: 12.5, color: T.muted, marginTop: 5 }}>
+              {nickname ? `${course.name} · ` : ''}{course.teacher || '—'}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+              {borderInfo && (
+                <span style={{ fontSize: 10, fontWeight: 700, color: T.amber, background: T.amber + '20', border: `1px solid ${T.amber}48`, borderRadius: 999, padding: '2px 8px' }}>
+                  ↗ Borderline {borderInfo.currentLetter}→{borderInfo.nextLetter}
+                </span>
+              )}
+              {delta !== null && Math.abs(delta) >= 0.01 && (
+                <span style={{ fontSize: 12, fontWeight: 700, color: delta > 0 ? T.green : T.red, background: (delta > 0 ? T.green : T.red) + '18', borderRadius: 999, padding: '2px 9px' }}>
+                  {delta > 0 ? '+' : ''}{delta.toFixed(2)}% what-if
+                </span>
+              )}
+            </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-            {borderInfo && (
-              <span style={{ fontSize: 10, fontWeight: 600, color: T.amber, background: T.amber + '15', border: `1px solid ${T.amber}30`, borderRadius: 8, padding: '2px 7px' }}>
-                ↗ Borderline {borderInfo.currentLetter}→{borderInfo.nextLetter}
-              </span>
-            )}
-            {delta !== null && Math.abs(delta) >= 0.01 && (
-              <span style={{ fontSize: 13, fontWeight: 700, color: delta > 0 ? T.green : T.red, background: (delta > 0 ? T.green : T.red) + '18', borderRadius: 8, padding: '2px 8px' }}>
-                {delta > 0 ? '+' : ''}{delta.toFixed(2)}%
-              </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexShrink: 0 }}>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: 36, fontWeight: 800, color: displayColor ?? T.text, lineHeight: 1, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>
+                {animatedDisplayPct !== null ? `${animatedDisplayPct.toFixed(2)}%` : '—'}
+              </div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: T.muted, marginTop: 4 }}>
+                {hasEdits ? 'What-if grade' : 'Current grade'}
+              </div>
+            </div>
+            {letter && (
+              <div aria-hidden="true" style={{
+                fontSize: 22, fontWeight: 800, width: 54, height: 54, borderRadius: 10,
+                display: 'grid', placeItems: 'center', background: `${T.primary}1f`, color: T.primary,
+              }}>
+                {letter}
+              </div>
             )}
           </div>
         </div>

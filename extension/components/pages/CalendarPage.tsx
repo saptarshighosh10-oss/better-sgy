@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { ScrapedCourse } from '../../lib/schemas';
 import { courseColor, courseAbbr } from '../../lib/course-colors';
-import { T } from '../../lib/theme';
+import { T, inkOnAccent } from '../../lib/theme';
 
 interface GradesState { courses: ScrapedCourse[]; }
 interface Props { grades: GradesState; }
@@ -360,24 +360,24 @@ export function CalendarPage({ grades }: Props) {
                 opacity: isCurrentMonth ? 1 : 0.42,
               }}
             >
+              {/* v2: today = accent-filled circle around the day number */}
               <div style={{
                 fontSize: 11,
-                fontWeight: isToday ? 800 : 500,
-                color: isToday ? T.primary : isCurrentMonth ? T.text : T.muted,
+                fontWeight: isToday ? 700 : 500,
+                color: isCurrentMonth ? T.text : T.muted,
                 marginBottom: 4,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
               }}>
-                <span>{cell.day}</span>
-                {isToday && (
+                {isToday ? (
                   <span style={{
-                    width: 4,
-                    height: 4,
-                    borderRadius: '50%',
-                    background: T.primary,
-                    boxShadow: `0 0 4px ${T.primary}`,
-                  }} />
+                    width: 20, height: 20, borderRadius: '50%',
+                    background: T.primary, color: inkOnAccent(),
+                    display: 'grid', placeItems: 'center', fontWeight: 700,
+                  }}>{cell.day}</span>
+                ) : (
+                  <span>{cell.day}</span>
                 )}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 3, overflow: 'hidden', flex: 1 }}>

@@ -11,6 +11,7 @@ import type { ScrapeResult } from '../lib/scrape-status';
 import { FloatingNav } from './FloatingNav';
 import { QuickNav } from './QuickNav';
 import { ConnectionBanner } from './ConnectionBanner';
+import { CommandPalette } from './CommandPalette';
 import { OverviewPage } from './pages/OverviewPage';
 import { GradesPage } from './pages/GradesPage';
 import { AssignmentsPage } from './pages/AssignmentsPage';
@@ -114,6 +115,19 @@ export function ExtRouter({ scrapeResult }: Props) {
   const [activeSnapshot, setActiveSnapshot] = useState<GradeSnapshot | null>(null);
   const announcements = useAnnouncements(grades.courses ?? []);
   const reduceMotion = useReducedMotion();
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
+  // ⌘K / Ctrl+K opens global search from anywhere in the overlay.
+  React.useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPaletteOpen((o) => !o);
+      }
+    }
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
 
   // Mirror the unread count onto the native-Schoology "Show Better Schoology" button
   // so it pings while you're on native Schoology; expose markAllSeen so returning
@@ -305,6 +319,13 @@ export function ExtRouter({ scrapeResult }: Props) {
         onJump={(p, courseName) => navigate(p, courseName)}
       />
       <ConnectionBanner />
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        courses={grades.courses ?? []}
+        announcements={announcements.items}
+        onNavigate={(p, courseName) => navigate(p, courseName)}
+      />
     </div>
   );
 }

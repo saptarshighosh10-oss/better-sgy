@@ -5,6 +5,8 @@ import { courseColor, courseAbbr, abbrFontSize } from '../../lib/course-colors';
 import { SmartPriorities } from '../SmartPriorities';
 import { DueSoon } from '../DueSoon';
 import { FocusTimer } from '../FocusTimer';
+import { GradeChanges } from '../GradeChanges';
+import { PersonalTasks } from '../PersonalTasks';
 import { T, isLightTheme } from '../../lib/theme';
 
 const CARD_W     = 252;
@@ -530,10 +532,16 @@ export function OverviewPage({ grades, onCourseSelect }: Props) {
         ))}
       </div>
 
-      {/* ── Due soon + focus timer ────────────────────────────────── */}
+      {/* ── What changed + due soon | timer + tasks ───────────────── */}
       <div style={{ padding: '4px 28px 0', flexShrink: 0, display: 'grid', gridTemplateColumns: '1fr 340px', gap: 16, alignItems: 'start' }}>
-        <DueSoon courses={courses} />
-        <FocusTimer />
+        <div>
+          <GradeChanges />
+          <DueSoon courses={courses} />
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <FocusTimer />
+          <PersonalTasks />
+        </div>
       </div>
 
       {/* ── Smart Priorities — below the fold ─────────────────────── */}

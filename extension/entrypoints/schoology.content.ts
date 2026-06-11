@@ -26,6 +26,7 @@ import { looksLikeLoginPage, reportSessionExpired, reportConnectionOk } from '..
 import type { ScrapeResult } from '../lib/scrape-status';
 import { INITIAL_SCRAPE_RESULT } from '../lib/scrape-status';
 import { appendGradeHistory } from '../lib/grade-history';
+import { recordChanges } from '../lib/grade-changes';
 
 const MOUNT_ID = '__better-schoology-root__';
 const ESCAPE_ID = '__better-schoology-escape__';
@@ -195,8 +196,9 @@ async function runScrape() {
       return;
     }
 
-    // Step 6: saving
+    // Step 6: saving (diff against the previous snapshot first → change feed)
     updateScrapeResult({ status: 'saving' });
+    await recordChanges(previousData, data);
     await saveGradeData(data);
     await appendGradeHistory(data.courses);
     await saveScrapeMeta({
@@ -288,6 +290,7 @@ async function runBackgroundScrape() {
       return;
     }
 
+    await recordChanges(previousData, data);
     await saveGradeData(data);
     await appendGradeHistory(data.courses);
     await saveScrapeMeta({

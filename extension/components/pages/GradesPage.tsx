@@ -9,6 +9,7 @@ import type { GradePoint } from '../../lib/grade-history';
 import { T, inkOnAccent } from '../../lib/theme';
 import type { GradeSnapshot } from '../../lib/storage';
 import { downloadGradesCsv } from '../../lib/export-csv';
+import { GpaPlanner } from '../GpaPlanner';
 
 function getGPAPointsForCourse(gradeStr: string): number | null {
   const { letter, percent } = parseGradeString(gradeStr);
@@ -158,6 +159,9 @@ export function GradesPage({ grades, selectedCourseName, onCourseSelect, activeS
             </div>
           </div>
         )}
+
+        {/* Target GPA planner — collapsible */}
+        <GpaPlanner courses={effectiveCourses} />
 
         <div
           style={{

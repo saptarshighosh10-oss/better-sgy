@@ -329,6 +329,24 @@ export function ExtRouter({ scrapeResult }: Props) {
       />
       <ConnectionBanner />
       <GradeTransfer variant="pill" />
+      <button
+        type="button"
+        onClick={() => setPaletteOpen(true)}
+        title="Search Better SGY (⌘K)"
+        aria-label="Open search"
+        className="bs-focusable bs-lift"
+        style={{
+          position: 'fixed', top: 16, right: 16, zIndex: 40, cursor: 'pointer',
+          display: 'inline-flex', alignItems: 'center', gap: 7,
+          background: T.panel, border: `1px solid ${T.border}`, color: T.text,
+          borderRadius: 999, padding: '8px 14px', boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+          fontSize: 12, fontWeight: 600,
+        }}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+        Search
+        <kbd style={{ fontSize: 10, color: T.muted, border: `1px solid ${T.border}`, borderRadius: 5, padding: '1px 5px' }}>⌘K</kbd>
+      </button>
       <CommandPalette
         open={paletteOpen}
         onClose={() => setPaletteOpen(false)}

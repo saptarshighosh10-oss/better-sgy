@@ -18,18 +18,17 @@ import { CalendarPage } from './pages/CalendarPage';
 import { GameHub } from './pages/GameHub';
 import { AnnouncementsPage } from './pages/AnnouncementsPage';
 import { NostalgiaPage } from './pages/NostalgiaPage';
-import { StudyPage } from './pages/StudyPage';
-import { seedDemoData } from '../lib/study/demo-data';
+import { seedDemoData } from '../lib/demo-data';
 import { type GradeSnapshot } from '../lib/storage';
 import { useAnnouncements } from '../lib/use-announcements';
 import { T, uiFontStack } from '../lib/theme';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 
-export type Page = 'overview' | 'grades' | 'assignments' | 'calendar' | 'materials' | 'study' | 'game' | 'announcements' | 'nostalgia';
+export type Page = 'overview' | 'grades' | 'assignments' | 'calendar' | 'materials' | 'game' | 'announcements' | 'nostalgia';
 
 /** Same order as the FloatingNav carousel — the Arcade (game) sits last so it's the
  *  final page you scroll to. */
-const PAGE_ORDER: Page[] = ['overview', 'grades', 'assignments', 'calendar', 'materials', 'study', 'announcements', 'nostalgia', 'game'];
+const PAGE_ORDER: Page[] = ['overview', 'grades', 'assignments', 'calendar', 'materials', 'announcements', 'nostalgia', 'game'];
 
 const IN_PROGRESS = new Set([
   'checking_session',
@@ -295,7 +294,6 @@ export function ExtRouter({ scrapeResult }: Props) {
             {page === 'assignments' && <AssignmentsPage grades={grades} />}
             {page === 'calendar' && <CalendarPage grades={grades} />}
             {page === 'materials' && <MaterialsPage grades={grades} />}
-            {page === 'study' && <StudyPage />}
             {page === 'game' && <GameHub grades={grades} />}
             {page === 'announcements' && <AnnouncementsPage announcements={announcements} />}
             {page === 'nostalgia' && (

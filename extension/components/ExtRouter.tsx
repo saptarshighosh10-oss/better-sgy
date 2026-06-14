@@ -8,14 +8,28 @@
 import React, { useState } from 'react';
 import { useExtensionGrades } from '../lib/use-extension-grades';
 import type { ScrapeResult } from '../lib/scrape-status';
-import { ExtSidebar } from './ExtSidebar';
+import { FloatingNav } from './FloatingNav';
+import { QuickNav } from './QuickNav';
 import { OverviewPage } from './pages/OverviewPage';
 import { GradesPage } from './pages/GradesPage';
 import { AssignmentsPage } from './pages/AssignmentsPage';
 import { MaterialsPage } from './pages/MaterialsPage';
 import { CalendarPage } from './pages/CalendarPage';
+import { GameHub } from './pages/GameHub';
+import { AnnouncementsPage } from './pages/AnnouncementsPage';
+import { NostalgiaPage } from './pages/NostalgiaPage';
+import { StudyPage } from './pages/StudyPage';
+import { seedDemoData } from '../lib/study/demo-data';
+import { type GradeSnapshot } from '../lib/storage';
+import { useAnnouncements } from '../lib/use-announcements';
+import { T, uiFontStack } from '../lib/theme';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 
-export type Page = 'overview' | 'grades' | 'assignments' | 'calendar' | 'materials';
+export type Page = 'overview' | 'grades' | 'assignments' | 'calendar' | 'materials' | 'study' | 'game' | 'announcements' | 'nostalgia';
+
+/** Same order as the FloatingNav carousel — the Arcade (game) sits last so it's the
+ *  final page you scroll to. */
+const PAGE_ORDER: Page[] = ['overview', 'grades', 'assignments', 'calendar', 'materials', 'study', 'announcements', 'nostalgia', 'game'];
 
 const IN_PROGRESS = new Set([
   'checking_session',
@@ -29,7 +43,7 @@ const IN_PROGRESS = new Set([
 const BASE: React.CSSProperties = {
   position: 'fixed',
   inset: 0,
-  background: '#0b0e17',
+  background: T.bg,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -45,21 +59,129 @@ interface Props {
   scrapeResult: ScrapeResult;
 }
 
+/** Starting-screen loader: two concentric counter-rotating accent rings. */
+function BootRings() {
+  return (
+    <div style={{ position: 'relative', width: 58, height: 58, marginBottom: 4 }} aria-hidden="true">
+      <span
+        className="bs-boot-ring"
+        style={{
+          inset: 0,
+          border: `3px solid ${T.border}`,
+          borderTopColor: T.primary,
+          animation: 'bsSpin 0.9s linear infinite',
+        }}
+      />
+      <span
+        className="bs-boot-ring"
+        style={{
+          inset: 11,
+          border: `3px solid ${T.border}`,
+          borderBottomColor: T.primary,
+          animation: 'bsSpinRev 0.7s linear infinite',
+        }}
+      />
+    </div>
+  );
+}
+
+const PAGE_KEY = '__bs_page__';
+const COURSE_KEY = '__bs_course__';
+
 export function ExtRouter({ scrapeResult }: Props) {
   const grades = useExtensionGrades();
-  const [page, setPage] = useState<Page>('overview');
-  const [selectedCourseName, setSelectedCourseName] = useState<string | null>(null);
+  // Restore the page (and selected course) the user was on before a reload.
+  const [page, setPage] = useState<Page>(() => {
+    if (typeof localStorage === 'undefined') return 'overview';
+    const saved = localStorage.getItem(PAGE_KEY) as Page | null;
+    return saved && PAGE_ORDER.includes(saved) ? saved : 'overview';
+  });
+  const [selectedCourseName, setSelectedCourseName] = useState<string | null>(() => {
+    if (typeof localStorage === 'undefined') return null;
+    return localStorage.getItem(COURSE_KEY);
+  });
+  const [themeTick, setThemeTick] = useState(0);
+
+  // Persist page + course so a reload lands where the user left off.
+  React.useEffect(() => {
+    try { localStorage.setItem(PAGE_KEY, page); } catch { /* storage blocked */ }
+  }, [page]);
+  React.useEffect(() => {
+    try {
+      if (selectedCourseName) localStorage.setItem(COURSE_KEY, selectedCourseName);
+      else localStorage.removeItem(COURSE_KEY);
+    } catch { /* storage blocked */ }
+  }, [selectedCourseName]);
+  const [activeSnapshot, setActiveSnapshot] = useState<GradeSnapshot | null>(null);
+  const announcements = useAnnouncements(grades.courses ?? []);
+  const reduceMotion = useReducedMotion();
+
+  // Mirror the unread count onto the native-Schoology "Show Better Schoology" button
+  // so it pings while you're on native Schoology; expose markAllSeen so returning
+  // to the overlay clears it ("stops until you view Schoology again").
+  React.useEffect(() => {
+    (window as { __bsSetEscapeBadge?: (n: number) => void }).__bsSetEscapeBadge?.(announcements.unreadCount);
+  }, [announcements.unreadCount]);
+  React.useEffect(() => {
+    (window as { __bsAckUpdates?: () => void }).__bsAckUpdates = announcements.markAllSeen;
+    return () => { delete (window as { __bsAckUpdates?: () => void }).__bsAckUpdates; };
+  }, [announcements.markAllSeen]);
+
+  React.useEffect(() => {
+    (window as any).__triggerThemeChange = () => {
+      setThemeTick((t) => t + 1);
+    };
+    return () => {
+      delete (window as any).__triggerThemeChange;
+    };
+  }, []);
+
+  // Global ←/→ cycles through pages in a full loop. Skipped while typing, while the
+  // overview carousel is focused, and only while a game is actively being PLAYED
+  // (the arcade hub sets __bsGameActive when a cabinet game is launched, so the
+  // SELECT GAME menu still lets you arrow-key away — Caveman/Neon keep arrows in-game).
+  const pageRef = React.useRef(page);
+  pageRef.current = page;
+  React.useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      if (pageRef.current === 'game' && (window as { __bsGameActive?: boolean }).__bsGameActive) return;
+      const target = (e.composedPath?.()[0] ?? e.target) as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable) return;
+      setPage((p) => {
+        const i = Math.max(0, PAGE_ORDER.indexOf(p));
+        return e.key === 'ArrowRight'
+          ? PAGE_ORDER[(i + 1) % PAGE_ORDER.length]
+          : PAGE_ORDER[(i - 1 + PAGE_ORDER.length) % PAGE_ORDER.length];
+      });
+    }
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
 
   function navigate(p: Page, courseName?: string) {
     setPage(p);
     if (courseName !== undefined) setSelectedCourseName(courseName);
   }
 
+  // Bell toggle: open Announcements, or — if already there — go back to the page
+  // you came from (press it again to "leave it").
+  const prevPageRef = React.useRef<Page>('overview');
+  function toggleAnnouncements() {
+    setPage((p) => {
+      if (p === 'announcements') return prevPageRef.current;
+      prevPageRef.current = p;
+      return 'announcements';
+    });
+  }
+
   // Loading
   if (grades.loading) {
     return (
-      <div style={BASE}>
-        <span style={{ color: '#7a8ea3', fontSize: 13 }}>Loading…</span>
+      <div style={BASE} role="status" aria-busy="true">
+        <BootRings />
+        <span style={{ color: T.muted, fontSize: 13 }}>Loading your dashboard…</span>
       </div>
     );
   }
@@ -67,21 +189,59 @@ export function ExtRouter({ scrapeResult }: Props) {
   // No data yet
   if (!grades.data) {
     const isInProgress = IN_PROGRESS.has(scrapeResult.status);
+    const isFailed = scrapeResult.status === 'failed';
     return (
-      <div style={BASE}>
-        <div style={{ fontSize: 15, color: '#7a8ea3', maxWidth: 400 }}>
+      <div style={BASE} role="status">
+        {isInProgress && <BootRings />}
+        <div style={{ fontSize: 16, fontWeight: 600, color: T.text, maxWidth: 420 }}>
           {isInProgress
             ? 'Reading grades from Schoology…'
-            : 'No saved grades yet. Visit the Grades page first.'}
+            : isFailed
+            ? "Couldn't read your grades"
+            : 'No saved grades yet'}
         </div>
-        {!isInProgress && (
-          <div style={{ fontSize: 12, color: '#2a3a52', maxWidth: 380, lineHeight: 1.6 }}>
-            Navigate to{' '}
-            <span style={{ color: '#3b82f6', fontWeight: 600 }}>
-              {location.host}/grades/grades
-            </span>{' '}
-            — the extension will read your grades automatically.
+        {isFailed && scrapeResult.error && (
+          <div style={{ fontSize: 12, color: T.failed, maxWidth: 400, lineHeight: 1.6 }}>
+            {scrapeResult.error}
           </div>
+        )}
+        {!isInProgress && (
+          <>
+            <div style={{ fontSize: 12, color: T.muted, maxWidth: 400, lineHeight: 1.6 }}>
+              Open your Schoology grades page once and the extension reads it automatically.
+            </div>
+            <a
+              href="/grades/grades"
+              className="bs-focusable"
+              style={{
+                marginTop: 6,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                background: T.primary,
+                color: '#fff',
+                fontSize: 13,
+                fontWeight: 600,
+                borderRadius: 8,
+                padding: '10px 18px',
+                textDecoration: 'none',
+              }}
+            >
+              Open the Grades page
+            </a>
+            <button
+              type="button"
+              className="bs-focusable"
+              onClick={() => { void seedDemoData(); }}
+              style={{
+                marginTop: 2, display: 'inline-flex', alignItems: 'center', gap: 6,
+                background: 'transparent', color: T.muted, fontSize: 12, fontWeight: 600,
+                border: `1px solid ${T.border}`, borderRadius: 8, padding: '8px 16px', cursor: 'pointer',
+              }}
+            >
+              Load demo data (for testing)
+            </button>
+          </>
         )}
       </div>
     );
@@ -92,39 +252,72 @@ export function ExtRouter({ scrapeResult }: Props) {
       style={{
         position: 'fixed',
         inset: 0,
-        background: '#0b0e17',
+        background: T.bg,
         display: 'flex',
-        fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
-        color: '#e8eaf0',
+        fontFamily: uiFontStack(),
+        color: T.text,
         zIndex: 1,
         overflow: 'hidden',
       }}
     >
-      <ExtSidebar
-        page={page}
-        onNavigate={(p) => navigate(p)}
-        grades={grades}
-        scrapeResult={scrapeResult}
-      />
+      <div style={{ flex: 1, position: 'relative', minWidth: 0 }}>
+        <AnimatePresence mode="wait">
+          <motion.main
+            key={page}
+            initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.985 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -8, scale: 0.985 }}
+            transition={{ duration: reduceMotion ? 0 : 0.18, ease: [0.16, 1, 0.3, 1] }}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              overflowY: 'auto',
+              paddingBottom: 84,
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            {page === 'overview' && (
+              <OverviewPage
+                grades={grades}
+                onCourseSelect={(name) => navigate('grades', name)}
+              />
+            )}
+            {page === 'grades' && (
+              <GradesPage
+                grades={grades}
+                selectedCourseName={selectedCourseName}
+                onCourseSelect={setSelectedCourseName}
+                activeSnapshot={activeSnapshot}
+                setActiveSnapshot={setActiveSnapshot}
+              />
+            )}
+            {page === 'assignments' && <AssignmentsPage grades={grades} />}
+            {page === 'calendar' && <CalendarPage grades={grades} />}
+            {page === 'materials' && <MaterialsPage grades={grades} />}
+            {page === 'study' && <StudyPage />}
+            {page === 'game' && <GameHub grades={grades} />}
+            {page === 'announcements' && <AnnouncementsPage announcements={announcements} />}
+            {page === 'nostalgia' && (
+              <NostalgiaPage
+                grades={grades}
+                onViewSnapshot={(snap) => {
+                  setActiveSnapshot(snap);
+                  navigate('grades', snap.courses[0]?.name);
+                }}
+              />
+            )}
+          </motion.main>
+        </AnimatePresence>
+      </div>
 
-      <main style={{ flex: 1, overflowY: 'auto', minWidth: 0, position: 'relative' }}>
-        {page === 'overview' && (
-          <OverviewPage
-            grades={grades}
-            onCourseSelect={(name) => navigate('grades', name)}
-          />
-        )}
-        {page === 'grades' && (
-          <GradesPage
-            grades={grades}
-            selectedCourseName={selectedCourseName}
-            onCourseSelect={setSelectedCourseName}
-          />
-        )}
-        {page === 'assignments' && <AssignmentsPage grades={grades} />}
-        {page === 'calendar' && <CalendarPage grades={grades} />}
-        {page === 'materials' && <MaterialsPage grades={grades} />}
-      </main>
+      <FloatingNav page={page} onNavigate={(p) => navigate(p)} announcementsUnread={announcements.unreadCount} onBell={toggleAnnouncements} />
+      <QuickNav
+        page={page}
+        courseName={selectedCourseName}
+        courses={grades.courses}
+        onJump={(p, courseName) => navigate(p, courseName)}
+      />
     </div>
   );
 }

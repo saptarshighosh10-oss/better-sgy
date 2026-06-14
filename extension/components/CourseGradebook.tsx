@@ -1,1168 +1,1027 @@
-/**
- * CourseGradebook.tsx — Phase 2 + Phase 6 (what-if calculator)
- *
- * Single flat table with category header rows spanning all columns.
- * This guarantees Score / % / Due columns align across every category.
- *
- * Phase 6: added "What-if" toggle. When on, each assignment's score becomes
- * an editable input. The course grade is recomputed live using weighted
- * category averages (or total-points fallback if no weights exist).
- */
-
-import React, { useState, useMemo, useRef } from 'react';
-import type { ScrapedCourse, ScrapedCategory, ScrapedAssignment } from '../lib/schemas';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import type { ScrapedCourse, ScrapedCategory } from '../lib/schemas';
 import type { GradePoint } from '../lib/grade-history';
 import {
-  parseGradeString,
-  gradeColor,
-  scorePercent,
-  formatDueDate,
-  parseScore,
-  parseMaxGrade,
-  parseDueDate,
+  parseGradeString, gradeColor, checkBorderline,
+  parseScore, parseMaxGrade, formatDueDate, parseDueDate,
 } from '../lib/grade-utils';
+import { Icon, ICON_PATHS } from './Icon';
 
-// ── Column widths ─────────────────────────────────────────────────────────────
-const COL_SCORE = 110;
-const COL_PCT   = 72;
-const COL_DUE   = 90;
+import { T, getActiveTheme, isMinimalist } from '../lib/theme';
 
-const T = {
-  text: '#e8eaf0',
-  muted: '#7a8ea3',
-  faint: '#2a3a52',
-  card: '#111827',
-  border: '#1e2535',
-  headerBg: '#0f1117',
-  catBg: '#0d111c',
-  rowBorder: '#151d2e',
-  catBorder: '#1a2035',
-  primary: '#3b82f6',
-  green: '#22c55e',
-  red: '#ef4444',
-  inputBg: '#0d1019',
-  inputBorder: '#2a3a52',
-} as const;
-
-const TH: React.CSSProperties = {
-  padding: '8px 12px',
-  fontSize: 10,
-  fontWeight: 700,
-  color: '#4a5568',
-  textTransform: 'uppercase',
-  letterSpacing: '0.4px',
-  borderBottom: `1px solid ${T.border}`,
-  whiteSpace: 'nowrap',
-  userSelect: 'none',
-};
-
-function formatScoreNumber(val: number): string {
-  if (val % 1 === 0) return val.toFixed(0);
-  return val.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+function catPalette(): string[] {
+  const theme = getActiveTheme();
+  if (theme === 'mono-dark') return ['#faf9f6', '#d4d4d8', '#a1a1aa', '#e4e4e7', '#f4f4f5', '#71717a'];
+  if (theme === 'mono-light') return ['#1a1a1a', '#3a3a3a', '#5a5a5a', '#2a2a2a', '#4a4a4a', '#6b6b6b'];
+  return ['#3b82f6','#a855f7','#f59e0b','#14b8a6','#ec4899','#84cc16'];
 }
 
-// ── Grade calculator math (ported from components/grades/grade-calculator.tsx) ──
+const LOL_LIMIT = 500;
 
-/** Parse weight string like "80%" → 80, "" → 0 */
+// ── Math helpers ──────────────────────────────────────────────────────────────
+
 function parseWeight(w: string): number {
-  const n = parseFloat(w);
-  return isNaN(n) ? 0 : n;
+  const n = parseFloat(w); return isNaN(n) ? 0 : n;
 }
 
-/**
- * Compute a category's average: Σscore / Σmax over assignments that have
- * numeric score AND numeric max. Uses overrideScores when in what-if mode.
- */
-function categoryAvg(
-  cat: ScrapedCategory,
-  overrides: Map<string, number> | null
-): { pct: number; sumScore: number; sumMax: number } | null {
-  let sumScore = 0;
-  let sumMax = 0;
+/** Parse a what-if input string → non-negative number, or null if empty/invalid */
+function parseInput(s: string | undefined): number | null {
+  if (s === undefined || s.trim() === '') return null;
+  const n = parseFloat(s);
+  return isFinite(n) ? Math.max(0, n) : null;
+}
 
-  for (let ai = 0; ai < cat.assignments.length; ai++) {
-    const a = cat.assignments[ai];
-    const key = `${cat.name}::${ai}`;
-    const max = parseMaxGrade(a.maxGrade);
-    if (max === null || max === 0) continue;
+interface EffAsg {
+  key: string;            // `${catIdx}:${asgIdx}` or `h:${id}`
+  name: string;
+  catIdx: number;
+  catName: string;
+  origScore: number | null;
+  origMax: number | null;
+  score: number | null;   // effective (edits applied)
+  max: number | null;
+  isHypo: boolean;
+  isEdited: boolean;      // existing assignment with changed values
+  isFilled: boolean;      // was ungraded, now has a simulated score
+  date: Date | null;
+  dueDate: string;
+  status: string;
+}
 
-    let score: number | null;
-    if (overrides && overrides.has(key)) {
-      score = overrides.get(key)!;
-    } else {
-      score = parseScore(a.score);
+interface CatSums { weight: number; ss: number; sm: number }
+
+/** Course grade from per-category point sums. Weighted when the course defines weights. */
+function gradeFromSums(cats: CatSums[], courseHasWeights: boolean): number | null {
+  const withData = cats.filter(c => c.sm > 0);
+  if (withData.length === 0) return null;
+  if (courseHasWeights) {
+    let wSum = 0, wTot = 0;
+    for (const c of withData) {
+      if (c.weight > 0) { wSum += (c.ss / c.sm) * 100 * c.weight; wTot += c.weight; }
     }
-    if (score === null) continue;
-
-    sumScore += score;
-    sumMax += max;
+    return wTot > 0 ? wSum / wTot : null;
   }
-
-  return sumMax > 0 ? { pct: (sumScore / sumMax) * 100, sumScore, sumMax } : null;
+  let s = 0;
+  for (const c of withData) s += (c.ss / c.sm) * 100;
+  return s / withData.length;
 }
 
-/**
- * Compute weighted course grade: Σ(catPct × weight) / Σweight
- * Only sums categories that have at least one scored assignment (renormalize).
- * If ALL weights are 0/empty, falls back to total-points (unweighted).
- */
-function computeCourseGrade(
-  categories: ScrapedCategory[],
-  overrides: Map<string, number> | null
-): number | null {
-  const hasWeights = categories.some((c) => parseWeight(c.weight) > 0);
+// ── Animated numbers ─────────────────────────────────────────────────────────
 
-  if (!hasWeights) {
-    // Unweighted fallback: total points across all assignments
-    let totalScore = 0;
-    let totalMax = 0;
-    for (const cat of categories) {
-      const avg = categoryAvg(cat, overrides);
-      if (avg) {
-        totalScore += avg.sumScore;
-        totalMax += avg.sumMax;
-      }
+/** Smoothly tweens a displayed number toward `target` whenever it changes. */
+function useAnimatedNumber(target: number | null, duration = 450): number | null {
+  const [display, setDisplay] = useState(target);
+  const valueRef = useRef(target);
+  const rafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+
+    if (target === null) {
+      valueRef.current = null;
+      setDisplay(null);
+      return;
     }
-    return totalMax > 0 ? (totalScore / totalMax) * 100 : null;
-  }
 
-  let wSum = 0;
-  let wTotal = 0;
-  for (const cat of categories) {
-    const w = parseWeight(cat.weight);
-    if (w === 0) continue;
-    const avg = categoryAvg(cat, overrides);
-    if (!avg) continue;
-    wSum += avg.pct * w;
-    wTotal += w;
-  }
-  return wTotal > 0 ? wSum / wTotal : null;
-}
-
-// ── Dynamic timeline calculations (replicates the Next.js app graph builder) ──
-
-interface TimelinePoint {
-  date: Date;
-  origPercent: number;
-  whatIfPercent: number;
-  assignmentName: string;
-  categoryName: string;
-  assignmentKey: string;
-}
-
-function categoryAvgWithAllowed(
-  cat: ScrapedCategory,
-  overrides: Map<string, number> | null,
-  allowedKeys: Set<string>
-): { pct: number; sumScore: number; sumMax: number } | null {
-  let sumScore = 0;
-  let sumMax = 0;
-
-  for (let ai = 0; ai < cat.assignments.length; ai++) {
-    const a = cat.assignments[ai];
-    const key = `${cat.name}::${ai}`;
-    if (!allowedKeys.has(key)) continue;
-
-    const max = parseMaxGrade(a.maxGrade);
-    if (max === null || max === 0) continue;
-
-    let score: number | null = null;
-    if (overrides && overrides.has(key)) {
-      score = overrides.get(key)!;
-    } else {
-      score = parseScore(a.score);
+    const from = valueRef.current ?? target;
+    if (Math.abs(from - target) < 0.005) {
+      valueRef.current = target;
+      setDisplay(target);
+      return;
     }
-    if (score === null) continue;
 
-    sumScore += score;
-    sumMax += max;
-  }
+    const start = performance.now();
+    function tick(now: number) {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const val = from + (target! - from) * eased;
+      valueRef.current = val;
+      setDisplay(val);
+      if (t < 1) rafRef.current = requestAnimationFrame(tick);
+      else { valueRef.current = target; rafRef.current = null; }
+    }
+    rafRef.current = requestAnimationFrame(tick);
 
-  return sumMax > 0 ? { pct: (sumScore / sumMax) * 100, sumScore, sumMax } : null;
+    return () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    };
+  }, [target, duration]);
+
+  return display;
 }
 
-function computeCourseGradeWithAllowed(
-  categories: ScrapedCategory[],
-  overrides: Map<string, number> | null,
-  allowedKeys: Set<string>
-): number | null {
-  const hasWeights = categories.some((c) => parseWeight(c.weight) > 0);
+// ── Line chart ────────────────────────────────────────────────────────────────
 
-  if (!hasWeights) {
-    let totalScore = 0;
-    let totalMax = 0;
-    for (const cat of categories) {
-      const avg = categoryAvgWithAllowed(cat, overrides, allowedKeys);
-      if (avg) {
-        totalScore += avg.sumScore;
-        totalMax += avg.sumMax;
-      }
-    }
-    return totalMax > 0 ? (totalScore / totalMax) * 100 : null;
-  }
+const VW = 1000;
+const CH = 330;
+const PAD = { top: 30, right: 20, bottom: 34, left: 48 };
 
-  let wSum = 0;
-  let wTotal = 0;
-  for (const cat of categories) {
-    const w = parseWeight(cat.weight);
-    if (w === 0) continue;
-    const avg = categoryAvgWithAllowed(cat, overrides, allowedKeys);
-    if (!avg) continue;
-    wSum += avg.pct * w;
-    wTotal += w;
-  }
-  return wTotal > 0 ? wSum / wTotal : null;
+interface Slot {
+  name: string;
+  catIdx: number;
+  catName: string;
+  date: Date | null;
+  dueDate: string;
+  isHypo: boolean;
+  actualScore: { sc: number; mx: number } | null;
+  projScore: { sc: number; mx: number } | null;
+  actualVal: number | null;   // running course grade after this point
+  projVal: number | null;
 }
 
-function buildGradeTimeline(
-  categories: ScrapedCategory[],
-  overrides: Map<string, number> | null
-): TimelinePoint[] {
-  const graded: Array<{
-    assignment: ScrapedAssignment;
-    catName: string;
-    overrideKey: string;
-    dueDate: Date | null;
-  }> = [];
+function buildSlots(
+  effAsgs: EffAsg[],
+  catWeights: number[],
+  courseHasWeights: boolean,
+): Slot[] {
+  // include slot if it contributes to either line
+  const included = effAsgs.filter(a => {
+    const hasActual = a.origScore !== null && a.origMax !== null && a.origMax > 0;
+    const hasProj = a.score !== null && a.max !== null && a.max > 0;
+    return hasActual || hasProj;
+  });
+  // chronological: dated first (asc), then dateless, then hypos
+  const sorted = [...included].sort((a, b) => {
+    if (a.isHypo !== b.isHypo) return a.isHypo ? 1 : -1;
+    const ta = a.date?.getTime(), tb = b.date?.getTime();
+    if (ta !== undefined && tb !== undefined) return ta - tb;
+    if (ta !== undefined) return -1;
+    if (tb !== undefined) return 1;
+    return 0;
+  });
 
-  for (const cat of categories) {
-    for (let ai = 0; ai < cat.assignments.length; ai++) {
-      const a = cat.assignments[ai];
-      const max = parseMaxGrade(a.maxGrade);
-      if (max === null || max === 0) continue;
+  const aSums: CatSums[] = catWeights.map(w => ({ weight: w, ss: 0, sm: 0 }));
+  const pSums: CatSums[] = catWeights.map(w => ({ weight: w, ss: 0, sm: 0 }));
 
-      const score = parseScore(a.score);
-      const hasOverride = overrides && overrides.has(`${cat.name}::${ai}`);
-      if (score === null && !hasOverride) continue;
-
-      const due = parseDueDate(a.dueDate);
-      graded.push({
-        assignment: a,
-        catName: cat.name,
-        overrideKey: `${cat.name}::${ai}`,
-        dueDate: due,
-      });
+  return sorted.map(a => {
+    const hasActual = a.origScore !== null && a.origMax !== null && a.origMax > 0;
+    const hasProj = a.score !== null && a.max !== null && a.max > 0;
+    let actualVal: number | null = null;
+    let projVal: number | null = null;
+    if (hasActual) {
+      aSums[a.catIdx].ss += a.origScore!; aSums[a.catIdx].sm += a.origMax!;
+      actualVal = gradeFromSums(aSums, courseHasWeights);
     }
+    if (hasProj) {
+      pSums[a.catIdx].ss += a.score!; pSums[a.catIdx].sm += a.max!;
+      projVal = gradeFromSums(pSums, courseHasWeights);
+    }
+    return {
+      name: a.name,
+      catIdx: a.catIdx,
+      catName: a.catName,
+      date: a.date,
+      dueDate: a.dueDate,
+      isHypo: a.isHypo,
+      actualScore: hasActual ? { sc: a.origScore!, mx: a.origMax! } : null,
+      projScore: hasProj ? { sc: a.score!, mx: a.max! } : null,
+      actualVal,
+      projVal,
+    };
+  });
+}
+
+function niceStep(range: number): number {
+  const raw = range / 5;
+  for (const s of [1, 2, 5, 10, 20, 25]) if (raw <= s) return s;
+  return 50;
+}
+
+function GradeLineChart({ slots, showProj }: { slots: Slot[]; showProj: boolean }) {
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const minimal = isMinimalist();
+
+  if (slots.length === 0) {
+    return (
+      <div style={{ background: T.bg, padding: '36px 0', textAlign: 'center', color: T.muted, fontSize: 12 }}>
+        No graded assignments yet — the line appears once something is graded.
+      </div>
+    );
   }
 
-  if (graded.length === 0) return [];
+  const n = slots.length;
+  const aw = VW - PAD.left - PAD.right;
+  const ah = CH - PAD.top - PAD.bottom;
+  const cx = (i: number) => n === 1 ? PAD.left + aw / 2 : PAD.left + (i / (n - 1)) * aw;
 
-  // Dated assignments in date order; undated ones keep gradebook order at the end
-  const dated = graded.filter((g) => g.dueDate !== null) as Array<{
-    assignment: ScrapedAssignment;
-    catName: string;
-    overrideKey: string;
-    dueDate: Date;
-  }>;
-  dated.sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
+  // Y domain from all visible values
+  const vals: number[] = [];
+  for (const s of slots) {
+    if (s.actualVal !== null) vals.push(s.actualVal);
+    if (showProj && s.projVal !== null) vals.push(s.projVal);
+  }
+  let lo = Math.min(...vals), hi = Math.max(...vals);
+  lo = Math.max(0, Math.floor(lo - 4));
+  hi = Math.min(120, Math.ceil(hi + 4));
+  if (hi - lo < 10) { const mid = (hi + lo) / 2; lo = Math.max(0, mid - 5); hi = mid + 5; }
+  const cy = (v: number) => PAD.top + (1 - (v - lo) / (hi - lo)) * ah;
 
-  const undated = graded.filter((g) => g.dueDate === null);
-  const lastTime = dated.length > 0 ? dated[dated.length - 1].dueDate.getTime() : Date.now();
+  // Gridlines
+  const step = niceStep(hi - lo);
+  const gridVals: number[] = [];
+  for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) gridVals.push(v);
 
-  const ordered: Array<{
-    assignment: ScrapedAssignment;
-    catName: string;
-    overrideKey: string;
-    dueDate: Date;
-  }> = [
-    ...dated,
-    ...undated.map((g, idx) => ({
-      ...g,
-      dueDate: new Date(lastTime + (idx + 1) * 86400000), // sequential fallback dates
-    })),
-  ];
-
-  const points: TimelinePoint[] = [];
-  const allowedKeys = new Set<string>();
-
-  for (const item of ordered) {
-    allowedKeys.add(item.overrideKey);
-    const origGrade = computeCourseGradeWithAllowed(categories, null, allowedKeys);
-    const whatIfGrade = computeCourseGradeWithAllowed(categories, overrides, allowedKeys);
-    if (origGrade === null) continue;
-    points.push({
-      date: item.dueDate,
-      origPercent: origGrade,
-      whatIfPercent: whatIfGrade !== null ? whatIfGrade : origGrade,
-      assignmentName: item.assignment.name,
-      categoryName: item.catName,
-      assignmentKey: item.overrideKey,
+  // Paths (skip nulls, continuous)
+  function pathOf(get: (s: Slot) => number | null): { d: string; pts: Array<{ i: number; v: number }> } {
+    let d = '';
+    const pts: Array<{ i: number; v: number }> = [];
+    slots.forEach((s, i) => {
+      const v = get(s);
+      if (v === null) return;
+      d += (d === '' ? 'M' : 'L') + `${cx(i).toFixed(1)},${cy(v).toFixed(1)}`;
+      pts.push({ i, v });
     });
+    return { d, pts };
+  }
+  const actual = pathOf(s => s.actualVal);
+  const proj   = showProj ? pathOf(s => s.projVal) : { d: '', pts: [] };
+  const dual   = showProj && proj.pts.length > 0;
+
+  // Area fill under the primary line
+  const fillLine = dual ? proj : actual;
+  const fillColor = dual ? T.green : T.primary;
+  let areaD = '';
+  if (fillLine.pts.length > 1) {
+    const first = fillLine.pts[0], last = fillLine.pts[fillLine.pts.length - 1];
+    areaD = fillLine.d
+      + `L${cx(last.i).toFixed(1)},${(CH - PAD.bottom).toFixed(1)}`
+      + `L${cx(first.i).toFixed(1)},${(CH - PAD.bottom).toFixed(1)}Z`;
   }
 
-  return points;
-}
+  // Label density
+  const labelEvery = Math.max(1, Math.ceil(n / 14));
+  const tickEvery  = Math.max(1, Math.ceil(n / 8));
+  const labelPts   = dual ? proj.pts : actual.pts;
 
-// ── Component ─────────────────────────────────────────────────────────────────
-
-interface Props {
-  course: ScrapedCourse;
-  historyPoints?: GradePoint[];
-}
-
-export function CourseGradebook({ course, historyPoints = [] }: Props) {
-  const { letter, percent } = parseGradeString(course.grade);
-  const color = gradeColor(percent);
-
-  const filledCategories = course.categories.filter((c) => c.assignments.length > 0);
-  const allAssignments = course.categories.flatMap((c) => c.assignments);
-  const gradedCount   = allAssignments.filter((a) => a.status === 'graded').length;
-  const totalCount    = allAssignments.length;
-  const missingCount  = allAssignments.filter((a) => a.status === 'unsubmitted').length;
-
-  // ── What-if state ──────────────────────────────────────────────────────────
-  const [whatIfOn, setWhatIfOn] = useState(false);
-  // Map<"catName::assignmentIndex", number> for overridden scores
-  const [overrides, setOverrides] = useState<Map<string, number>>(new Map());
-
-  const hasOverrides = overrides.size > 0;
-
-  const projectedGrade = useMemo(
-    () => computeCourseGrade(course.categories, whatIfOn ? overrides : null),
-    [course.categories, whatIfOn, overrides]
-  );
-
-  const timelinePoints = useMemo(() => {
-    return buildGradeTimeline(course.categories, whatIfOn ? overrides : null);
-  }, [course.categories, whatIfOn, overrides]);
-
-  const delta = projectedGrade !== null && percent !== null
-    ? projectedGrade - percent
-    : null;
-
-  function setOverride(key: string, value: number | null) {
-    setOverrides((prev) => {
-      const next = new Map(prev);
-      if (value === null) {
-        next.delete(key);
-      } else {
-        next.set(key, value);
-      }
-      return next;
-    });
+  function onMouseMove(e: React.MouseEvent<SVGSVGElement>) {
+    const svg = svgRef.current; if (!svg) return;
+    const rect = svg.getBoundingClientRect();
+    const mx = ((e.clientX - rect.left) / rect.width) * VW;
+    let best = 0, bestD = Infinity;
+    for (let i = 0; i < n; i++) {
+      const d = Math.abs(cx(i) - mx);
+      if (d < bestD) { bestD = d; best = i; }
+    }
+    setHoverIdx(best);
   }
 
-  function resetAll() {
-    setOverrides(new Map());
-  }
+  const hov = hoverIdx !== null ? slots[hoverIdx] : null;
 
-  // The displayed grade — real or projected
-  const displayPercent = whatIfOn && projectedGrade !== null ? projectedGrade : percent;
-  const displayColor = gradeColor(displayPercent);
+  function xTickLabel(s: Slot): string {
+    if (s.isHypo) return 'new';
+    if (!s.date) return '·';
+    return `${s.date.getMonth() + 1}/${s.date.getDate()}`;
+  }
 
   return (
-    <div>
-      {/* ── Course header ──────────────────────────────────────────── */}
-      <div
-        style={{
-          background: T.card,
-          border: `1px solid ${T.border}`,
-          borderRadius: 12,
-          padding: '16px 20px',
-          marginBottom: 12,
-        }}
+    <svg
+      ref={svgRef}
+      viewBox={`0 0 ${VW} ${CH}`}
+      width="100%"
+      role="img"
+      aria-label="Grade trend chart. The same data appears in the assignment list below."
+      style={{ display: 'block', background: T.bg }}
+      onMouseMove={onMouseMove}
+      onMouseLeave={() => setHoverIdx(null)}
+    >
+      {/* Gridlines + y labels */}
+      {gridVals.map(v => (
+        <g key={v}>
+          <line x1={PAD.left} y1={cy(v)} x2={VW - PAD.right} y2={cy(v)}
+            stroke={T.border} strokeWidth={0.6} opacity={0.5} />
+          <text x={PAD.left - 7} y={cy(v) + 3.5} textAnchor="end"
+            fontSize={9.5} fill={T.muted} opacity={0.8}>{v}</text>
+        </g>
+      ))}
+
+      {/* X tick labels */}
+      {slots.map((s, i) => {
+        if (i % tickEvery !== 0 && i !== n - 1) return null;
+        return (
+          <text key={i} x={cx(i)} y={CH - PAD.bottom + 16} textAnchor="middle"
+            fontSize={9} fill={s.isHypo ? T.green : T.muted} opacity={0.8}>
+            {xTickLabel(s)}
+          </text>
+        );
+      })}
+
+      {/* Area fill — flat, low opacity; removed in minimalist mode */}
+      {!minimal && areaD && <path d={areaD} fill={fillColor} fillOpacity={0.07} />}
+
+      {/* Actual line */}
+      {actual.d && (
+        <path d={actual.d} fill="none" stroke={T.primary} strokeWidth={2.2}
+          strokeLinejoin="round" strokeLinecap="round"
+          opacity={dual ? 0.45 : 1} />
+      )}
+      {/* Projected line */}
+      {dual && (
+        <path d={proj.d} fill="none" stroke={T.green} strokeWidth={2.2}
+          strokeLinejoin="round" strokeLinecap="round" />
+      )}
+
+      {/* Hover crosshair */}
+      {hoverIdx !== null && (
+        <line x1={cx(hoverIdx)} y1={PAD.top - 6} x2={cx(hoverIdx)} y2={CH - PAD.bottom}
+          stroke={T.muted} strokeWidth={0.8} strokeDasharray="4 3" opacity={0.55} />
+      )}
+
+      {/* Dots + value labels — removed in minimalist mode (line only) */}
+      {!minimal && (
+        <>
+          {/* Dots — actual */}
+          {actual.pts.map(({ i, v }) => (
+            <circle key={`a${i}`} cx={cx(i)} cy={cy(v)} r={hoverIdx === i ? 5 : 3.6}
+              fill={T.bg} stroke={T.primary} strokeWidth={2}
+              opacity={dual ? 0.5 : 1} />
+          ))}
+          {/* Dots — projected */}
+          {dual && proj.pts.map(({ i, v }) => (
+            <circle key={`p${i}`} cx={cx(i)} cy={cy(v)} r={hoverIdx === i ? 5 : 3.6}
+              fill={T.bg} stroke={T.green} strokeWidth={2} />
+          ))}
+
+          {/* Value labels above dots */}
+          {labelPts.map(({ i, v }, k) => {
+            if (k % labelEvery !== 0 && k !== labelPts.length - 1) return null;
+            return (
+              <text key={i} x={cx(i)} y={cy(v) - 9} textAnchor="middle"
+                fontSize={9.5} fontWeight={700} fill={fillColor}>
+                {v.toFixed(1)}
+              </text>
+            );
+          })}
+        </>
+      )}
+
+      {/* Tooltip */}
+      {hov && hoverIdx !== null && (() => {
+        const lines: Array<{ dot: string; label: string; val: string }> = [];
+        if (hov.actualVal !== null) {
+          lines.push({ dot: T.primary, label: 'Grade', val: `${hov.actualVal.toFixed(2)}%` });
+        }
+        if (dual && hov.projVal !== null) {
+          lines.push({ dot: T.green, label: 'What-if', val: `${hov.projVal.toFixed(2)}%` });
+        }
+        const score = hov.projScore ?? hov.actualScore;
+        const tipW = 190;
+        const tipH = 36 + lines.length * 14;
+        const x = cx(hoverIdx);
+        const tipX = Math.min(Math.max(x + 12, PAD.left), VW - PAD.right - tipW);
+        const tipY = PAD.top;
+        return (
+          <g style={{ pointerEvents: 'none' }}>
+            <rect x={tipX} y={tipY} width={tipW} height={tipH} rx={8}
+              fill={T.card} stroke={T.border} strokeWidth={1}
+              style={{ filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.45))' }} />
+            <text x={tipX + 10} y={tipY + 15} fontSize={9.5} fontWeight={700} fill={T.text}>
+              {hov.name.length > 30 ? hov.name.slice(0, 29) + '…' : hov.name}
+            </text>
+            <text x={tipX + 10} y={tipY + 27} fontSize={8.5} fill={catPalette()[hov.catIdx % 6]}>
+              {hov.catName}
+              <tspan fill={T.muted}>
+                {'  ·  '}{hov.isHypo ? 'hypothetical' : formatDueDate(hov.dueDate) || 'no date'}
+                {score ? `  ·  ${score.sc}/${score.mx}` : ''}
+              </tspan>
+            </text>
+            {lines.map((l, li) => (
+              <g key={li}>
+                <circle cx={tipX + 14} cy={tipY + 37 + li * 14} r={3} fill={l.dot} />
+                <text x={tipX + 23} y={tipY + 40 + li * 14} fontSize={9} fill={T.muted}>{l.label}</text>
+                <text x={tipX + tipW - 10} y={tipY + 40 + li * 14} textAnchor="end"
+                  fontSize={9.5} fontWeight={700} fill={l.dot}>{l.val}</text>
+              </g>
+            ))}
+          </g>
+        );
+      })()}
+    </svg>
+  );
+}
+
+// ── Score inputs ──────────────────────────────────────────────────────────────
+
+function NumIn({ value, placeholder, onChange, accent, highlight, label }: {
+  value: string;
+  placeholder: string;
+  onChange: (v: string) => void;
+  accent?: string;
+  highlight?: boolean;
+  label: string;
+}) {
+  return (
+    <input
+      type="text"
+      inputMode="decimal"
+      value={value}
+      placeholder={placeholder}
+      aria-label={label}
+      onChange={(e) => onChange(e.target.value)}
+      style={{
+        width: 36,
+        background: 'transparent',
+        border: 'none',
+        outline: 'none',
+        color: highlight ? (accent ?? T.primary) : T.text,
+        fontSize: 11,
+        fontWeight: 700,
+        padding: 0,
+        textAlign: 'right',
+        fontVariantNumeric: 'tabular-nums',
+      }}
+    />
+  );
+}
+
+// ── Icons ─────────────────────────────────────────────────────────────────────
+
+// ── Status pill ───────────────────────────────────────────────────────────────
+
+function StatusPill({ a, pct, clr }: { a: EffAsg; pct: number | null; clr: string | null }) {
+  const pctStr = pct !== null ? `${pct.toFixed(0)}%` : null;
+  let icon: keyof typeof ICON_PATHS;
+  let label: string;
+  let color: string;
+
+  if (a.isHypo) {
+    icon = 'plus'; color = T.green;
+    label = pctStr ? `New · ${pctStr}` : 'New';
+  } else if (a.isEdited) {
+    icon = 'edit'; color = T.amber;
+    label = pctStr ? `Edited · ${pctStr}` : 'Edited';
+  } else if (a.isFilled) {
+    icon = 'plus'; color = T.green;
+    label = pctStr ? `Filled · ${pctStr}` : 'Filled';
+  } else if (a.origScore === null) {
+    if (a.status === 'unsubmitted') { icon = 'alert'; label = 'Missing'; color = T.red; }
+    else { icon = 'minus'; label = 'Ungraded'; color = T.faint; }
+  } else {
+    icon = 'check'; color = clr ?? T.muted;
+    label = pctStr ?? 'Graded';
+  }
+
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 4,
+      fontSize: 10, fontWeight: 700, color,
+      background: color + '18', border: `1px solid ${color}35`,
+      borderRadius: 7, padding: '3px 8px', flexShrink: 0, whiteSpace: 'nowrap',
+    }}>
+      <Icon name={icon} size={11} />
+      {label}
+    </span>
+  );
+}
+
+// ── Row action menu ───────────────────────────────────────────────────────────
+
+const menuItemStyle: React.CSSProperties = {
+  all: 'unset', display: 'flex', alignItems: 'center', gap: 8,
+  width: '100%', boxSizing: 'border-box', padding: '8px 12px',
+  fontSize: 11, fontWeight: 600, color: T.text, cursor: 'pointer',
+};
+
+function RowMenu({ canReset, canRemove, open, onToggle, onClose, onReset, onRemove }: {
+  canReset: boolean;
+  canRemove: boolean;
+  open: boolean;
+  onToggle: () => void;
+  onClose: () => void;
+  onReset: () => void;
+  onRemove: () => void;
+}) {
+  if (!canReset && !canRemove) {
+    return <div style={{ width: 22, flexShrink: 0 }} />;
+  }
+  return (
+    <div
+      style={{ position: 'relative', flexShrink: 0 }}
+      onKeyDown={(e) => { if (e.key === 'Escape' && open) onClose(); }}
+    >
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-label="More actions"
+        aria-haspopup="true"
+        aria-expanded={open}
+        className="bs-focusable"
+        style={{ all: 'unset', cursor: 'pointer', color: T.muted, padding: 6, display: 'flex', borderRadius: 5 }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: T.text, lineHeight: 1.2 }}>
-              {course.name}
-            </h2>
-            <div style={{ fontSize: 12, color: T.muted, marginTop: 5 }}>
-              {course.teacher && <span>{course.teacher} · </span>}
-              <span>{gradedCount}/{totalCount} graded</span>
-              {missingCount > 0 && (
-                <span style={{ color: T.red, marginLeft: 8 }}>· {missingCount} unsubmitted</span>
-              )}
-              {filledCategories.length > 0 && (
-                <span> · {filledCategories.length} {filledCategories.length === 1 ? 'category' : 'categories'}</span>
-              )}
-            </div>
+        <Icon name="dots" size={14} />
+      </button>
+      {open && (
+        <>
+          <div onClick={onClose} aria-hidden="true" style={{ position: 'fixed', inset: 0, zIndex: 30 }} />
+          <div style={{
+            position: 'absolute', top: '100%', right: 0, marginTop: 4, zIndex: 31,
+            background: T.card, border: `1px solid ${T.border}`, borderRadius: 8,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.45)', minWidth: 160, overflow: 'hidden',
+          }}>
+            {canReset && (
+              <button type="button" onClick={() => { onReset(); onClose(); }} className="bs-focusable" style={menuItemStyle}>
+                <Icon name="undo" size={12} /> Reset to original
+              </button>
+            )}
+            {canRemove && (
+              <button type="button" onClick={() => { onRemove(); onClose(); }} className="bs-focusable" style={{ ...menuItemStyle, color: T.red }}>
+                <Icon name="trash" size={12} /> Remove assignment
+              </button>
+            )}
           </div>
-          <div style={{ textAlign: 'right', flexShrink: 0 }}>
-            <div style={{ fontSize: 34, fontWeight: 800, color: displayColor, lineHeight: 1 }}>
-              {displayPercent !== null ? `${displayPercent.toFixed(2)}%` : '—'}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8, marginTop: 4 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: displayColor, letterSpacing: '0.5px' }}>
-                {letter}
-              </div>
-              {whatIfOn && hasOverrides && delta !== null && Math.abs(delta) >= 0.01 && (
-                <span
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: delta > 0 ? T.green : T.red,
-                    background: delta > 0 ? '#22c55e18' : '#ef444418',
-                    borderRadius: 5,
-                    padding: '1px 7px',
-                  }}
-                >
-                  {delta > 0 ? '+' : ''}{delta.toFixed(2)}%
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* ── What-if toggle bar ─────────────────────────────────── */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            marginTop: 12,
-            paddingTop: 10,
-            borderTop: `1px solid ${T.border}`,
-          }}
-        >
-          <button
-            onClick={() => { setWhatIfOn(!whatIfOn); if (whatIfOn) resetAll(); }}
-            style={{
-              all: 'unset',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 7,
-              fontSize: 12,
-              fontWeight: 600,
-              color: whatIfOn ? T.primary : T.muted,
-            }}
-          >
-            <span
-              style={{
-                width: 34,
-                height: 18,
-                borderRadius: 9,
-                background: whatIfOn ? T.primary : T.faint,
-                position: 'relative',
-                display: 'inline-block',
-                transition: 'background 0.2s',
-              }}
-            >
-              <span
-                style={{
-                  width: 14,
-                  height: 14,
-                  borderRadius: '50%',
-                  background: '#fff',
-                  position: 'absolute',
-                  top: 2,
-                  left: whatIfOn ? 18 : 2,
-                  transition: 'left 0.2s',
-                }}
-              />
-            </span>
-            What-if
-          </button>
-          {whatIfOn && hasOverrides && (
-            <button
-              onClick={resetAll}
-              style={{
-                all: 'unset',
-                cursor: 'pointer',
-                fontSize: 11,
-                color: T.muted,
-                background: T.faint + '40',
-                borderRadius: 5,
-                padding: '2px 10px',
-              }}
-            >
-              Reset
-            </button>
-          )}
-          {whatIfOn && (
-            <span style={{ fontSize: 10, color: T.faint, marginLeft: 'auto' }}>
-              Edit scores to see projected grade
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* ── Grade history chart ─────────────────────────────────────── */}
-      <GradeChart
-        points={timelinePoints}
-        color={displayColor}
-        hasOverrides={whatIfOn && overrides.size > 0}
-      />
-
-      {/* ── Assignment table ────────────────────────────────────────── */}
-      {filledCategories.length === 0 ? (
-        <div
-          style={{
-            padding: 24,
-            textAlign: 'center',
-            color: T.muted,
-            background: T.card,
-            borderRadius: 12,
-            border: `1px solid ${T.border}`,
-            fontSize: 13,
-          }}
-        >
-          No assignment data for this course.
-        </div>
-      ) : (
-        <div
-          style={{
-            background: T.card,
-            border: `1px solid ${T.border}`,
-            borderRadius: 11,
-            overflow: 'hidden',
-          }}
-        >
-          <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
-            <colgroup>
-              <col />                                          {/* Assignment — auto */}
-              <col style={{ width: COL_SCORE }} />
-              <col style={{ width: COL_PCT }} />
-              <col style={{ width: COL_DUE }} />
-            </colgroup>
-
-            {/* Global column headers */}
-            <thead>
-              <tr style={{ background: T.headerBg }}>
-                <th style={{ ...TH, textAlign: 'left', paddingLeft: 16 }}>Assignment</th>
-                <th style={{ ...TH, textAlign: 'right' }}>Score</th>
-                <th style={{ ...TH, textAlign: 'right' }}>%</th>
-                <th style={{ ...TH, textAlign: 'right', paddingRight: 16 }}>Due</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {filledCategories.flatMap((cat, ci) => {
-                const catName = cat.name.replace(/\s*Category\s*$/i, '').trim() || cat.name;
-                const catAvg = whatIfOn
-                  ? categoryAvg(cat, overrides)
-                  : categoryAvg(cat, null);
-                const weight = parseWeight(cat.weight);
-
-                return [
-                  /* Category section header */
-                  <tr key={`cat-${ci}`} style={{ background: T.catBg }}>
-                    <td
-                      colSpan={4}
-                      style={{
-                        padding: '7px 16px',
-                        fontSize: 11,
-                        fontWeight: 700,
-                        color: '#c8d0df',
-                        borderTop: ci > 0 ? `2px solid ${T.border}` : undefined,
-                        borderBottom: `1px solid ${T.catBorder}`,
-                      }}
-                    >
-                      {catName}
-                      {cat.weight && (
-                        <span style={{ fontWeight: 400, color: T.muted, marginLeft: 8 }}>
-                          {cat.weight}
-                        </span>
-                      )}
-                      {whatIfOn && catAvg && (
-                        <span style={{ fontWeight: 600, color: gradeColor(catAvg.pct), marginLeft: 12, fontSize: 10 }}>
-                          {catAvg.pct.toFixed(1)}%
-                        </span>
-                      )}
-                    </td>
-                  </tr>,
-                  /* Assignment rows */
-                  ...cat.assignments.map((a, ai) => (
-                    <AssignmentRow
-                      key={`a-${ci}-${ai}`}
-                      assignment={a}
-                      overrideKey={`${cat.name}::${ai}`}
-                      whatIfOn={whatIfOn}
-                      overrideValue={overrides.get(`${cat.name}::${ai}`) ?? null}
-                      onOverride={setOverride}
-                      isLast={ai === cat.assignments.length - 1 && ci === filledCategories.length - 1}
-                    />
-                  )),
-                ];
-              })}
-            </tbody>
-          </table>
-        </div>
+        </>
       )}
     </div>
   );
 }
 
-// ── Assignment row ────────────────────────────────────────────────────────────
+// ── Category section ──────────────────────────────────────────────────────────
 
-function AssignmentRow({
-  assignment,
-  overrideKey,
-  whatIfOn,
-  overrideValue,
-  onOverride,
-  isLast,
+interface HypoAsg { id: number; catIdx: number; name: string; score: string; max: string }
+interface Override { score?: string; max?: string }
+
+function CategoryRow({
+  cat, catIdx, asgs, overrides, onOverride, onResetOne, hypos, onHypoChange, onHypoAdd, onHypoRemove,
+  courseCategories,
 }: {
-  assignment: ScrapedAssignment;
-  overrideKey: string;
-  whatIfOn: boolean;
-  overrideValue: number | null;
-  onOverride: (key: string, value: number | null) => void;
-  isLast: boolean;
+  cat: ScrapedCategory;
+  catIdx: number;
+  asgs: EffAsg[];
+  overrides: Map<string, Override>;
+  onOverride: (key: string, field: 'score' | 'max', val: string) => void;
+  onResetOne: (key: string) => void;
+  hypos: HypoAsg[];
+  onHypoChange: (id: number, field: 'name' | 'score' | 'max', val: string) => void;
+  onHypoAdd: (catIdx: number) => void;
+  onHypoRemove: (id: number) => void;
+  courseCategories: ScrapedCategory[];
 }) {
-  const realScore = parseScore(assignment.score);
-  const maxNum = parseMaxGrade(assignment.maxGrade);
-  const displayScore = overrideValue !== null ? overrideValue : realScore;
+  const color = catPalette()[catIdx % 6];
+  const catName = cat.name.replace(/\s*category\s*$/i, '').trim() || cat.name;
+  const weight = parseWeight(cat.weight);
+  const [expanded, setExpanded] = useState(true);
+  const [menuFor, setMenuFor] = useState<string | null>(null);
 
-  const pct = displayScore !== null && maxNum !== null && maxNum > 0
-    ? (displayScore / maxNum) * 100
-    : scorePercent(assignment.score, assignment.maxGrade);
+  // Effective + original sums for this category
+  let ss = 0, sm = 0, oss = 0, osm = 0;
+  for (const a of asgs) {
+    if (a.score !== null && a.max !== null && a.max > 0) { ss += a.score; sm += a.max; }
+    if (a.origScore !== null && a.origMax !== null && a.origMax > 0) { oss += a.origScore; osm += a.origMax; }
+  }
+  const effPct  = sm  > 0 ? (ss / sm) * 100 : null;
+  const origPct = osm > 0 ? (oss / osm) * 100 : null;
+  const catDelta = effPct !== null && origPct !== null ? effPct - origPct : null;
+  const animatedEffPct = useAnimatedNumber(effPct);
 
-  const color  = pct !== null ? gradeColor(pct) : assignment.status === 'unsubmitted' ? T.red : T.muted;
+  const gradedCount = asgs.filter(a => a.score !== null).length;
 
-  const maxDisplay = maxNum !== null
-    ? `/${formatScoreNumber(maxNum)}`
-    : '';
-
-  const statusBadge =
-    assignment.status === 'submitted' ? (
-      <span style={{ fontSize: 9, background: '#3b82f620', color: '#3b82f6', border: '1px solid #3b82f630', borderRadius: 3, padding: '1px 5px', marginLeft: 6 }}>
-        submitted
-      </span>
-    ) : assignment.status === 'unsubmitted' && !assignment.score ? (
-      <span style={{ fontSize: 9, background: '#ef444420', color: T.red, border: '1px solid #ef444430', borderRadius: 3, padding: '1px 5px', marginLeft: 6 }}>
-        missing
-      </span>
-    ) : null;
-
-  const isModified = overrideValue !== null;
+  // Contribution to final grade
+  const totalW = courseCategories
+    .filter(c => parseWeight(c.weight) > 0)
+    .reduce((s, c) => s + parseWeight(c.weight), 0);
+  const contribution = weight > 0 && effPct !== null ? (effPct * weight) / (totalW || 100) : null;
 
   return (
-    <tr style={{ borderBottom: isLast ? 'none' : `1px solid ${T.rowBorder}` }}>
-      <td
-        style={{
-          padding: '8px 16px',
-          fontSize: 12,
-          color: '#c8d0df',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {assignment.name}
-        {statusBadge}
-      </td>
-      <td style={{ padding: '8px 12px', textAlign: 'right', fontSize: 12, color, fontWeight: 500, whiteSpace: 'nowrap' }}>
-        {whatIfOn ? (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, justifyContent: 'flex-end' }}>
-            <input
-              type="number"
-              step="any"
-              min={0}
-              value={overrideValue !== null ? overrideValue : (realScore !== null ? realScore : '')}
-              placeholder="—"
-              onChange={(e) => {
-                const val = e.target.value;
-                if (val === '' || val === '-') {
-                  // If clearing, remove override (fall back to original)
-                  onOverride(overrideKey, null);
-                } else {
-                  const n = parseFloat(val);
-                  if (!isNaN(n)) onOverride(overrideKey, n);
-                }
-              }}
-              style={{
-                width: 52,
-                background: isModified ? T.primary + '15' : T.inputBg,
-                border: `1px solid ${isModified ? T.primary + '50' : T.inputBorder}`,
-                borderRadius: 4,
-                color: isModified ? T.primary : color,
-                fontSize: 12,
-                fontWeight: 500,
-                padding: '2px 5px',
-                textAlign: 'right',
-                outline: 'none',
-                fontFamily: 'inherit',
-              }}
-            />
-            <span style={{ color: T.muted, fontSize: 11 }}>{maxDisplay}</span>
-          </span>
-        ) : (
-          <>
-            {displayScore !== null
-              ? formatScoreNumber(displayScore)
-              : '—'}
-            {maxDisplay}
-          </>
-        )}
-      </td>
-      <td style={{ padding: '8px 12px', textAlign: 'right', fontSize: 12, color, fontWeight: 500 }}>
-        {pct !== null ? `${pct.toFixed(1)}%` : '—'}
-      </td>
-      <td style={{ padding: '8px 16px', textAlign: 'right', fontSize: 11, color: T.muted, whiteSpace: 'nowrap' }}>
-        {formatDueDate(assignment.dueDate)}
-      </td>
-    </tr>
-  );
-}
-
-// ── Grade history chart ───────────────────────────────────────────────────────
-
-const buttonStyle = (disabled: boolean): React.CSSProperties => ({
-  display: 'flex',
-  height: 24,
-  width: 24,
-  alignItems: 'center',
-  justifyContent: 'center',
-  borderRadius: 4,
-  border: `1px solid ${T.border}`,
-  background: T.inputBg,
-  color: T.muted,
-  cursor: disabled ? 'default' : 'pointer',
-  opacity: disabled ? 0.3 : 1,
-  outline: 'none',
-  padding: 0,
-  transition: 'background 0.2s, color 0.2s',
-});
-
-interface GradeChartProps {
-  points: TimelinePoint[];
-  color: string;
-  hasOverrides: boolean;
-}
-
-function GradeChart({ points, color, hasOverrides }: GradeChartProps) {
-  const [zoom, setZoom] = useState(1);
-  const [offset, setOffset] = useState(0);
-  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
-  const svgRef = useRef<SVGSVGElement>(null);
-
-  if (points.length === 0) {
-    return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 12,
-          padding: '40px 20px',
-          background: T.card,
-          border: `1px solid ${T.border}`,
-          borderRadius: 11,
-          marginBottom: 12,
-        }}
-      >
-        <svg viewBox="0 0 44 26" width="44" height="26" fill="none" aria-hidden="true">
-          <polyline
-            points="2,22 11,14 20,17 29,8 38,11"
-            stroke={T.border}
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          {([2, 11, 20, 29, 38] as number[]).map((ptx, idx) => (
-            <circle
-              key={ptx}
-              cx={ptx}
-              cy={([22, 14, 17, 8, 11])[idx]}
-              r="2"
-              fill={T.border}
-            />
-          ))}
-        </svg>
-        <p style={{ fontSize: 12, color: T.muted, margin: 0 }}>
-          No graded assignments yet.
-        </p>
-      </div>
-    );
-  }
-
-  const windowSize = Math.max(4, Math.ceil(points.length / zoom));
-  const maxOffset = Math.max(0, points.length - windowSize);
-  const safeOffset = Math.min(offset, maxOffset);
-  const visible = points.slice(safeOffset, safeOffset + windowSize);
-
-  const VH = 180;
-  const PAD = { top: 20, right: 16, bottom: 28, left: 44 };
-  const PH = VH - PAD.top - PAD.bottom;
-  const pxPerPt = Math.max(48, 800 / Math.max(visible.length - 1, 1));
-  const VW = PAD.left + PAD.right + pxPerPt * Math.max(visible.length - 1, 1);
-
-  const allPercents = visible.flatMap((p) => [p.origPercent, p.whatIfPercent]);
-  const rawMin = Math.min(...allPercents);
-  const rawMax = Math.max(...allPercents);
-  const yMin = Math.max(0, Math.floor((rawMin - 8) / 5) * 5);
-  const yMax = Math.min(102, Math.ceil((rawMax + 5) / 5) * 5);
-  const yRange = yMax - yMin || 1;
-
-  const cx = (i: number) => PAD.left + i * pxPerPt;
-  const cy = (v: number) => PAD.top + (1 - (v - yMin) / yRange) * PH;
-
-  const gridY: number[] = [];
-  for (let y = Math.ceil(yMin / 5) * 5; y <= yMax; y += 5) {
-    gridY.push(y);
-  }
-
-  function buildPath(pts: Array<{ x: number; y: number | null }>) {
-    let d = '';
-    let penDown = false;
-    for (const pt of pts) {
-      if (pt.y === null) {
-        penDown = false;
-        continue;
-      }
-      const coord = `${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`;
-      d += penDown ? ` L${coord}` : `M${coord}`;
-      penDown = true;
-    }
-    return d;
-  }
-
-  const origPath = buildPath(visible.map((p, i) => ({ x: cx(i), y: cy(p.origPercent) })));
-  const whatIfPath = hasOverrides
-    ? buildPath(visible.map((p, i) => ({ x: cx(i), y: cy(p.whatIfPercent) })))
-    : null;
-
-  function zoomIn() {
-    setZoom((z) => Math.min(z * 2, 8));
-    setOffset(safeOffset);
-  }
-  function zoomOut() {
-    setZoom((z) => Math.max(z / 2, 1));
-    setOffset(0);
-  }
-  function pan(dir: -1 | 1) {
-    setOffset((o) =>
-      Math.min(maxOffset, Math.max(0, o + dir * Math.max(1, Math.floor(windowSize / 4))))
-    );
-  }
-
-  const firstDate = visible[0].date;
-  const lastDate = visible[visible.length - 1].date;
-  const fmtDate = (d: Date) =>
-    d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-
-  function handleMouseMove(e: React.MouseEvent<SVGSVGElement>) {
-    const svg = svgRef.current;
-    if (!svg || visible.length < 2) return;
-    const rect = svg.getBoundingClientRect();
-    const mouseX = ((e.clientX - rect.left) / rect.width) * VW;
-    let closest = 0;
-    let closestDist = Infinity;
-    for (let i = 0; i < visible.length; i++) {
-      const dist = Math.abs(cx(i) - mouseX);
-      if (dist < closestDist) {
-        closestDist = dist;
-        closest = i;
-      }
-    }
-    setHoverIdx(closest);
-  }
-
-  const hoverPoint = hoverIdx !== null ? visible[hoverIdx] : null;
-
-  return (
-    <div
-      style={{
-        background: T.card,
-        border: `1px solid ${T.border}`,
-        borderRadius: 11,
-        padding: '12px 16px',
-        marginBottom: 12,
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.4px' }}>
-            Grade History
-          </span>
-          <span style={{ fontSize: 10, color: T.muted, opacity: 0.6 }}>
-            {zoom > 1 ? `Showing ${visible.length} of ${points.length}` : `${points.length} assignments`}
-          </span>
-          {hasOverrides && (
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 4,
-                borderRadius: 9999,
-                border: '1px solid rgba(59, 130, 246, 0.25)',
-                background: 'rgba(59, 130, 246, 0.08)',
-                padding: '1px 8px',
-                fontSize: 10,
-                fontWeight: 500,
-                color: T.primary,
-              }}
+    <div style={{ borderBottom: `1px solid ${T.rowBorder}` }}>
+      <div style={{ display: 'flex', alignItems: 'stretch' }}>
+        <div style={{ width: 4, background: color, borderRadius: 4, flexShrink: 0, margin: '10px 0 10px 10px' }} />
+        <div style={{ flex: 1, padding: '10px 14px' }}>
+          {/* Name row */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: T.text }}>{catName}</span>
+            {weight > 0 && (
+              <span style={{ fontSize: 9, fontWeight: 700, color, background: color + '20', border: `1px solid ${color}40`, borderRadius: 6, padding: '1px 5px' }}>
+                {cat.weight}
+              </span>
+            )}
+            <span style={{ fontSize: 9, color: T.muted }}>{gradedCount}/{asgs.length} graded</span>
+            {catDelta !== null && Math.abs(catDelta) >= 0.05 && (
+              <span style={{ fontSize: 10, fontWeight: 700, color: catDelta > 0 ? T.green : T.red }}>
+                {catDelta > 0 ? '+' : ''}{catDelta.toFixed(1)}%
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={() => setExpanded(p => !p)}
+              aria-expanded={expanded}
+              aria-label={`${expanded ? 'Hide' : 'Show'} ${catName} assignments`}
+              className="bs-focusable"
+              style={{ all: 'unset', marginLeft: 'auto', cursor: 'pointer', fontSize: 10, color: T.muted, padding: '6px 8px' }}
             >
-              <svg viewBox="0 0 8 8" width="6" height="6" aria-hidden="true" style={{ display: 'block' }}>
-                <line x1="0" y1="4" x2="8" y2="4" stroke="currentColor" strokeWidth="1.5" strokeDasharray="2 1.5"/>
-              </svg>
-              what-if active
-            </span>
-          )}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          {zoom > 1 && (
-            <>
-              <button
-                type="button"
-                onClick={() => pan(-1)}
-                disabled={safeOffset === 0}
-                style={buttonStyle(safeOffset === 0)}
-                title="Pan left"
-              >
-                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                  <polyline points="15 18 9 12 15 6" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={() => pan(1)}
-                disabled={safeOffset >= maxOffset}
-                style={buttonStyle(safeOffset >= maxOffset)}
-                title="Pan right"
-              >
-                <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </button>
-            </>
-          )}
-          <button
-            type="button"
-            onClick={zoomIn}
-            disabled={zoom >= 8}
-            style={buttonStyle(zoom >= 8)}
-            title="Zoom in"
-          >
-            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <circle cx="11" cy="11" r="8"/>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-              <line x1="11" y1="8" x2="11" y2="14"/>
-              <line x1="8" y1="11" x2="14" y2="11"/>
-            </svg>
-          </button>
-          <button
-            type="button"
-            onClick={zoomOut}
-            disabled={zoom <= 1}
-            style={buttonStyle(zoom <= 1)}
-            title="Zoom out"
-          >
-            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <circle cx="11" cy="11" r="8"/>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-              <line x1="8" y1="11" x2="14" y2="11"/>
-            </svg>
-          </button>
+              {expanded ? '▲ hide' : '▼ assignments'}
+            </button>
+          </div>
+
+          {/* Stat columns */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr' }}>
+            <div>
+              <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: 2 }}>Current %</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: gradeColor(effPct) ?? T.muted, fontVariantNumeric: 'tabular-nums' }}>
+                {animatedEffPct !== null ? `${animatedEffPct.toFixed(1)}%` : '—'}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: 2 }}>Weight</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{weight > 0 ? `${weight}%` : '—'}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: 2 }}>Points</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: T.text, fontVariantNumeric: 'tabular-nums' }}>
+                {sm > 0 ? `${+ss.toFixed(1)}/${+sm.toFixed(1)}` : '—'}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: 2 }}>Impact</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: T.text, fontVariantNumeric: 'tabular-nums' }}>
+                {contribution !== null ? `${contribution.toFixed(1)}%` : '—'}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div style={{ overflowX: 'auto', borderRadius: 8, background: '#0d1019' }}>
-        <svg
-          ref={svgRef}
-          viewBox={`0 0 ${VW} ${VH}`}
-          width={VW}
-          height={VH}
-          style={{ minWidth: VW, display: 'block' }}
-          onMouseMove={handleMouseMove}
-          onMouseLeave={() => setHoverIdx(null)}
-        >
-          {/* Grid lines */}
-          {gridY.map((v) => (
-            <g key={v}>
-              <line
-                x1={PAD.left}
-                y1={cy(v)}
-                x2={VW - PAD.right}
-                y2={cy(v)}
-                stroke={T.border}
-                strokeWidth={0.5}
-                strokeDasharray={v % 10 === 0 ? undefined : '3 4'}
-                opacity={v % 10 === 0 ? 0.3 : 0.15}
-              />
-              <text
-                x={PAD.left - 6}
-                y={cy(v) + 3.5}
-                fill={T.muted}
-                fontSize={8.5}
-                textAnchor="end"
-                fontFamily="inherit"
-                opacity={0.65}
-              >
-                {v}%
-              </text>
-            </g>
-          ))}
-
-          {/* Gradient area */}
-          <defs>
-            <linearGradient id="gradeAreaGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={color} stopOpacity={0.15} />
-              <stop offset="100%" stopColor={color} stopOpacity={0.02} />
-            </linearGradient>
-          </defs>
-          {visible.length >= 2 && !hasOverrides && (
-            <polygon
-              points={
-                `${cx(0).toFixed(1)},${(PAD.top + PH).toFixed(1)} ` +
-                visible.map((p, i) => `${cx(i).toFixed(1)},${cy(p.origPercent).toFixed(1)}`).join(' ') +
-                ` ${cx(visible.length - 1).toFixed(1)},${(PAD.top + PH).toFixed(1)}`
-              }
-              fill="url(#gradeAreaGrad)"
-            />
-          )}
-
-          {/* Original line */}
-          {visible.length >= 2 && (
-            <path
-              d={origPath}
-              fill="none"
-              stroke={hasOverrides ? '#ffffff' : color}
-              strokeWidth={hasOverrides ? 1.5 : 2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              opacity={hasOverrides ? 0.35 : 1}
-              strokeDasharray={hasOverrides ? '4 3' : undefined}
-            />
-          )}
-
-          {/* What-if line */}
-          {hasOverrides && whatIfPath && visible.length >= 2 && (
-            <path
-              d={whatIfPath}
-              fill="none"
-              stroke={color}
-              strokeWidth={2.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              opacity={0.85}
-            />
-          )}
-
-          {/* Dots */}
-          {visible.map((p, i) => {
-            const x = cx(i);
-            const origY = cy(p.origPercent);
-            const whatIfY = cy(p.whatIfPercent);
-            const isTip = hoverIdx === i;
+      {/* Assignment rows */}
+      <div className="bs-collapse" style={{ gridTemplateRows: expanded ? '1fr' : '0fr' }}>
+        <div>
+          <div className="bs-collapse-content" style={{ paddingLeft: 17, opacity: expanded ? 1 : 0 }}>
+          {asgs.map((a, i) => {
+            const ov = overrides.get(a.key);
+            const hypo = a.isHypo ? hypos.find(h => `h:${h.id}` === a.key) : undefined;
+            const pct = a.score !== null && a.max ? (a.score / a.max) * 100 : null;
+            const clr = gradeColor(pct);
+            // Pre-fill with the real current value (override if edited, else original)
+            // so existing scores like "16.5/19.5" are visible and directly editable.
+            const scoreStr = a.isHypo
+              ? (hypo?.score ?? '')
+              : (ov?.score ?? (a.origScore !== null ? String(a.origScore) : ''));
+            const maxStr = a.isHypo
+              ? (hypo?.max ?? '')
+              : (ov?.max ?? (a.origMax !== null ? String(a.origMax) : ''));
+            const scoreEdited = a.isHypo ? true : ov?.score !== undefined;
+            const maxEdited = a.isHypo ? true : ov?.max !== undefined;
+            const lol = (parseInput(scoreStr) ?? 0) > LOL_LIMIT || (parseInput(maxStr) ?? 0) > LOL_LIMIT;
+            const accent = a.isHypo || a.isFilled ? T.green : T.amber;
+            const pillBorder = (scoreEdited || maxEdited) ? accent + '60' : T.border;
 
             return (
-              <g key={i}>
-                <rect
-                  x={x - 14}
-                  y={PAD.top - 4}
-                  width={28}
-                  height={PH + 8}
-                  fill="rgba(0,0,0,0)"
-                  style={{ cursor: 'pointer' }}
-                />
+              <div key={a.key} className="bs-row-enter" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderTop: `1px solid ${T.rowBorder}`, animationDelay: `${Math.min(i, 12) * 30}ms` }}>
 
-                <circle
-                  cx={x}
-                  cy={origY}
-                  r={hasOverrides ? 2 : isTip ? 5 : 3.5}
-                  fill={isTip && !hasOverrides ? '#ffffff' : color}
-                  stroke={isTip && !hasOverrides ? color : 'none'}
-                  strokeWidth={isTip ? 2 : 0}
-                  opacity={hasOverrides ? 0.3 : 1}
-                />
+                {/* Name + meta */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  {a.isHypo && hypo ? (
+                    <input
+                      type="text"
+                      value={hypo.name}
+                      placeholder="New assignment"
+                      aria-label="Hypothetical assignment name"
+                      className="bs-focusable"
+                      onChange={(e) => onHypoChange(hypo.id, 'name', e.target.value)}
+                      style={{
+                        width: '100%', boxSizing: 'border-box', background: T.bg, border: `1px solid ${T.border}`,
+                        borderRadius: 8, color: T.text, fontSize: 12, fontWeight: 600, padding: '4px 8px', outline: 'none',
+                      }}
+                    />
+                  ) : (
+                    <div style={{ fontSize: 12, fontWeight: 600, color: T.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {a.name}
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 4, fontSize: 10, color: T.muted, overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                    {a.isHypo ? (
+                      <span>Hypothetical assignment</span>
+                    ) : (
+                      <>
+                        <Icon name="calendar" size={10} />
+                        <span>{formatDueDate(a.dueDate) || 'No due date'}</span>
+                        {a.isEdited && a.origScore !== null && a.origMax !== null && (
+                          <span style={{ color: T.faint }}>· was {a.origScore}/{a.origMax}</span>
+                        )}
+                      </>
+                    )}
+                    {lol && (
+                      <span style={{ fontStyle: 'italic', fontWeight: 600, color: T.amber }}>· Lol you wish</span>
+                    )}
+                  </div>
+                </div>
 
-                {hasOverrides && (
-                  <circle
-                    cx={x}
-                    cy={whatIfY}
-                    r={isTip ? 5 : 3.5}
-                    fill={isTip ? '#ffffff' : color}
-                    stroke={isTip ? color : 'none'}
-                    strokeWidth={isTip ? 2 : 0}
+                {/* Status pill */}
+                <StatusPill a={a} pct={pct} clr={clr} />
+
+                {/* Score pill — always editable */}
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0,
+                  background: T.bg, border: `1px solid ${pillBorder}`, borderRadius: 8, padding: '4px 8px',
+                }}>
+                  <NumIn
+                    value={scoreStr}
+                    placeholder={a.origScore !== null ? String(a.origScore) : '–'}
+                    accent={accent}
+                    highlight={scoreEdited}
+                    label={`Score for ${a.name}`}
+                    onChange={(v) => a.isHypo && hypo ? onHypoChange(hypo.id, 'score', v) : onOverride(a.key, 'score', v)}
                   />
-                )}
+                  <span style={{ color: T.faint, fontSize: 11 }} aria-hidden="true">/</span>
+                  <NumIn
+                    value={maxStr}
+                    placeholder={a.origMax !== null ? String(a.origMax) : '–'}
+                    accent={accent}
+                    highlight={maxEdited}
+                    label={`Points possible for ${a.name}`}
+                    onChange={(v) => a.isHypo && hypo ? onHypoChange(hypo.id, 'max', v) : onOverride(a.key, 'max', v)}
+                  />
+                </div>
 
-                {(visible.length <= 8 || i % Math.ceil(visible.length / 8) === 0) && (
-                  <text
-                    x={x}
-                    y={PAD.top + PH + 14}
-                    textAnchor="middle"
-                    fontSize={7.5}
-                    fill={T.muted}
-                    opacity={0.65}
-                  >
-                    {p.date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })}
-                  </text>
-                )}
-              </g>
+                {/* More actions */}
+                <RowMenu
+                  canReset={!a.isHypo && (a.isEdited || a.isFilled)}
+                  canRemove={a.isHypo}
+                  open={menuFor === a.key}
+                  onToggle={() => setMenuFor(p => p === a.key ? null : a.key)}
+                  onClose={() => setMenuFor(null)}
+                  onReset={() => onResetOne(a.key)}
+                  onRemove={() => hypo && onHypoRemove(hypo.id)}
+                />
+              </div>
             );
           })}
 
-          {/* Tooltip */}
-          {hoverPoint && hoverIdx !== null && (() => {
-            const x = cx(hoverIdx);
-            const origY = cy(hoverPoint.origPercent);
-            const whatIfY = cy(hoverPoint.whatIfPercent);
-            const activeY = hasOverrides ? whatIfY : origY;
-            
-            const tipW = 144;
-            const tipH = hasOverrides ? 66 : 44;
-            
-            const tipX = Math.min(Math.max(x, PAD.left + tipW / 2), VW - PAD.right - tipW / 2);
-            const tipY = Math.max(PAD.top, activeY - tipH - 8);
-
-            const gradeDiff = hoverPoint.whatIfPercent - hoverPoint.origPercent;
-
-            return (
-              <g style={{ pointerEvents: 'none' }}>
-                <line
-                  x1={x}
-                  y1={PAD.top}
-                  x2={x}
-                  y2={PAD.top + PH}
-                  stroke={color}
-                  strokeWidth={1}
-                  strokeDasharray="3 3"
-                  opacity={0.4}
-                />
-
-                <rect
-                  x={tipX - tipW / 2}
-                  y={tipY}
-                  width={tipW}
-                  height={tipH}
-                  rx={5}
-                  fill="#0d1019"
-                  stroke={T.border}
-                  strokeWidth={1}
-                  style={{ filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.3))' }}
-                />
-
-                {hasOverrides ? (
-                  <>
-                    <text x={tipX} y={tipY + 13} textAnchor="middle" fontSize={9.5} fontWeight="700" fill={T.text}>
-                      {hoverPoint.whatIfPercent.toFixed(2)}%
-                    </text>
-                    <text x={tipX} y={tipY + 24} textAnchor="middle" fontSize={7.5} fill={T.muted}>
-                      was {hoverPoint.origPercent.toFixed(2)}% before
-                    </text>
-                    <text x={tipX} y={tipY + 36} textAnchor="middle" fontSize={8} fill={T.text}>
-                      {hoverPoint.assignmentName.length > 22 ? hoverPoint.assignmentName.slice(0, 22) + '…' : hoverPoint.assignmentName}
-                    </text>
-                    <text x={tipX} y={tipY + 47} textAnchor="middle" fontSize={7.5} fill={color}>
-                      {hoverPoint.categoryName}
-                    </text>
-                    <text x={tipX} y={tipY + 58} textAnchor="middle" fontSize={7.5} fill={gradeDiff >= 0 ? T.green : T.red} fontWeight="600">
-                      {gradeDiff >= 0 ? '+' : ''}{gradeDiff.toFixed(2)}% delta
-                    </text>
-                  </>
-                ) : (
-                  <>
-                    <text x={tipX} y={tipY + 13} textAnchor="middle" fontSize={9.5} fontWeight="700" fill={T.text}>
-                      {hoverPoint.origPercent.toFixed(2)}%
-                    </text>
-                    <text x={tipX} y={tipY + 26} textAnchor="middle" fontSize={8} fill={T.text}>
-                      {hoverPoint.assignmentName.length > 22 ? hoverPoint.assignmentName.slice(0, 22) + '…' : hoverPoint.assignmentName}
-                    </text>
-                    <text x={tipX} y={tipY + 37} textAnchor="middle" fontSize={7.5} fill={color}>
-                      {hoverPoint.categoryName}
-                    </text>
-                  </>
-                )}
-              </g>
-            );
-          })()}
-        </svg>
+          {/* Add hypothetical */}
+          <div style={{ padding: '6px 14px 10px', borderTop: `1px solid ${T.rowBorder}` }}>
+            <button
+              type="button"
+              onClick={() => onHypoAdd(catIdx)}
+              className="bs-focusable"
+              style={{
+                all: 'unset', cursor: 'pointer', display: 'block', width: '100%', boxSizing: 'border-box',
+                padding: '8px 0',
+                border: `1px dashed ${T.faint}`, borderRadius: 10, textAlign: 'center',
+                fontSize: 10, fontWeight: 600, color: T.muted,
+              }}
+            >
+              + Add assignment to {catName}
+            </button>
+          </div>
+          </div>
+        </div>
       </div>
+    </div>
+  );
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
+
+interface Props {
+  course: ScrapedCourse;
+  historyPoints?: GradePoint[];
+  nickname?: string;
+}
+
+export function CourseGradebook({ course, nickname }: Props) {
+  const { letter, percent } = parseGradeString(course.grade);
+  const [overrides, setOverrides] = useState<Map<string, Override>>(new Map());
+  const [hypos, setHypos] = useState<HypoAsg[]>([]);
+  const hypoIdRef = useRef(1);
+
+  const courseHasWeights = course.categories.some(c => parseWeight(c.weight) > 0);
+  const catWeights = course.categories.map(c => parseWeight(c.weight));
+  const hasEdits = overrides.size > 0 || hypos.length > 0;
+
+  // Build effective assignment list (edits always applied)
+  const effAsgs = useMemo<EffAsg[]>(() => {
+    const out: EffAsg[] = [];
+    course.categories.forEach((cat, ci) => {
+      const cleanCat = cat.name.replace(/\s*category\s*$/i, '').trim() || cat.name;
+      cat.assignments.forEach((a, ai) => {
+        const key = `${ci}:${ai}`;
+        const origScore = parseScore(a.score);
+        const origMax = parseMaxGrade(a.maxGrade);
+        const ov = overrides.get(key);
+        const ovScore = parseInput(ov?.score);
+        const ovMax = parseInput(ov?.max);
+        out.push({
+          key,
+          name: a.name,
+          catIdx: ci,
+          catName: cleanCat,
+          origScore, origMax,
+          score: ovScore ?? origScore,
+          max: ovMax ?? origMax,
+          isHypo: false,
+          isEdited: origScore !== null && (ovScore !== null || ovMax !== null),
+          isFilled: origScore === null && ovScore !== null,
+          date: parseDueDate(a.dueDate),
+          dueDate: a.dueDate,
+          status: a.status,
+        });
+      });
+    });
+    for (const h of hypos) {
+      const cat = course.categories[h.catIdx];
+      if (!cat) continue;
+      out.push({
+        key: `h:${h.id}`,
+        name: h.name || 'New assignment',
+        catIdx: h.catIdx,
+        catName: cat.name.replace(/\s*category\s*$/i, '').trim() || cat.name,
+        origScore: null, origMax: null,
+        score: parseInput(h.score), max: parseInput(h.max),
+        isHypo: true, isEdited: false, isFilled: false,
+        date: null, dueDate: '', status: 'hypothetical',
+      });
+    }
+    return out;
+  }, [course, overrides, hypos]);
+
+  // Course grades: computed baseline vs projected (delta is 0 until something is edited)
+  const { baselineGrade, projectedGrade } = useMemo(() => {
+    const base: CatSums[] = catWeights.map(w => ({ weight: w, ss: 0, sm: 0 }));
+    const projd: CatSums[] = catWeights.map(w => ({ weight: w, ss: 0, sm: 0 }));
+    for (const a of effAsgs) {
+      if (a.origScore !== null && a.origMax !== null && a.origMax > 0) {
+        base[a.catIdx].ss += a.origScore; base[a.catIdx].sm += a.origMax;
+      }
+      if (a.score !== null && a.max !== null && a.max > 0) {
+        projd[a.catIdx].ss += a.score; projd[a.catIdx].sm += a.max;
+      }
+    }
+    return {
+      baselineGrade: gradeFromSums(base, courseHasWeights),
+      projectedGrade: gradeFromSums(projd, courseHasWeights),
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [effAsgs, courseHasWeights]);
+
+  const delta = hasEdits && projectedGrade !== null && baselineGrade !== null
+    ? projectedGrade - baselineGrade
+    : null;
+  // anchor on the official grade so the number matches Schoology until something is edited
+  const displayPct = delta !== null && percent !== null
+    ? percent + delta
+    : delta !== null && projectedGrade !== null
+    ? projectedGrade
+    : percent;
+  const displayColor = gradeColor(displayPct);
+  const borderInfo = checkBorderline(displayPct);
+  const animatedDisplayPct = useAnimatedNumber(displayPct);
+
+  const slots = useMemo(
+    () => buildSlots(effAsgs, catWeights, courseHasWeights),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [effAsgs, courseHasWeights],
+  );
+
+  const gradedCount = effAsgs.filter(a => !a.isHypo && a.origScore !== null).length;
+  const totalCount = course.categories.reduce((s, c) => s + c.assignments.length, 0);
+  const missingCount = course.categories.flatMap(c => c.assignments).filter(a => a.status === 'unsubmitted').length;
+
+  function setOverride(key: string, field: 'score' | 'max', val: string) {
+    setOverrides(prev => {
+      const next = new Map(prev);
+      const cur = { ...(next.get(key) ?? {}) };
+      if (val.trim() === '') delete cur[field]; else cur[field] = val;
+      if (cur.score === undefined && cur.max === undefined) next.delete(key);
+      else next.set(key, cur);
+      return next;
+    });
+  }
+
+  function resetOne(key: string) {
+    setOverrides(prev => {
+      const next = new Map(prev);
+      next.delete(key);
+      return next;
+    });
+  }
+
+  function addHypo(catIdx: number) {
+    setHypos(prev => [...prev, { id: hypoIdRef.current++, catIdx, name: '', score: '10', max: '10' }]);
+  }
+
+  function changeHypo(id: number, field: 'name' | 'score' | 'max', val: string) {
+    setHypos(prev => prev.map(h => h.id === id ? { ...h, [field]: val } : h));
+  }
+
+  function removeHypo(id: number) {
+    setHypos(prev => prev.filter(h => h.id !== id));
+  }
+
+  function resetAll() {
+    setOverrides(new Map());
+    setHypos([]);
+  }
+
+  const visibleCats = course.categories
+    .map((cat, ci) => ({ cat, ci }))
+    .filter(({ cat }) => cat.assignments.length > 0);
+
+  return (
+    <div>
+      {/* ── Course header ─────────────────────────────────────────── */}
+      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: '16px 16px 0 0', padding: '12px 18px 10px' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 28, fontWeight: 800, color: displayColor ?? T.text, lineHeight: 1, letterSpacing: '-0.5px', fontVariantNumeric: 'tabular-nums' }}>
+                {animatedDisplayPct !== null ? `${animatedDisplayPct.toFixed(2)}%` : '—'}
+              </span>
+              <span style={{ fontSize: 14, fontWeight: 600, color: T.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {nickname || course.name}
+              </span>
+              <span style={{ fontSize: 16, fontWeight: 700, color: displayColor ?? T.muted }}>{letter}</span>
+            </div>
+            {nickname && <div style={{ fontSize: 10, color: T.muted, opacity: 0.8, marginTop: 2 }}>{course.name}</div>}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+            {borderInfo && (
+              <span style={{ fontSize: 10, fontWeight: 600, color: T.amber, background: T.amber + '15', border: `1px solid ${T.amber}30`, borderRadius: 8, padding: '2px 7px' }}>
+                ↗ Borderline {borderInfo.currentLetter}→{borderInfo.nextLetter}
+              </span>
+            )}
+            {delta !== null && Math.abs(delta) >= 0.01 && (
+              <span style={{ fontSize: 13, fontWeight: 700, color: delta > 0 ? T.green : T.red, background: (delta > 0 ? T.green : T.red) + '18', borderRadius: 8, padding: '2px 8px' }}>
+                {delta > 0 ? '+' : ''}{delta.toFixed(2)}%
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Stats strip */}
+        <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+          {[
+            { label: 'Teacher', val: course.teacher || '—' },
+            { label: 'Graded', val: `${gradedCount}/${totalCount}` },
+            { label: 'Missing', val: missingCount > 0 ? String(missingCount) : 'None', accent: missingCount > 0 ? T.red : T.green },
+            { label: 'Categories', val: String(visibleCats.length) },
+          ].map(({ label, val, accent }) => (
+            <div key={label}>
+              <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.4px' }}>{label}</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: accent ?? T.muted, marginTop: 1 }}>{val}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Legend + reset */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 10, paddingTop: 8, borderTop: `1px solid ${T.rowBorder}` }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: T.muted }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', border: `2px solid ${T.primary}`, display: 'inline-block', boxSizing: 'border-box' }} />
+            Grade
+          </span>
+          {hasEdits && (
+            <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: T.muted }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', border: `2px solid ${T.green}`, display: 'inline-block', boxSizing: 'border-box' }} />
+              What-if
+            </span>
+          )}
+          {!hasEdits ? (
+            <span style={{ fontSize: 10, color: T.muted, opacity: 0.85 }}>
+              Type over any score below, fill in ungraded work, or add new assignments — the graph updates live
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={resetAll}
+              className="bs-focusable"
+              style={{
+                all: 'unset', marginLeft: 'auto', cursor: 'pointer',
+                fontSize: 11, fontWeight: 600, color: T.amber,
+                background: T.amber + '15', border: `1px solid ${T.amber}35`,
+                borderRadius: 8, padding: '5px 12px',
+              }}
+            >
+              ↺ Reset what-if edits
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* ── Grade line chart ──────────────────────────────────────── */}
+      <GradeLineChart slots={slots} showProj={hasEdits} />
+
+      {/* ── Category rows ─────────────────────────────────────────── */}
+      {visibleCats.length === 0 ? (
+        <div style={{ padding: '24px', textAlign: 'center', color: T.muted, fontSize: 13, background: T.card, borderRadius: '0 0 16px 16px', border: `1px solid ${T.border}`, borderTop: 'none' }}>
+          No assignment data.
+        </div>
+      ) : (
+        <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: '0 0 16px 16px', overflow: 'hidden' }}>
+          {visibleCats.map(({ cat, ci }) => (
+            <CategoryRow
+              key={cat.name}
+              cat={cat}
+              catIdx={ci}
+              asgs={effAsgs.filter(a => a.catIdx === ci)}
+              overrides={overrides}
+              onOverride={setOverride}
+              onResetOne={resetOne}
+              hypos={hypos.filter(h => h.catIdx === ci)}
+              onHypoChange={changeHypo}
+              onHypoAdd={addHypo}
+              onHypoRemove={removeHypo}
+              courseCategories={course.categories}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

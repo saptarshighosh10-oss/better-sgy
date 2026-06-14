@@ -3,7 +3,7 @@ import type { ScrapedCourse, SchoologyData } from '../../lib/schemas';
 import { parseGradeString, isMissing, scorePercent, gradeColor } from '../../lib/grade-utils';
 import { courseColor, courseAbbr, abbrFontSize } from '../../lib/course-colors';
 import { SmartPriorities } from '../SmartPriorities';
-import { T, isLightTheme } from '../../lib/theme';
+import { T, isLightTheme, isMinimalist } from '../../lib/theme';
 
 const CARD_W     = 252;
 const SPREAD     = 274;
@@ -103,6 +103,7 @@ function CourseCard({
   const recent   = recentGraded(course, 5);
   const missCt   = course.categories.flatMap((c) => c.assignments).filter(isMissing).length;
   const light    = isLightTheme();
+  const minimal  = isMinimalist();
   const bandInk  = light ? '#1a1a1a' : '#fff';
   const bandInkSoft = light ? 'rgba(26,26,26,0.65)' : 'rgba(255,255,255,0.65)';
 
@@ -150,17 +151,19 @@ function CourseCard({
     >
       {/* ── Color header — 40% of card ────────────────────────── */}
       <div style={{ height: '40%', background: colorBg, position: 'relative', flexShrink: 0, overflow: 'hidden', width: '100%' }}>
-        {/* Watermark */}
-        <div aria-hidden="true" style={{
-          position: 'absolute', inset: 0,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: abbFS, fontWeight: 900,
-          // Ink-black watermark on the light theme (the 0.07 grey was barely there);
-          // keep the subtle white watermark on dark themes.
-          color: light ? 'rgba(0,0,0,0.82)' : 'rgba(255,255,255,0.09)', letterSpacing: '-1px', lineHeight: 1,
-        }}>
-          {abbr}
-        </div>
+        {/* Watermark — hidden in minimalist mode */}
+        {!minimal && (
+          <div aria-hidden="true" style={{
+            position: 'absolute', inset: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: abbFS, fontWeight: 900,
+            // Ink-black watermark on the light theme (the 0.07 grey was barely there);
+            // keep the subtle white watermark on dark themes.
+            color: light ? 'rgba(0,0,0,0.82)' : 'rgba(255,255,255,0.09)', letterSpacing: '-1px', lineHeight: 1,
+          }}>
+            {abbr}
+          </div>
+        )}
         {/* Grade — top right */}
         <div style={{ position: 'absolute', top: 12, right: 14, textAlign: 'right' }}>
           <div style={{ fontSize: 26, fontWeight: 800, color: bandInk, lineHeight: 1, letterSpacing: '-0.5px', fontVariantNumeric: 'tabular-nums' }}>
@@ -216,13 +219,15 @@ function CourseCard({
                 <div
                   key={idx}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 8,
-                    padding: '6px 0',
+                    display: 'flex', alignItems: 'center', gap: minimal ? 0 : 8,
+                    padding: minimal ? '3px 0' : '6px 0',
                     borderBottom: idx < recent.length - 1 ? `1px solid ${T.rowBorder}` : 'none',
                     flexShrink: 0,
                   }}
                 >
-                  <div style={{ width: 5, height: 5, borderRadius: '50%', background: pctClr ?? T.faint, flexShrink: 0 }} />
+                  {!minimal && (
+                    <div style={{ width: 5, height: 5, borderRadius: '50%', background: pctClr ?? T.faint, flexShrink: 0 }} />
+                  )}
                   <div style={{ flex: 1, fontSize: 11, color: T.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {a.name}
                   </div>
@@ -236,8 +241,8 @@ function CourseCard({
             })}
           </div>
         )}
-        {/* Tap to open hint */}
-        {isActive && (
+        {/* Tap to open hint — hidden in minimalist mode */}
+        {isActive && !minimal && (
           <div style={{ marginTop: 'auto', paddingTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, background: colorText + '18', borderRadius: 9, padding: '7px 12px' }}>
             <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke={colorText} strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
               <polyline points="9 18 15 12 9 6" />
@@ -329,6 +334,7 @@ function StatCard({ label, value, subText, accent, borderAccent }: {
 
 export function OverviewPage({ grades, onCourseSelect }: Props) {
   const { courses } = grades;
+  const minimal = isMinimalist();
   const N = courses.length;
   const [activeIdx, setActiveIdx] = useState(0);
   const dragRef = useRef({ x0: 0, on: false, moved: false });
@@ -419,29 +425,32 @@ export function OverviewPage({ grades, onCourseSelect }: Props) {
             )}
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 12, marginLeft: 8 }}>
-          <StatCard
-            label="GPA Estimate"
-            value={gpaEstimate !== null ? gpaEstimate.toFixed(2) : '—'}
-            subText="Weighted 4.0 Scale"
-            accent={T.primary}
-            borderAccent={T.primary}
-          />
-          <StatCard
-            label="Due Today"
-            value={String(dueTodayCount)}
-            subText="Assignments"
-            accent={dueTodayCount > 0 ? T.amber : T.fresh}
-            borderAccent={dueTodayCount > 0 ? T.amber : T.fresh}
-          />
-          <StatCard
-            label="Missing"
-            value={missingTotal === 0 ? 'None' : String(missingTotal)}
-            subText="Action Required"
-            accent={missingTotal > 0 ? T.failed : T.text}
-            borderAccent={missingTotal > 0 ? T.failed : undefined}
-          />
-        </div>
+        {/* Stat boxes — hidden in minimalist mode */}
+        {!minimal && (
+          <div style={{ display: 'flex', gap: 12, marginLeft: 8 }}>
+            <StatCard
+              label="GPA Estimate"
+              value={gpaEstimate !== null ? gpaEstimate.toFixed(2) : '—'}
+              subText="Weighted 4.0 Scale"
+              accent={T.primary}
+              borderAccent={T.primary}
+            />
+            <StatCard
+              label="Due Today"
+              value={String(dueTodayCount)}
+              subText="Assignments"
+              accent={dueTodayCount > 0 ? T.amber : T.fresh}
+              borderAccent={dueTodayCount > 0 ? T.amber : T.fresh}
+            />
+            <StatCard
+              label="Missing"
+              value={missingTotal === 0 ? 'None' : String(missingTotal)}
+              subText="Action Required"
+              accent={missingTotal > 0 ? T.failed : T.text}
+              borderAccent={missingTotal > 0 ? T.failed : undefined}
+            />
+          </div>
+        )}
       </div>
 
       {/* ── Carousel — grows to fill viewport ─────────────────────── */}
@@ -495,7 +504,18 @@ export function OverviewPage({ grades, onCourseSelect }: Props) {
         </div>
       )}
 
-      {/* ── Dots ──────────────────────────────────────────────────── */}
+      {/* ── Position indicator ────────────────────────────────────── */}
+      {/* Minimalist mode swaps the decorative dots for a quiet numeric
+          counter so wayfinding ("which course am I on") survives the strip-down.
+          aria-hidden — the carousel container already announces position to SRs. */}
+      {minimal && N > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0 4px', flexShrink: 0 }}>
+          <span aria-hidden="true" style={{ fontSize: 11, fontWeight: 600, color: T.muted, letterSpacing: '0.5px', fontVariantNumeric: 'tabular-nums' }}>
+            {activeIdx + 1} / {N}
+          </span>
+        </div>
+      )}
+      {!minimal && (
       <div style={{ display: 'flex', justifyContent: 'center', gap: 2, padding: '6px 0 4px', flexShrink: 0 }}>
         {courses.map((course, i) => (
           <button
@@ -528,11 +548,14 @@ export function OverviewPage({ grades, onCourseSelect }: Props) {
           </button>
         ))}
       </div>
+      )}
 
-      {/* ── Smart Priorities — below the fold ─────────────────────── */}
-      <div style={{ padding: '4px 28px 32px', flexShrink: 0 }}>
-        <SmartPriorities courses={courses} />
-      </div>
+      {/* ── Smart Priorities — below the fold; hidden in minimalist mode ─── */}
+      {!minimal && (
+        <div style={{ padding: '4px 28px 32px', flexShrink: 0 }}>
+          <SmartPriorities courses={courses} />
+        </div>
+      )}
 
     </div>
   );

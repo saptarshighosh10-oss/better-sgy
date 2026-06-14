@@ -7,7 +7,7 @@ import {
 } from '../lib/grade-utils';
 import { Icon, ICON_PATHS } from './Icon';
 
-import { T, getActiveTheme } from '../lib/theme';
+import { T, getActiveTheme, isMinimalist } from '../lib/theme';
 
 function catPalette(): string[] {
   const theme = getActiveTheme();
@@ -190,6 +190,7 @@ function niceStep(range: number): number {
 function GradeLineChart({ slots, showProj }: { slots: Slot[]; showProj: boolean }) {
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
+  const minimal = isMinimalist();
 
   if (slots.length === 0) {
     return (
@@ -305,8 +306,8 @@ function GradeLineChart({ slots, showProj }: { slots: Slot[]; showProj: boolean 
         );
       })}
 
-      {/* Area fill — flat, low opacity */}
-      {areaD && <path d={areaD} fill={fillColor} fillOpacity={0.07} />}
+      {/* Area fill — flat, low opacity; removed in minimalist mode */}
+      {!minimal && areaD && <path d={areaD} fill={fillColor} fillOpacity={0.07} />}
 
       {/* Actual line */}
       {actual.d && (
@@ -326,28 +327,33 @@ function GradeLineChart({ slots, showProj }: { slots: Slot[]; showProj: boolean 
           stroke={T.muted} strokeWidth={0.8} strokeDasharray="4 3" opacity={0.55} />
       )}
 
-      {/* Dots — actual */}
-      {actual.pts.map(({ i, v }) => (
-        <circle key={`a${i}`} cx={cx(i)} cy={cy(v)} r={hoverIdx === i ? 5 : 3.6}
-          fill={T.bg} stroke={T.primary} strokeWidth={2}
-          opacity={dual ? 0.5 : 1} />
-      ))}
-      {/* Dots — projected */}
-      {dual && proj.pts.map(({ i, v }) => (
-        <circle key={`p${i}`} cx={cx(i)} cy={cy(v)} r={hoverIdx === i ? 5 : 3.6}
-          fill={T.bg} stroke={T.green} strokeWidth={2} />
-      ))}
+      {/* Dots + value labels — removed in minimalist mode (line only) */}
+      {!minimal && (
+        <>
+          {/* Dots — actual */}
+          {actual.pts.map(({ i, v }) => (
+            <circle key={`a${i}`} cx={cx(i)} cy={cy(v)} r={hoverIdx === i ? 5 : 3.6}
+              fill={T.bg} stroke={T.primary} strokeWidth={2}
+              opacity={dual ? 0.5 : 1} />
+          ))}
+          {/* Dots — projected */}
+          {dual && proj.pts.map(({ i, v }) => (
+            <circle key={`p${i}`} cx={cx(i)} cy={cy(v)} r={hoverIdx === i ? 5 : 3.6}
+              fill={T.bg} stroke={T.green} strokeWidth={2} />
+          ))}
 
-      {/* Value labels above dots */}
-      {labelPts.map(({ i, v }, k) => {
-        if (k % labelEvery !== 0 && k !== labelPts.length - 1) return null;
-        return (
-          <text key={i} x={cx(i)} y={cy(v) - 9} textAnchor="middle"
-            fontSize={9.5} fontWeight={700} fill={fillColor}>
-            {v.toFixed(1)}
-          </text>
-        );
-      })}
+          {/* Value labels above dots */}
+          {labelPts.map(({ i, v }, k) => {
+            if (k % labelEvery !== 0 && k !== labelPts.length - 1) return null;
+            return (
+              <text key={i} x={cx(i)} y={cy(v) - 9} textAnchor="middle"
+                fontSize={9.5} fontWeight={700} fill={fillColor}>
+                {v.toFixed(1)}
+              </text>
+            );
+          })}
+        </>
+      )}
 
       {/* Tooltip */}
       {hov && hoverIdx !== null && (() => {

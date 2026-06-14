@@ -76,6 +76,45 @@ export function cycleTheme(): Theme {
   return next;
 }
 
+// ── Minimalist mode ───────────────────────────────────────────────────────────
+// A calmer, stripped-back surface: Geist type, no watermarks / chart fills /
+// data-point dots, no carousel dots, no Smart Priorities or stat boxes. Persisted
+// across sessions and broadcast through the same listener bus as theme/accent, so
+// toggling it repaints the whole overlay.
+
+const MINIMAL_KEY = '__bs_minimalist__';
+
+function loadStoredMinimalist(): boolean {
+  if (typeof localStorage === 'undefined') return false;
+  return localStorage.getItem(MINIMAL_KEY) === '1';
+}
+
+let minimalist: boolean = loadStoredMinimalist();
+
+export function isMinimalist(): boolean {
+  return minimalist;
+}
+
+export function setMinimalist(on: boolean) {
+  minimalist = on;
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem(MINIMAL_KEY, on ? '1' : '0');
+  }
+  notifyThemeChange();
+}
+
+export function toggleMinimalist(): boolean {
+  setMinimalist(!minimalist);
+  return minimalist;
+}
+
+/** UI font stack — Geist in minimalist mode, Inter otherwise. */
+export function uiFontStack(): string {
+  return minimalist
+    ? "'Geist', 'Inter', system-ui, -apple-system, sans-serif"
+    : "'Inter', system-ui, -apple-system, sans-serif";
+}
+
 /**
  * Compatibility export — snapshot of the theme at content-script load.
  * Fine for per-page-load constants (game emoji, etc.); use getActiveTheme()

@@ -20,7 +20,7 @@ import { AnnouncementsPage } from './pages/AnnouncementsPage';
 import { NostalgiaPage } from './pages/NostalgiaPage';
 import { type GradeSnapshot } from '../lib/storage';
 import { useAnnouncements } from '../lib/use-announcements';
-import { T } from '../lib/theme';
+import { T, uiFontStack } from '../lib/theme';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 
 export type Page = 'overview' | 'grades' | 'assignments' | 'calendar' | 'materials' | 'game' | 'announcements' | 'nostalgia';
@@ -240,7 +240,7 @@ export function ExtRouter({ scrapeResult }: Props) {
         inset: 0,
         background: T.bg,
         display: 'flex',
-        fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
+        fontFamily: uiFontStack(),
         color: T.text,
         zIndex: 1,
         overflow: 'hidden',

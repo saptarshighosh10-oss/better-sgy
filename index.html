@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Better SGY — Demos</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; background: #0d1019; color: #e8eaf0;
+      font: 15px/1.5 'Inter', system-ui, -apple-system, sans-serif;
+      display: flex; align-items: center; justify-content: center; padding: 32px;
+    }
+    .wrap { width: 100%; max-width: 720px; }
+    h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 4px; }
+    .sub { color: #7a8ea3; margin: 0 0 28px; }
+    .grid { display: grid; gap: 14px; }
+    a.card {
+      display: block; text-decoration: none; color: inherit;
+      background: #111827; border: 1px solid #1e2535; border-radius: 14px;
+      padding: 18px 20px; transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+    }
+    a.card:hover { transform: translateY(-2px); border-color: #3b82f680; box-shadow: 0 10px 30px rgba(0,0,0,.4); }
+    .card h2 { margin: 0 0 4px; font-size: 17px; font-weight: 700; }
+    .card p { margin: 0; color: #7a8ea3; font-size: 13px; }
+    .tag { font-size: 11px; font-weight: 700; color: #0d1019; background: #3b82f6; border-radius: 6px; padding: 2px 7px; vertical-align: middle; margin-left: 8px; }
+    footer { margin-top: 24px; color: #4a5568; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Better SGY — Demos</h1>
+    <p class="sub">Click around with sample data. Nothing to install, no login — these are read-only previews.</p>
+    <div class="grid">
+      <a class="card" href="./dashboard.html">
+        <h2>v2 Dashboard <span class="tag">SAMPLE DATA</span></h2>
+        <p>The redesigned overlay — Overview, Grades, Assignments, Calendar. Try the theme picker and the Minimalist toggle in the top bar.</p>
+      </a>
+      <a class="card" href="./scope-y2k.html">
+        <h2>Scope OS — Y2K <span class="tag">SAMPLE DATA</span></h2>
+        <p>The retro "operating system" take. Press Enter to dive in (or click to skip the boot), then press <b>?</b> for the keyboard manual.</p>
+      </a>
+    </div>
+    <footer>Sample data only · not connected to any school account.</footer>
+  </div>
+</body>
+</html>

@@ -9,7 +9,7 @@ import { CourseGradebook } from '../CourseGradebook';
 import { GradeCalculator } from '../GradeCalculator';
 import { computeSemesterTrend } from '../../lib/grade-history';
 import type { GradePoint } from '../../lib/grade-history';
-import { T, inkOnAccent } from '../../lib/theme';
+import { T, inkOnAccent, isMinimalist } from '../../lib/theme';
 import type { GradeSnapshot } from '../../lib/storage';
 import { downloadGradesCsv } from '../../lib/export-csv';
 import { GpaPlanner } from '../GpaPlanner';
@@ -629,9 +629,11 @@ const SPARK_H = 24;
 
 function Sparkline({ points, color }: { points: GradePoint[]; color: string }) {
   if (points.length === 0) return null;
+  const minimal = isMinimalist();
 
-  // Single point → dot
+  // Single point → dot (omitted in minimalist mode — line-only graphs)
   if (points.length === 1) {
+    if (minimal) return null;
     return (
       <svg width={SPARK_W} height={SPARK_H} viewBox={`0 0 ${SPARK_W} ${SPARK_H}`} style={{ flexShrink: 0 }}>
         <circle cx={SPARK_W / 2} cy={SPARK_H / 2} r={2.5} fill={color} />
@@ -666,8 +668,8 @@ function Sparkline({ points, color }: { points: GradePoint[]; color: string }) {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      {/* End dot */}
-      {(() => {
+      {/* End dot — removed in minimalist mode (line only) */}
+      {!minimal && (() => {
         const lastPt = sorted[sorted.length - 1];
         const x = 2 + (sorted.length - 1) * step;
         const y = padY + innerH - ((lastPt.percent - minP) / range) * innerH;

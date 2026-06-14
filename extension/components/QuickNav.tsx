@@ -4,7 +4,7 @@ import type { ScrapedCourse } from '../lib/schemas';
 import { parseGradeString, gradeColor } from '../lib/grade-utils';
 import { courseColor } from '../lib/course-colors';
 import { loadStarredFolders, type StarredFolder } from '../lib/starred-folders';
-import { T, inkOnAccent } from '../lib/theme';
+import { T, inkOnAccent, uiFontStack } from '../lib/theme';
 
 /** First letter of the course name, e.g. "Drama" → "D" */
 function courseInitial(name: string): string {
@@ -198,7 +198,7 @@ export function QuickNav({ page, courseName, courses, onJump }: Props) {
           transition: 'transform 220ms cubic-bezier(0.16,1,0.3,1)',
           display: 'flex', flexDirection: 'column',
           overflowY: 'auto',
-          fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
+          fontFamily: uiFontStack(),
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 14px 8px', position: 'sticky', top: 0, background: T.panel }}>

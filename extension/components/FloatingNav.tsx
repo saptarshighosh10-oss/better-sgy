@@ -3,6 +3,7 @@ import type { Page } from './ExtRouter';
 import {
   T, ACCENT_PRESETS, getAccentColor, setAccentColor,
   getActiveTheme, cycleTheme, THEME_ORDER, THEME_LABELS, inkOnAccent,
+  isMinimalist, toggleMinimalist,
 } from '../lib/theme';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -61,13 +62,14 @@ function Icon({ d, size = 18 }: { d: string; size?: number }) {
   );
 }
 
-function NavBtn({ children, onClick, title, active, ariaCurrent, ariaExpanded }: {
+function NavBtn({ children, onClick, title, active, ariaCurrent, ariaExpanded, ariaPressed }: {
   children: React.ReactNode;
   onClick: () => void;
   title: string;
   active?: boolean;
   ariaCurrent?: 'page';
   ariaExpanded?: boolean;
+  ariaPressed?: boolean;
 }) {
   return (
     <motion.button
@@ -77,6 +79,7 @@ function NavBtn({ children, onClick, title, active, ariaCurrent, ariaExpanded }:
       aria-label={title}
       aria-current={ariaCurrent}
       aria-expanded={ariaExpanded}
+      aria-pressed={ariaPressed}
       className="bs-nav-btn"
       whileHover={{ scale: 1.15 }}
       whileTap={{ scale: 0.9 }}
@@ -344,6 +347,20 @@ export function FloatingNav({ page, onNavigate, announcementsUnread = 0, onBell,
             strokeWidth="2" strokeLinecap="round" aria-hidden="true" style={{ flexShrink: 0 }}>
             <circle cx="12" cy="12" r="9" />
             <path d="M12 3a9 9 0 010 18z" fill="currentColor" stroke="none" />
+          </svg>
+        </NavBtn>
+        <NavBtn
+          onClick={() => toggleMinimalist()}
+          title={isMinimalist() ? 'Minimalist mode: On — tap to turn off' : 'Minimalist mode: Off — tap to turn on'}
+          active={isMinimalist()}
+          ariaPressed={isMinimalist()}
+        >
+          {/* decreasing lines = minimalist / pared-back mode */}
+          <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            strokeWidth="2" strokeLinecap="round" aria-hidden="true" style={{ flexShrink: 0 }}>
+            <line x1="4" y1="8" x2="20" y2="8" />
+            <line x1="4" y1="13" x2="15" y2="13" />
+            <line x1="4" y1="18" x2="10" y2="18" />
           </svg>
         </NavBtn>
         <NavBtn onClick={() => setShowColorDrawer(!showColorDrawer)} title="Change Highlight Color" active={showColorDrawer} ariaExpanded={showColorDrawer}>

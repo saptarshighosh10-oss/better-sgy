@@ -13,7 +13,8 @@ import { parseGradeString, gradeColor } from '../lib/grade-utils';
 import { courseColor } from '../lib/course-colors';
 import { computeSemesterTrend, type GradePoint } from '../lib/grade-history';
 import { loadGradeData } from '../lib/storage';
-import { loadGradeChanges, type GradeChange } from '../lib/grade-changes';
+import { loadChanges, type ChangeEvent } from '../lib/grade-changes';
+import { loadWatchStatus, type WatchStatus } from '../lib/watch-status';
 import { loadCachedAnnouncements } from '../lib/announcement-cache';
 import type { SchoologyData } from '../lib/schemas';
 import type { Announcement } from '../lib/fetch-announcements';
@@ -51,18 +52,55 @@ function Trend({ points, color }: { points: GradePoint[]; color: string }) {
   );
 }
 
+function ActivityRow({ event: e, last }: { event: ChangeEvent; last: boolean }) {
+  const rowStyle: React.CSSProperties = {
+    display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
+    borderBottom: last ? 'none' : `1px solid ${hairline()}`,
+  };
+  const primary = e.kind === 'grade' ? e.course : e.name;
+  const detail =
+    e.kind === 'grade' ? `${e.oldPct?.toFixed(1)}% → ${e.newPct?.toFixed(1)}%`
+      : e.course;
+
+  return (
+    <div style={rowStyle}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: AT.sub, fontWeight: AT.medium, color: T.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{primary}</div>
+        <div style={{ fontSize: AT.caption, color: T.muted, marginTop: 3, fontVariantNumeric: 'tabular-nums', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {detail} · {timeAgo(e.ts)}
+        </div>
+      </div>
+      {e.kind === 'grade' ? (
+        <span style={{ fontSize: AT.sub, fontWeight: AT.semibold, color: e.delta >= 0 ? T.fresh : T.failed, fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
+          {e.delta >= 0 ? '▲' : '▼'} {Math.abs(e.delta).toFixed(1)}%
+        </span>
+      ) : e.kind === 'graded' ? (
+        <span style={{ fontSize: AT.caption, fontWeight: AT.semibold, color: gradeColor(e.pct), background: tileBg(), borderRadius: AT.rPill, padding: '4px 11px', flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
+          {e.pct !== null ? `${e.pct.toFixed(0)}%` : 'Graded'}
+        </span>
+      ) : (
+        <span style={{ fontSize: AT.micro, fontWeight: AT.semibold, color: T.primary, background: `${T.primary}1f`, borderRadius: AT.rPill, padding: '4px 11px', flexShrink: 0 }}>
+          New
+        </span>
+      )}
+    </div>
+  );
+}
+
 export function SidePanel() {
   const [data, setData] = useState<SchoologyData | null>(null);
-  const [changes, setChanges] = useState<GradeChange[]>([]);
+  const [changes, setChanges] = useState<ChangeEvent[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [watch, setWatch] = useState<WatchStatus | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
-      const [d, ch, ann] = await Promise.all([loadGradeData(), loadGradeChanges(), loadCachedAnnouncements()]);
+      const [d, ch, ann, w] = await Promise.all([loadGradeData(), loadChanges(), loadCachedAnnouncements(), loadWatchStatus()]);
       setData(d);
       setChanges(ch);
       setAnnouncements(ann);
+      setWatch(w);
       setSelected((prev) => prev ?? d?.courses[0]?.name ?? null);
     }
     void load();
@@ -94,33 +132,36 @@ export function SidePanel() {
         </div>
         <div style={{ fontSize: AT.caption, color: T.muted, marginTop: 4 }}>
           Overall average · {courses.length} course{courses.length === 1 ? '' : 's'}
+          {watch && <> · checked {timeAgo(watch.ts)}</>}
         </div>
       </div>
 
-      {/* Grade changes */}
+      {/* Watcher health — the "it tried but couldn't" state */}
+      {watch && !watch.ok && (
+        <div className="bs-apple-in" style={{ marginBottom: 18, padding: '12px 16px', borderRadius: AT.rTile, background: `${T.failed}14`, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+          <span aria-hidden="true" style={{ color: T.failed, fontWeight: AT.semibold, fontSize: AT.body, lineHeight: 1.3 }}>!</span>
+          <div style={{ fontSize: AT.caption, color: T.text, lineHeight: 1.5 }}>
+            {watch.reason === 'session'
+              ? "Can't refresh grades — your Schoology session expired. Open Schoology and sign in, then this catches up automatically."
+              : watch.reason === 'network'
+                ? "Couldn't reach Schoology just now. It'll retry on the next check."
+                : "Couldn't read your grades this time. It'll retry on the next check."}
+          </div>
+        </div>
+      )}
+
+      {/* Activity — grade moves, new assignments, newly-graded work */}
       <div className="bs-apple-in" style={{ marginBottom: 24 }}>
-        <SectionHeader title="Recent changes" />
+        <SectionHeader title="Recent activity" />
         <div style={{ ...appleCardStyle(), overflow: 'hidden', marginTop: 12 }}>
           {changes.length === 0 ? (
             <div style={{ padding: '22px 18px', fontSize: AT.sub, color: T.muted, textAlign: 'center' }}>
-              No grade changes yet. Keep a Schoology tab open and you'll be pinged here when something moves.
+              Nothing new yet. You'll see grade moves, new assignments, and newly-graded work here.
             </div>
           ) : (
-            changes.slice(0, 12).map((c, i) => {
-              const up = c.delta >= 0;
-              return (
-                <div key={`${c.course}-${c.ts}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: i < Math.min(changes.length, 12) - 1 ? `1px solid ${hairline()}` : 'none' }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: AT.sub, fontWeight: AT.medium, color: T.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.course}</div>
-                    <div style={{ fontSize: AT.caption, color: T.muted, marginTop: 3, fontVariantNumeric: 'tabular-nums' }}>
-                      {c.oldPct?.toFixed(1)}% → {c.newPct?.toFixed(1)}% · {timeAgo(c.ts)}
-                    </div>
-                  </div>
-                  <span style={{ fontSize: AT.sub, fontWeight: AT.semibold, color: up ? T.fresh : T.failed, fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
-                    {up ? '▲' : '▼'} {Math.abs(c.delta).toFixed(1)}%
-                  </span>
-                </div>
-              );
+            changes.slice(0, 14).map((e, i) => {
+              const last = i >= Math.min(changes.length, 14) - 1;
+              return <ActivityRow key={`${e.kind}-${e.course}-${e.ts}-${i}`} event={e} last={last} />;
             })
           )}
         </div>

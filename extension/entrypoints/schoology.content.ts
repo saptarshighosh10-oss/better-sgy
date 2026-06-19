@@ -17,26 +17,29 @@ import React from 'react';
 import { App } from '../components/App';
 import { hideNativeUI, restoreNativeUI, isNativeHidden } from '../lib/dom-takeover';
 import { scrapeGradesFromDoc, buildSchoologyData, checkSafetyGuards } from '../lib/scrape-dom';
-import { validateSchoologyData } from '../lib/schemas';
+import { validateSchoologyData, type SchoologyData } from '../lib/schemas';
 import { saveGradeData, loadGradeData, saveScrapeMeta } from '../lib/storage';
 import { countAssignments } from '../lib/transform';
 import { queuedFetch } from '../lib/sgy-net';
 import type { ScrapeResult } from '../lib/scrape-status';
 import { INITIAL_SCRAPE_RESULT } from '../lib/scrape-status';
 import { appendGradeHistory } from '../lib/grade-history';
-import { detectGradeChanges, appendGradeChanges, type GradeChange } from '../lib/grade-changes';
+import { detectChanges, appendChanges, type ChangeEvent } from '../lib/grade-changes';
+import { saveWatchStatus } from '../lib/watch-status';
 import { cacheAnnouncements } from '../lib/announcement-cache';
 import { seedDemoData, clearDemoData } from '../lib/demo-data';
 
 /**
- * After a scrape, record any per-course grade movement and ping the worker so it
- * can fire a desktop notification (Discord-style) even when this tab isn't focused.
+ * After a successful scrape, mark the watcher healthy and record any activity
+ * (grade moves, new/graded assignments), pinging the worker so it can fire a
+ * desktop notification even when this tab isn't focused.
  */
-async function reportGradeChanges(prev: Parameters<typeof detectGradeChanges>[0], next: Parameters<typeof detectGradeChanges>[1]) {
-  const changes: GradeChange[] = detectGradeChanges(prev, next);
-  if (!changes.length) return;
-  await appendGradeChanges(changes);
-  try { await browser.runtime.sendMessage({ type: 'grade-change', changes }); } catch { /* worker asleep is fine */ }
+async function reportChanges(prev: SchoologyData | null, next: SchoologyData) {
+  await saveWatchStatus({ ok: true, ts: Date.now() });
+  const events: ChangeEvent[] = detectChanges(prev, next);
+  if (!events.length) return;
+  await appendChanges(events);
+  try { await browser.runtime.sendMessage({ type: 'change', events }); } catch { /* worker asleep is fine */ }
 }
 
 const MOUNT_ID = '__better-schoology-root__';
@@ -221,7 +224,7 @@ async function runScrape() {
     updateScrapeResult({ status: 'saving' });
     await saveGradeData(data);
     await appendGradeHistory(data.courses);
-    await reportGradeChanges(previousData, data);
+    await reportChanges(previousData, data);
     await saveScrapeMeta({
       status: 'fresh',
       scrapedAt: data.scrapedAt,
@@ -310,7 +313,7 @@ async function runBackgroundScrape() {
 
     await saveGradeData(data);
     await appendGradeHistory(data.courses);
-    await reportGradeChanges(previousData, data);
+    await reportChanges(previousData, data);
     await saveScrapeMeta({
       status: 'fresh',
       scrapedAt: data.scrapedAt,

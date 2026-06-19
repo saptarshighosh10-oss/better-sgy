@@ -1,54 +1,84 @@
 /**
- * grade-changes.ts — detect and log per-course grade changes between scrapes.
+ * grade-changes.ts — detect and log activity between scrapes: overall grade moves,
+ * new assignments, and newly-graded work. The content script (in-tab) and the
+ * service worker (closed-tab) both diff each fresh scrape against the previous one;
+ * events are stored newest-first and surfaced in the side panel + notifications.
  *
- * The content script diffs each fresh scrape against the previous one; any course
- * whose percent moved is recorded here (capped, newest first) and surfaced in the
- * side panel + a desktop notification. Pure storage — no DOM, so the side panel
- * (an extension page with no Schoology session) just reads it.
+ * Pure storage — no DOM — so the side panel (no Schoology session) just reads it.
  */
-import type { SchoologyData } from './schemas';
-import { parseGradeString } from './grade-utils';
+import type { SchoologyData, ScrapedCourse, ScrapedAssignment } from './schemas';
+import { parseGradeString, scorePercent } from './grade-utils';
 
-export interface GradeChange {
-  course: string;
-  oldPct: number | null;
-  newPct: number | null;
-  delta: number; // newPct - oldPct
-  ts: number;
-}
+export type ChangeEvent =
+  | { kind: 'grade'; course: string; oldPct: number | null; newPct: number | null; delta: number; ts: number }
+  | { kind: 'new-assignment'; course: string; name: string; ts: number }
+  | { kind: 'graded'; course: string; name: string; pct: number | null; score: string; max: string; ts: number };
 
 const KEY = 'bs_grade_changes';
-const MAX = 50;
+const MAX = 60;
+const MAX_NEW_PER_COURSE = 6; // avoid flooding when a whole category first appears
 
-/** Courses present in both snapshots whose percent moved (>= 0.01). */
-export function detectGradeChanges(prev: SchoologyData | null, next: SchoologyData): GradeChange[] {
+function byName(c: ScrapedCourse): Map<string, ScrapedAssignment> {
+  const m = new Map<string, ScrapedAssignment>();
+  for (const cat of c.categories) for (const a of cat.assignments) m.set(a.name, a);
+  return m;
+}
+
+/** Grade moves, new assignments, and newly-graded work for courses in both snapshots. */
+export function detectChanges(prev: SchoologyData | null, next: SchoologyData): ChangeEvent[] {
   if (!prev) return [];
-  const prevPct = new Map(prev.courses.map((c) => [c.name, parseGradeString(c.grade).percent]));
-  const now = Date.now();
-  const out: GradeChange[] = [];
+  const ts = Date.now();
+  const prevByCourse = new Map(prev.courses.map((c) => [c.name, c]));
+  const out: ChangeEvent[] = [];
+
   for (const c of next.courses) {
-    if (!prevPct.has(c.name)) continue; // newly-appeared course isn't a "change"
-    const oldPct = prevPct.get(c.name) ?? null;
+    const pc = prevByCourse.get(c.name);
+    if (!pc) continue; // newly-appeared course isn't "activity"
+
+    // Overall grade %
+    const oldPct = parseGradeString(pc.grade).percent;
     const newPct = parseGradeString(c.grade).percent;
-    if (oldPct === null || newPct === null) continue;
-    if (Math.abs(newPct - oldPct) < 0.01) continue;
-    out.push({ course: c.name, oldPct, newPct, delta: newPct - oldPct, ts: now });
+    if (oldPct !== null && newPct !== null && Math.abs(newPct - oldPct) >= 0.01) {
+      out.push({ kind: 'grade', course: c.name, oldPct, newPct, delta: newPct - oldPct, ts });
+    }
+
+    // Assignment-level activity
+    const prevA = byName(pc);
+    let newCount = 0;
+    for (const cat of c.categories) {
+      for (const a of cat.assignments) {
+        const before = prevA.get(a.name);
+        if (!before) {
+          if (newCount < MAX_NEW_PER_COURSE) out.push({ kind: 'new-assignment', course: c.name, name: a.name, ts });
+          newCount++;
+        } else if (
+          (before.status !== 'graded' && a.status === 'graded') ||
+          (before.status === 'graded' && a.status === 'graded' && before.score !== a.score && !!a.score)
+        ) {
+          out.push({ kind: 'graded', course: c.name, name: a.name, pct: scorePercent(a.score, a.maxGrade), score: a.score, max: a.maxGrade, ts });
+        }
+      }
+    }
   }
   return out;
 }
 
-export async function appendGradeChanges(changes: GradeChange[]): Promise<void> {
-  if (!changes.length) return;
-  const existing = await loadGradeChanges();
-  const merged = [...changes, ...existing].slice(0, MAX);
+export async function appendChanges(events: ChangeEvent[]): Promise<void> {
+  if (!events.length) return;
+  const existing = await loadChanges();
+  const merged = [...events, ...existing].slice(0, MAX);
   await browser.storage.local.set({ [KEY]: merged });
 }
 
-export async function loadGradeChanges(): Promise<GradeChange[]> {
+export async function loadChanges(): Promise<ChangeEvent[]> {
   const r = await browser.storage.local.get(KEY);
-  return Array.isArray(r[KEY]) ? (r[KEY] as GradeChange[]) : [];
+  const raw = Array.isArray(r[KEY]) ? r[KEY] : [];
+  // Back-compat: older entries were grade-only with no `kind`.
+  return raw.map((e: Record<string, unknown>) =>
+    'kind' in e ? (e as ChangeEvent) : ({ kind: 'grade', ...(e as object) } as ChangeEvent),
+  );
 }
 
-export async function clearGradeChanges(): Promise<void> {
+export async function clearChanges(): Promise<void> {
   await browser.storage.local.remove(KEY);
 }

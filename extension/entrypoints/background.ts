@@ -9,7 +9,8 @@ import { buildSchoologyData, checkSafetyGuards, type ScrapeOutput } from '../lib
 import { validateSchoologyData } from '../lib/schemas';
 import { saveGradeData, loadGradeData, saveScrapeMeta } from '../lib/storage';
 import { appendGradeHistory } from '../lib/grade-history';
-import { detectGradeChanges, appendGradeChanges } from '../lib/grade-changes';
+import { detectChanges, appendChanges, type ChangeEvent } from '../lib/grade-changes';
+import { saveWatchStatus } from '../lib/watch-status';
 import { countAssignments } from '../lib/transform';
 
 const POLL_ALARM = 'bs-grade-poll';
@@ -33,13 +34,6 @@ async function workerFetch(url: string, init?: RequestInit, retries = 4): Promis
   return res;
 }
 
-interface GradeChangeMsg {
-  course: string;
-  oldPct: number | null;
-  newPct: number | null;
-  delta: number;
-}
-
 // chrome.sidePanel is Chrome-only and not in the webextension-polyfill types.
 type SidePanelApi = {
   setPanelBehavior?: (o: { openPanelOnActionClick: boolean }) => Promise<void>;
@@ -47,17 +41,26 @@ type SidePanelApi = {
 };
 const sidePanel = (browser as unknown as { sidePanel?: SidePanelApi }).sidePanel;
 
-/** Fire a desktop notification summarizing one or more grade changes. */
-function notifyGradeChanges(changes: GradeChangeMsg[]) {
-  if (!changes.length) return;
-  const fmt = (c: GradeChangeMsg) => {
-    const dir = c.delta >= 0 ? 'rose' : 'fell';
-    const arrow = c.delta >= 0 ? '▲' : '▼';
-    return `${arrow} ${c.course} ${dir} ${Math.abs(c.delta).toFixed(1)}% · ${c.oldPct?.toFixed(1)}% → ${c.newPct?.toFixed(1)}%`;
-  };
-  const title = changes.length === 1 ? 'Grade updated' : `${changes.length} grades updated`;
-  const message = changes.slice(0, 4).map(fmt).join('\n');
-  void browser.notifications.create(`bs-grade-${Date.now()}`, {
+/** One-line summary of a change event for a notification. */
+function eventLine(e: ChangeEvent): string {
+  switch (e.kind) {
+    case 'grade': {
+      const arrow = e.delta >= 0 ? '▲' : '▼';
+      return `${arrow} ${e.course} ${e.delta >= 0 ? 'rose' : 'fell'} ${Math.abs(e.delta).toFixed(1)}% · ${e.oldPct?.toFixed(1)}% → ${e.newPct?.toFixed(1)}%`;
+    }
+    case 'graded':
+      return `✓ Graded · ${e.name}${e.pct !== null ? ` — ${e.pct.toFixed(0)}%` : ''} (${e.course})`;
+    case 'new-assignment':
+      return `＋ New assignment · ${e.name} (${e.course})`;
+  }
+}
+
+/** Fire a desktop notification summarizing one or more change events. */
+function notifyChanges(events: ChangeEvent[]) {
+  if (!events.length) return;
+  const title = events.length === 1 ? 'Schoology update' : `${events.length} Schoology updates`;
+  const message = events.slice(0, 4).map(eventLine).join('\n');
+  void browser.notifications.create(`bs-change-${Date.now()}`, {
     type: 'basic',
     iconUrl: (browser.runtime.getURL as (p: string) => string)('/icon/128.png'),
     title,
@@ -109,36 +112,52 @@ async function parseGradesOffscreen(html: string): Promise<ScrapeOutput | null> 
 async function runClosedTabPoll(): Promise<void> {
   const stored = await browser.storage.local.get('bs_sgy_origin');
   const origin = stored.bs_sgy_origin;
+  // Never opened Schoology in this browser — we don't know the school URL yet.
   if (typeof origin !== 'string' || !origin.includes('schoology.com')) return;
 
   let res: Response;
   try {
     res = await workerFetch(`${origin}/grades/grades`, { credentials: 'include', redirect: 'follow' });
   } catch {
+    await saveWatchStatus({ ok: false, reason: 'network', ts: Date.now() });
     return;
   }
-  if (!res.ok) return;
+  if (!res.ok) {
+    await saveWatchStatus({ ok: false, reason: 'network', ts: Date.now() });
+    return;
+  }
   const html = await res.text();
   if (html.includes('id="edit-mail"') || html.includes('accounts.google.com') || html.includes('Sign in')) {
-    return; // session expired — nothing reliable to compare
+    await saveWatchStatus({ ok: false, reason: 'session', ts: Date.now() });
+    return;
   }
 
   const output = await parseGradesOffscreen(html);
-  if (!output || output.courses.length === 0) return;
+  if (!output || output.courses.length === 0) {
+    await saveWatchStatus({ ok: false, reason: 'parse', ts: Date.now() });
+    return;
+  }
 
   const data = buildSchoologyData(output);
-  if (!validateSchoologyData(data).success) return;
+  if (!validateSchoologyData(data).success) {
+    await saveWatchStatus({ ok: false, reason: 'parse', ts: Date.now() });
+    return;
+  }
 
   const previous = await loadGradeData();
-  if (!checkSafetyGuards(data, previous).safe) return;
+  if (!checkSafetyGuards(data, previous).safe) {
+    await saveWatchStatus({ ok: false, reason: 'parse', ts: Date.now() });
+    return;
+  }
 
   await saveGradeData(data);
   await appendGradeHistory(data.courses);
-  const changes = detectGradeChanges(previous, data);
-  if (changes.length) {
-    await appendGradeChanges(changes);
-    notifyGradeChanges(changes);
+  const events = detectChanges(previous, data);
+  if (events.length) {
+    await appendChanges(events);
+    notifyChanges(events);
   }
+  await saveWatchStatus({ ok: true, ts: Date.now() });
   await saveScrapeMeta({
     status: 'fresh',
     scrapedAt: data.scrapedAt,
@@ -170,14 +189,14 @@ export default defineBackground(() => {
   browser.runtime.onMessage.addListener(
     (message, _sender) => {
       if (!message || typeof message !== 'object' || !('type' in message)) return;
-      const msg = message as { type: string; url?: string; changes?: GradeChangeMsg[] };
+      const msg = message as { type: string; url?: string; events?: ChangeEvent[] };
 
       if (msg.type === 'ping') {
         return Promise.resolve({ type: 'pong', ts: Date.now() });
       }
 
-      if (msg.type === 'grade-change' && Array.isArray(msg.changes)) {
-        notifyGradeChanges(msg.changes);
+      if (msg.type === 'change' && Array.isArray(msg.events)) {
+        notifyChanges(msg.events);
         return;
       }
 

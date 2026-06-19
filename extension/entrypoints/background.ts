@@ -25,16 +25,64 @@ async function workerFetch(url: string, init?: RequestInit, retries = 4): Promis
   return res;
 }
 
+interface GradeChangeMsg {
+  course: string;
+  oldPct: number | null;
+  newPct: number | null;
+  delta: number;
+}
+
+// chrome.sidePanel is Chrome-only and not in the webextension-polyfill types.
+type SidePanelApi = {
+  setPanelBehavior?: (o: { openPanelOnActionClick: boolean }) => Promise<void>;
+  open?: (o: { windowId: number }) => Promise<void>;
+};
+const sidePanel = (browser as unknown as { sidePanel?: SidePanelApi }).sidePanel;
+
+/** Fire a desktop notification summarizing one or more grade changes. */
+function notifyGradeChanges(changes: GradeChangeMsg[]) {
+  if (!changes.length) return;
+  const fmt = (c: GradeChangeMsg) => {
+    const dir = c.delta >= 0 ? 'rose' : 'fell';
+    const arrow = c.delta >= 0 ? '▲' : '▼';
+    return `${arrow} ${c.course} ${dir} ${Math.abs(c.delta).toFixed(1)}% · ${c.oldPct?.toFixed(1)}% → ${c.newPct?.toFixed(1)}%`;
+  };
+  const title = changes.length === 1 ? 'Grade updated' : `${changes.length} grades updated`;
+  const message = changes.slice(0, 4).map(fmt).join('\n');
+  void browser.notifications.create(`bs-grade-${Date.now()}`, {
+    type: 'basic',
+    iconUrl: (browser.runtime.getURL as (p: string) => string)('/icon/128.png'),
+    title,
+    message,
+    priority: 2,
+  });
+}
+
 export default defineBackground(() => {
   console.log('[BS] Background service worker started');
+
+  // Clicking the toolbar icon opens the Better SGY side panel (works on any tab).
+  sidePanel?.setPanelBehavior?.({ openPanelOnActionClick: true }).catch(() => {});
+
+  // Clicking a grade notification opens the side panel to the detail.
+  browser.notifications.onClicked.addListener(() => {
+    browser.windows.getCurrent().then((w) => {
+      if (w?.id != null) sidePanel?.open?.({ windowId: w.id }).catch(() => {});
+    }).catch(() => {});
+  });
 
   browser.runtime.onMessage.addListener(
     (message, _sender) => {
       if (!message || typeof message !== 'object' || !('type' in message)) return;
-      const msg = message as { type: string; url?: string };
+      const msg = message as { type: string; url?: string; changes?: GradeChangeMsg[] };
 
       if (msg.type === 'ping') {
         return Promise.resolve({ type: 'pong', ts: Date.now() });
+      }
+
+      if (msg.type === 'grade-change' && Array.isArray(msg.changes)) {
+        notifyGradeChanges(msg.changes);
+        return;
       }
 
       // Fetch a Schoology file on behalf of the content script. Attachments

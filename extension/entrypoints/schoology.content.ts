@@ -24,7 +24,20 @@ import { queuedFetch } from '../lib/sgy-net';
 import type { ScrapeResult } from '../lib/scrape-status';
 import { INITIAL_SCRAPE_RESULT } from '../lib/scrape-status';
 import { appendGradeHistory } from '../lib/grade-history';
+import { detectGradeChanges, appendGradeChanges, type GradeChange } from '../lib/grade-changes';
+import { cacheAnnouncements } from '../lib/announcement-cache';
 import { seedDemoData, clearDemoData } from '../lib/demo-data';
+
+/**
+ * After a scrape, record any per-course grade movement and ping the worker so it
+ * can fire a desktop notification (Discord-style) even when this tab isn't focused.
+ */
+async function reportGradeChanges(prev: Parameters<typeof detectGradeChanges>[0], next: Parameters<typeof detectGradeChanges>[1]) {
+  const changes: GradeChange[] = detectGradeChanges(prev, next);
+  if (!changes.length) return;
+  await appendGradeChanges(changes);
+  try { await browser.runtime.sendMessage({ type: 'grade-change', changes }); } catch { /* worker asleep is fine */ }
+}
 
 const MOUNT_ID = '__better-schoology-root__';
 const ESCAPE_ID = '__better-schoology-escape__';
@@ -204,6 +217,7 @@ async function runScrape() {
     updateScrapeResult({ status: 'saving' });
     await saveGradeData(data);
     await appendGradeHistory(data.courses);
+    await reportGradeChanges(previousData, data);
     await saveScrapeMeta({
       status: 'fresh',
       scrapedAt: data.scrapedAt,
@@ -292,6 +306,7 @@ async function runBackgroundScrape() {
 
     await saveGradeData(data);
     await appendGradeHistory(data.courses);
+    await reportGradeChanges(previousData, data);
     await saveScrapeMeta({
       status: 'fresh',
       scrapedAt: data.scrapedAt,
@@ -299,6 +314,8 @@ async function runBackgroundScrape() {
       assignmentCount: countAssignments(data.courses),
       error: null,
     });
+    // Cache teacher announcements/updates for the side panel (best-effort).
+    void cacheAnnouncements(data.courses);
 
     // Update current scrape result for React rendering
     updateScrapeResult({

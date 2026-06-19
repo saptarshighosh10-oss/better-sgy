@@ -21,7 +21,7 @@ export default defineConfig({
     host_permissions: [
       'https://*.schoology.com/*',
     ],
-    permissions: ['storage'],
+    permissions: ['storage', 'notifications', 'sidePanel'],
     // pdf.js loads its parser worker by URL from the content script — must be web-accessible.
     web_accessible_resources: [
       { resources: ['pdf.worker.min.mjs'], matches: ['https://*.schoology.com/*'] },

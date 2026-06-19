@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import type { ScrapedCourse, SchoologyData } from '../../lib/schemas';
-import { parseGradeString, gradeColor, checkBorderline } from '../../lib/grade-utils';
-import { courseColor, courseAbbr, abbrFontSize } from '../../lib/course-colors';
+import { parseGradeString, checkBorderline } from '../../lib/grade-utils';
+import { courseAbbr, abbrFontSize } from '../../lib/course-colors';
 import { CourseGradebook } from '../CourseGradebook';
 import { computeSemesterTrend } from '../../lib/grade-history';
 import type { GradePoint } from '../../lib/grade-history';
-import { T, isLightTheme, isMinimalist } from '../../lib/theme';
+import { T, isMinimalist } from '../../lib/theme';
 import { AT, tileBg, hairline } from '../../lib/apple';
 import { appleCardStyle } from '../apple-ui';
 import type { GradeSnapshot } from '../../lib/storage';
@@ -287,11 +287,9 @@ function CourseListRow({
   nickname?: string;
   onSaveNickname: (name: string, nickname: string) => void;
 }) {
-  const color = courseColor(course.name, false);
   const abbr = courseAbbr(course.name);
   const fontSize = abbrFontSize(abbr);
   const { percent, letter } = parseGradeString(course.grade);
-  const gradeClr = gradeColor(percent);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editVal, setEditVal] = useState(nickname ?? '');
@@ -403,27 +401,26 @@ function CourseListRow({
         marginBottom: 3,
       }}
     >
-      {/* Color band mini badge */}
+      {/* Course initials badge — neutral, ink */}
       <div
         style={{
           width: 36,
           height: 36,
           borderRadius: 10,
-          background: color,
+          background: tileBg(),
           flexShrink: 0,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           overflow: 'hidden',
-          position: 'relative',
         }}
       >
         <span
           style={{
-            position: 'absolute',
-            fontSize: Math.round(fontSize * 0.45),
-            fontWeight: 900,
-            color: isLightTheme() ? 'rgba(26,26,26,0.35)' : 'rgba(255,255,255,0.25)',
+            fontSize: Math.round(fontSize * 0.34),
+            fontWeight: AT.semibold,
+            color: T.muted,
+            letterSpacing: AT.trackBody,
             userSelect: 'none',
             lineHeight: 1,
           }}
@@ -463,13 +460,13 @@ function CourseListRow({
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
-          <Sparkline points={sparklinePoints} color={gradeClr} />
+          <Sparkline points={sparklinePoints} color={T.muted} />
         </div>
       </div>
 
       {/* Grade */}
       <div style={{ textAlign: 'right', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
-        <div style={{ fontSize: AT.sub, fontWeight: AT.semibold, color: gradeClr, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+        <div style={{ fontSize: AT.sub, fontWeight: AT.semibold, color: T.text, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
           {percent !== null ? `${percent.toFixed(1)}%` : '—'}
         </div>
         {borderInfo ? (

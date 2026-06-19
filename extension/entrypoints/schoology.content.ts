@@ -75,6 +75,10 @@ export default defineContentScript({
   main() {
     console.log('[BS] Content script executing on', window.location.href);
 
+    // Remember this school's Schoology origin so the background worker can poll
+    // grades on a timer even when no Schoology tab is open (closed-tab watching).
+    void browser.storage.local.set({ bs_sgy_origin: location.origin });
+
     // DEV/TEST: seed or clear a mock gradebook from the console so the dashboard works
     // without real grades (summer-wiped). Run __bsSeedDemo() / __bsClearDemo() in DevTools.
     // Remove before store submission.

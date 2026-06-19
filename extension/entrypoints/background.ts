@@ -1,11 +1,19 @@
 /**
- * background.ts — Phase 0
- * Minimal service worker: just message routing.
- * chrome.alarms, periodic refresh, and scrape triggering are Phase 3+.
+ * background.ts — service worker: message routing + closed-tab grade watching.
  *
- * NOTE: MV3 service workers are NOT always-on. They die ~30s after idle.
- * Never architect Phase 1+ refresh as if this is an always-running server.
+ * NOTE: MV3 service workers are NOT always-on. They die ~30s after idle, so the
+ * grade poll is driven by chrome.alarms (which wakes the worker), and HTML parsing
+ * is delegated to an offscreen document (SWs have no DOMParser).
  */
+import { buildSchoologyData, checkSafetyGuards, type ScrapeOutput } from '../lib/scrape-dom';
+import { validateSchoologyData } from '../lib/schemas';
+import { saveGradeData, loadGradeData, saveScrapeMeta } from '../lib/storage';
+import { appendGradeHistory } from '../lib/grade-history';
+import { detectGradeChanges, appendGradeChanges } from '../lib/grade-changes';
+import { countAssignments } from '../lib/transform';
+
+const POLL_ALARM = 'bs-grade-poll';
+const POLL_MINUTES = 15;
 /**
  * fetch() with 429/503 retry for the worker. The content script funnels its requests
  * through lib/sgy-net's global queue, but the worker is a separate context and can't
@@ -58,8 +66,96 @@ function notifyGradeChanges(changes: GradeChangeMsg[]) {
   });
 }
 
+// chrome.offscreen is Chrome-only / not in the polyfill types.
+type OffscreenApi = {
+  hasDocument?: () => Promise<boolean>;
+  createDocument?: (o: { url: string; reasons: string[]; justification: string }) => Promise<void>;
+};
+const offscreenApi = (globalThis as { chrome?: { offscreen?: OffscreenApi } }).chrome?.offscreen;
+const getURL = browser.runtime.getURL as (p: string) => string;
+
+async function ensureOffscreen(): Promise<boolean> {
+  if (!offscreenApi?.createDocument) return false;
+  try {
+    if (offscreenApi.hasDocument && (await offscreenApi.hasDocument())) return true;
+    await offscreenApi.createDocument({
+      url: getURL('/offscreen.html'),
+      reasons: ['DOM_PARSER'],
+      justification: 'Parse the Schoology grades page to detect grade changes.',
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Send fetched HTML to the offscreen document and get the scraped output back. */
+async function parseGradesOffscreen(html: string): Promise<ScrapeOutput | null> {
+  if (!(await ensureOffscreen())) return null;
+  try {
+    const resp = await browser.runtime.sendMessage({ type: 'bs-parse-grades', html });
+    const r = resp as { ok?: boolean; output?: ScrapeOutput } | undefined;
+    return r?.ok && r.output ? r.output : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Poll grades with no Schoology tab open. Uses the origin the content script cached
+ * + the user's cookies; parses via the offscreen doc; diffs, saves, and notifies.
+ * Silently no-ops if the user has never opened Schoology or the session expired.
+ */
+async function runClosedTabPoll(): Promise<void> {
+  const stored = await browser.storage.local.get('bs_sgy_origin');
+  const origin = stored.bs_sgy_origin;
+  if (typeof origin !== 'string' || !origin.includes('schoology.com')) return;
+
+  let res: Response;
+  try {
+    res = await workerFetch(`${origin}/grades/grades`, { credentials: 'include', redirect: 'follow' });
+  } catch {
+    return;
+  }
+  if (!res.ok) return;
+  const html = await res.text();
+  if (html.includes('id="edit-mail"') || html.includes('accounts.google.com') || html.includes('Sign in')) {
+    return; // session expired — nothing reliable to compare
+  }
+
+  const output = await parseGradesOffscreen(html);
+  if (!output || output.courses.length === 0) return;
+
+  const data = buildSchoologyData(output);
+  if (!validateSchoologyData(data).success) return;
+
+  const previous = await loadGradeData();
+  if (!checkSafetyGuards(data, previous).safe) return;
+
+  await saveGradeData(data);
+  await appendGradeHistory(data.courses);
+  const changes = detectGradeChanges(previous, data);
+  if (changes.length) {
+    await appendGradeChanges(changes);
+    notifyGradeChanges(changes);
+  }
+  await saveScrapeMeta({
+    status: 'fresh',
+    scrapedAt: data.scrapedAt,
+    courseCount: data.courses.length,
+    assignmentCount: countAssignments(data.courses),
+    error: null,
+  });
+}
+
 export default defineBackground(() => {
   console.log('[BS] Background service worker started');
+
+  // Closed-tab grade watcher: an alarm wakes the worker on a timer (survives SW idle).
+  browser.alarms.create(POLL_ALARM, { periodInMinutes: POLL_MINUTES });
+  browser.alarms.onAlarm.addListener((alarm) => {
+    if (alarm.name === POLL_ALARM) void runClosedTabPoll();
+  });
 
   // Clicking the toolbar icon opens the Better SGY side panel (works on any tab).
   sidePanel?.setPanelBehavior?.({ openPanelOnActionClick: true }).catch(() => {});

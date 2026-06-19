@@ -7,7 +7,7 @@
  * + a mono theme — see isMono() in theme.ts; the helpers here drop shadows/chroma
  * accordingly. Nothing here is page-specific; pages compose these tokens.
  */
-import { T, isLightTheme, getActiveTheme } from './theme';
+import { isLightTheme, getActiveTheme } from './theme';
 
 /** San Francisco on Apple platforms, Inter elsewhere, system fallback last. */
 export const APPLE_FONT =
@@ -61,20 +61,4 @@ export function cardShadow(elevated = false): string {
     return elevated ? '0 8px 30px rgba(0,0,0,0.10)' : '0 4px 22px rgba(0,0,0,0.06)';
   }
   return elevated ? '0 12px 40px rgba(0,0,0,0.55)' : 'none';
-}
-
-/** Apple system blue for links/CTAs in colored themes; ink in mono/light. */
-export function actionColor(): string {
-  return T.primary;
-}
-
-/** Readable ink to sit ON a filled accent button. */
-export function inkOnAction(): string {
-  const hex = String(T.primary).replace('#', '');
-  if (hex.length < 6) return '#fff';
-  const r = parseInt(hex.slice(0, 2), 16);
-  const g = parseInt(hex.slice(2, 4), 16);
-  const b = parseInt(hex.slice(4, 6), 16);
-  const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-  return lum > 150 ? '#1d1d1f' : '#ffffff';
 }

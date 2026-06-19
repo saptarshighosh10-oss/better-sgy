@@ -98,7 +98,6 @@ function CourseCard({ course, index, onClick }: {
       className="bs-focusable bs-apple-card bs-apple-in"
       aria-label={`${course.name}${percent !== null ? `, ${percent.toFixed(1)} percent` : ''}${missCt > 0 ? `, ${missCt} missing` : ''} — open gradebook`}
       style={{
-        ...appleCardStyle(),
         all: 'unset',
         boxSizing: 'border-box',
         cursor: 'pointer',

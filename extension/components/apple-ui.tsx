@@ -4,8 +4,8 @@
  * identical everywhere. Colors come from the theme (T); see lib/apple.ts.
  */
 import React from 'react';
-import { T } from '../lib/theme';
-import { AT, tileBg, hairline, cardShadow, inkOnAction } from '../lib/apple';
+import { T, inkOnAccent } from '../lib/theme';
+import { AT, tileBg, hairline, cardShadow } from '../lib/apple';
 
 /** Pill CTA — Apple's filled blue button (uses the active accent). */
 export function AppleButton({
@@ -27,7 +27,7 @@ export function AppleButton({
     padding: pad, borderRadius: AT.rPill, lineHeight: 1, whiteSpace: 'nowrap',
   };
   const styles: Record<string, React.CSSProperties> = {
-    filled: { ...base, background: T.primary, color: inkOnAction() },
+    filled: { ...base, background: T.primary, color: inkOnAccent() },
     tinted: { ...base, background: T.primary + '1f', color: T.primary },
     plain: { ...base, background: 'transparent', color: T.primary, padding: size === 'sm' ? '8px 8px' : '11px 10px' },
   };

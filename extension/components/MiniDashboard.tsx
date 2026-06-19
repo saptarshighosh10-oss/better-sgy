@@ -14,21 +14,7 @@ import { AssignmentsPreview } from './AssignmentsPreview';
 import { CurrentGradesMiniGraph } from './CurrentGradesMiniGraph';
 import type { ScrapeResult } from '../lib/scrape-status';
 
-// ── Theme constants ────────────────────────────────────────────────────────────
-
-const T = {
-  bg: '#0d0f14',
-  header: '#0a0c11',
-  sidebar: '#0d0f14',
-  border: '#1e2535',
-  text: '#e2e8f0',
-  muted: '#8892a4',
-  faint: '#4a5568',
-  fresh: '#22c55e',
-  stale: '#f59e0b',
-  failed: '#ef4444',
-  accent: '#3b82f6',
-} as const;
+import { T } from '../lib/theme';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -265,11 +251,10 @@ export function MiniDashboard({ scrapeResult }: Props) {
           >
             <div
               style={{
-                fontSize: 10,
-                fontWeight: 700,
-                color: T.faint,
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
+                fontSize: 11,
+                fontWeight: 500,
+                color: T.muted,
+                letterSpacing: '-0.01em',
                 marginBottom: 8,
                 paddingLeft: 3,
               }}

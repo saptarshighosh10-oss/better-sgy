@@ -108,11 +108,11 @@ export function toggleMinimalist(): boolean {
   return minimalist;
 }
 
-/** UI font stack — Geist in minimalist mode, Inter otherwise. */
+/** UI font stack — Geist in minimalist mode, San Francisco (Apple) otherwise. */
 export function uiFontStack(): string {
   return minimalist
     ? "'Geist', 'Inter', system-ui, -apple-system, sans-serif"
-    : "'Inter', system-ui, -apple-system, sans-serif";
+    : "-apple-system, 'SF Pro Display', 'SF Pro Text', 'Inter', system-ui, 'Helvetica Neue', Helvetica, Arial, sans-serif";
 }
 
 /**
@@ -153,14 +153,27 @@ export interface ThemeColors {
 }
 
 export const ACCENT_PRESETS = {
-  cream: '#faf9f6',
+  // Black & white: Apple's neutral system gray — visible on both dark and light
+  // surfaces and reads as pure grayscale. Selecting it flips the whole UI to mono
+  // (grades, sparklines and course bands lose their color) via isMono().
+  mono: '#8e8e93',
   blue: '#3b82f6',
   lavender: '#c084fc',
   mint: '#34d399',
   sky: '#38bdf8',
   rose: '#fb7185',
   gold: '#fbbf24',
+  cream: '#faf9f6',
 } as const;
+
+/**
+ * Mono / black-&-white mode. True when the "mono" accent is active — pages and
+ * data-viz helpers (gradeColor, courseColor) then drop chroma so the overlay is
+ * only black, white and grays. A separate, opt-in "version" layered on any theme.
+ */
+export function isMono(): boolean {
+  return getAccentColor().toLowerCase() === ACCENT_PRESETS.mono.toLowerCase();
+}
 
 let currentAccent = (typeof localStorage !== 'undefined' ? localStorage.getItem('__bs_custom_accent__') : null) ||
   (currentTheme === 'mono-dark' ? '#faf9f6' : '#3b82f6');

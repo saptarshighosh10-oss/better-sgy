@@ -12,9 +12,14 @@ import { z } from 'zod';
 export const ScrapedAssignmentSchema = z.object({
   name: z.string().min(1),
   score: z.string(),          // may be '' for ungraded
-  maxGrade: z.string(),       // e.g. '/ 20' or '' 
+  maxGrade: z.string(),       // e.g. '/ 20' or ''
   dueDate: z.string(),        // e.g. '1/20/26' or ''
   status: z.enum(['graded', 'submitted', 'unsubmitted']),
+  // Schoology grade "exception" set by the teacher, if any:
+  // 'Missing' | 'Excused' | 'Incomplete' | 'Absent'. Optional for back-compat.
+  exception: z.string().optional(),
+  // URL to the assignment on Schoology (may be relative). Optional for back-compat.
+  link: z.string().optional(),
 });
 
 export const ScrapedCategorySchema = z.object({

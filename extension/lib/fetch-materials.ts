@@ -5,6 +5,8 @@
  * Uses the course href captured during grade scraping to derive the materials URL.
  */
 
+import { queuedFetch } from './sgy-net';
+
 export type MaterialType = 'folder' | 'document' | 'link' | 'assignment' | 'quiz' | 'media' | 'discussion' | 'unknown';
 
 // ── School-agnostic origin + fetch ────────────────────────────────────────────
@@ -15,7 +17,9 @@ export type MaterialType = 'folder' | 'document' | 'link' | 'assignment' | 'quiz
  * Schoology page, so location.origin is always the right base. Never hardcode
  * a district subdomain.
  */
-export const SGY_ORIGIN = location.origin;
+// Guarded so this module is safe to evaluate in Node (wxt's build-time config
+// evaluation has no `location`); at runtime in the page it's always defined.
+export const SGY_ORIGIN = typeof location !== 'undefined' ? location.origin : '';
 
 /**
  * Fetch a Schoology page the way the BROWSER would. The Accept header is
@@ -24,7 +28,8 @@ export const SGY_ORIGIN = location.origin;
  * `Accept: * / *`, and only render HTML for browser-like Accept values.
  */
 export function sgyFetch(url: string): Promise<Response> {
-  return fetch(url, {
+  // Routed through the global rate-limiter so bursts can't trip Schoology's 429.
+  return queuedFetch(url, {
     credentials: 'include',
     redirect: 'follow',
     headers: { Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' },
@@ -236,6 +241,8 @@ function isMaterialsNav(anchor: Element, title: string): boolean {
 function classifyFromHref(href: string): MaterialType {
   if (/[?&]f=\d+/.test(href)) return 'folder';
   if (/\/assignment\/|\/submissions\//.test(href)) return 'assignment';
+  // PowerSchool assessments: /course/<id>/assessments/<id> (no /materials/ in path)
+  if (/\/assessments?\/\d/.test(href)) return 'quiz';
   if (/\/quiz\/|\/test\//.test(href)) return 'quiz';
   if (/\/discussion\//.test(href)) return 'discussion';
   // LTI launches (eText, Albert, etc.) need a real browser tab — treat as link.
@@ -364,7 +371,7 @@ function parseMaterialsDoc(doc: Document, courseId: string, currentFolderId: str
     // content URLs (assignment/discussion/page have NO course id at all,
     // e.g. /assignment/1234567), or external.
     const isMaterialsLink = /\/course\/\d+\/materials/.test(href);
-    const isContentLink = /\/(assignment|discussion|page|quiz|test|album|event|attachment|external_tool|link)\/\d/.test(href)
+    const isContentLink = /\/(assignment|discussion|page|quiz|test|album|event|attachment|external_tool|link|assessments?)\/\d/.test(href)
       || /\/(assignment|discussion|page|quiz)\//.test(href)
       || /\/link\/view\//.test(href)
       || /\/link\?/.test(href);

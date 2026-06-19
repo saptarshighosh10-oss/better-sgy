@@ -83,14 +83,35 @@ export function scrapeGradesFromDoc(doc: Document): ScrapeOutput {
         categories.push(currentCat);
       } else if (cl.contains('item-row') && currentCat) {
         const titleEl = row.querySelector('.title');
-        const rawName = (titleEl?.querySelector('a') ?? titleEl)?.textContent ?? '';
+        const titleLink = titleEl?.querySelector('a');
+        const rawName = (titleLink ?? titleEl)?.textContent ?? '';
+        const link = titleLink?.getAttribute('href') ?? ''; // assignment URL (may be relative)
 
         const aName = cleanAssignmentName(rawName);
         if (!aName) return;
 
         const scoreEl = row.querySelector('.rounded-grade');
-        const score =
-          scoreEl?.getAttribute('title') ?? scoreEl?.textContent?.trim() ?? '';
+        let score =
+          (scoreEl?.getAttribute('title') ?? scoreEl?.textContent?.trim() ?? '').trim();
+
+        // Schoology grade "exceptions" (teacher-set) render where the score would be, or
+        // in a dedicated exception element. Pull them out and track separately so an
+        // Excused/Incomplete item is never mistaken for "missing".
+        let exception = '';
+        const exSource = (
+          score ||
+          row.querySelector('.exception, .grade-exception, .exception-icon')?.getAttribute('title') ||
+          row.querySelector('.exception, .grade-exception')?.textContent ||
+          ''
+        ).trim();
+        const exHit = exSource.match(/\b(missing|excused|incomplete|absent)\b/i);
+        if (exHit) {
+          const w = exHit[1].toLowerCase();
+          exception = w === 'missing' ? 'Missing' : w === 'excused' ? 'Excused' : w === 'incomplete' ? 'Incomplete' : 'Absent';
+          // If the exception word was sitting in the score cell, it isn't a real grade.
+          if (/^(missing|excused|incomplete|absent|exc|inc|abs)$/i.test(score)) score = '';
+        }
+
         const maxGrade =
           row
             .querySelector('.max-grade')
@@ -111,8 +132,15 @@ export function scrapeGradesFromDoc(doc: Document): ScrapeOutput {
             ?.textContent?.replace(/\bDue\b/gi, '')
             .trim() ?? '';
 
+        // "Did the student submit?" — Schoology marks a dropbox/submission/pending grade
+        // several different ways across versions and themes. Missing any of them is what
+        // flagged submitted work as "missing", so cast a wide net here.
         const isPending = !!row.querySelector(
-          '.grade-pending-icon, .has-dropbox-icon'
+          '.grade-pending-icon, .has-dropbox-icon, .dropbox-icon, .submission-icon, ' +
+          '.icon-dropbox, .icon-submission, .has-submission, .submitted, .submission-status, ' +
+          'a[href*="/submissions/"], a[href*="/dropbox"], ' +
+          '[class*="dropbox" i], [class*="submission" i], ' +
+          '[title*="pending" i], [title*="submitted" i], [title*="submission" i], [title*="turned in" i]'
         );
         const status: ScrapedAssignment['status'] = score
           ? 'graded'
@@ -120,7 +148,7 @@ export function scrapeGradesFromDoc(doc: Document): ScrapeOutput {
             ? 'submitted'
             : 'unsubmitted';
 
-        currentCat.assignments.push({ name: aName, score, maxGrade, dueDate, status });
+        currentCat.assignments.push({ name: aName, score, maxGrade, dueDate, status, exception, link });
       }
     });
 

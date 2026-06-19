@@ -237,10 +237,10 @@ export function FloatingNav({ page, onNavigate, announcementsUnread = 0, onBell 
         key={current.id}
         className="bs-fade-in"
         style={{
-          fontSize: 9.5, fontWeight: 700, color: T.muted,
-          textTransform: 'uppercase', letterSpacing: '0.5px',
+          fontSize: 12, fontWeight: 500, color: T.muted,
+          letterSpacing: '-0.01em',
           background: T.panel + 'd0', border: `1px solid ${T.border}`,
-          borderRadius: 999, padding: '2px 9px',
+          borderRadius: 999, padding: '3px 11px',
         }}
       >
         {current.label}

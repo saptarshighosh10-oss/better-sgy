@@ -8,18 +8,37 @@
 import type { ScrapedAssignment } from './schemas';
 import { parseGrade } from './transform';
 
+import { getActiveTheme, isMono, isLightTheme } from './theme';
+
 // Re-export for components that want a single import point
 export { parseGrade };
 
-/** Grade percent → display color */
+/** Grade percent → display color. Calm ramp: only D/F read as alarms. */
 export function gradeColor(pct: number | null): string {
+  const theme = getActiveTheme();
+  // Mono / B&W mode: a tonal grayscale ramp (better grades read darkest on light
+  // surfaces, lightest on dark) so hierarchy survives without any color.
+  if (isMono()) {
+    const dark = !isLightTheme();
+    if (pct === null) return dark ? '#8e8e93' : '#8a8a8e';
+    if (pct >= 90) return dark ? '#f5f5f7' : '#1d1d1f';
+    if (pct >= 80) return dark ? '#c7c7cc' : '#3a3a3c';
+    if (pct >= 70) return dark ? '#98989d' : '#6e6e73';
+    if (pct >= 60) return dark ? '#7c7c81' : '#8a8a8e';
+    return dark ? '#636366' : '#a0a0a5';
+  }
+  if (theme === 'mono-dark') {
+    return pct === null ? '#a0a0a0' : '#faf9f6';
+  }
+  if (theme === 'mono-light') {
+    return pct === null ? '#6b6b6b' : '#1a1a1a';
+  }
   if (pct === null) return '#8892a4';
-  if (pct >= 93) return '#22c55e';
-  if (pct >= 90) return '#4ade80';
-  if (pct >= 87) return '#a3e635';
-  if (pct >= 83) return '#f59e0b';
-  if (pct >= 80) return '#f97316';
-  return '#ef4444';
+  if (pct >= 90) return '#34d399'; // A — emerald
+  if (pct >= 80) return '#60a5fa'; // B — calm blue
+  if (pct >= 70) return '#fbbf24'; // C — amber
+  if (pct >= 60) return '#fb923c'; // D — orange
+  return '#f87171';                // F — red
 }
 
 /** Parse a grade string, returning displayable letter (never empty). */
@@ -94,12 +113,52 @@ export function isDateFuture(dateStr: string): boolean {
 
 // ── Assignment categorization ─────────────────────────────────────────────────
 
-/** Unsubmitted + due date in the past = missing */
+/**
+ * Missing = either Schoology explicitly flagged it "Missing", or it's unsubmitted and
+ * past due. Any other teacher exception (Excused / Incomplete / Absent) is never
+ * "missing", and anything detected as submitted/pending is excluded by `status`.
+ */
 export function isMissing(a: ScrapedAssignment): boolean {
+  if (a.exception) return a.exception === 'Missing';
   return a.status === 'unsubmitted' && !!a.dueDate && isDatePast(a.dueDate);
 }
 
-/** Unsubmitted + due date in the future (or today) = upcoming */
+/** Unsubmitted + due date in the future (or today), with no exception = upcoming */
 export function isUpcoming(a: ScrapedAssignment): boolean {
+  if (a.exception) return false;
   return a.status === 'unsubmitted' && !!a.dueDate && isDateFuture(a.dueDate);
 }
+
+// ── Borderline checks ─────────────────────────────────────────────────────────
+
+export interface BorderlineInfo {
+  currentLetter: string;
+  nextLetter: string;
+  targetPercent: number;
+}
+
+export function checkBorderline(percent: number | null): BorderlineInfo | null {
+  if (percent === null) return null;
+  const boundaries = [
+    { threshold: 93.0, currentLetter: 'A-', nextLetter: 'A' },
+    { threshold: 90.0, currentLetter: 'B+', nextLetter: 'A-' },
+    { threshold: 87.0, currentLetter: 'B', nextLetter: 'B+' },
+    { threshold: 83.0, currentLetter: 'B-', nextLetter: 'B' },
+    { threshold: 80.0, currentLetter: 'C+', nextLetter: 'B-' },
+    { threshold: 77.0, currentLetter: 'C', nextLetter: 'C+' },
+    { threshold: 73.0, currentLetter: 'C-', nextLetter: 'C' },
+    { threshold: 70.0, currentLetter: 'D', nextLetter: 'C-' },
+    { threshold: 60.0, currentLetter: 'F', nextLetter: 'D' },
+  ];
+  for (const b of boundaries) {
+    if (percent >= b.threshold - 1.0 && percent < b.threshold) {
+      return {
+        currentLetter: b.currentLetter,
+        nextLetter: b.nextLetter,
+        targetPercent: b.threshold,
+      };
+    }
+  }
+  return null;
+}
+

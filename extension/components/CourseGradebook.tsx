@@ -615,23 +615,23 @@ function CategoryRow({
           {/* Stat columns */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr' }}>
             <div>
-              <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: 2 }}>Current %</div>
+              <div style={{ fontSize: 11, fontWeight: 500, color: T.muted, letterSpacing: '-0.01em', marginBottom: 2 }}>Current %</div>
               <div style={{ fontSize: 15, fontWeight: 700, color: gradeColor(effPct) ?? T.muted, fontVariantNumeric: 'tabular-nums' }}>
                 {animatedEffPct !== null ? `${animatedEffPct.toFixed(1)}%` : '—'}
               </div>
             </div>
             <div>
-              <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: 2 }}>Weight</div>
+              <div style={{ fontSize: 11, fontWeight: 500, color: T.muted, letterSpacing: '-0.01em', marginBottom: 2 }}>Weight</div>
               <div style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{weight > 0 ? `${weight}%` : '—'}</div>
             </div>
             <div>
-              <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: 2 }}>Points</div>
+              <div style={{ fontSize: 11, fontWeight: 500, color: T.muted, letterSpacing: '-0.01em', marginBottom: 2 }}>Points</div>
               <div style={{ fontSize: 15, fontWeight: 700, color: T.text, fontVariantNumeric: 'tabular-nums' }}>
                 {sm > 0 ? `${+ss.toFixed(1)}/${+sm.toFixed(1)}` : '—'}
               </div>
             </div>
             <div>
-              <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: 2 }}>Impact</div>
+              <div style={{ fontSize: 11, fontWeight: 500, color: T.muted, letterSpacing: '-0.01em', marginBottom: 2 }}>Impact</div>
               <div style={{ fontSize: 15, fontWeight: 700, color: T.text, fontVariantNumeric: 'tabular-nums' }}>
                 {contribution !== null ? `${contribution.toFixed(1)}%` : '—'}
               </div>
@@ -954,7 +954,7 @@ export function CourseGradebook({ course, nickname }: Props) {
             { label: 'Categories', val: String(visibleCats.length) },
           ].map(({ label, val, accent }) => (
             <div key={label}>
-              <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.4px' }}>{label}</div>
+              <div style={{ fontSize: 11, fontWeight: 500, color: T.muted, letterSpacing: '-0.01em' }}>{label}</div>
               <div style={{ fontSize: 12, fontWeight: 600, color: accent ?? T.muted, marginTop: 1 }}>{val}</div>
             </div>
           ))}

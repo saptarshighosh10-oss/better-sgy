@@ -1,3 +1,5 @@
+import { getActiveTheme, isMono } from './theme';
+
 const PALETTE = [
   '#6366f1', // indigo
   '#3b82f6', // blue
@@ -11,10 +13,65 @@ const PALETTE = [
   '#ec4899', // pink
 ];
 
-export function courseColor(name: string): string {
+const MONO_BG_PALETTE = [
+  '#2a2a2a', // dark gray 1
+  '#333333', // dark gray 2
+  '#3d3d3d', // dark gray 3
+  '#363636', // dark gray 4
+  '#2d2d2d', // dark gray 5
+  '#313131', // dark gray 6
+];
+
+const MONO_TEXT_PALETTE = [
+  '#faf9f6', // cream-white
+  '#e4e4e7', // zinc 200
+  '#d4d4d8', // zinc 300
+  '#a1a1aa', // zinc 400
+  '#f4f4f5', // zinc 100
+  '#e2e2e5',
+];
+
+const MONO_LIGHT_BG_PALETTE = [
+  '#e9e7e2', // warm gray 1
+  '#e2e0db', // warm gray 2
+  '#dcdad5', // warm gray 3
+  '#e6e4df', // warm gray 4
+  '#dfddd8', // warm gray 5
+  '#e4e2dd', // warm gray 6
+];
+
+const MONO_LIGHT_TEXT_PALETTE = [
+  '#1a1a1a',
+  '#2a2a2a',
+  '#3a3a3a',
+  '#4a4a4a',
+  '#2e2e2e',
+  '#383838',
+];
+
+export function courseColor(name: string, isText = false): string {
   let h = 0;
   for (let i = 0; i < name.length; i++) {
     h = (h * 31 + name.charCodeAt(i)) & 0x7fffffff;
+  }
+  const theme = getActiveTheme();
+  // Mono / B&W accent forces grayscale course bands regardless of theme.
+  if (isMono()) {
+    const dark = theme !== 'mono-light';
+    if (dark) {
+      const palette = isText ? MONO_TEXT_PALETTE : MONO_BG_PALETTE;
+      return palette[h % palette.length];
+    }
+    const palette = isText ? MONO_LIGHT_TEXT_PALETTE : MONO_LIGHT_BG_PALETTE;
+    return palette[h % palette.length];
+  }
+  if (theme === 'mono-dark') {
+    const palette = isText ? MONO_TEXT_PALETTE : MONO_BG_PALETTE;
+    return palette[h % palette.length];
+  }
+  if (theme === 'mono-light') {
+    const palette = isText ? MONO_LIGHT_TEXT_PALETTE : MONO_LIGHT_BG_PALETTE;
+    return palette[h % palette.length];
   }
   return PALETTE[h % PALETTE.length];
 }

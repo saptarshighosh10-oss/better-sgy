@@ -6,6 +6,8 @@ import { CourseGradebook } from '../CourseGradebook';
 import { computeSemesterTrend } from '../../lib/grade-history';
 import type { GradePoint } from '../../lib/grade-history';
 import { T, isLightTheme, isMinimalist } from '../../lib/theme';
+import { AT, tileBg, hairline } from '../../lib/apple';
+import { appleCardStyle } from '../apple-ui';
 import type { GradeSnapshot } from '../../lib/storage';
 
 function getGPAPointsForCourse(gradeStr: string): number | null {
@@ -112,17 +114,19 @@ export function GradesPage({ grades, selectedCourseName, onCourseSelect, activeS
         position: 'absolute',
         inset: 0,
         overflow: 'hidden',
+        fontFamily: AT.font,
+        background: T.bg,
       }}
     >
       {/* ── Course list panel ──────────────────────────────────────────── */}
       <nav
         aria-label="Courses"
         style={{
-          width: 236,
+          width: 264,
           flexShrink: 0,
-          borderRight: `1px solid ${T.border}`,
+          borderRight: `1px solid ${hairline()}`,
           overflowY: 'auto',
-          padding: '12px 8px',
+          padding: '20px 12px',
           background: T.panel,
         }}
       >
@@ -130,35 +134,34 @@ export function GradesPage({ grades, selectedCourseName, onCourseSelect, activeS
         {gradedClassesCount > 0 && (
           <div
             style={{
-              background: T.card,
-              border: `1px solid ${T.border}`,
-              borderRadius: 10,
-              padding: '12px 14px',
-              marginBottom: 16,
+              background: tileBg(),
+              borderRadius: AT.rTile,
+              padding: '16px 18px',
+              marginBottom: 20,
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <span style={{ fontSize: 9, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                GPA Dashboard
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <span style={{ fontSize: AT.sub, color: T.muted, letterSpacing: AT.trackBody }}>
+                GPA
               </span>
-              <span style={{ fontSize: 9, color: T.primary, fontWeight: 600 }}>
-                {gradedClassesCount} {gradedClassesCount === 1 ? 'Class' : 'Classes'}
+              <span style={{ fontSize: AT.caption, color: T.muted }}>
+                {gradedClassesCount} {gradedClassesCount === 1 ? 'class' : 'classes'}
               </span>
             </div>
-            <div style={{ display: 'flex', gap: 16 }}>
+            <div style={{ display: 'flex', gap: 18 }}>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 18, fontWeight: 800, color: T.text, lineHeight: 1.1 }}>
+                <div style={{ fontSize: 28, fontWeight: AT.semibold, color: T.text, lineHeight: 1, letterSpacing: AT.trackHead, fontVariantNumeric: 'tabular-nums' }}>
                   {unweightedGPA !== null ? unweightedGPA.toFixed(2) : '—'}
                 </div>
-                <div style={{ fontSize: 9, color: T.muted, fontWeight: 500, marginTop: 2 }}>
+                <div style={{ fontSize: AT.caption, color: T.muted, marginTop: 5 }}>
                   Unweighted
                 </div>
               </div>
-              <div style={{ flex: 1, borderLeft: `1px solid ${T.border}`, paddingLeft: 16 }}>
-                <div style={{ fontSize: 18, fontWeight: 800, color: T.primary, lineHeight: 1.1 }}>
+              <div style={{ flex: 1, borderLeft: `1px solid ${hairline()}`, paddingLeft: 18 }}>
+                <div style={{ fontSize: 28, fontWeight: AT.semibold, color: T.primary, lineHeight: 1, letterSpacing: AT.trackHead, fontVariantNumeric: 'tabular-nums' }}>
                   {weightedGPA !== null ? weightedGPA.toFixed(2) : '—'}
                 </div>
-                <div style={{ fontSize: 9, color: T.muted, fontWeight: 500, marginTop: 2 }}>
+                <div style={{ fontSize: AT.caption, color: T.muted, marginTop: 5 }}>
                   Weighted
                 </div>
               </div>
@@ -168,12 +171,11 @@ export function GradesPage({ grades, selectedCourseName, onCourseSelect, activeS
 
         <div
           style={{
-            fontSize: 10,
-            fontWeight: 700,
+            fontSize: AT.caption,
+            fontWeight: AT.medium,
             color: T.muted,
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-            padding: '0 6px 8px',
+            letterSpacing: AT.trackBody,
+            padding: '0 8px 10px',
           }}
         >
           Courses
@@ -197,26 +199,25 @@ export function GradesPage({ grades, selectedCourseName, onCourseSelect, activeS
         style={{
           flex: 1,
           overflowY: 'auto',
-          padding: 20,
+          padding: 28,
           minWidth: 0,
         }}
       >
         {activeSnapshot && (
           <div
             style={{
-              background: `${T.primary}12`,
-              border: `1px solid ${T.primary}40`,
-              borderRadius: 8,
-              padding: '10px 14px',
-              marginBottom: 16,
+              background: `${T.primary}14`,
+              borderRadius: AT.rTile,
+              padding: '12px 18px',
+              marginBottom: 20,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: T.primary }}>Snapshot Mode</span>
-              <span style={{ fontSize: 12, color: T.text }}>— {activeSnapshot.name}</span>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+              <span style={{ fontSize: AT.sub, fontWeight: AT.semibold, color: T.primary, letterSpacing: AT.trackBody }}>Snapshot</span>
+              <span style={{ fontSize: AT.sub, color: T.muted }}>{activeSnapshot.name}</span>
             </div>
             <button
               type="button"
@@ -226,20 +227,19 @@ export function GradesPage({ grades, selectedCourseName, onCourseSelect, activeS
                   onCourseSelect(courses[0].name);
                 }
               }}
-              className="bs-focusable"
+              className="bs-focusable bs-press"
               style={{
                 all: 'unset',
                 cursor: 'pointer',
-                fontSize: 11,
-                fontWeight: 700,
+                fontSize: AT.caption,
+                fontWeight: AT.medium,
                 color: T.primary,
-                border: `1px solid ${T.primary}50`,
-                borderRadius: 6,
-                padding: '6px 12px',
-                background: 'transparent',
+                background: T.primary + '1f',
+                borderRadius: AT.rPill,
+                padding: '7px 16px',
               }}
             >
-              Exit Snapshot
+              Exit snapshot
             </button>
           </div>
         )}
@@ -258,7 +258,8 @@ export function GradesPage({ grades, selectedCourseName, onCourseSelect, activeS
               justifyContent: 'center',
               height: 200,
               color: T.muted,
-              fontSize: 13,
+              fontSize: AT.body,
+              letterSpacing: AT.trackBody,
             }}
           >
             Select a course to view its gradebook.
@@ -392,23 +393,22 @@ function CourseListRow({
         all: 'unset',
         display: 'flex',
         alignItems: 'center',
-        gap: 10,
+        gap: 12,
         width: '100%',
-        padding: '9px 8px',
-        borderRadius: 8,
+        padding: '10px 10px',
+        borderRadius: AT.rTile,
         cursor: 'pointer',
-        background: isSelected ? T.activeBg : 'transparent',
-        border: `1px solid ${isSelected ? T.activeBorder + '60' : 'transparent'}`,
+        background: isSelected ? tileBg() : 'transparent',
         boxSizing: 'border-box',
-        marginBottom: 2,
+        marginBottom: 3,
       }}
     >
       {/* Color band mini badge */}
       <div
         style={{
-          width: 32,
-          height: 32,
-          borderRadius: 7,
+          width: 36,
+          height: 36,
+          borderRadius: 10,
           background: color,
           flexShrink: 0,
           display: 'flex',
@@ -447,9 +447,10 @@ function CourseListRow({
             onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
             title="Press the name to rename"
             style={{
-              fontSize: 12,
-              fontWeight: isSelected ? 600 : 400,
-              color: isSelected ? T.text : '#a0aec0',
+              fontSize: AT.sub,
+              fontWeight: isSelected ? AT.semibold : AT.regular,
+              letterSpacing: AT.trackBody,
+              color: isSelected ? T.text : T.muted,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
@@ -467,30 +468,29 @@ function CourseListRow({
       </div>
 
       {/* Grade */}
-      <div style={{ textAlign: 'right', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: gradeClr, lineHeight: 1 }}>
+      <div style={{ textAlign: 'right', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
+        <div style={{ fontSize: AT.sub, fontWeight: AT.semibold, color: gradeClr, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
           {percent !== null ? `${percent.toFixed(1)}%` : '—'}
         </div>
         {borderInfo ? (
           <div
             style={{
-              fontSize: 8.5,
-              fontWeight: 700,
-              color: '#fbbf24',
-              background: 'rgba(251, 191, 36, 0.12)',
-              border: '1px solid rgba(251, 191, 36, 0.3)',
-              borderRadius: 4,
-              padding: '1px 4px',
-              lineHeight: 1,
+              fontSize: AT.micro,
+              fontWeight: AT.semibold,
+              color: T.amber,
+              background: `${T.amber}1f`,
+              borderRadius: AT.rPill,
+              padding: '2px 8px',
+              lineHeight: 1.3,
               whiteSpace: 'nowrap',
             }}
-            title={`Borderline! Close to ${borderInfo.nextLetter}`}
+            title={`Borderline — close to ${borderInfo.nextLetter}`}
           >
             ↗ {borderInfo.nextLetter}
           </div>
         ) : (
           letter && (
-            <div style={{ fontSize: 10, color: gradeClr, lineHeight: 1.2 }}>{letter}</div>
+            <div style={{ fontSize: AT.caption, color: T.muted, lineHeight: 1.2 }}>{letter}</div>
           )
         )}
       </div>

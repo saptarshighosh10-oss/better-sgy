@@ -95,12 +95,11 @@ function AssignmentGroup({
     <div>
       <div
         style={{
-          fontSize: 10,
-          fontWeight: 700,
+          fontSize: 11,
+          fontWeight: 500,
           color: accentColor,
           marginBottom: 6,
-          textTransform: 'uppercase',
-          letterSpacing: '0.6px',
+          letterSpacing: '-0.01em',
           display: 'flex',
           alignItems: 'center',
           gap: 6,

@@ -82,3 +82,56 @@ export async function loadScrapeMeta(): Promise<ScrapeMeta | null> {
   const result = await browser.storage.local.get(KEYS.scrapeMeta);
   return (result[KEYS.scrapeMeta] as ScrapeMeta) ?? null;
 }
+
+export interface GradeSnapshot {
+  id: string;
+  timestamp: number;
+  name: string;
+  gradingPeriod: string;
+  courses: SchoologyData['courses'];
+  slotId?: string;
+}
+
+export async function saveSnapshot(name: string, data: SchoologyData): Promise<GradeSnapshot> {
+  const snapshots = await loadSnapshots();
+  const newSnapshot: GradeSnapshot = {
+    id: `snapshot_${Date.now()}`,
+    timestamp: Date.now(),
+    name: name || `Snapshot - ${data.gradingPeriod} (${new Date().toLocaleDateString()})`,
+    gradingPeriod: data.gradingPeriod,
+    courses: data.courses,
+  };
+  snapshots.push(newSnapshot);
+  await browser.storage.local.set({ bs_grade_snapshots: snapshots });
+  return newSnapshot;
+}
+
+export async function saveSnapshotToSlot(slotId: string, name: string, data: SchoologyData): Promise<GradeSnapshot> {
+  const snapshots = await loadSnapshots();
+  const filtered = snapshots.filter((s) => s.slotId !== slotId);
+  const newSnapshot: GradeSnapshot = {
+    id: `snapshot_${Date.now()}`,
+    timestamp: Date.now(),
+    name: name || `Snapshot - ${data.gradingPeriod} (${new Date().toLocaleDateString()})`,
+    gradingPeriod: data.gradingPeriod,
+    courses: data.courses,
+    slotId,
+  };
+  filtered.push(newSnapshot);
+  await browser.storage.local.set({ bs_grade_snapshots: filtered });
+  return newSnapshot;
+}
+
+export async function loadSnapshots(): Promise<GradeSnapshot[]> {
+  const result = await browser.storage.local.get('bs_grade_snapshots');
+  return (result.bs_grade_snapshots as GradeSnapshot[]) ?? [];
+}
+
+export async function deleteSnapshot(id: string): Promise<GradeSnapshot[]> {
+  const snapshots = await loadSnapshots();
+  const filtered = snapshots.filter((s) => s.id !== id);
+  await browser.storage.local.set({ bs_grade_snapshots: filtered });
+  return filtered;
+}
+
+

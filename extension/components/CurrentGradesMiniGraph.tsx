@@ -9,6 +9,7 @@
 import React from 'react';
 import type { ScrapedCourse } from '../lib/schemas';
 import { parseGradeString, gradeColor } from '../lib/grade-utils';
+import { T } from '../lib/theme';
 
 interface Props {
   courses: ScrapedCourse[];
@@ -54,11 +55,10 @@ export function CurrentGradesMiniGraph({ courses }: Props) {
     >
       <div
         style={{
-          fontSize: 10,
-          fontWeight: 700,
-          color: '#8892a4',
-          textTransform: 'uppercase',
-          letterSpacing: '0.5px',
+          fontSize: 11,
+          fontWeight: 500,
+          color: T.muted,
+          letterSpacing: '-0.01em',
           marginBottom: 14,
         }}
       >

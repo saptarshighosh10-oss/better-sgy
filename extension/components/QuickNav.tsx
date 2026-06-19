@@ -162,7 +162,6 @@ export function QuickNav({ page, courseName, courses, onJump }: Props) {
             <span style={{
               fontSize: 9, fontWeight: 800, letterSpacing: '1px',
               color: monoLabelInk(), writingMode: 'vertical-rl', textOrientation: 'mixed',
-              textTransform: 'uppercase',
             }}>
               Jump
             </span>
@@ -202,7 +201,7 @@ export function QuickNav({ page, courseName, courses, onJump }: Props) {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 14px 8px', position: 'sticky', top: 0, background: T.panel }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.6px', flex: 1 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: T.muted, letterSpacing: '0.6px', flex: 1 }}>
             Quick Nav
           </span>
           <button type="button" onClick={() => setOpen(false)} aria-label="Close quick navigation" className="bs-focusable"
@@ -289,7 +288,7 @@ export function QuickNav({ page, courseName, courses, onJump }: Props) {
 function Section({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ padding: '4px 8px 8px' }}>
-      <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, opacity: 0.8, textTransform: 'uppercase', letterSpacing: '0.5px', padding: '6px 6px 4px' }}>
+      <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, opacity: 0.8, letterSpacing: '0.5px', padding: '6px 6px 4px' }}>
         {label}
       </div>
       {children}

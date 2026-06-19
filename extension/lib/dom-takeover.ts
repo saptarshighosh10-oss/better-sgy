@@ -24,6 +24,8 @@ export interface HiddenContainer {
 
 let hiddenContainers: HiddenContainer[] = [];
 let nativeHidden = false;
+let previousHtmlOverflow = '';
+let previousBodyOverflow = '';
 
 /**
  * Find candidate Schoology containers on the page.
@@ -59,6 +61,14 @@ export function hideNativeUI(): number {
     el.style.display = 'none';
   }
 
+  // Lock page scroll so the native page (which lists every course's
+  // grades on /grades/grades) can never be scrolled into view behind
+  // the overlay.
+  previousHtmlOverflow = document.documentElement.style.overflow;
+  previousBodyOverflow = document.body.style.overflow;
+  document.documentElement.style.overflow = 'hidden';
+  document.body.style.overflow = 'hidden';
+
   nativeHidden = true;
   return hiddenContainers.length;
 }
@@ -71,6 +81,9 @@ export function restoreNativeUI(): void {
     element.style.display = previousDisplay;
     element.style.visibility = previousVisibility;
   }
+
+  document.documentElement.style.overflow = previousHtmlOverflow;
+  document.body.style.overflow = previousBodyOverflow;
 
   hiddenContainers = [];
   nativeHidden = false;

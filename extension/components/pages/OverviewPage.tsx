@@ -1,7 +1,6 @@
 import React from 'react';
 import type { ScrapedCourse, SchoologyData } from '../../lib/schemas';
-import { parseGradeString, isMissing, scorePercent, gradeColor } from '../../lib/grade-utils';
-import { courseColor } from '../../lib/course-colors';
+import { parseGradeString, isMissing, scorePercent } from '../../lib/grade-utils';
 import { SmartPriorities } from '../SmartPriorities';
 import { T, isMinimalist } from '../../lib/theme';
 import { AT, tileBg, hairline, cardShadow } from '../../lib/apple';
@@ -83,11 +82,9 @@ function CourseCard({ course, index, onClick }: {
   onClick: () => void;
 }) {
   const [hover, setHover] = React.useState(false);
-  const accent = courseColor(course.name, true);
   const { percent, letter } = parseGradeString(course.grade);
   const missCt = course.categories.flatMap((c) => c.assignments).filter(isMissing).length;
   const spark = sparkPoints(course);
-  const gradeClr = gradeColor(percent);
 
   return (
     <button
@@ -113,7 +110,6 @@ function CourseCard({ course, index, onClick }: {
         fontFamily: AT.font,
       }}
     >
-      <div aria-hidden="true" style={{ height: 4, width: '100%', background: accent, flexShrink: 0 }} />
       <div style={{ padding: '22px 24px 18px', flex: 1, display: 'flex', flexDirection: 'column' }}>
         <div style={{ fontSize: AT.h3, fontWeight: AT.semibold, letterSpacing: AT.trackHead, color: T.text, lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {course.name}
@@ -124,7 +120,7 @@ function CourseCard({ course, index, onClick }: {
           </div>
         )}
         <div style={{ marginTop: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 46, fontWeight: AT.semibold, letterSpacing: AT.trackTight, lineHeight: 1, color: gradeClr, fontVariantNumeric: 'tabular-nums' }}>
+          <span style={{ fontSize: 46, fontWeight: AT.semibold, letterSpacing: AT.trackTight, lineHeight: 1, color: T.text, fontVariantNumeric: 'tabular-nums' }}>
             {percent !== null ? percent.toFixed(1) : '—'}
           </span>
           {percent !== null && (
@@ -138,7 +134,7 @@ function CourseCard({ course, index, onClick }: {
         </div>
         {spark && (
           <svg viewBox="0 0 220 44" preserveAspectRatio="none" aria-hidden="true" style={{ height: 44, width: '100%', marginTop: 16 }}>
-            <polyline fill="none" stroke={accent} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" points={spark} />
+            <polyline fill="none" stroke={T.text} strokeOpacity="0.4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" points={spark} />
           </svg>
         )}
       </div>
@@ -164,7 +160,6 @@ export function OverviewPage({ grades, onCourseSelect }: Props) {
   const avg = gradedCourses.length
     ? gradedCourses.reduce((s, c) => s + (parseGradeString(c.grade).percent ?? 0), 0) / gradedCourses.length
     : null;
-  const avgClr = gradeColor(avg);
 
   const gpas = gradedCourses
     .map((c) => parseGradeString(c.grade).percent)
@@ -205,7 +200,7 @@ export function OverviewPage({ grades, onCourseSelect }: Props) {
           <div style={{ marginTop: 14, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 32, flexWrap: 'wrap' }}>
             <div style={{ minWidth: 260 }}>
               <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                <span style={{ fontSize: AT.hero, fontWeight: AT.semibold, letterSpacing: AT.trackTight, lineHeight: 0.95, color: avgClr ?? T.text, fontVariantNumeric: 'tabular-nums' }}>
+                <span style={{ fontSize: AT.hero, fontWeight: AT.semibold, letterSpacing: AT.trackTight, lineHeight: 0.95, color: T.text, fontVariantNumeric: 'tabular-nums' }}>
                   {avg !== null ? avg.toFixed(1) : '—'}
                 </span>
                 {avg !== null && (
@@ -214,7 +209,7 @@ export function OverviewPage({ grades, onCourseSelect }: Props) {
               </div>
               <div style={{ marginTop: 14, fontSize: AT.h3, color: T.muted, letterSpacing: AT.trackBody }}>
                 Overall average across {courses.length} course{courses.length === 1 ? '' : 's'}.
-                {status && <span style={{ color: avgClr ?? T.text, fontWeight: AT.semibold }}> {status}</span>}
+                {status && <span style={{ color: T.text, fontWeight: AT.medium }}> {status}</span>}
               </div>
               {ageLabel && (
                 <div style={{ marginTop: 8, fontSize: AT.caption, color: isStaleData ? T.amber : T.muted, opacity: isStaleData ? 1 : 0.8 }}>
@@ -232,7 +227,7 @@ export function OverviewPage({ grades, onCourseSelect }: Props) {
         {!minimal && (
           <div style={{ marginTop: 44, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 18 }}>
             <FeatureTile label="GPA estimate" value={gpaEstimate !== null ? gpaEstimate.toFixed(2) : '—'} note="Weighted · 4.0 scale" />
-            <FeatureTile label="Due today" value={String(dueTodayCount)} note="Assignments" valueColor={dueTodayCount > 0 ? T.amber : undefined} />
+            <FeatureTile label="Due today" value={String(dueTodayCount)} note="Assignments" />
             <FeatureTile label="Missing" value={missingTotal === 0 ? 'None' : String(missingTotal)} note={missingTotal > 0 ? 'Worth a look' : 'All caught up'} valueColor={missingTotal > 0 ? T.failed : undefined} />
             <FeatureTile label="Best class" value={best ? best.name : '—'} valueSize={AT.h3} note={best && best.pct >= 0 ? `${best.pct.toFixed(1)}% average` : undefined} />
           </div>

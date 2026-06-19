@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import type { ScrapedCourse, ScrapedAssignment } from '../../lib/schemas';
-import { courseColor, courseAbbr } from '../../lib/course-colors';
+import { courseAbbr } from '../../lib/course-colors';
 import { scorePercent, parseMaxGrade, gradeColor, parseDueDate, formatDueDate, isDatePast } from '../../lib/grade-utils';
 import { Icon } from '../Icon';
 import { T } from '../../lib/theme';
@@ -200,7 +200,6 @@ export function AssignmentsPage({ grades }: Props) {
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }} role="group" aria-label="Filter by course">
           {grades.courses.map((c) => {
             const active = activeCourses.has(c.name);
-            const clr = courseColor(c.name, true);
             return (
               <button
                 key={c.name}
@@ -215,8 +214,8 @@ export function AssignmentsPage({ grades }: Props) {
                   gap: 7,
                   borderRadius: AT.rPill,
                   border: 'none',
-                  background: active ? `${clr}1f` : tileBg(),
-                  color: active ? clr : T.muted,
+                  background: active ? T.text : tileBg(),
+                  color: active ? T.bg : T.muted,
                   padding: '6px 14px',
                   fontSize: AT.caption,
                   fontWeight: AT.medium,
@@ -224,7 +223,6 @@ export function AssignmentsPage({ grades }: Props) {
                   lineHeight: 1.4,
                 }}
               >
-                <span style={{ width: 7, height: 7, borderRadius: '50%', background: active ? clr : T.muted, flexShrink: 0 }} />
                 {courseAbbr(c.name)}
               </button>
             );
@@ -383,9 +381,8 @@ function assignmentPill(a: FlatAssignment): { icon: 'check' | 'minus'; label: st
 }
 
 function BucketRow({ item: a, index, bucketKey, onOpen }: { item: FlatAssignment; index: number; bucketKey: BucketKey; onOpen: (a: FlatAssignment) => void }) {
-  const clr = courseColor(a.courseName, true);
   const showGrade = bucketKey === 'done';
-  const dateColor = bucketKey === 'missing' ? T.failed : T.primary;
+  const dateColor = bucketKey === 'missing' ? T.failed : T.muted;
   const pill = assignmentPill(a);
   const clickable = !!a.link;
 
@@ -414,8 +411,8 @@ function BucketRow({ item: a, index, bucketKey, onOpen }: { item: FlatAssignment
           <span
             style={{
               fontWeight: AT.medium,
-              color: clr,
-              background: `${clr}1f`,
+              color: T.muted,
+              background: tileBg(),
               borderRadius: AT.rPill,
               padding: '2px 9px',
               flexShrink: 0,
@@ -439,8 +436,8 @@ function BucketRow({ item: a, index, bucketKey, onOpen }: { item: FlatAssignment
       {showGrade ? (
         <span style={{
           display: 'inline-flex', alignItems: 'center', gap: 5,
-          fontSize: AT.caption, fontWeight: AT.semibold, color: pill.color,
-          background: pill.color + '1f',
+          fontSize: AT.caption, fontWeight: AT.semibold, color: T.text,
+          background: tileBg(),
           borderRadius: AT.rPill, padding: '4px 11px', flexShrink: 0, whiteSpace: 'nowrap',
         }}>
           <Icon name={pill.icon} size={11} />

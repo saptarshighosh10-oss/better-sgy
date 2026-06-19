@@ -1,16 +1,17 @@
 /**
  * SidePanel.tsx — Chrome side panel (lives beside any tab). A quiet, glanceable
- * companion to the overlay: recent grade changes, a per-course grade graph, and
- * cached teacher announcements. Pure storage reader — the content script produces
- * the data while a Schoology tab is open; this just renders + reacts to it.
+ * companion to the overlay: recent activity, a per-course grade graph, and cached
+ * teacher updates. Pure storage reader — the content script produces the data while
+ * a Schoology tab is open; this just renders + reacts to it.
+ *
+ * Design: iOS-grouped minimalism — one quiet grouped surface per section, hairline
+ * row separators, generous whitespace, ink typography, color only for real signal.
  */
 import React, { useEffect, useMemo, useState } from 'react';
 import { GlobalStyles } from './GlobalStyles';
 import { T } from '../lib/theme';
 import { AT, tileBg, hairline } from '../lib/apple';
-import { appleCardStyle, SectionHeader } from './apple-ui';
 import { parseGradeString, gradeColor } from '../lib/grade-utils';
-import { courseColor } from '../lib/course-colors';
 import { computeSemesterTrend, type GradePoint } from '../lib/grade-history';
 import { loadGradeData } from '../lib/storage';
 import { loadChanges, type ChangeEvent } from '../lib/grade-changes';
@@ -28,11 +29,29 @@ function timeAgo(ts: number): string {
   return `${Math.floor(s / 86400)}d ago`;
 }
 
-function Trend({ points, color }: { points: GradePoint[]; color: string }) {
+/** Quiet iOS-style section header. */
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ fontSize: AT.caption, fontWeight: AT.medium, color: T.muted, letterSpacing: AT.trackBody, margin: '34px 6px 10px' }}>
+      {children}
+    </div>
+  );
+}
+
+/** Quiet grouped surface — the single rounded container per section. */
+function Group({ children }: { children: React.ReactNode }) {
+  return <div style={{ background: tileBg(), borderRadius: 18, overflow: 'hidden' }}>{children}</div>;
+}
+
+function EmptyRow({ children }: { children: React.ReactNode }) {
+  return <div style={{ padding: '22px 18px', fontSize: AT.sub, color: T.muted, textAlign: 'center', lineHeight: 1.5 }}>{children}</div>;
+}
+
+function Trend({ points }: { points: GradePoint[] }) {
   if (points.length < 2) {
-    return <div style={{ fontSize: AT.caption, color: T.muted, padding: '20px 0', textAlign: 'center' }}>Not enough history yet — check back after a few updates.</div>;
+    return <div style={{ fontSize: AT.caption, color: T.muted, padding: '16px 0 4px', textAlign: 'center' }}>Not enough history yet.</div>;
   }
-  const W = 320, H = 96, pad = 6;
+  const W = 320, H = 84, pad = 6;
   const sorted = [...points].sort((a, b) => a.ts - b.ts);
   const pcts = sorted.map((p) => p.percent);
   const min = Math.min(...pcts) - 1;
@@ -43,46 +62,38 @@ function Trend({ points, color }: { points: GradePoint[]; color: string }) {
     const y = pad + (1 - (p.percent - min) / span) * (H - pad * 2);
     return `${x.toFixed(1)},${y.toFixed(1)}`;
   });
-  const last = pts[pts.length - 1].split(',');
+  const [lx, ly] = pts[pts.length - 1].split(',');
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} aria-hidden="true" style={{ display: 'block' }}>
-      <polyline points={pts.join(' ')} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx={last[0]} cy={last[1]} r="3.5" fill={color} />
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} aria-hidden="true" style={{ display: 'block', marginTop: 12 }}>
+      <polyline points={pts.join(' ')} fill="none" stroke={T.text} strokeOpacity="0.85" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={lx} cy={ly} r="3" fill={T.text} />
     </svg>
   );
 }
 
 function ActivityRow({ event: e, last }: { event: ChangeEvent; last: boolean }) {
-  const rowStyle: React.CSSProperties = {
-    display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
-    borderBottom: last ? 'none' : `1px solid ${hairline()}`,
-  };
   const primary = e.kind === 'grade' ? e.course : e.name;
-  const detail =
-    e.kind === 'grade' ? `${e.oldPct?.toFixed(1)}% → ${e.newPct?.toFixed(1)}%`
-      : e.course;
-
+  const secondary =
+    e.kind === 'grade' ? `${e.oldPct?.toFixed(1)} → ${e.newPct?.toFixed(1)}%`
+      : e.kind === 'graded' ? `Graded · ${e.course}`
+        : `New assignment · ${e.course}`;
   return (
-    <div style={rowStyle}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px', borderBottom: last ? 'none' : `1px solid ${hairline()}` }}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: AT.sub, fontWeight: AT.medium, color: T.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{primary}</div>
-        <div style={{ fontSize: AT.caption, color: T.muted, marginTop: 3, fontVariantNumeric: 'tabular-nums', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {detail} · {timeAgo(e.ts)}
+        <div style={{ fontSize: AT.caption, color: T.muted, marginTop: 2, fontVariantNumeric: 'tabular-nums', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {secondary} · {timeAgo(e.ts)}
         </div>
       </div>
       {e.kind === 'grade' ? (
-        <span style={{ fontSize: AT.sub, fontWeight: AT.semibold, color: e.delta >= 0 ? T.fresh : T.failed, fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
-          {e.delta >= 0 ? '▲' : '▼'} {Math.abs(e.delta).toFixed(1)}%
+        <span style={{ fontSize: AT.sub, fontWeight: AT.medium, color: e.delta >= 0 ? T.fresh : T.failed, fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
+          {e.delta >= 0 ? '+' : '−'}{Math.abs(e.delta).toFixed(1)}%
         </span>
       ) : e.kind === 'graded' ? (
-        <span style={{ fontSize: AT.caption, fontWeight: AT.semibold, color: gradeColor(e.pct), background: tileBg(), borderRadius: AT.rPill, padding: '4px 11px', flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
-          {e.pct !== null ? `${e.pct.toFixed(0)}%` : 'Graded'}
+        <span style={{ fontSize: AT.sub, fontWeight: AT.medium, color: T.text, fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
+          {e.pct !== null ? `${e.pct.toFixed(0)}%` : ''}
         </span>
-      ) : (
-        <span style={{ fontSize: AT.micro, fontWeight: AT.semibold, color: T.primary, background: `${T.primary}1f`, borderRadius: AT.rPill, padding: '4px 11px', flexShrink: 0 }}>
-          New
-        </span>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -114,114 +125,107 @@ export function SidePanel() {
     const pcts = courses.map((c) => parseGradeString(c.grade).percent).filter((p): p is number => p !== null);
     return pcts.length ? pcts.reduce((s, p) => s + p, 0) / pcts.length : null;
   }, [courses]);
-
   const selCourse = courses.find((c) => c.name === selected) ?? courses[0] ?? null;
+  const shownChanges = changes.slice(0, 14);
+  const shownAnn = announcements.slice(0, 10);
 
   return (
-    <div style={{ minHeight: '100vh', background: T.bg, color: T.text, fontFamily: AT.font, padding: '20px 16px 40px', boxSizing: 'border-box' }}>
+    <div style={{ minHeight: '100vh', background: T.bg, color: T.text, fontFamily: AT.font, padding: '26px 16px 48px', boxSizing: 'border-box' }}>
       <GlobalStyles />
 
-      {/* Header */}
-      <div className="bs-apple-in" style={{ marginBottom: 22 }}>
-        <div style={{ fontSize: AT.sub, color: T.muted, letterSpacing: AT.trackBody }}>Better SGY</div>
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, marginTop: 2 }}>
-          <span style={{ fontSize: 44, fontWeight: AT.semibold, letterSpacing: AT.trackTight, lineHeight: 1, color: gradeColor(avg) ?? T.text, fontVariantNumeric: 'tabular-nums' }}>
+      {/* Hero — ink number, color reserved for real signal */}
+      <div className="bs-apple-in" style={{ padding: '0 6px' }}>
+        <div style={{ fontSize: AT.caption, color: T.muted, letterSpacing: AT.trackBody }}>Better SGY</div>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 5, marginTop: 6 }}>
+          <span style={{ fontSize: 46, fontWeight: AT.semibold, letterSpacing: AT.trackTight, lineHeight: 1, color: T.text, fontVariantNumeric: 'tabular-nums' }}>
             {avg !== null ? avg.toFixed(1) : '—'}
           </span>
-          {avg !== null && <span style={{ fontSize: AT.h3, fontWeight: AT.semibold, color: T.muted }}>%</span>}
+          {avg !== null && <span style={{ fontSize: 22, fontWeight: AT.medium, color: T.muted, marginBottom: 3 }}>%</span>}
         </div>
-        <div style={{ fontSize: AT.caption, color: T.muted, marginTop: 4 }}>
-          Overall average · {courses.length} course{courses.length === 1 ? '' : 's'}
-          {watch && <> · checked {timeAgo(watch.ts)}</>}
+        <div style={{ fontSize: AT.caption, color: T.muted, marginTop: 6, letterSpacing: AT.trackBody }}>
+          Overall average · {courses.length} course{courses.length === 1 ? '' : 's'}{watch ? ` · checked ${timeAgo(watch.ts)}` : ''}
         </div>
       </div>
 
-      {/* Watcher health — the "it tried but couldn't" state */}
+      {/* Watcher health */}
       {watch && !watch.ok && (
-        <div className="bs-apple-in" style={{ marginBottom: 18, padding: '12px 16px', borderRadius: AT.rTile, background: `${T.failed}14`, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-          <span aria-hidden="true" style={{ color: T.failed, fontWeight: AT.semibold, fontSize: AT.body, lineHeight: 1.3 }}>!</span>
+        <div className="bs-apple-in" style={{ marginTop: 18, padding: '12px 14px', borderRadius: 14, background: `${T.failed}12`, display: 'flex', gap: 9, alignItems: 'flex-start' }}>
+          <span aria-hidden="true" style={{ color: T.failed, fontWeight: AT.semibold }}>·</span>
           <div style={{ fontSize: AT.caption, color: T.text, lineHeight: 1.5 }}>
             {watch.reason === 'session'
-              ? "Can't refresh grades — your Schoology session expired. Open Schoology and sign in, then this catches up automatically."
+              ? 'Grades couldn’t refresh — your Schoology session expired. Open Schoology and sign in; this catches up on its own.'
               : watch.reason === 'network'
-                ? "Couldn't reach Schoology just now. It'll retry on the next check."
-                : "Couldn't read your grades this time. It'll retry on the next check."}
+                ? 'Couldn’t reach Schoology just now. It’ll retry shortly.'
+                : 'Couldn’t read your grades this time. It’ll retry shortly.'}
           </div>
         </div>
       )}
 
-      {/* Activity — grade moves, new assignments, newly-graded work */}
-      <div className="bs-apple-in" style={{ marginBottom: 24 }}>
-        <SectionHeader title="Recent activity" />
-        <div style={{ ...appleCardStyle(), overflow: 'hidden', marginTop: 12 }}>
-          {changes.length === 0 ? (
-            <div style={{ padding: '22px 18px', fontSize: AT.sub, color: T.muted, textAlign: 'center' }}>
-              Nothing new yet. You'll see grade moves, new assignments, and newly-graded work here.
-            </div>
-          ) : (
-            changes.slice(0, 14).map((e, i) => {
-              const last = i >= Math.min(changes.length, 14) - 1;
-              return <ActivityRow key={`${e.kind}-${e.course}-${e.ts}-${i}`} event={e} last={last} />;
-            })
-          )}
-        </div>
-      </div>
+      {/* Activity */}
+      <SectionLabel>Recent activity</SectionLabel>
+      <Group>
+        {shownChanges.length === 0 ? (
+          <EmptyRow>Nothing new yet. Grade moves, new assignments, and newly-graded work show up here.</EmptyRow>
+        ) : (
+          shownChanges.map((e, i) => <ActivityRow key={`${e.kind}-${e.course}-${e.ts}-${i}`} event={e} last={i === shownChanges.length - 1} />)
+        )}
+      </Group>
 
-      {/* Per-course graph */}
+      {/* Grade over time */}
       {courses.length > 0 && (
-        <div className="bs-apple-in" style={{ marginBottom: 24 }}>
-          <SectionHeader title="Grade over time" />
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', margin: '12px 0' }}>
+        <>
+          <SectionLabel>Grade over time</SectionLabel>
+          <div style={{ display: 'flex', gap: 18, overflowX: 'auto', padding: '0 6px 2px', marginBottom: 12 }}>
             {courses.map((c) => {
               const active = c.name === selCourse?.name;
-              const clr = courseColor(c.name, true);
               return (
-                <button key={c.name} type="button" onClick={() => setSelected(c.name)} className="bs-focusable bs-press"
-                  style={{ all: 'unset', cursor: 'pointer', fontSize: AT.caption, fontWeight: AT.medium, padding: '5px 11px', borderRadius: AT.rPill, whiteSpace: 'nowrap', background: active ? `${clr}24` : tileBg(), color: active ? clr : T.muted }}>
-                  {c.name.length > 18 ? c.name.slice(0, 18) + '…' : c.name}
+                <button key={c.name} type="button" onClick={() => setSelected(c.name)} className="bs-focusable"
+                  style={{ all: 'unset', cursor: 'pointer', fontSize: AT.caption, whiteSpace: 'nowrap', paddingBottom: 5, flexShrink: 0,
+                    fontWeight: active ? AT.semibold : AT.regular, color: active ? T.text : T.muted,
+                    borderBottom: `2px solid ${active ? T.text : 'transparent'}` }}>
+                  {c.name.length > 16 ? c.name.slice(0, 16) + '…' : c.name}
                 </button>
               );
             })}
           </div>
           {selCourse && (
-            <div style={{ ...appleCardStyle(), padding: '16px 16px 10px' }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 8 }}>
-                <span style={{ fontSize: AT.sub, fontWeight: AT.semibold, color: T.text }}>{selCourse.name}</span>
-                <span style={{ fontSize: AT.sub, fontWeight: AT.semibold, color: gradeColor(parseGradeString(selCourse.grade).percent), fontVariantNumeric: 'tabular-nums' }}>
-                  {parseGradeString(selCourse.grade).percent?.toFixed(1) ?? '—'}%
-                </span>
+            <Group>
+              <div style={{ padding: '16px 16px 12px' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: AT.sub, fontWeight: AT.medium, color: T.text }}>{selCourse.name}</span>
+                  <span style={{ fontSize: AT.sub, fontWeight: AT.semibold, color: gradeColor(parseGradeString(selCourse.grade).percent), fontVariantNumeric: 'tabular-nums' }}>
+                    {parseGradeString(selCourse.grade).percent?.toFixed(1) ?? '—'}%
+                  </span>
+                </div>
+                <Trend points={computeSemesterTrend(selCourse)} />
               </div>
-              <Trend points={computeSemesterTrend(selCourse)} color={courseColor(selCourse.name, true)} />
-            </div>
+            </Group>
           )}
-        </div>
+        </>
       )}
 
-      {/* Announcements */}
-      <div className="bs-apple-in">
-        <SectionHeader title="Updates" />
-        <div style={{ ...appleCardStyle(), overflow: 'hidden', marginTop: 12 }}>
-          {announcements.length === 0 ? (
-            <div style={{ padding: '22px 18px', fontSize: AT.sub, color: T.muted, textAlign: 'center' }}>
-              No announcements cached yet. Open a Schoology tab to pull the latest.
-            </div>
-          ) : (
-            announcements.slice(0, 10).map((a, i) => (
-              <button key={a.id} type="button" onClick={() => { if (a.link) browser.tabs.create({ url: a.link }); }}
-                className="bs-focusable"
-                style={{ all: 'unset', display: 'block', width: '100%', boxSizing: 'border-box', cursor: a.link ? 'pointer' : 'default', padding: '12px 16px', borderBottom: i < Math.min(announcements.length, 10) - 1 ? `1px solid ${hairline()}` : 'none' }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                  <span style={{ fontSize: AT.sub, fontWeight: AT.medium, color: T.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.author || 'Schoology'}</span>
-                  <span style={{ flex: 1 }} />
-                  <span style={{ fontSize: AT.micro, color: T.muted, flexShrink: 0 }}>{a.timeText || timeAgo(a.timestamp)}</span>
-                </div>
-                {a.courseName && <div style={{ fontSize: AT.caption, color: T.primary, fontWeight: AT.medium, marginTop: 2 }}>{a.courseName}</div>}
-                <div style={{ fontSize: AT.caption, color: T.muted, marginTop: 3, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{a.body}</div>
-              </button>
-            ))
-          )}
-        </div>
-      </div>
+      {/* Updates */}
+      <SectionLabel>Updates</SectionLabel>
+      <Group>
+        {shownAnn.length === 0 ? (
+          <EmptyRow>No updates cached yet. Open a Schoology tab to pull the latest.</EmptyRow>
+        ) : (
+          shownAnn.map((a, i) => (
+            <button key={a.id} type="button" onClick={() => { if (a.link) browser.tabs.create({ url: a.link }); }}
+              className="bs-focusable"
+              style={{ all: 'unset', display: 'block', width: '100%', boxSizing: 'border-box', cursor: a.link ? 'pointer' : 'default', padding: '13px 16px', borderBottom: i === shownAnn.length - 1 ? 'none' : `1px solid ${hairline()}` }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                <span style={{ fontSize: AT.sub, fontWeight: AT.medium, color: T.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.author || 'Schoology'}</span>
+                <span style={{ flex: 1 }} />
+                <span style={{ fontSize: AT.micro, color: T.muted, flexShrink: 0 }}>{a.timeText || timeAgo(a.timestamp)}</span>
+              </div>
+              <div style={{ fontSize: AT.caption, color: T.muted, marginTop: 4, lineHeight: 1.45, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                {a.courseName ? `${a.courseName} — ${a.body}` : a.body}
+              </div>
+            </button>
+          ))
+        )}
+      </Group>
     </div>
   );
 }

@@ -1,81 +1,83 @@
 # Better SGY — Editions
 
-Better SGY comes in a few flavors. They all read your real Schoology grades; they
-just dress them differently. Here's the lineup, who each one is for, and why
-**Halo** is the one we recommend.
+Better SGY is a Chrome extension that replaces the Schoology dashboard. It comes
+in a few flavors. **Halo** is the one we recommend and the one that ships as a
+real, installable extension today; the others are described honestly below.
 
 ---
 
-## ⭐ Halo — *the recommended one*
+## ⭐ Halo — *the recommended edition* (installable extension)
 
 **The Apple-Store-clean edition.** iOS-Settings restraint: ink typography,
 grouped surfaces with hairline dividers, generous whitespace, and color used
 **only when it means something** — red for missing/overdue, green for a grade
-that went up. SF Pro throughout. Comes with the live grade watcher, the side
-panel, the floating grade card, desktop reminders, and skeleton loaders.
+that went up. SF Pro throughout. Live grade watcher, side panel, floating grade
+card, due-soon reminders, skeleton loaders.
 
-- **Who it's for:** basically everyone. Especially anyone who finds school
-  dashboards loud and stressful and just wants to glance and *know*.
+- **Who it's for:** basically everyone — anyone who finds school dashboards loud
+  and just wants to glance and *know*.
 - **Why it's the best:** signal over noise. Because color is rare, your eye goes
-  straight to what changed. It doesn't look "AI-generated," it ages well, and
-  it carries the most features. Quiet on purpose, not empty.
-- **Tip:** prefer pure black-and-white? Halo ships a **Mono** accent — you get
-  Slate's monochrome look without giving up the red/green that actually helps.
+  straight to what changed. It doesn't look "AI-generated," it ages well, and it
+  carries the most features.
+- **Prefer pure black-and-white?** Halo ships a **Mono** accent — Slate's
+  monochrome look without giving up the red/green that actually helps.
+
+**Install (load unpacked):**
+1. Build it: `cd extension && npm install && npm run build`
+2. Open `chrome://extensions`, turn on **Developer mode**
+3. **Load unpacked** → select `extension/.output/chrome-mv3`
+
+**Install (from the zip):** unzip `extension/.output/better-sgy-extension-1.0.0-chrome.zip`,
+then **Load unpacked** the unzipped folder. (Same MV3 build, just packaged.)
 
 ---
 
-## Scope — *the fun one*
+## Forge — *the power UI* (a branch of this extension, not a separate install)
 
-**The Y2K retro-OS edition.** A boot screen, a fleet carousel, `.SYS` tabs, and
-an actual built-in **Grade Breaker** arcade game. Pure personality.
+**The dense, do-everything dashboard:** grade-change feed, ⌘K command palette,
+GPA planner, personal tasks. Lives on the `redesign/v2-ui` branch — it's the
+**same** Better SGY extension with a different UI, so you build/install it the
+same way as Halo after `git checkout redesign/v2-ui`.
 
-- **Who it's for:** people who think grade portals are soul-crushingly boring and
-  want their dashboard to have a *vibe*. Nostalgia lovers. Tinkerers.
-- **Why it's good:** genuinely delightful and memorable — nothing else feels like
-  it, and the game is a real one.
-- **Why Halo does it better:** the novelty fades, and the retro chrome competes
-  with your actual grades for attention. Scope is a mood; Halo is the thing you
-  open every day.
-
----
-
-## Forge — *the power one*
-
-**The dense, do-everything dashboard.** Grade-change feed, ⌘K command palette,
-GPA planner, personal tasks — maximum information on one screen.
-
-- **Who it's for:** power users and data nerds who want every number visible at
-  once and keyboard shortcuts for all of it.
-- **Why it's good:** unmatched density and control; great if you live in your
-  grades and plan aggressively.
+- **Who it's for:** power users who want every number on screen at once.
 - **Why Halo does it better:** density is cognitive load. Halo shows the same
-  information with room to breathe and spends your attention only on what moved —
-  less to scan, less to stress about.
+  info with room to breathe and spends your attention only on what moved.
 
 ---
 
-## Slate — *the bare one*
+## Slate — *the bare UI* (a mode/branch, not a separate install)
 
-**The monochrome minimalist edition.** Black, white, and grays. Zero color, zero
-ornament — just the numbers.
+**Monochrome minimalist:** black, white, grays — zero color, zero ornament.
+Shipped as minimalist mode on the `feature/minimalist-mode` branch. Again, the
+**same** extension, different skin.
 
-- **Who it's for:** deep-focus people, e-ink fans, anyone who wants the absolute
-  least visual noise possible.
-- **Why it's good:** nothing competes for your eyes. Total calm.
-- **Why Halo does it better:** Halo is already minimalist — it just keeps the
-  *one* bit of color that carries meaning (red/green = real signal). Slate is
-  purity for its own sake; Halo is restraint with a purpose. And if you truly
-  want Slate's look, it's one accent toggle away inside Halo.
+- **Who it's for:** deep-focus people, e-ink fans.
+- **Why Halo does it better:** Halo is already minimalist but keeps the one bit
+  of color that carries meaning. You can also just flip Halo's **Mono** accent
+  for nearly the same look without losing that signal.
+
+---
+
+## Scope — *the fun one* (NOT an extension — a standalone web app)
+
+**The Y2K retro-OS edition:** a boot screen, fleet carousel, `.SYS` tabs, and a
+built-in **Grade Breaker** arcade game. This one is **not** a browser extension —
+it's a self-contained HTML app (`Scope_Y2K_v19_full_os.html`). You open the file
+in a browser; there's nothing to install and it doesn't read live Schoology data.
+
+- **Who it's for:** people who want pure personality and a game.
+- **Why Halo does it better:** Scope is a vibe to show off; Halo is the tool you
+  actually open every day to check real grades.
 
 ---
 
 ### TL;DR
 
-| Edition | Vibe | Best for | Verdict |
+| Edition | Form | Best for | Verdict |
 |---|---|---|---|
-| **Halo** ⭐ | Calm, premium, Apple-clean | Almost everyone | **Recommended** |
-| Scope | Retro Y2K OS + game | Fun-seekers, nostalgia | Delightful, not daily |
-| Forge | Dense power dashboard | Data nerds, planners | Powerful, busy |
-| Slate | Pure monochrome | Deep-focus minimalists | Calm, but loses useful signal |
+| **Halo** ⭐ | Installable extension | Almost everyone | **Recommended** |
+| Forge | Branch of the extension | Data nerds, planners | Powerful, busy |
+| Slate | Branch / mode | Deep-focus minimalists | Calm; loses useful signal |
+| Scope | Standalone HTML app | Fun-seekers | Delightful, not a daily tool |
 
-*Names are working titles — easy to change.*
+*Only Halo is packaged as an installable extension right now. Names are working titles.*

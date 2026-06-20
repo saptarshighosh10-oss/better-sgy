@@ -96,6 +96,26 @@ export function GlobalStyles() {
       /* Apple card hover lift — soft and slow */
       .bs-apple-card { transition: transform 240ms cubic-bezier(0.22,1,0.36,1), box-shadow 240ms ease-out, border-color 240ms ease-out; }
 
+      /* Skeleton loader — gentle shimmer sweep across a neutral block */
+      @keyframes bsSkel {
+        0%   { background-position: -180% 0; }
+        100% { background-position: 180% 0; }
+      }
+      .bs-skel {
+        border-radius: 8px;
+        background-color: currentColor;
+        background-image: linear-gradient(90deg,
+          rgba(128,128,128,0.00) 0%,
+          rgba(128,128,128,0.14) 20%,
+          rgba(128,128,128,0.26) 50%,
+          rgba(128,128,128,0.14) 80%,
+          rgba(128,128,128,0.00) 100%);
+        background-size: 180% 100%;
+        background-repeat: no-repeat;
+        opacity: 0.5;
+        animation: bsSkel 1.4s ease-in-out infinite;
+      }
+
       /* Tiny loading spinner — rotate only (compositor-safe) */
       @keyframes bsSpin { to { transform: rotate(360deg); } }
       @keyframes bsSpinRev { to { transform: rotate(-360deg); } }

@@ -18,6 +18,7 @@ import { CalendarPage } from './pages/CalendarPage';
 import { GameHub } from './pages/GameHub';
 import { AnnouncementsPage } from './pages/AnnouncementsPage';
 import { NostalgiaPage } from './pages/NostalgiaPage';
+import { DashboardSkeleton } from './DashboardSkeleton';
 import { seedDemoData } from '../lib/demo-data';
 import { type GradeSnapshot } from '../lib/storage';
 import { useAnnouncements } from '../lib/use-announcements';
@@ -59,31 +60,6 @@ interface Props {
 }
 
 /** Starting-screen loader: two concentric counter-rotating accent rings. */
-function BootRings() {
-  return (
-    <div style={{ position: 'relative', width: 58, height: 58, marginBottom: 4 }} aria-hidden="true">
-      <span
-        className="bs-boot-ring"
-        style={{
-          inset: 0,
-          border: `3px solid ${T.border}`,
-          borderTopColor: T.primary,
-          animation: 'bsSpin 0.9s linear infinite',
-        }}
-      />
-      <span
-        className="bs-boot-ring"
-        style={{
-          inset: 11,
-          border: `3px solid ${T.border}`,
-          borderBottomColor: T.primary,
-          animation: 'bsSpinRev 0.7s linear infinite',
-        }}
-      />
-    </div>
-  );
-}
-
 const PAGE_KEY = '__bs_page__';
 const COURSE_KEY = '__bs_course__';
 
@@ -175,23 +151,21 @@ export function ExtRouter({ scrapeResult }: Props) {
     });
   }
 
-  // Loading
+  // Loading — show a skeleton mirror of the dashboard rather than a bare spinner.
   if (grades.loading) {
-    return (
-      <div style={BASE} role="status" aria-busy="true">
-        <BootRings />
-        <span style={{ color: T.muted, fontSize: 13 }}>Loading your dashboard…</span>
-      </div>
-    );
+    return <div role="status" aria-busy="true"><DashboardSkeleton /></div>;
   }
 
   // No data yet
   if (!grades.data) {
     const isInProgress = IN_PROGRESS.has(scrapeResult.status);
     const isFailed = scrapeResult.status === 'failed';
+    // While the first scrape is running, the skeleton reads better than a spinner.
+    if (isInProgress) {
+      return <div role="status" aria-busy="true"><DashboardSkeleton /></div>;
+    }
     return (
       <div style={BASE} role="status">
-        {isInProgress && <BootRings />}
         <div style={{ fontSize: 16, fontWeight: 600, color: T.text, maxWidth: 420 }}>
           {isInProgress
             ? 'Reading grades from Schoology…'

@@ -31,6 +31,12 @@ export default defineConfig({
       default_title: 'Better SGY',
       default_icon: ICONS,
     },
+    commands: {
+      _execute_side_panel: {
+        suggested_key: { mac: 'Command+Shift+S', default: 'Ctrl+Shift+S' },
+        description: 'Open Better SGY side panel',
+      },
+    },
   },
   // Strip chatty console.log/info/debug/warn from the production bundle (kept in dev).
   // console.error survives so genuine failures are still reportable. WXT builds each

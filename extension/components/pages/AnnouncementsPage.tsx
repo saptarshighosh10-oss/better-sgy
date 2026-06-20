@@ -4,6 +4,7 @@ import { AT, tileBg, hairline } from '../../lib/apple';
 import { appleCardStyle } from '../apple-ui';
 import type { UseAnnouncements } from '../../lib/use-announcements';
 import type { Announcement } from '../../lib/fetch-announcements';
+import { openSafe } from '../../lib/safe-url';
 
 interface Props {
   announcements: UseAnnouncements;
@@ -162,7 +163,7 @@ function Chip({ label, active, onClick }: { label: string; active: boolean; onCl
 function InboxRow({ item: a, index, isNew, important, onStar }: {
   item: Announcement; index: number; isNew: boolean; important: boolean; onStar: () => void;
 }) {
-  const open = () => { if (a.link) window.open(a.link, '_blank', 'noopener,noreferrer'); };
+  const open = () => openSafe(a.link);
   return (
     <button type="button" onClick={open} className="bs-row-enter bs-focusable"
       style={{

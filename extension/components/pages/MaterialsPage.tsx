@@ -22,6 +22,7 @@ import {
 import { loadStarredFolders, toggleStarredFolder, type StarredFolder } from '../../lib/starred-folders';
 import { T, getActiveTheme, onThemeChange, inkOnAccent } from '../../lib/theme';
 import { tileBg, hairline } from '../../lib/apple';
+import { openSafe } from '../../lib/safe-url';
 
 interface GradesState { courses: ScrapedCourse[]; }
 interface Props { grades: GradesState; }
@@ -282,7 +283,7 @@ export function MaterialsPage({ grades }: Props) {
     // Remaining external links (Google Docs etc. — editable, so a real tab)
     // and Schoology "link"/LTI materials → new tab
     if (isExternal || type === 'link') {
-      window.open(real, '_blank', 'noopener,noreferrer');
+      openSafe(real);
       return;
     }
     href = real;
@@ -297,7 +298,7 @@ export function MaterialsPage({ grades }: Props) {
       return;
     }
     if (fileKind === 'office') {
-      window.open(href, '_blank', 'noopener,noreferrer');
+      openSafe(href);
       return;
     }
     if (type === 'discussion' || /\/discussion\//.test(href)) {

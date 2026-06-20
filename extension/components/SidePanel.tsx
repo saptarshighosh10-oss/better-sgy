@@ -14,8 +14,10 @@ import { AT, tileBg, hairline } from '../lib/apple';
 import { parseGradeString, gradeColor } from '../lib/grade-utils';
 import { computeSemesterTrend, type GradePoint } from '../lib/grade-history';
 import { loadGradeData } from '../lib/storage';
-import { loadChanges, type ChangeEvent } from '../lib/grade-changes';
+import { loadChanges, dedupeChanges, type ChangeEvent } from '../lib/grade-changes';
 import { loadWatchStatus, type WatchStatus } from '../lib/watch-status';
+import { loadSettings, saveSettings, toggleMutedCourse, DEFAULT_SETTINGS, type Settings } from '../lib/settings';
+import { safeExternalUrl } from '../lib/safe-url';
 import { loadCachedAnnouncements } from '../lib/announcement-cache';
 import type { SchoologyData } from '../lib/schemas';
 import type { Announcement } from '../lib/fetch-announcements';
@@ -45,6 +47,30 @@ function Group({ children }: { children: React.ReactNode }) {
 
 function EmptyRow({ children }: { children: React.ReactNode }) {
   return <div style={{ padding: '22px 18px', fontSize: AT.sub, color: T.muted, textAlign: 'center', lineHeight: 1.5 }}>{children}</div>;
+}
+
+/** iOS-style toggle switch. */
+function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button type="button" role="switch" aria-checked={on} onClick={() => onChange(!on)} className="bs-focusable"
+      style={{ all: 'unset', cursor: 'pointer', width: 40, height: 24, borderRadius: 12, flexShrink: 0,
+        background: on ? T.fresh : `${T.text}24`, transition: 'background 180ms ease', position: 'relative' }}>
+      <span style={{ position: 'absolute', top: 2, left: on ? 18 : 2, width: 20, height: 20, borderRadius: '50%',
+        background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.3)', transition: 'left 180ms cubic-bezier(0.4,0,0.2,1)' }} />
+    </button>
+  );
+}
+
+function SettingRow({ label, note, last, children }: { label: string; note?: string; last?: boolean; children: React.ReactNode }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px', borderBottom: last ? 'none' : `1px solid ${hairline()}` }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: AT.sub, fontWeight: AT.medium, color: T.text }}>{label}</div>
+        {note && <div style={{ fontSize: AT.caption, color: T.muted, marginTop: 2 }}>{note}</div>}
+      </div>
+      {children}
+    </div>
+  );
 }
 
 function Trend({ points }: { points: GradePoint[] }) {
@@ -98,21 +124,68 @@ function ActivityRow({ event: e, last }: { event: ChangeEvent; last: boolean }) 
   );
 }
 
+/** Shimmer placeholder shown until storage data resolves. Mirrors the real layout. */
+function Skel({ w, h, r, style }: { w: number | string; h: number; r?: number; style?: React.CSSProperties }) {
+  return <div className="bs-skel" style={{ width: w, height: h, borderRadius: r ?? 7, color: T.text, ...style }} />;
+}
+
+function SidePanelSkeleton() {
+  return (
+    <div style={{ minHeight: '100vh', background: T.bg, color: T.text, fontFamily: AT.font, padding: '26px 16px 48px', boxSizing: 'border-box' }}>
+      <GlobalStyles />
+      {/* Hero */}
+      <div style={{ padding: '0 6px' }}>
+        <Skel w={72} h={11} />
+        <Skel w={132} h={44} style={{ marginTop: 12 }} />
+        <Skel w={160} h={12} style={{ marginTop: 12 }} />
+      </div>
+      {/* Recent activity */}
+      <div style={{ height: 13, margin: '34px 6px 10px' }}><Skel w={96} h={11} /></div>
+      <div style={{ background: tileBg(), borderRadius: 18, overflow: 'hidden' }}>
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px', borderBottom: i === 3 ? 'none' : `1px solid ${hairline()}` }}>
+            <div style={{ flex: 1 }}>
+              <Skel w="62%" h={13} />
+              <Skel w="42%" h={10} style={{ marginTop: 7 }} />
+            </div>
+            <Skel w={38} h={13} />
+          </div>
+        ))}
+      </div>
+      {/* Graph */}
+      <div style={{ height: 13, margin: '34px 6px 10px' }}><Skel w={108} h={11} /></div>
+      <div style={{ display: 'flex', gap: 14, padding: '0 6px 14px' }}>
+        {[44, 58, 50].map((w, i) => <Skel key={i} w={w} h={12} />)}
+      </div>
+      <div style={{ background: tileBg(), borderRadius: 18, padding: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Skel w={120} h={13} /><Skel w={40} h={13} />
+        </div>
+        <Skel w="100%" h={84} r={12} style={{ marginTop: 14 }} />
+      </div>
+    </div>
+  );
+}
+
 export function SidePanel() {
   const [data, setData] = useState<SchoologyData | null>(null);
   const [changes, setChanges] = useState<ChangeEvent[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [watch, setWatch] = useState<WatchStatus | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
 
   useEffect(() => {
     async function load() {
-      const [d, ch, ann, w] = await Promise.all([loadGradeData(), loadChanges(), loadCachedAnnouncements(), loadWatchStatus()]);
+      const [d, ch, ann, w, st] = await Promise.all([loadGradeData(), loadChanges(), loadCachedAnnouncements(), loadWatchStatus(), loadSettings()]);
       setData(d);
       setChanges(ch);
       setAnnouncements(ann);
       setWatch(w);
+      setSettings(st);
       setSelected((prev) => prev ?? d?.courses[0]?.name ?? null);
+      setLoading(false);
     }
     void load();
     const onChanged = (_c: Record<string, unknown>, area: string) => { if (area === 'local') void load(); };
@@ -120,13 +193,15 @@ export function SidePanel() {
     return () => browser.storage.onChanged.removeListener(onChanged);
   }, []);
 
+  if (loading) return <SidePanelSkeleton />;
+
   const courses = data?.courses ?? [];
   const avg = useMemo(() => {
     const pcts = courses.map((c) => parseGradeString(c.grade).percent).filter((p): p is number => p !== null);
     return pcts.length ? pcts.reduce((s, p) => s + p, 0) / pcts.length : null;
   }, [courses]);
   const selCourse = courses.find((c) => c.name === selected) ?? courses[0] ?? null;
-  const shownChanges = changes.slice(0, 14);
+  const shownChanges = dedupeChanges(changes, 8);
   const shownAnn = announcements.slice(0, 10);
 
   return (
@@ -211,7 +286,7 @@ export function SidePanel() {
           <EmptyRow>No updates cached yet. Open a Schoology tab to pull the latest.</EmptyRow>
         ) : (
           shownAnn.map((a, i) => (
-            <button key={a.id} type="button" onClick={() => { if (a.link) browser.tabs.create({ url: a.link }); }}
+            <button key={a.id} type="button" onClick={() => { const u = safeExternalUrl(a.link); if (u) browser.tabs.create({ url: u }); }}
               className="bs-focusable"
               style={{ all: 'unset', display: 'block', width: '100%', boxSizing: 'border-box', cursor: a.link ? 'pointer' : 'default', padding: '13px 16px', borderBottom: i === shownAnn.length - 1 ? 'none' : `1px solid ${hairline()}` }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
@@ -226,6 +301,57 @@ export function SidePanel() {
           ))
         )}
       </Group>
+
+      {/* Settings */}
+      <SectionLabel>Settings</SectionLabel>
+      <Group>
+        <SettingRow label="Notifications" note="Grade changes & new work">
+          <Toggle on={settings.notifications} onChange={async (v) => setSettings(await saveSettings({ notifications: v }))} />
+        </SettingRow>
+        <SettingRow label="Due-soon reminders" note="Heads-up the day before">
+          <Toggle on={settings.dueSoonReminders} onChange={async (v) => setSettings(await saveSettings({ dueSoonReminders: v }))} />
+        </SettingRow>
+        <SettingRow label="Open sound" note="Chime when the panel opens" last>
+          <Toggle on={settings.chime} onChange={async (v) => setSettings(await saveSettings({ chime: v }))} />
+        </SettingRow>
+      </Group>
+
+      {/* Check frequency */}
+      <SectionLabel>Check every</SectionLabel>
+      <div style={{ display: 'flex', gap: 8 }}>
+        {[5, 15, 30, 60].map((m) => {
+          const active = settings.pollMinutes === m;
+          return (
+            <button key={m} type="button" className="bs-focusable"
+              onClick={async () => setSettings(await saveSettings({ pollMinutes: m }))}
+              style={{ all: 'unset', cursor: 'pointer', flex: 1, textAlign: 'center', padding: '9px 0', borderRadius: 12,
+                fontSize: AT.caption, fontWeight: AT.medium,
+                background: active ? T.text : tileBg(), color: active ? T.bg : T.muted }}>
+              {m}m
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Mute courses */}
+      {courses.length > 0 && (
+        <>
+          <SectionLabel>Mute courses</SectionLabel>
+          <Group>
+            {courses.map((c, i) => {
+              const muted = settings.mutedCourses.includes(c.name);
+              return (
+                <SettingRow key={c.name} label={c.name} last={i === courses.length - 1}>
+                  <Toggle on={!muted} onChange={async () => setSettings(await toggleMutedCourse(c.name))} />
+                </SettingRow>
+              );
+            })}
+          </Group>
+          <div style={{ fontSize: AT.micro, color: T.muted, margin: '8px 6px 0' }}>On = you’ll get alerts for this course.</div>
+        </>
+      )}
+
+      <div style={{ height: 24 }} />
     </div>
   );
 }

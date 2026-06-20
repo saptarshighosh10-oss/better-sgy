@@ -12,6 +12,8 @@ import { appendGradeHistory } from '../lib/grade-history';
 import { detectChanges, appendChanges, type ChangeEvent } from '../lib/grade-changes';
 import { saveWatchStatus } from '../lib/watch-status';
 import { countAssignments } from '../lib/transform';
+import { loadSettings } from '../lib/settings';
+import { runDueSoonCheck } from '../lib/due-soon';
 
 const POLL_ALARM = 'bs-grade-poll';
 const POLL_MINUTES = 15;
@@ -37,9 +39,9 @@ async function workerFetch(url: string, init?: RequestInit, retries = 4): Promis
 // chrome.sidePanel is Chrome-only and not in the webextension-polyfill types.
 type SidePanelApi = {
   setPanelBehavior?: (o: { openPanelOnActionClick: boolean }) => Promise<void>;
-  open?: (o: { windowId: number }) => Promise<void>;
+  open?: (o: { tabId: number } | { windowId: number }) => Promise<void>;
 };
-const sidePanel = (browser as unknown as { sidePanel?: SidePanelApi }).sidePanel;
+const sidePanel = (globalThis as unknown as { chrome?: { sidePanel?: SidePanelApi } }).chrome?.sidePanel;
 
 /** One-line summary of a change event for a notification. */
 function eventLine(e: ChangeEvent): string {
@@ -56,10 +58,15 @@ function eventLine(e: ChangeEvent): string {
 }
 
 /** Fire a desktop notification summarizing one or more change events. */
-function notifyChanges(events: ChangeEvent[]) {
+async function notifyChanges(events: ChangeEvent[]) {
   if (!events.length) return;
-  const title = events.length === 1 ? 'Schoology update' : `${events.length} Schoology updates`;
-  const message = events.slice(0, 4).map(eventLine).join('\n');
+  const settings = await loadSettings();
+  if (!settings.notifications) return;
+  // Drop events for muted courses.
+  const visible = events.filter((e) => !('course' in e) || !settings.mutedCourses.includes(e.course));
+  if (!visible.length) return;
+  const title = visible.length === 1 ? 'Schoology update' : `${visible.length} Schoology updates`;
+  const message = visible.slice(0, 4).map(eventLine).join('\n');
   void browser.notifications.create(`bs-change-${Date.now()}`, {
     type: 'basic',
     iconUrl: (browser.runtime.getURL as (p: string) => string)('/icon/128.png'),
@@ -155,7 +162,9 @@ async function runClosedTabPoll(): Promise<void> {
   const events = detectChanges(previous, data);
   if (events.length) {
     await appendChanges(events);
-    notifyChanges(events);
+    void notifyChanges(events);
+    // Auto-open the side panel on all windows so the activity feed is visible.
+    browser.windows.getAll().then((ws) => ws.forEach((w) => { if (w.id != null) sidePanel?.open?.({ windowId: w.id }).catch(() => {}); })).catch(() => {});
   }
   await saveWatchStatus({ ok: true, ts: Date.now() });
   await saveScrapeMeta({
@@ -165,29 +174,49 @@ async function runClosedTabPoll(): Promise<void> {
     assignmentCount: countAssignments(data.courses),
     error: null,
   });
+  void runDueSoonCheck(data.courses);
 }
 
 export default defineBackground(() => {
   console.log('[BS] Background service worker started');
 
   // Closed-tab grade watcher: an alarm wakes the worker on a timer (survives SW idle).
-  browser.alarms.create(POLL_ALARM, { periodInMinutes: POLL_MINUTES });
+  // Interval is user-configurable; re-arm the alarm when the setting changes.
+  const armPoll = (minutes: number) =>
+    browser.alarms.create(POLL_ALARM, { periodInMinutes: Math.max(1, minutes) });
+  void loadSettings().then((s) => armPoll(s.pollMinutes || POLL_MINUTES));
   browser.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === POLL_ALARM) void runClosedTabPoll();
   });
-
-  // Clicking the toolbar icon opens the Better SGY side panel (works on any tab).
-  sidePanel?.setPanelBehavior?.({ openPanelOnActionClick: true }).catch(() => {});
-
-  // Clicking a grade notification opens the side panel to the detail.
-  browser.notifications.onClicked.addListener(() => {
-    browser.windows.getCurrent().then((w) => {
-      if (w?.id != null) sidePanel?.open?.({ windowId: w.id }).catch(() => {});
-    }).catch(() => {});
+  browser.storage.onChanged.addListener((changes, area) => {
+    if (area === 'local' && changes.bs_settings) {
+      void loadSettings().then((s) => armPoll(s.pollMinutes || POLL_MINUTES));
+    }
   });
 
+  const openPanel = (windowId: number) => sidePanel?.open?.({ windowId }).catch(() => {});
+  const openPanelInCurrentWindow = () =>
+    browser.windows.getCurrent().then((w) => { if (w?.id != null) openPanel(w.id); }).catch(() => {});
+
+  // openPanelOnActionClick is a fallback; explicit onClicked is more reliable.
+  sidePanel?.setPanelBehavior?.({ openPanelOnActionClick: true }).catch(() => {});
+  browser.action.onClicked.addListener((tab) => {
+    const wid = tab.windowId;
+    if (wid != null) openPanel(wid);
+  });
+
+  // Auto-open on first install + on every existing window at startup.
+  browser.runtime.onInstalled.addListener(() => {
+    browser.windows.getAll().then((ws) => ws.forEach((w) => { if (w.id != null) openPanel(w.id); })).catch(() => {});
+  });
+  browser.windows.getAll().then((ws) => ws.forEach((w) => { if (w.id != null) openPanel(w.id); })).catch(() => {});
+  browser.windows.onCreated.addListener((w) => { if (w.id != null) openPanel(w.id); });
+
+  // Clicking a grade notification reopens the side panel.
+  browser.notifications.onClicked.addListener(() => openPanelInCurrentWindow());
+
   browser.runtime.onMessage.addListener(
-    (message, _sender) => {
+    (message, sender) => {
       if (!message || typeof message !== 'object' || !('type' in message)) return;
       const msg = message as { type: string; url?: string; events?: ChangeEvent[] };
 
@@ -195,8 +224,23 @@ export default defineBackground(() => {
         return Promise.resolve({ type: 'pong', ts: Date.now() });
       }
 
+      if (msg.type === 'open-panel') {
+        const tabId = sender.tab?.id;
+        const wid = sender.tab?.windowId;
+        if (tabId != null) {
+          sidePanel?.open?.({ tabId }).catch(() => {});
+        } else if (wid != null) {
+          sidePanel?.open?.({ windowId: wid }).catch(() => {});
+        } else {
+          browser.windows.getLastFocused().then((w) => {
+            if (w?.id != null) sidePanel?.open?.({ windowId: w.id }).catch(() => {});
+          }).catch(() => {});
+        }
+        return;
+      }
+
       if (msg.type === 'change' && Array.isArray(msg.events)) {
-        notifyChanges(msg.events);
+        void notifyChanges(msg.events);
         return;
       }
 

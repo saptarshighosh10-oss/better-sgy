@@ -27,6 +27,7 @@ import { appendGradeHistory } from '../lib/grade-history';
 import { detectChanges, appendChanges, type ChangeEvent } from '../lib/grade-changes';
 import { saveWatchStatus } from '../lib/watch-status';
 import { cacheAnnouncements } from '../lib/announcement-cache';
+import { T, onThemeChange, getActiveTheme, getAccentColor } from '../lib/theme';
 import { seedDemoData, clearDemoData } from '../lib/demo-data';
 
 /**
@@ -81,6 +82,15 @@ export default defineContentScript({
     // Remember this school's Schoology origin so the background worker can poll
     // grades on a timer even when no Schoology tab is open (closed-tab watching).
     void browser.storage.local.set({ bs_sgy_origin: location.origin });
+
+    // Push the active theme to storage so the side panel + floating widget (which
+    // run in other contexts with their own empty localStorage) can match Schoology.
+    const saveThemeSync = () => void browser.storage.local.set({
+      bs_theme_sync: { bg: T.bg, text: T.text, primary: T.primary, border: T.border, card: T.card },
+      bs_theme_state: { theme: getActiveTheme(), accent: getAccentColor() },
+    });
+    saveThemeSync();
+    onThemeChange(saveThemeSync);
 
     // DEV/TEST: seed or clear a mock gradebook from the console so the dashboard works
     // without real grades (summer-wiped). Run __bsSeedDemo() / __bsClearDemo() in DevTools.

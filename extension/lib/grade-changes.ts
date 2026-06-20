@@ -82,3 +82,23 @@ export async function loadChanges(): Promise<ChangeEvent[]> {
 export async function clearChanges(): Promise<void> {
   await browser.storage.local.remove(KEY);
 }
+
+/**
+ * Collapse near-identical events (same kind + course/name within a 60s window)
+ * that can pile up when a scrape re-runs. Shared by the side panel + floating widget.
+ */
+export function dedupeChanges(events: ChangeEvent[], limit = 8): ChangeEvent[] {
+  const key = (e: ChangeEvent) =>
+    `${e.kind}|${'course' in e ? e.course : ''}|${'name' in e ? e.name : ''}`;
+  const seen = new Map<string, number>();
+  const out: ChangeEvent[] = [];
+  for (const e of events) {
+    const k = key(e);
+    const last = seen.get(k);
+    if (last !== undefined && Math.abs(last - e.ts) < 60_000) continue;
+    seen.set(k, e.ts);
+    out.push(e);
+    if (out.length >= limit) break;
+  }
+  return out;
+}

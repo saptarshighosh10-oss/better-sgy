@@ -28,7 +28,6 @@ import { detectChanges, appendChanges, type ChangeEvent } from '../lib/grade-cha
 import { saveWatchStatus } from '../lib/watch-status';
 import { cacheAnnouncements } from '../lib/announcement-cache';
 import { T, onThemeChange, getActiveTheme, getAccentColor } from '../lib/theme';
-import { seedDemoData, clearDemoData } from '../lib/demo-data';
 
 /**
  * After a successful scrape, mark the watcher healthy and record any activity
@@ -91,12 +90,6 @@ export default defineContentScript({
     });
     saveThemeSync();
     onThemeChange(saveThemeSync);
-
-    // DEV/TEST: seed or clear a mock gradebook from the console so the dashboard works
-    // without real grades (summer-wiped). Run __bsSeedDemo() / __bsClearDemo() in DevTools.
-    // Remove before store submission.
-    (window as unknown as { __bsSeedDemo?: () => void }).__bsSeedDemo = () => { void seedDemoData(); };
-    (window as unknown as { __bsClearDemo?: () => void }).__bsClearDemo = () => { void clearDemoData(); };
 
     // ── Single-mount guard ─────────────────────────────────────
     if (document.getElementById(MOUNT_ID)) {

@@ -36,9 +36,9 @@ export function AnnouncementsPage({ announcements }: Props) {
   const didMark = useRef(false);
 
   const buckets: Bucket[] = useMemo(() => [
-    { key: 'message', label: 'Announcements', color: T.primary, items: items.filter((a) => a.kind === 'message'), empty: 'No teacher messages yet.' },
-    { key: 'update', label: 'Updates', color: T.fresh, items: items.filter((a) => a.kind === 'update'), empty: 'No notifications yet.' },
-    { key: 'class-update', label: 'Class updates', color: T.doc, items: items.filter((a) => a.kind === 'class-update'), empty: 'No course posts yet.' },
+    { key: 'message', label: 'Announcements', color: T.text, items: items.filter((a) => a.kind === 'message'), empty: 'No teacher messages yet.' },
+    { key: 'update', label: 'Updates', color: T.text, items: items.filter((a) => a.kind === 'update'), empty: 'No notifications yet.' },
+    { key: 'class-update', label: 'Class updates', color: T.text, items: items.filter((a) => a.kind === 'class-update'), empty: 'No course posts yet.' },
   ], [items]);
 
   useEffect(() => {
@@ -151,8 +151,8 @@ function Chip({ label, active, onClick }: { label: string; active: boolean; onCl
       style={{
         all: 'unset', cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap',
         fontSize: AT.caption, fontWeight: AT.medium, padding: '5px 12px', borderRadius: AT.rPill,
-        color: active ? inkOnAccent() : T.muted,
-        background: active ? T.primary : tileBg(),
+        color: active ? T.bg : T.muted,
+        background: active ? T.text : tileBg(),
       }}>
       {label}
     </button>
@@ -178,7 +178,7 @@ function InboxRow({ item: a, index, isNew, important, onStar }: {
         {important ? '★' : '☆'}
       </span>
       <div aria-hidden="true" style={{
-        width: 32, height: 32, flexShrink: 0, borderRadius: '50%', background: T.primary, color: inkOnAccent(),
+        width: 32, height: 32, flexShrink: 0, borderRadius: '50%', background: tileBg(), color: T.muted,
         display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: AT.caption, fontWeight: AT.semibold,
       }}>{initials(a.author)}</div>
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -191,7 +191,7 @@ function InboxRow({ item: a, index, isNew, important, onStar }: {
           <span style={{ fontSize: AT.micro, color: T.muted, flexShrink: 0 }}>{a.timeText}</span>
         </div>
         {a.courseName && (
-          <div style={{ fontSize: AT.caption, color: T.primary, fontWeight: AT.medium, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ fontSize: AT.caption, color: T.muted, fontWeight: AT.medium, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {a.courseName}
           </div>
         )}

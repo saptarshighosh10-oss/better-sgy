@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { ScrapedCourse } from '../../lib/schemas';
-import { courseColor, courseAbbr } from '../../lib/course-colors';
+import { courseAbbr } from '../../lib/course-colors';
 import { T } from '../../lib/theme';
 import { AT, tileBg, hairline } from '../../lib/apple';
 import { appleCardStyle } from '../apple-ui';
@@ -53,7 +53,7 @@ export function CalendarPage({ grades }: Props) {
     for (const cat of c.categories) {
       for (const a of cat.assignments) {
         const date = parseDue(a.dueDate);
-        if (date) items.push({ name: a.name, courseName: c.name, color: courseColor(c.name, true), date, status: a.status });
+        if (date) items.push({ name: a.name, courseName: c.name, color: T.muted, date, status: a.status });
       }
     }
   }
@@ -270,7 +270,6 @@ export function CalendarPage({ grades }: Props) {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
         {grades.courses.map((c) => {
           const isActive = filteredCourses.has(c.name);
-          const color = courseColor(c.name, true);
           const abbr = courseAbbr(c.name);
           return (
             <button
@@ -297,11 +296,10 @@ export function CalendarPage({ grades }: Props) {
                 fontSize: AT.caption,
                 fontWeight: AT.medium,
                 cursor: 'pointer',
-                background: isActive ? `${color}1f` : tileBg(),
-                color: isActive ? color : T.muted,
+                background: isActive ? T.text : tileBg(),
+                color: isActive ? T.bg : T.muted,
               }}
             >
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: isActive ? color : T.muted, opacity: isActive ? 1 : 0.5 }} />
               {abbr}
             </button>
           );

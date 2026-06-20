@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Better SGY — Apple direction</title>
+<style>
+  :root{
+    --ink:#1d1d1f;
+    --ink2:#6e6e73;
+    --ink3:#86868b;
+    --line:rgba(0,0,0,0.08);
+    --paper:#ffffff;
+    --tile:#f5f5f7;
+    --blue:#0071e3;
+    --link:#0066cc;
+    --green:#34c759;
+    --orange:#ff9500;
+    --red:#ff3b30;
+    font-family:-apple-system,"SF Pro Display","SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1024px;margin:0 auto;padding:56px 40px 80px;}
+
+  .eyebrow{font-size:19px;font-weight:600;color:var(--ink3);letter-spacing:-0.01em;}
+  .hero{margin-top:14px;display:flex;align-items:flex-end;justify-content:space-between;gap:40px;flex-wrap:wrap;}
+  .hero h1{font-size:88px;font-weight:600;letter-spacing:-0.035em;line-height:0.95;color:var(--ink);}
+  .hero h1 .pct{font-size:44px;font-weight:600;color:var(--ink3);letter-spacing:-0.02em;margin-left:4px;vertical-align:6px;}
+  .hero .sub{margin-top:14px;font-size:21px;color:var(--ink2);letter-spacing:-0.01em;}
+  .hero .sub .ok{color:var(--green);font-weight:600;}
+  .cta{display:flex;gap:14px;align-items:center;}
+  .btn{appearance:none;border:none;cursor:pointer;font-family:inherit;font-size:17px;font-weight:400;
+       background:var(--blue);color:#fff;padding:12px 22px;border-radius:980px;letter-spacing:-0.01em;}
+  .tlink{font-size:19px;color:var(--link);text-decoration:none;letter-spacing:-0.01em;}
+  .tlink:hover{text-decoration:underline;}
+
+  .tiles{margin-top:48px;display:grid;grid-template-columns:repeat(4,1fr);gap:18px;}
+  .tile{background:var(--tile);border-radius:22px;padding:22px 24px;min-height:138px;display:flex;flex-direction:column;}
+  .tile .lab{font-size:15px;color:var(--ink2);letter-spacing:-0.01em;}
+  .tile .big{margin-top:auto;font-size:40px;font-weight:600;letter-spacing:-0.02em;line-height:1;color:var(--ink);}
+  .tile .note{margin-top:8px;font-size:14px;color:var(--ink3);letter-spacing:-0.01em;}
+  .tile .big.warn{color:var(--orange);}
+
+  .secrow{margin-top:64px;display:flex;align-items:baseline;justify-content:space-between;}
+  .secrow h2{font-size:32px;font-weight:600;letter-spacing:-0.02em;}
+  .secrow .meta{font-size:17px;color:var(--ink3);letter-spacing:-0.01em;}
+
+  .gallery{margin-top:26px;display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:28px;overflow:hidden;
+        box-shadow:0 4px 24px rgba(0,0,0,0.06);display:flex;flex-direction:column;}
+  .card .top{padding:24px 24px 18px;}
+  .card .cname{font-size:21px;font-weight:600;letter-spacing:-0.02em;line-height:1.1;}
+  .card .teach{margin-top:5px;font-size:15px;color:var(--ink3);letter-spacing:-0.01em;}
+  .card .gradeline{margin-top:20px;display:flex;align-items:baseline;gap:8px;}
+  .card .grade{font-size:46px;font-weight:600;letter-spacing:-0.03em;line-height:1;color:var(--ink);}
+  .card .gpct{font-size:22px;font-weight:600;color:var(--ink3);letter-spacing:-0.02em;}
+  .card .letter{margin-left:auto;font-size:17px;font-weight:600;color:var(--ink2);
+                background:var(--tile);border-radius:980px;padding:4px 14px;align-self:center;}
+  .spark{height:44px;margin-top:16px;}
+  .card .foot{margin-top:auto;padding:16px 24px;border-top:1px solid var(--line);display:flex;
+              align-items:center;justify-content:space-between;}
+  .card .foot a{font-size:16px;color:var(--link);text-decoration:none;letter-spacing:-0.01em;}
+  .card .foot a:hover{text-decoration:underline;}
+  .miss{font-size:13px;font-weight:600;color:var(--red);}
+  .clean{font-size:13px;color:var(--ink3);}
+  .accent{height:4px;width:100%;}
+</style>
+</head>
+<body>
+  <div class="wrap">
+
+    <div class="eyebrow">2025–2026 · Freshman · Semester 2</div>
+    <div class="hero">
+      <div>
+        <h1>96.2<span class="pct">%</span></h1>
+        <div class="sub">Overall average across 6 courses. <span class="ok">You're on track.</span></div>
+      </div>
+      <div class="cta">
+        <button class="btn">View all grades</button>
+        <a class="tlink" href="#">What changed ›</a>
+      </div>
+    </div>
+
+    <div class="tiles">
+      <div class="tile">
+        <div class="lab">GPA estimate</div>
+        <div class="big">3.94</div>
+        <div class="note">Weighted · 4.0 scale</div>
+      </div>
+      <div class="tile">
+        <div class="lab">Due today</div>
+        <div class="big">2</div>
+        <div class="note">Assignments</div>
+      </div>
+      <div class="tile">
+        <div class="lab">Missing</div>
+        <div class="big warn">2</div>
+        <div class="note">Worth a look</div>
+      </div>
+      <div class="tile">
+        <div class="lab">Best class</div>
+        <div class="big" style="font-size:28px;">PE 9</div>
+        <div class="note">99.1% average</div>
+      </div>
+    </div>
+
+    <div class="secrow">
+      <h2>Your courses</h2>
+      <div class="meta">6 courses · Semester 2</div>
+    </div>
+
+    <div class="gallery">
+
+      <div class="card">
+        <div class="accent" style="background:#5b6cff;"></div>
+        <div class="top">
+          <div class="cname">Algebra 2 / Trig</div>
+          <div class="teach">Mr. Stubbs</div>
+          <div class="gradeline"><span class="grade">97.4</span><span class="gpct">%</span><span class="letter">A</span></div>
+          <svg class="spark" viewBox="0 0 220 44" preserveAspectRatio="none"><polyline fill="none" stroke="#5b6cff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="0,34 40,30 80,26 120,24 160,18 200,14 220,12"/><circle cx="220" cy="12" r="3.5" fill="#5b6cff"/></svg>
+        </div>
+        <div class="foot"><a href="#">View grades ›</a><span class="clean">No missing work</span></div>
+      </div>
+
+      <div class="card">
+        <div class="accent" style="background:#34c759;"></div>
+        <div class="top">
+          <div class="cname">Biology</div>
+          <div class="teach">Ms. Carrington</div>
+          <div class="gradeline"><span class="grade">96.7</span><span class="gpct">%</span><span class="letter">A</span></div>
+          <svg class="spark" viewBox="0 0 220 44" preserveAspectRatio="none"><polyline fill="none" stroke="#34c759" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="0,20 40,24 80,18 120,22 160,16 200,17 220,15"/><circle cx="220" cy="15" r="3.5" fill="#34c759"/></svg>
+        </div>
+        <div class="foot"><a href="#">View grades ›</a><span class="miss">1 missing</span></div>
+      </div>
+
+      <div class="card">
+        <div class="accent" style="background:#ff9f0a;"></div>
+        <div class="top">
+          <div class="cname">French 1</div>
+          <div class="teach">Mme. Laurent</div>
+          <div class="gradeline"><span class="grade">96.5</span><span class="gpct">%</span><span class="letter">A</span></div>
+          <svg class="spark" viewBox="0 0 220 44" preserveAspectRatio="none"><polyline fill="none" stroke="#ff9f0a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="0,28 40,22 80,24 120,18 160,20 200,16 220,15"/><circle cx="220" cy="15" r="3.5" fill="#ff9f0a"/></svg>
+        </div>
+        <div class="foot"><a href="#">View grades ›</a><span class="clean">No missing work</span></div>
+      </div>
+
+      <div class="card">
+        <div class="accent" style="background:#bf5af2;"></div>
+        <div class="top">
+          <div class="cname">Drama</div>
+          <div class="teach">Mr. Ellison</div>
+          <div class="gradeline"><span class="grade">90.3</span><span class="gpct">%</span><span class="letter">A‑</span></div>
+          <svg class="spark" viewBox="0 0 220 44" preserveAspectRatio="none"><polyline fill="none" stroke="#bf5af2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="0,16 40,20 80,24 120,22 160,28 200,30 220,32"/><circle cx="220" cy="32" r="3.5" fill="#bf5af2"/></svg>
+        </div>
+        <div class="foot"><a href="#">View grades ›</a><span class="miss">1 missing</span></div>
+      </div>
+
+      <div class="card">
+        <div class="accent" style="background:#0a84ff;"></div>
+        <div class="top">
+          <div class="cname">Literature</div>
+          <div class="teach">Ms. Howe</div>
+          <div class="gradeline"><span class="grade">94.1</span><span class="gpct">%</span><span class="letter">A</span></div>
+          <svg class="spark" viewBox="0 0 220 44" preserveAspectRatio="none"><polyline fill="none" stroke="#0a84ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="0,30 40,26 80,28 120,22 160,24 200,20 220,18"/><circle cx="220" cy="18" r="3.5" fill="#0a84ff"/></svg>
+        </div>
+        <div class="foot"><a href="#">View grades ›</a><span class="clean">No missing work</span></div>
+      </div>
+
+      <div class="card">
+        <div class="accent" style="background:#30d158;"></div>
+        <div class="top">
+          <div class="cname">PE 9</div>
+          <div class="teach">Coach Bryant</div>
+          <div class="gradeline"><span class="grade">99.1</span><span class="gpct">%</span><span class="letter">A</span></div>
+          <svg class="spark" viewBox="0 0 220 44" preserveAspectRatio="none"><polyline fill="none" stroke="#30d158" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="0,14 40,12 80,14 120,11 160,12 200,10 220,10"/><circle cx="220" cy="10" r="3.5" fill="#30d158"/></svg>
+        </div>
+        <div class="foot"><a href="#">View grades ›</a><span class="clean">No missing work</span></div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

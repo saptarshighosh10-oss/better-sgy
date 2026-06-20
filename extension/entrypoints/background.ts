@@ -6,7 +6,7 @@
  * is delegated to an offscreen document (SWs have no DOMParser).
  */
 import { buildSchoologyData, checkSafetyGuards, type ScrapeOutput } from '../lib/scrape-dom';
-import { validateSchoologyData } from '../lib/schemas';
+import { validateSchoologyData, type SchoologyData } from '../lib/schemas';
 import { saveGradeData, loadGradeData, saveScrapeMeta } from '../lib/storage';
 import { appendGradeHistory } from '../lib/grade-history';
 import { detectChanges, appendChanges, type ChangeEvent } from '../lib/grade-changes';
@@ -15,8 +15,11 @@ import { countAssignments } from '../lib/transform';
 import { loadSettings } from '../lib/settings';
 import { runDueSoonCheck } from '../lib/due-soon';
 
+// ── Constants ──────────────────────────────────────────────────────
 const POLL_ALARM = 'bs-grade-poll';
 const POLL_MINUTES = 15;
+
+// ── Worker-local network helper ────────────────────────────────────
 /**
  * fetch() with 429/503 retry for the worker. The content script funnels its requests
  * through lib/sgy-net's global queue, but the worker is a separate context and can't
@@ -36,6 +39,7 @@ async function workerFetch(url: string, init?: RequestInit, retries = 4): Promis
   return res;
 }
 
+// ── Side panel API (Chrome-only, untyped by the polyfill) ──────────
 // chrome.sidePanel is Chrome-only and not in the webextension-polyfill types.
 type SidePanelApi = {
   setPanelBehavior?: (o: { openPanelOnActionClick: boolean }) => Promise<void>;
@@ -43,6 +47,7 @@ type SidePanelApi = {
 };
 const sidePanel = (globalThis as unknown as { chrome?: { sidePanel?: SidePanelApi } }).chrome?.sidePanel;
 
+// ── Notifications ──────────────────────────────────────────────────
 /** One-line summary of a change event for a notification. */
 function eventLine(e: ChangeEvent): string {
   switch (e.kind) {
@@ -76,6 +81,9 @@ async function notifyChanges(events: ChangeEvent[]) {
   });
 }
 
+// ── Offscreen document (HTML parsing for the closed-tab poll) ──────
+// A service worker has no DOMParser, so grade HTML is parsed in an offscreen
+// document (the only MV3 context with full DOM access from the worker).
 // chrome.offscreen is Chrome-only / not in the polyfill types.
 type OffscreenApi = {
   hasDocument?: () => Promise<boolean>;
@@ -111,61 +119,89 @@ async function parseGradesOffscreen(html: string): Promise<ScrapeOutput | null> 
   }
 }
 
+// ── Closed-tab grade poll ──────────────────────────────────────────
+
 /**
- * Poll grades with no Schoology tab open. Uses the origin the content script cached
- * + the user's cookies; parses via the offscreen doc; diffs, saves, and notifies.
- * Silently no-ops if the user has never opened Schoology or the session expired.
+ * The school's Schoology origin cached by the content script, or null if the
+ * user has never opened Schoology in this browser (so we don't know the URL yet).
  */
-async function runClosedTabPoll(): Promise<void> {
+async function getCachedSchoologyOrigin(): Promise<string | null> {
   const stored = await browser.storage.local.get('bs_sgy_origin');
   const origin = stored.bs_sgy_origin;
-  // Never opened Schoology in this browser — we don't know the school URL yet.
-  if (typeof origin !== 'string' || !origin.includes('schoology.com')) return;
+  if (typeof origin !== 'string' || !origin.includes('schoology.com')) return null;
+  return origin;
+}
 
+/** True if the fetched HTML is a login/auth page (i.e. the session expired). */
+function isLoginPage(html: string): boolean {
+  return html.includes('id="edit-mail"') || html.includes('accounts.google.com') || html.includes('Sign in');
+}
+
+/**
+ * Fetch the grades page using the cached origin + the user's cookies.
+ * Returns the HTML, or null after recording why it failed (network/session).
+ */
+async function fetchGradesHtml(origin: string): Promise<string | null> {
   let res: Response;
   try {
     res = await workerFetch(`${origin}/grades/grades`, { credentials: 'include', redirect: 'follow' });
   } catch {
     await saveWatchStatus({ ok: false, reason: 'network', ts: Date.now() });
-    return;
+    return null;
   }
   if (!res.ok) {
     await saveWatchStatus({ ok: false, reason: 'network', ts: Date.now() });
-    return;
+    return null;
   }
   const html = await res.text();
-  if (html.includes('id="edit-mail"') || html.includes('accounts.google.com') || html.includes('Sign in')) {
+  if (isLoginPage(html)) {
     await saveWatchStatus({ ok: false, reason: 'session', ts: Date.now() });
-    return;
+    return null;
   }
+  return html;
+}
+
+/**
+ * Parse + validate the grades HTML into SchoologyData, running the same safety
+ * guards as the live scrape. Returns null after recording a 'parse' failure.
+ */
+async function parseAndValidateGrades(
+  html: string,
+  previous: SchoologyData | null,
+): Promise<SchoologyData | null> {
+  const fail = async () => {
+    await saveWatchStatus({ ok: false, reason: 'parse', ts: Date.now() });
+    return null;
+  };
 
   const output = await parseGradesOffscreen(html);
-  if (!output || output.courses.length === 0) {
-    await saveWatchStatus({ ok: false, reason: 'parse', ts: Date.now() });
-    return;
-  }
+  if (!output || output.courses.length === 0) return fail();
 
   const data = buildSchoologyData(output);
-  if (!validateSchoologyData(data).success) {
-    await saveWatchStatus({ ok: false, reason: 'parse', ts: Date.now() });
-    return;
-  }
+  if (!validateSchoologyData(data).success) return fail();
+  if (!checkSafetyGuards(data, previous).safe) return fail();
+  return data;
+}
 
-  const previous = await loadGradeData();
-  if (!checkSafetyGuards(data, previous).safe) {
-    await saveWatchStatus({ ok: false, reason: 'parse', ts: Date.now() });
-    return;
-  }
+/** Auto-open the side panel on all windows so the activity feed is visible. */
+function openPanelOnAllWindows(): void {
+  browser.windows.getAll()
+    .then((ws) => ws.forEach((w) => { if (w.id != null) sidePanel?.open?.({ windowId: w.id }).catch(() => {}); }))
+    .catch(() => {});
+}
 
+/** Persist fresh grade data, then diff against the previous snapshot and notify. */
+async function persistAndNotify(previous: SchoologyData | null, data: SchoologyData): Promise<void> {
   await saveGradeData(data);
   await appendGradeHistory(data.courses);
+
   const events = detectChanges(previous, data);
   if (events.length) {
     await appendChanges(events);
     void notifyChanges(events);
-    // Auto-open the side panel on all windows so the activity feed is visible.
-    browser.windows.getAll().then((ws) => ws.forEach((w) => { if (w.id != null) sidePanel?.open?.({ windowId: w.id }).catch(() => {}); })).catch(() => {});
+    openPanelOnAllWindows();
   }
+
   await saveWatchStatus({ ok: true, ts: Date.now() });
   await saveScrapeMeta({
     status: 'fresh',
@@ -175,6 +211,65 @@ async function runClosedTabPoll(): Promise<void> {
     error: null,
   });
   void runDueSoonCheck(data.courses);
+}
+
+/**
+ * Poll grades with no Schoology tab open. Uses the origin the content script cached
+ * + the user's cookies; parses via the offscreen doc; diffs, saves, and notifies.
+ * Silently no-ops if the user has never opened Schoology or the session expired.
+ */
+async function runClosedTabPoll(): Promise<void> {
+  const origin = await getCachedSchoologyOrigin();
+  if (!origin) return;
+
+  const html = await fetchGradesHtml(origin);
+  if (!html) return;
+
+  const previous = await loadGradeData();
+  const data = await parseAndValidateGrades(html, previous);
+  if (!data) return;
+
+  await persistAndNotify(previous, data);
+}
+
+// ── Message handlers ───────────────────────────────────────────────
+
+type FetchFileResult =
+  | { ok: true; base64: string; contentType: string; size: number }
+  | { ok: false; error: string };
+
+/**
+ * Fetch a Schoology file on behalf of the content script. Attachments 302 from
+ * the school's schoology.com subdomain to files-cdn.schoology.com — a content
+ * script fetch dies on CORS there, but the background worker is exempt for hosts
+ * in host_permissions. Bytes go back as base64 because runtime messaging is
+ * JSON-only (no ArrayBuffer transfer).
+ */
+async function handleFetchFile(url: string): Promise<FetchFileResult> {
+  try {
+    const u = new URL(url);
+    // Any *.schoology.com host (school subdomains + files-cdn/asset-cdn)
+    if (!u.hostname.endsWith('.schoology.com') && u.hostname !== 'schoology.com') {
+      return { ok: false, error: 'Host not allowed' };
+    }
+    const res = await workerFetch(url, { credentials: 'include', redirect: 'follow' });
+    if (!res.ok) return { ok: false, error: `HTTP ${res.status}` };
+    const contentType = res.headers.get('content-type') ?? '';
+    if (contentType.includes('text/html')) {
+      return { ok: false, error: 'Not a direct file link' };
+    }
+    const buf = await res.arrayBuffer();
+    // Chunked btoa — avoids call-stack overflow on multi-MB files
+    const bytes = new Uint8Array(buf);
+    let binary = '';
+    const CHUNK = 0x8000;
+    for (let i = 0; i < bytes.length; i += CHUNK) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+    }
+    return { ok: true, base64: btoa(binary), contentType, size: bytes.length };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
 }
 
 export default defineBackground(() => {
@@ -194,6 +289,7 @@ export default defineBackground(() => {
     }
   });
 
+  // ── Side panel open/close wiring ─────────────────────────────────
   const openPanel = (windowId: number) => sidePanel?.open?.({ windowId }).catch(() => {});
   const openPanelInCurrentWindow = () =>
     browser.windows.getCurrent().then((w) => { if (w?.id != null) openPanel(w.id); }).catch(() => {});
@@ -215,6 +311,7 @@ export default defineBackground(() => {
   // Clicking a grade notification reopens the side panel.
   browser.notifications.onClicked.addListener(() => openPanelInCurrentWindow());
 
+  // ── Message routing (content script ↔ worker) ────────────────────
   browser.runtime.onMessage.addListener(
     (message, sender) => {
       if (!message || typeof message !== 'object' || !('type' in message)) return;
@@ -244,38 +341,8 @@ export default defineBackground(() => {
         return;
       }
 
-      // Fetch a Schoology file on behalf of the content script. Attachments
-      // 302 from the school's schoology.com subdomain to files-cdn.schoology.com
-      // — a content script fetch dies on CORS there; the background worker is
-      // exempt for hosts in host_permissions. Bytes go back as base64 (runtime
-      // messaging is JSON-only — no ArrayBuffer transfer).
       if (msg.type === 'fetch-file' && msg.url) {
-        return (async () => {
-          try {
-            const u = new URL(msg.url!);
-            // Any *.schoology.com host (school subdomains + files-cdn/asset-cdn)
-            if (!u.hostname.endsWith('.schoology.com') && u.hostname !== 'schoology.com') {
-              return { ok: false, error: 'Host not allowed' };
-            }
-            const res = await workerFetch(msg.url!, { credentials: 'include', redirect: 'follow' });
-            if (!res.ok) return { ok: false, error: `HTTP ${res.status}` };
-            const contentType = res.headers.get('content-type') ?? '';
-            if (contentType.includes('text/html')) {
-              return { ok: false, error: 'Not a direct file link' };
-            }
-            const buf = await res.arrayBuffer();
-            // Chunked btoa — avoids call-stack overflow on multi-MB files
-            const bytes = new Uint8Array(buf);
-            let binary = '';
-            const CHUNK = 0x8000;
-            for (let i = 0; i < bytes.length; i += CHUNK) {
-              binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
-            }
-            return { ok: true, base64: btoa(binary), contentType, size: bytes.length };
-          } catch (err) {
-            return { ok: false, error: err instanceof Error ? err.message : String(err) };
-          }
-        })();
+        return handleFetchFile(msg.url);
       }
       // Future: scrape trigger, alarm registration, etc.
     },

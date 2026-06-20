@@ -179,6 +179,8 @@ export function MaterialsPage({ grades }: Props) {
     if (courses[0]) loadCourse(courses[0]);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── Tree / folder loading ─────────────────────────────────────────────────
+
   async function toggleFolder(item: MaterialItem) {
     if (!item.href) return;
     const key = item.href;
@@ -202,6 +204,8 @@ export function MaterialsPage({ grades }: Props) {
       collapsed: false,
     }));
   }
+
+  // ── Viewer openers + in-viewer actions (comment / submit) ─────────────────
 
   async function openContent(url: string, title: string) {
     setViewer({ kind: 'content', data: null, url, title });
@@ -264,7 +268,18 @@ export function MaterialsPage({ grades }: Props) {
     return result;
   }
 
-  // Single router for every clickable href (tree items, attachments, body links)
+  // ── Click router ──────────────────────────────────────────────────────────
+
+  // Single router for every clickable href (tree items, attachments, body links).
+  // Decides, in priority order, how to open a destination:
+  //   1. Google/YouTube/Drive          → inline embedded iframe viewer
+  //   2. External link or `link`/LTI    → new browser tab (openSafe, sanitized)
+  //   3. Schoology file-viewer page     → fetch page, let it auto-redirect to the file
+  //   4. Direct PDF/image              → inline file viewer
+  //   5. Office doc                    → new tab (we can't render it inline)
+  //   6. Discussion                    → discussion thread viewer
+  //   7. Quiz / assessment            → same-origin native viewer (real engine)
+  //   8. Everything else              → native content viewer
   function openHref(href: string, title: string, type?: string, fileName?: string | null) {
     // Unwrap Schoology's /link?path=… redirect to the real destination first
     const real = resolveLinkWrapper(href);

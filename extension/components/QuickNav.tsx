@@ -42,7 +42,10 @@ function courseInitial(name: string): string {
   return (name.trim()[0] ?? '?').toUpperCase();
 }
 
-/** Readable ink on top of the primary-accent handle/badges (contrast-aware) */
+/**
+ * Readable ink on top of the primary-accent handle/badges (contrast-aware).
+ * A function, not a const, so it re-reads the theme on every render.
+ */
 function monoLabelInk(): string {
   return inkOnAccent();
 }
@@ -57,6 +60,7 @@ const PAGES: Array<{ id: Page; label: string }> = [
   { id: 'nostalgia', label: 'Nostalgia' },
 ];
 
+// ── Pins: user-saved shortcuts, persisted in localStorage ───────────────────
 const PIN_KEY = '__bs_quicknav_pins__';
 
 export interface QuickPin {
@@ -96,6 +100,7 @@ interface Props {
  * user's own pinned shortcuts. Lets students hop around without scrolling.
  */
 export function QuickNav({ page, courseName, courses, onJump }: Props) {
+  // ── State ──────────────────────────────────────────────────────────────────
   const [open, setOpen] = useState(false);
   const [pins, setPins] = useState<QuickPin[]>([]);
   const [starred, setStarred] = useState<StarredFolder[]>([]);
@@ -103,6 +108,7 @@ export function QuickNav({ page, courseName, courses, onJump }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const dragRef = useRef({ x0: 0, on: false });
 
+  // ── Effects ────────────────────────────────────────────────────────────────
   useEffect(() => { setPins(loadPins()); }, []);
   // Starred Materials folders live in chrome.storage.local — refresh when the
   // drawer opens so newly-starred folders show without a page reload.
@@ -116,7 +122,7 @@ export function QuickNav({ page, courseName, courses, onJump }: Props) {
     }
   }, [open]);
 
-  // Fuzzy results across pages, courses, and every assignment.
+  // ── Search: fuzzy results across pages, courses, and every assignment ───────
   const results = useMemo<SearchResult[]>(() => {
     const q = query.trim();
     if (!q) return [];
@@ -159,6 +165,7 @@ export function QuickNav({ page, courseName, courses, onJump }: Props) {
     return () => document.removeEventListener('keydown', onKey);
   }, [open]);
 
+  // ── Navigation + pin handlers ───────────────────────────────────────────────
   function jump(p: Page, course?: string) {
     onJump(p, course);
     setOpen(false);
@@ -204,41 +211,8 @@ export function QuickNav({ page, courseName, courses, onJump }: Props) {
     <>
       {/* Edge swipe hotzone + discoverable handle */}
       {!open && (
-        <div
-          onPointerDown={onZoneDown}
-          onPointerMove={onZoneMove}
-          onPointerUp={() => { dragRef.current.on = false; }}
-          style={{ position: 'fixed', top: 0, left: 0, bottom: 0, width: 18, zIndex: 49 }}
-        >
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            aria-label="Open quick navigation (press G)"
-            aria-expanded={false}
-            className="bs-focusable bs-lift"
-            style={{
-              all: 'unset',
-              position: 'absolute', top: '50%', left: 0, transform: 'translateY(-50%)',
-              cursor: 'pointer',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6,
-              width: 26, height: 92,
-              background: T.primary,
-              borderRadius: '0 12px 12px 0',
-              boxShadow: '3px 0 14px rgba(0,0,0,0.4)',
-            }}
-            title="Quick nav (press G)"
-          >
-            <span style={{
-              fontSize: 9, fontWeight: 800, letterSpacing: '1px',
-              color: monoLabelInk(), writingMode: 'vertical-rl', textOrientation: 'mixed',
-            }}>
-              Jump
-            </span>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={monoLabelInk()} strokeWidth="3" strokeLinecap="round" aria-hidden="true">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </button>
-        </div>
+        <EdgeHandle onOpen={() => setOpen(true)} onZoneDown={onZoneDown} onZoneMove={onZoneMove}
+          onZoneUp={() => { dragRef.current.on = false; }} />
       )}
 
       {/* Backdrop */}
@@ -299,77 +273,14 @@ export function QuickNav({ page, courseName, courses, onJump }: Props) {
           />
         </div>
 
-        {/* Search results replace the normal sections while typing */}
+        {/* While typing, fuzzy results replace the normal browse sections. */}
         {query ? (
-          results.length > 0 ? (
-            <Section label={`${results.length} result${results.length === 1 ? '' : 's'}`}>
-              {results.map((r) => (
-                <Row key={r.key} onClick={r.run} label={r.label} accent={r.accent} badge={r.badge}
-                  trailing={r.trailing} trailingColor={r.trailingColor} sublabel={r.sublabel} />
-              ))}
-            </Section>
-          ) : (
-            <div style={{ padding: '20px 16px', fontSize: 12, color: T.muted, textAlign: 'center' }}>
-              No matches for “{query}”.
-            </div>
-          )
+          <SearchResultsList query={query} results={results} />
         ) : (
-        <>
-        {/* Pinned shortcuts */}
-        {pins.length > 0 && (
-          <Section label="Pinned">
-            {pins.map((p) => (
-              <Row key={p.id} onClick={() => jump(p.page, p.courseName)}
-                accent={p.courseName ? courseColor(p.courseName, true) : T.primary}
-                label={p.label}
-                onRemove={() => removePin(p.id)}
-              />
-            ))}
-          </Section>
-        )}
-
-        {/* Pages */}
-        <Section label="Pages">
-          {PAGES.map((p) => (
-            <Row key={p.id} onClick={() => jump(p.id)} label={p.label}
-              accent={T.primary} active={page === p.id && !courseName} />
-          ))}
-        </Section>
-
-        {/* Starred Materials folders → jump straight into the folder */}
-        {starred.length > 0 && (
-          <Section label="Starred">
-            {starred.map((f) => (
-              <Row key={f.href} onClick={() => jumpFolder(f)}
-                accent={courseColor(f.courseName, true)}
-                badge={courseInitial(f.courseName)}
-                label={f.title}
-                trailing="★"
-                trailingColor={T.primary}
-              />
-            ))}
-          </Section>
-        )}
-
-        {/* Courses → jump straight to gradebook */}
-        {courses.length > 0 && (
-          <Section label="Courses">
-            {courses.map((c) => {
-              const { percent } = parseGradeString(c.grade);
-              return (
-                <Row key={c.name} onClick={() => jump('grades', c.name)}
-                  accent={courseColor(c.name, true)}
-                  badge={courseInitial(c.name)}
-                  label={c.name}
-                  active={page === 'grades' && courseName === c.name}
-                  trailing={percent !== null ? `${percent.toFixed(0)}%` : undefined}
-                  trailingColor={gradeColor(percent)}
-                />
-              );
-            })}
-          </Section>
-        )}
-        </>
+          <BrowseSections
+            page={page} courseName={courseName} courses={courses} pins={pins} starred={starred}
+            onJump={jump} onJumpFolder={jumpFolder} onRemovePin={removePin}
+          />
         )}
 
         {/* Pin current view */}
@@ -389,6 +300,145 @@ export function QuickNav({ page, courseName, courses, onJump }: Props) {
         </div>
       </nav>
     </>
+  );
+}
+
+/** Fuzzy-search results, or an empty-state line when nothing matches. */
+function SearchResultsList({ query, results }: { query: string; results: SearchResult[] }) {
+  if (results.length === 0) {
+    return (
+      <div style={{ padding: '20px 16px', fontSize: 12, color: T.muted, textAlign: 'center' }}>
+        No matches for “{query}”.
+      </div>
+    );
+  }
+  return (
+    <Section label={`${results.length} result${results.length === 1 ? '' : 's'}`}>
+      {results.map((r) => (
+        <Row key={r.key} onClick={r.run} label={r.label} accent={r.accent} badge={r.badge}
+          trailing={r.trailing} trailingColor={r.trailingColor} sublabel={r.sublabel} />
+      ))}
+    </Section>
+  );
+}
+
+/** Default drawer contents (shown when the search box is empty): Pinned, Pages, Starred, Courses. */
+function BrowseSections({ page, courseName, courses, pins, starred, onJump, onJumpFolder, onRemovePin }: {
+  page: Page;
+  courseName: string | null;
+  courses: ScrapedCourse[];
+  pins: QuickPin[];
+  starred: StarredFolder[];
+  onJump: (p: Page, course?: string) => void;
+  onJumpFolder: (folder: StarredFolder) => void;
+  onRemovePin: (id: string) => void;
+}) {
+  return (
+    <>
+      {/* Pinned shortcuts */}
+      {pins.length > 0 && (
+        <Section label="Pinned">
+          {pins.map((p) => (
+            <Row key={p.id} onClick={() => onJump(p.page, p.courseName)}
+              accent={p.courseName ? courseColor(p.courseName, true) : T.primary}
+              label={p.label}
+              onRemove={() => onRemovePin(p.id)}
+            />
+          ))}
+        </Section>
+      )}
+
+      {/* Pages */}
+      <Section label="Pages">
+        {PAGES.map((p) => (
+          <Row key={p.id} onClick={() => onJump(p.id)} label={p.label}
+            accent={T.primary} active={page === p.id && !courseName} />
+        ))}
+      </Section>
+
+      {/* Starred Materials folders → jump straight into the folder */}
+      {starred.length > 0 && (
+        <Section label="Starred">
+          {starred.map((f) => (
+            <Row key={f.href} onClick={() => onJumpFolder(f)}
+              accent={courseColor(f.courseName, true)}
+              badge={courseInitial(f.courseName)}
+              label={f.title}
+              trailing="★"
+              trailingColor={T.primary}
+            />
+          ))}
+        </Section>
+      )}
+
+      {/* Courses → jump straight to gradebook */}
+      {courses.length > 0 && (
+        <Section label="Courses">
+          {courses.map((c) => {
+            const { percent } = parseGradeString(c.grade);
+            return (
+              <Row key={c.name} onClick={() => onJump('grades', c.name)}
+                accent={courseColor(c.name, true)}
+                badge={courseInitial(c.name)}
+                label={c.name}
+                active={page === 'grades' && courseName === c.name}
+                trailing={percent !== null ? `${percent.toFixed(0)}%` : undefined}
+                trailingColor={gradeColor(percent)}
+              />
+            );
+          })}
+        </Section>
+      )}
+    </>
+  );
+}
+
+/**
+ * Left-edge affordance shown while the drawer is closed: an invisible 18px swipe
+ * hotzone wrapping a small "Jump" handle button. Both open the drawer.
+ */
+function EdgeHandle({ onOpen, onZoneDown, onZoneMove, onZoneUp }: {
+  onOpen: () => void;
+  onZoneDown: (e: React.PointerEvent) => void;
+  onZoneMove: (e: React.PointerEvent) => void;
+  onZoneUp: () => void;
+}) {
+  return (
+    <div
+      onPointerDown={onZoneDown}
+      onPointerMove={onZoneMove}
+      onPointerUp={onZoneUp}
+      style={{ position: 'fixed', top: 0, left: 0, bottom: 0, width: 18, zIndex: 49 }}
+    >
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-label="Open quick navigation (press G)"
+        aria-expanded={false}
+        className="bs-focusable bs-lift"
+        style={{
+          all: 'unset',
+          position: 'absolute', top: '50%', left: 0, transform: 'translateY(-50%)',
+          cursor: 'pointer',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6,
+          width: 26, height: 92,
+          background: T.primary,
+          borderRadius: '0 12px 12px 0',
+          boxShadow: '3px 0 14px rgba(0,0,0,0.4)',
+        }}
+        title="Quick nav (press G)"
+      >
+        <span style={{
+          fontSize: 9, fontWeight: 800, letterSpacing: '1px',
+          color: monoLabelInk(), writingMode: 'vertical-rl', textOrientation: 'mixed',
+        }}>
+          Jump
+        </span>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={monoLabelInk()} strokeWidth="3" strokeLinecap="round" aria-hidden="true">
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </button>
+    </div>
   );
 }
 

@@ -203,50 +203,58 @@ export default defineContentScript({
       </svg>`;
     }
 
-    // ── Render panel ──────────────────────────────────────────────────────────
-    async function renderPanel() {
+    // ── Panel HTML pieces ───────────────────────────────────────────────────
+    // Each helper returns a self-contained HTML fragment so that renderPanel()
+    // below reads as a top-to-bottom composition of named sections. They close
+    // over `theme` (via the `t` alias), `esc`, and `ago`.
+
+    type Course = NonNullable<Awaited<ReturnType<typeof loadGradeData>>>['courses'][number];
+    type Announcement = Awaited<ReturnType<typeof loadCachedAnnouncements>>[number];
+    type Watch = Awaited<ReturnType<typeof loadWatchStatus>>;
+
+    const sectionLabelHtml = (txt: string) =>
+      `<div style="font-size:11px;font-weight:600;letter-spacing:0.04em;color:${theme.muted};margin:28px 2px 10px;text-transform:uppercase;">${txt}</div>`;
+
+    // Big overall-average number + "checked N ago" subtitle at the top of the panel.
+    function renderHeroHtml(avg: number | null, count: number, watch: Watch): string {
       const t = theme;
-      const [data, changes, announcements, watch] = await Promise.all([
-        loadGradeData(), loadChanges(), loadCachedAnnouncements(), loadWatchStatus(),
-      ]);
-      const courses = data?.courses ?? [];
-      const pcts = courses.map(c => parseGradeString(c.grade).percent).filter((p): p is number => p !== null);
-      const avg = pcts.length ? pcts.reduce((s,p) => s+p, 0)/pcts.length : null;
-      const count = courses.length;
+      return `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+            <span style="font-size:11px;font-weight:600;letter-spacing:0.05em;color:${t.muted};">Better SGY</span>
+            <button id="bs-close" style="all:unset;cursor:pointer;font-size:18px;color:${t.muted};line-height:1;padding:4px 6px;">✕</button>
+          </div>
+          <div style="padding:0 2px;">
+            <div style="font-size:48px;font-weight:700;letter-spacing:-0.02em;line-height:1;font-variant-numeric:tabular-nums;color:${t.text};">
+              ${avg !== null ? avg.toFixed(1) : '—'}<span style="font-size:22px;font-weight:500;color:${t.muted};">${avg !== null ? '%' : ''}</span>
+            </div>
+            <div style="font-size:12px;color:${t.muted};margin-top:8px;">Overall average · ${count} course${count===1?'':'s'}${watch ? ` · checked ${ago(watch.ts)}` : ''}</div>
+          </div>`;
+    }
 
-      const deduped = dedupeChanges(changes, 8);
-
-      const shownAnn = announcements.slice(0, 8);
-
-      // Selected course for the graph
-      if (!selectedCourse || !courses.some(c => c.name === selectedCourse)) {
-        selectedCourse = courses[0]?.name ?? null;
-      }
-      const selCourse = courses.find(c => c.name === selectedCourse) ?? null;
-
-      const sectionLabel = (txt: string) =>
-        `<div style="font-size:11px;font-weight:600;letter-spacing:0.04em;color:${t.muted};margin:28px 2px 10px;text-transform:uppercase;">${txt}</div>`;
-
-      const row = (e: ChangeEvent, last: boolean) => {
-        const title = e.kind === 'grade' ? esc(e.course) : esc(e.name);
-        const sub = e.kind === 'grade' ? `${e.oldPct?.toFixed(1)} → ${e.newPct?.toFixed(1)}% · ${ago(e.ts)}`
-          : e.kind === 'graded' ? `Graded · ${esc(e.course)} · ${ago(e.ts)}`
-          : `New · ${esc(e.course)} · ${ago(e.ts)}`;
-        const endColor = e.kind === 'grade' ? (e.delta >= 0 ? t.fresh : t.failed) : t.text;
-        const end = e.kind === 'grade' ? `${e.delta >= 0 ? '+' : ''}${e.delta.toFixed(1)}%`
-          : e.kind === 'graded' && e.pct !== null ? `${e.pct.toFixed(0)}%` : '';
-        return `<div style="display:flex;align-items:center;gap:10px;padding:13px 16px;${last?'':'border-bottom:1px solid '+t.border};">
+    // One row in the "Recent activity" list (grade move / graded / new item).
+    function renderActivityRowHtml(e: ChangeEvent, last: boolean): string {
+      const t = theme;
+      const title = e.kind === 'grade' ? esc(e.course) : esc(e.name);
+      const sub = e.kind === 'grade' ? `${e.oldPct?.toFixed(1)} → ${e.newPct?.toFixed(1)}% · ${ago(e.ts)}`
+        : e.kind === 'graded' ? `Graded · ${esc(e.course)} · ${ago(e.ts)}`
+        : `New · ${esc(e.course)} · ${ago(e.ts)}`;
+      const endColor = e.kind === 'grade' ? (e.delta >= 0 ? t.fresh : t.failed) : t.text;
+      const end = e.kind === 'grade' ? `${e.delta >= 0 ? '+' : ''}${e.delta.toFixed(1)}%`
+        : e.kind === 'graded' && e.pct !== null ? `${e.pct.toFixed(0)}%` : '';
+      return `<div style="display:flex;align-items:center;gap:10px;padding:13px 16px;${last?'':'border-bottom:1px solid '+t.border};">
           <div style="flex:1;min-width:0;">
             <div style="font-size:13px;font-weight:500;color:${t.text};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${title}</div>
             <div style="font-size:11px;color:${t.muted};margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${sub}</div>
           </div>
           ${end ? `<span style="font-size:13px;font-weight:600;color:${endColor};flex-shrink:0;font-variant-numeric:tabular-nums;">${end}</span>` : ''}
         </div>`;
-      };
+    }
 
-      const annRow = (a: typeof shownAnn[number], last: boolean) => {
-        const safeLink = safeExternalUrl(a.link);
-        return `<div data-link="${esc(safeLink ?? '')}" class="bs-ann-row" style="padding:13px 16px;${last?'':'border-bottom:1px solid '+t.border};${safeLink?'cursor:pointer;':''}">
+    // One row in the "Updates" list. data-link is sanitized — click wiring lives
+    // in renderPanel and only fires openSafe() when a safe link is present.
+    function renderAnnouncementRowHtml(a: Announcement, last: boolean): string {
+      const t = theme;
+      const safeLink = safeExternalUrl(a.link);
+      return `<div data-link="${esc(safeLink ?? '')}" class="bs-ann-row" style="padding:13px 16px;${last?'':'border-bottom:1px solid '+t.border};${safeLink?'cursor:pointer;':''}">
           <div style="display:flex;align-items:baseline;gap:8px;">
             <span style="font-size:13px;font-weight:500;color:${t.text};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(a.author || 'Schoology')}</span>
             <span style="flex:1;"></span>
@@ -254,10 +262,13 @@ export default defineContentScript({
           </div>
           <div style="font-size:11px;color:${t.muted};margin-top:4px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${esc(a.courseName ? `${a.courseName} — ${a.body}` : a.body)}</div>
         </div>`;
-      };
+    }
 
-      // Watcher health banner
-      const watchBanner = (watch && !watch.ok) ? `
+    // Watcher-health banner: only renders when the last refresh failed.
+    function renderWatchBannerHtml(watch: Watch): string {
+      const t = theme;
+      if (!(watch && !watch.ok)) return '';
+      return `
         <div style="margin-top:18px;padding:12px 14px;border-radius:14px;background:${t.failed}1f;display:flex;gap:9px;align-items:flex-start;">
           <span style="color:${t.failed};font-weight:600;">·</span>
           <div style="font-size:11px;color:${t.text};line-height:1.5;">
@@ -267,17 +278,20 @@ export default defineContentScript({
                 ? 'Couldn’t reach Schoology just now. It’ll retry shortly.'
                 : 'Couldn’t read your grades this time. It’ll retry shortly.'}
           </div>
-        </div>` : '';
+        </div>`;
+    }
 
-      // Grade-over-time section
+    // "Grade over time" section: course tabs + the selected course's sparkline.
+    function renderGraphSectionHtml(courses: Course[], selCourse: Course | null): string {
+      const t = theme;
+      if (!(courses.length > 0 && selCourse)) return '';
       const courseTabs = courses.map(c => {
-        const active = c.name === selCourse?.name;
+        const active = c.name === selCourse.name;
         const label = c.name.length > 16 ? c.name.slice(0, 16) + '…' : c.name;
         return `<button class="bs-course-tab" data-course="${esc(c.name)}" style="all:unset;cursor:pointer;font-size:11px;white-space:nowrap;padding-bottom:5px;flex-shrink:0;font-weight:${active?'600':'400'};color:${active?t.text:t.muted};border-bottom:2px solid ${active?t.text:'transparent'};">${esc(label)}</button>`;
       }).join('');
-
-      const graphSection = courses.length > 0 && selCourse ? `
-        ${sectionLabel('Grade over time')}
+      return `
+        ${sectionLabelHtml('Grade over time')}
         <div style="display:flex;gap:16px;overflow-x:auto;padding:0 2px 2px;margin-bottom:12px;">${courseTabs}</div>
         <div style="border-radius:16px;background:${t.card};padding:16px 16px 12px;">
           <div style="display:flex;align-items:baseline;justify-content:space-between;">
@@ -285,42 +299,55 @@ export default defineContentScript({
             <span style="font-size:13px;font-weight:600;color:${t.text};font-variant-numeric:tabular-nums;flex-shrink:0;">${parseGradeString(selCourse.grade).percent?.toFixed(1) ?? '—'}%</span>
           </div>
           ${trendSvg(computeSemesterTrend(selCourse))}
-        </div>` : '';
+        </div>`;
+    }
+
+    // A rounded "card" list: rows when non-empty, otherwise a centered hint.
+    function renderListCardHtml(rowsHtml: string, emptyText: string): string {
+      const t = theme;
+      const body = rowsHtml || `<div style="padding:22px 16px;font-size:13px;color:${t.muted};text-align:center;line-height:1.5;">${emptyText}</div>`;
+      return `<div style="border-radius:16px;overflow:hidden;background:${t.card};">${body}</div>`;
+    }
+
+    // ── Render panel ──────────────────────────────────────────────────────────
+    async function renderPanel() {
+      const [data, changes, announcements, watch] = await Promise.all([
+        loadGradeData(), loadChanges(), loadCachedAnnouncements(), loadWatchStatus(),
+      ]);
+      const courses = data?.courses ?? [];
+      const pcts = courses.map(c => parseGradeString(c.grade).percent).filter((p): p is number => p !== null);
+      const avg = pcts.length ? pcts.reduce((s,p) => s+p, 0)/pcts.length : null;
+      const count = courses.length;
+
+      const deduped = dedupeChanges(changes, 8);
+      const shownAnn = announcements.slice(0, 8);
+
+      // Selected course for the graph — fall back to the first course if the
+      // previously selected one is gone.
+      if (!selectedCourse || !courses.some(c => c.name === selectedCourse)) {
+        selectedCourse = courses[0]?.name ?? null;
+      }
+      const selCourse = courses.find(c => c.name === selectedCourse) ?? null;
+
+      const activityHtml = deduped.map((e,i) => renderActivityRowHtml(e, i===deduped.length-1)).join('');
+      const updatesHtml = shownAnn.map((a,i) => renderAnnouncementRowHtml(a, i===shownAnn.length-1)).join('');
 
       panel.innerHTML = `
         <div style="padding:28px 18px 48px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
-            <span style="font-size:11px;font-weight:600;letter-spacing:0.05em;color:${t.muted};">Better SGY</span>
-            <button id="bs-close" style="all:unset;cursor:pointer;font-size:18px;color:${t.muted};line-height:1;padding:4px 6px;">✕</button>
-          </div>
-          <div style="padding:0 2px;">
-            <div style="font-size:48px;font-weight:700;letter-spacing:-0.02em;line-height:1;font-variant-numeric:tabular-nums;color:${t.text};">
-              ${avg !== null ? avg.toFixed(1) : '—'}<span style="font-size:22px;font-weight:500;color:${t.muted};">${avg !== null ? '%' : ''}</span>
-            </div>
-            <div style="font-size:12px;color:${t.muted};margin-top:8px;">Overall average · ${count} course${count===1?'':'s'}${watch ? ` · checked ${ago(watch.ts)}` : ''}</div>
-          </div>
+          ${renderHeroHtml(avg, count, watch)}
 
-          ${watchBanner}
+          ${renderWatchBannerHtml(watch)}
 
-          ${sectionLabel('Recent activity')}
-          <div style="border-radius:16px;overflow:hidden;background:${t.card};">
-            ${deduped.length
-              ? deduped.map((e,i) => row(e, i===deduped.length-1)).join('')
-              : `<div style="padding:22px 16px;font-size:13px;color:${t.muted};text-align:center;line-height:1.5;">Nothing yet — visit Schoology to load grades.</div>`
-            }
-          </div>
+          ${sectionLabelHtml('Recent activity')}
+          ${renderListCardHtml(activityHtml, 'Nothing yet — visit Schoology to load grades.')}
 
-          ${graphSection}
+          ${renderGraphSectionHtml(courses, selCourse)}
 
-          ${sectionLabel('Updates')}
-          <div style="border-radius:16px;overflow:hidden;background:${t.card};">
-            ${shownAnn.length
-              ? shownAnn.map((a,i) => annRow(a, i===shownAnn.length-1)).join('')
-              : `<div style="padding:22px 16px;font-size:13px;color:${t.muted};text-align:center;line-height:1.5;">No updates cached yet.</div>`
-            }
-          </div>
+          ${sectionLabelHtml('Updates')}
+          ${renderListCardHtml(updatesHtml, 'No updates cached yet.')}
         </div>`;
 
+      // ── Event wiring (rebuilt every render, since innerHTML replaces nodes) ──
       document.getElementById('bs-close')?.addEventListener('click', close);
       panel.querySelectorAll<HTMLElement>('.bs-course-tab').forEach(el => {
         el.addEventListener('click', () => { selectedCourse = el.dataset.course ?? null; void renderPanel(); });

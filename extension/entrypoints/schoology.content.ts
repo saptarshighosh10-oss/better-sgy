@@ -29,6 +29,7 @@ import { saveWatchStatus } from '../lib/watch-status';
 import { cacheAnnouncements } from '../lib/announcement-cache';
 import { T, onThemeChange, getActiveTheme, getAccentColor } from '../lib/theme';
 
+// ── Change reporting & persistence ───────────────────────────────
 /**
  * After a successful scrape, mark the watcher healthy and record any activity
  * (grade moves, new/graded assignments), pinging the worker so it can fire a
@@ -42,6 +43,24 @@ async function reportChanges(prev: SchoologyData | null, next: SchoologyData) {
   try { await browser.runtime.sendMessage({ type: 'change', events }); } catch { /* worker asleep is fine */ }
 }
 
+/**
+ * Shared tail of both scrape paths: persist the fresh data, append history,
+ * report any changes to the worker, and record fresh scrape metadata.
+ */
+async function saveFreshData(previous: SchoologyData | null, data: SchoologyData) {
+  await saveGradeData(data);
+  await appendGradeHistory(data.courses);
+  await reportChanges(previous, data);
+  await saveScrapeMeta({
+    status: 'fresh',
+    scrapedAt: data.scrapedAt,
+    courseCount: data.courses.length,
+    assignmentCount: countAssignments(data.courses),
+    error: null,
+  });
+}
+
+// ── Module state ─────────────────────────────────────────────────
 const MOUNT_ID = '__better-schoology-root__';
 const ESCAPE_ID = '__better-schoology-escape__';
 
@@ -225,16 +244,7 @@ async function runScrape() {
 
     // Step 6: saving
     updateScrapeResult({ status: 'saving' });
-    await saveGradeData(data);
-    await appendGradeHistory(data.courses);
-    await reportChanges(previousData, data);
-    await saveScrapeMeta({
-      status: 'fresh',
-      scrapedAt: data.scrapedAt,
-      courseCount: data.courses.length,
-      assignmentCount: countAssignments(data.courses),
-      error: null,
-    });
+    await saveFreshData(previousData, data);
 
     // Done!
     updateScrapeResult({
@@ -314,16 +324,7 @@ async function runBackgroundScrape() {
       return;
     }
 
-    await saveGradeData(data);
-    await appendGradeHistory(data.courses);
-    await reportChanges(previousData, data);
-    await saveScrapeMeta({
-      status: 'fresh',
-      scrapedAt: data.scrapedAt,
-      courseCount: data.courses.length,
-      assignmentCount: countAssignments(data.courses),
-      error: null,
-    });
+    await saveFreshData(previousData, data);
     // Cache teacher announcements/updates for the side panel (best-effort).
     void cacheAnnouncements(data.courses);
 

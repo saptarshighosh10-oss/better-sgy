@@ -50,7 +50,13 @@ interface EffAsg {
 
 interface CatSums { weight: number; ss: number; sm: number }
 
-/** Course grade from per-category point sums. Weighted when the course defines weights. */
+/**
+ * Course grade from per-category point sums.
+ * - Weighted courses: weighted average of each category's percentage (only
+ *   categories that both have data AND a positive weight contribute).
+ * - Unweighted courses: plain average of each category's percentage.
+ * Returns null when no category has any graded points.
+ */
 function gradeFromSums(cats: CatSums[], courseHasWeights: boolean): number | null {
   const withData = cats.filter(c => c.sm > 0);
   if (withData.length === 0) return null;
@@ -804,9 +810,12 @@ export function CourseGradebook({ course, nickname }: Props) {
           catIdx: ci,
           catName: cleanCat,
           origScore, origMax,
+          // Effective value = override if typed, else the original scraped value
           score: ovScore ?? origScore,
           max: ovMax ?? origMax,
           isHypo: false,
+          // "Edited" = a real graded assignment whose score/max was typed over.
+          // "Filled" = a previously ungraded assignment given a simulated score.
           isEdited: origScore !== null && (ovScore !== null || ovMax !== null),
           isFilled: origScore === null && ovScore !== null,
           date: parseDueDate(a.dueDate),
@@ -851,10 +860,15 @@ export function CourseGradebook({ course, nickname }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [effAsgs, courseHasWeights]);
 
+  // What-if delta: how much our projected grade moved from our own computed
+  // baseline. Null until something is edited (so we show the official grade as-is).
   const delta = hasEdits && projectedGrade !== null && baselineGrade !== null
     ? projectedGrade - baselineGrade
     : null;
-  // anchor on the official grade so the number matches Schoology until something is edited
+  // Anchor the headline on the OFFICIAL Schoology percent and apply only the
+  // delta, so the number matches Schoology exactly until something is edited
+  // (our point-sum recompute can differ slightly from Schoology's rounding).
+  // Fall back to the raw projected grade when there's no official percent.
   const displayPct = delta !== null && percent !== null
     ? percent + delta
     : delta !== null && projectedGrade !== null
@@ -873,6 +887,8 @@ export function CourseGradebook({ course, nickname }: Props) {
   const gradedCount = effAsgs.filter(a => !a.isHypo && a.origScore !== null).length;
   const totalCount = course.categories.reduce((s, c) => s + c.assignments.length, 0);
   const missingCount = course.categories.flatMap(c => c.assignments).filter(a => a.status === 'unsubmitted').length;
+
+  // ── What-if edit handlers (overrides on real assignments + hypotheticals) ──
 
   function setOverride(key: string, field: 'score' | 'max', val: string) {
     setOverrides(prev => {

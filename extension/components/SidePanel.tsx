@@ -31,6 +31,18 @@ function timeAgo(ts: number): string {
   return `${Math.floor(s / 86400)}d ago`;
 }
 
+/**
+ * Standard grouped-list row: 13×16 padding with a hairline separator that
+ * disappears on the last row. Shared by activity, settings, and update rows so
+ * they all line up identically.
+ */
+function rowStyle(last?: boolean): React.CSSProperties {
+  return { padding: '13px 16px', borderBottom: last ? 'none' : `1px solid ${hairline()}` };
+}
+
+/** Single-line text that truncates with an ellipsis. */
+const ELLIPSIS: React.CSSProperties = { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
+
 /** Quiet iOS-style section header. */
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -63,7 +75,7 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
 
 function SettingRow({ label, note, last, children }: { label: string; note?: string; last?: boolean; children: React.ReactNode }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px', borderBottom: last ? 'none' : `1px solid ${hairline()}` }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, ...rowStyle(last) }}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: AT.sub, fontWeight: AT.medium, color: T.text }}>{label}</div>
         {note && <div style={{ fontSize: AT.caption, color: T.muted, marginTop: 2 }}>{note}</div>}
@@ -104,10 +116,10 @@ function ActivityRow({ event: e, last }: { event: ChangeEvent; last: boolean }) 
       : e.kind === 'graded' ? `Graded · ${e.course}`
         : `New assignment · ${e.course}`;
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px', borderBottom: last ? 'none' : `1px solid ${hairline()}` }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, ...rowStyle(last) }}>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: AT.sub, fontWeight: AT.medium, color: T.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{primary}</div>
-        <div style={{ fontSize: AT.caption, color: T.muted, marginTop: 2, fontVariantNumeric: 'tabular-nums', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <div style={{ fontSize: AT.sub, fontWeight: AT.medium, color: T.text, ...ELLIPSIS }}>{primary}</div>
+        <div style={{ fontSize: AT.caption, color: T.muted, marginTop: 2, fontVariantNumeric: 'tabular-nums', ...ELLIPSIS }}>
           {secondary} · {timeAgo(e.ts)}
         </div>
       </div>
@@ -124,6 +136,18 @@ function ActivityRow({ event: e, last }: { event: ChangeEvent; last: boolean }) 
   );
 }
 
+/**
+ * Outer page frame — shared by the skeleton and the loaded panel so they match
+ * exactly. A function (not a const) because `T.*` are theme-reactive getters that
+ * must be read at render time, not at module load.
+ */
+function pageStyle(): React.CSSProperties {
+  return {
+    minHeight: '100vh', background: T.bg, color: T.text, fontFamily: AT.font,
+    padding: '26px 16px 48px', boxSizing: 'border-box',
+  };
+}
+
 /** Shimmer placeholder shown until storage data resolves. Mirrors the real layout. */
 function Skel({ w, h, r, style }: { w: number | string; h: number; r?: number; style?: React.CSSProperties }) {
   return <div className="bs-skel" style={{ width: w, height: h, borderRadius: r ?? 7, color: T.text, ...style }} />;
@@ -131,7 +155,7 @@ function Skel({ w, h, r, style }: { w: number | string; h: number; r?: number; s
 
 function SidePanelSkeleton() {
   return (
-    <div style={{ minHeight: '100vh', background: T.bg, color: T.text, fontFamily: AT.font, padding: '26px 16px 48px', boxSizing: 'border-box' }}>
+    <div style={pageStyle()}>
       <GlobalStyles />
       {/* Hero */}
       <div style={{ padding: '0 6px' }}>
@@ -164,6 +188,196 @@ function SidePanelSkeleton() {
         <Skel w="100%" h={84} r={12} style={{ marginTop: 14 }} />
       </div>
     </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Render sections — each owns one grouped surface in the panel. Split out purely
+// for readability; the markup is identical to the inline original.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Big ink average + course count + last-checked line. */
+function Hero({ avg, courseCount, watch }: { avg: number | null; courseCount: number; watch: WatchStatus | null }) {
+  return (
+    <div className="bs-apple-in" style={{ padding: '0 6px' }}>
+      <div style={{ fontSize: AT.caption, color: T.muted, letterSpacing: AT.trackBody }}>Better SGY</div>
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 5, marginTop: 6 }}>
+        <span style={{ fontSize: 46, fontWeight: AT.semibold, letterSpacing: AT.trackTight, lineHeight: 1, color: T.text, fontVariantNumeric: 'tabular-nums' }}>
+          {avg !== null ? avg.toFixed(1) : '—'}
+        </span>
+        {avg !== null && <span style={{ fontSize: 22, fontWeight: AT.medium, color: T.muted, marginBottom: 3 }}>%</span>}
+      </div>
+      <div style={{ fontSize: AT.caption, color: T.muted, marginTop: 6, letterSpacing: AT.trackBody }}>
+        Overall average · {courseCount} course{courseCount === 1 ? '' : 's'}{watch ? ` · checked ${timeAgo(watch.ts)}` : ''}
+      </div>
+    </div>
+  );
+}
+
+/** Soft banner shown only when the background grade watcher last failed. */
+function WatcherHealth({ watch }: { watch: WatchStatus }) {
+  const message =
+    watch.reason === 'session'
+      ? 'Grades couldn’t refresh — your Schoology session expired. Open Schoology and sign in; this catches up on its own.'
+      : watch.reason === 'network'
+        ? 'Couldn’t reach Schoology just now. It’ll retry shortly.'
+        : 'Couldn’t read your grades this time. It’ll retry shortly.';
+  return (
+    <div className="bs-apple-in" style={{ marginTop: 18, padding: '12px 14px', borderRadius: 14, background: `${T.failed}12`, display: 'flex', gap: 9, alignItems: 'flex-start' }}>
+      <span aria-hidden="true" style={{ color: T.failed, fontWeight: AT.semibold }}>·</span>
+      <div style={{ fontSize: AT.caption, color: T.text, lineHeight: 1.5 }}>{message}</div>
+    </div>
+  );
+}
+
+/** Recent grade moves / new + newly-graded work. */
+function ActivitySection({ shownChanges }: { shownChanges: ChangeEvent[] }) {
+  return (
+    <>
+      <SectionLabel>Recent activity</SectionLabel>
+      <Group>
+        {shownChanges.length === 0 ? (
+          <EmptyRow>Nothing new yet. Grade moves, new assignments, and newly-graded work show up here.</EmptyRow>
+        ) : (
+          shownChanges.map((e, i) => <ActivityRow key={`${e.kind}-${e.course}-${e.ts}-${i}`} event={e} last={i === shownChanges.length - 1} />)
+        )}
+      </Group>
+    </>
+  );
+}
+
+/** Course chip-picker plus the trend sparkline for the selected course. */
+function GradeOverTime({ courses, selCourse, onSelect }: {
+  courses: SchoologyData['courses'];
+  selCourse: SchoologyData['courses'][number] | null;
+  onSelect: (name: string) => void;
+}) {
+  return (
+    <>
+      <SectionLabel>Grade over time</SectionLabel>
+      <div style={{ display: 'flex', gap: 18, overflowX: 'auto', padding: '0 6px 2px', marginBottom: 12 }}>
+        {courses.map((c) => {
+          const active = c.name === selCourse?.name;
+          return (
+            <button key={c.name} type="button" onClick={() => onSelect(c.name)} className="bs-focusable"
+              style={{ all: 'unset', cursor: 'pointer', fontSize: AT.caption, whiteSpace: 'nowrap', paddingBottom: 5, flexShrink: 0,
+                fontWeight: active ? AT.semibold : AT.regular, color: active ? T.text : T.muted,
+                borderBottom: `2px solid ${active ? T.text : 'transparent'}` }}>
+              {c.name.length > 16 ? c.name.slice(0, 16) + '…' : c.name}
+            </button>
+          );
+        })}
+      </div>
+      {selCourse && (
+        <Group>
+          <div style={{ padding: '16px 16px 12px' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: AT.sub, fontWeight: AT.medium, color: T.text }}>{selCourse.name}</span>
+              <span style={{ fontSize: AT.sub, fontWeight: AT.semibold, color: gradeColor(parseGradeString(selCourse.grade).percent), fontVariantNumeric: 'tabular-nums' }}>
+                {parseGradeString(selCourse.grade).percent?.toFixed(1) ?? '—'}%
+              </span>
+            </div>
+            <Trend points={computeSemesterTrend(selCourse)} />
+          </div>
+        </Group>
+      )}
+    </>
+  );
+}
+
+/** Cached teacher updates; each row opens the source link in a new tab. */
+function UpdatesSection({ shownAnn }: { shownAnn: Announcement[] }) {
+  return (
+    <>
+      <SectionLabel>Updates</SectionLabel>
+      <Group>
+        {shownAnn.length === 0 ? (
+          <EmptyRow>No updates cached yet. Open a Schoology tab to pull the latest.</EmptyRow>
+        ) : (
+          shownAnn.map((a, i) => (
+            <button key={a.id} type="button" onClick={() => { const u = safeExternalUrl(a.link); if (u) browser.tabs.create({ url: u }); }}
+              className="bs-focusable"
+              style={{ all: 'unset', display: 'block', width: '100%', boxSizing: 'border-box', cursor: a.link ? 'pointer' : 'default', ...rowStyle(i === shownAnn.length - 1) }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                <span style={{ fontSize: AT.sub, fontWeight: AT.medium, color: T.text, ...ELLIPSIS }}>{a.author || 'Schoology'}</span>
+                <span style={{ flex: 1 }} />
+                <span style={{ fontSize: AT.micro, color: T.muted, flexShrink: 0 }}>{a.timeText || timeAgo(a.timestamp)}</span>
+              </div>
+              <div style={{ fontSize: AT.caption, color: T.muted, marginTop: 4, lineHeight: 1.45, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                {a.courseName ? `${a.courseName} — ${a.body}` : a.body}
+              </div>
+            </button>
+          ))
+        )}
+      </Group>
+    </>
+  );
+}
+
+/** Notification toggles. `onSave` persists a settings patch and returns the new settings. */
+function NotificationSettings({ settings, onSave }: { settings: Settings; onSave: (patch: Partial<Settings>) => Promise<Settings> }) {
+  return (
+    <>
+      <SectionLabel>Settings</SectionLabel>
+      <Group>
+        <SettingRow label="Notifications" note="Grade changes & new work">
+          <Toggle on={settings.notifications} onChange={async (v) => onSave({ notifications: v })} />
+        </SettingRow>
+        <SettingRow label="Due-soon reminders" note="Heads-up the day before">
+          <Toggle on={settings.dueSoonReminders} onChange={async (v) => onSave({ dueSoonReminders: v })} />
+        </SettingRow>
+        <SettingRow label="Open sound" note="Chime when the panel opens" last>
+          <Toggle on={settings.chime} onChange={async (v) => onSave({ chime: v })} />
+        </SettingRow>
+      </Group>
+    </>
+  );
+}
+
+/** Poll-interval segmented control. */
+function CheckFrequency({ settings, onSave }: { settings: Settings; onSave: (patch: Partial<Settings>) => Promise<Settings> }) {
+  return (
+    <>
+      <SectionLabel>Check every</SectionLabel>
+      <div style={{ display: 'flex', gap: 8 }}>
+        {[5, 15, 30, 60].map((m) => {
+          const active = settings.pollMinutes === m;
+          return (
+            <button key={m} type="button" className="bs-focusable"
+              onClick={async () => onSave({ pollMinutes: m })}
+              style={{ all: 'unset', cursor: 'pointer', flex: 1, textAlign: 'center', padding: '9px 0', borderRadius: 12,
+                fontSize: AT.caption, fontWeight: AT.medium,
+                background: active ? T.text : tileBg(), color: active ? T.bg : T.muted }}>
+              {m}m
+            </button>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+/** Per-course alert toggles (on = alerts enabled). */
+function MuteCourses({ courses, settings, onToggle }: {
+  courses: SchoologyData['courses'];
+  settings: Settings;
+  onToggle: (name: string) => Promise<Settings>;
+}) {
+  return (
+    <>
+      <SectionLabel>Mute courses</SectionLabel>
+      <Group>
+        {courses.map((c, i) => {
+          const muted = settings.mutedCourses.includes(c.name);
+          return (
+            <SettingRow key={c.name} label={c.name} last={i === courses.length - 1}>
+              <Toggle on={!muted} onChange={async () => onToggle(c.name)} />
+            </SettingRow>
+          );
+        })}
+      </Group>
+      <div style={{ fontSize: AT.micro, color: T.muted, margin: '8px 6px 0' }}>On = you’ll get alerts for this course.</div>
+    </>
   );
 }
 
@@ -204,151 +418,40 @@ export function SidePanel() {
   const shownChanges = dedupeChanges(changes, 8);
   const shownAnn = announcements.slice(0, 10);
 
+  // Persist a settings patch / course mute, reflect the saved result in local state, return it.
+  const saveAndApply = async (patch: Partial<Settings>): Promise<Settings> => {
+    const next = await saveSettings(patch);
+    setSettings(next);
+    return next;
+  };
+  const toggleMute = async (name: string): Promise<Settings> => {
+    const next = await toggleMutedCourse(name);
+    setSettings(next);
+    return next;
+  };
+
   return (
-    <div style={{ minHeight: '100vh', background: T.bg, color: T.text, fontFamily: AT.font, padding: '26px 16px 48px', boxSizing: 'border-box' }}>
+    <div style={pageStyle()}>
       <GlobalStyles />
 
-      {/* Hero — ink number, color reserved for real signal */}
-      <div className="bs-apple-in" style={{ padding: '0 6px' }}>
-        <div style={{ fontSize: AT.caption, color: T.muted, letterSpacing: AT.trackBody }}>Better SGY</div>
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 5, marginTop: 6 }}>
-          <span style={{ fontSize: 46, fontWeight: AT.semibold, letterSpacing: AT.trackTight, lineHeight: 1, color: T.text, fontVariantNumeric: 'tabular-nums' }}>
-            {avg !== null ? avg.toFixed(1) : '—'}
-          </span>
-          {avg !== null && <span style={{ fontSize: 22, fontWeight: AT.medium, color: T.muted, marginBottom: 3 }}>%</span>}
-        </div>
-        <div style={{ fontSize: AT.caption, color: T.muted, marginTop: 6, letterSpacing: AT.trackBody }}>
-          Overall average · {courses.length} course{courses.length === 1 ? '' : 's'}{watch ? ` · checked ${timeAgo(watch.ts)}` : ''}
-        </div>
-      </div>
+      <Hero avg={avg} courseCount={courses.length} watch={watch} />
 
-      {/* Watcher health */}
-      {watch && !watch.ok && (
-        <div className="bs-apple-in" style={{ marginTop: 18, padding: '12px 14px', borderRadius: 14, background: `${T.failed}12`, display: 'flex', gap: 9, alignItems: 'flex-start' }}>
-          <span aria-hidden="true" style={{ color: T.failed, fontWeight: AT.semibold }}>·</span>
-          <div style={{ fontSize: AT.caption, color: T.text, lineHeight: 1.5 }}>
-            {watch.reason === 'session'
-              ? 'Grades couldn’t refresh — your Schoology session expired. Open Schoology and sign in; this catches up on its own.'
-              : watch.reason === 'network'
-                ? 'Couldn’t reach Schoology just now. It’ll retry shortly.'
-                : 'Couldn’t read your grades this time. It’ll retry shortly.'}
-          </div>
-        </div>
+      {watch && !watch.ok && <WatcherHealth watch={watch} />}
+
+      <ActivitySection shownChanges={shownChanges} />
+
+      {courses.length > 0 && (
+        <GradeOverTime courses={courses} selCourse={selCourse} onSelect={setSelected} />
       )}
 
-      {/* Activity */}
-      <SectionLabel>Recent activity</SectionLabel>
-      <Group>
-        {shownChanges.length === 0 ? (
-          <EmptyRow>Nothing new yet. Grade moves, new assignments, and newly-graded work show up here.</EmptyRow>
-        ) : (
-          shownChanges.map((e, i) => <ActivityRow key={`${e.kind}-${e.course}-${e.ts}-${i}`} event={e} last={i === shownChanges.length - 1} />)
-        )}
-      </Group>
+      <UpdatesSection shownAnn={shownAnn} />
 
-      {/* Grade over time */}
+      <NotificationSettings settings={settings} onSave={saveAndApply} />
+
+      <CheckFrequency settings={settings} onSave={saveAndApply} />
+
       {courses.length > 0 && (
-        <>
-          <SectionLabel>Grade over time</SectionLabel>
-          <div style={{ display: 'flex', gap: 18, overflowX: 'auto', padding: '0 6px 2px', marginBottom: 12 }}>
-            {courses.map((c) => {
-              const active = c.name === selCourse?.name;
-              return (
-                <button key={c.name} type="button" onClick={() => setSelected(c.name)} className="bs-focusable"
-                  style={{ all: 'unset', cursor: 'pointer', fontSize: AT.caption, whiteSpace: 'nowrap', paddingBottom: 5, flexShrink: 0,
-                    fontWeight: active ? AT.semibold : AT.regular, color: active ? T.text : T.muted,
-                    borderBottom: `2px solid ${active ? T.text : 'transparent'}` }}>
-                  {c.name.length > 16 ? c.name.slice(0, 16) + '…' : c.name}
-                </button>
-              );
-            })}
-          </div>
-          {selCourse && (
-            <Group>
-              <div style={{ padding: '16px 16px 12px' }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: AT.sub, fontWeight: AT.medium, color: T.text }}>{selCourse.name}</span>
-                  <span style={{ fontSize: AT.sub, fontWeight: AT.semibold, color: gradeColor(parseGradeString(selCourse.grade).percent), fontVariantNumeric: 'tabular-nums' }}>
-                    {parseGradeString(selCourse.grade).percent?.toFixed(1) ?? '—'}%
-                  </span>
-                </div>
-                <Trend points={computeSemesterTrend(selCourse)} />
-              </div>
-            </Group>
-          )}
-        </>
-      )}
-
-      {/* Updates */}
-      <SectionLabel>Updates</SectionLabel>
-      <Group>
-        {shownAnn.length === 0 ? (
-          <EmptyRow>No updates cached yet. Open a Schoology tab to pull the latest.</EmptyRow>
-        ) : (
-          shownAnn.map((a, i) => (
-            <button key={a.id} type="button" onClick={() => { const u = safeExternalUrl(a.link); if (u) browser.tabs.create({ url: u }); }}
-              className="bs-focusable"
-              style={{ all: 'unset', display: 'block', width: '100%', boxSizing: 'border-box', cursor: a.link ? 'pointer' : 'default', padding: '13px 16px', borderBottom: i === shownAnn.length - 1 ? 'none' : `1px solid ${hairline()}` }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                <span style={{ fontSize: AT.sub, fontWeight: AT.medium, color: T.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.author || 'Schoology'}</span>
-                <span style={{ flex: 1 }} />
-                <span style={{ fontSize: AT.micro, color: T.muted, flexShrink: 0 }}>{a.timeText || timeAgo(a.timestamp)}</span>
-              </div>
-              <div style={{ fontSize: AT.caption, color: T.muted, marginTop: 4, lineHeight: 1.45, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                {a.courseName ? `${a.courseName} — ${a.body}` : a.body}
-              </div>
-            </button>
-          ))
-        )}
-      </Group>
-
-      {/* Settings */}
-      <SectionLabel>Settings</SectionLabel>
-      <Group>
-        <SettingRow label="Notifications" note="Grade changes & new work">
-          <Toggle on={settings.notifications} onChange={async (v) => setSettings(await saveSettings({ notifications: v }))} />
-        </SettingRow>
-        <SettingRow label="Due-soon reminders" note="Heads-up the day before">
-          <Toggle on={settings.dueSoonReminders} onChange={async (v) => setSettings(await saveSettings({ dueSoonReminders: v }))} />
-        </SettingRow>
-        <SettingRow label="Open sound" note="Chime when the panel opens" last>
-          <Toggle on={settings.chime} onChange={async (v) => setSettings(await saveSettings({ chime: v }))} />
-        </SettingRow>
-      </Group>
-
-      {/* Check frequency */}
-      <SectionLabel>Check every</SectionLabel>
-      <div style={{ display: 'flex', gap: 8 }}>
-        {[5, 15, 30, 60].map((m) => {
-          const active = settings.pollMinutes === m;
-          return (
-            <button key={m} type="button" className="bs-focusable"
-              onClick={async () => setSettings(await saveSettings({ pollMinutes: m }))}
-              style={{ all: 'unset', cursor: 'pointer', flex: 1, textAlign: 'center', padding: '9px 0', borderRadius: 12,
-                fontSize: AT.caption, fontWeight: AT.medium,
-                background: active ? T.text : tileBg(), color: active ? T.bg : T.muted }}>
-              {m}m
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Mute courses */}
-      {courses.length > 0 && (
-        <>
-          <SectionLabel>Mute courses</SectionLabel>
-          <Group>
-            {courses.map((c, i) => {
-              const muted = settings.mutedCourses.includes(c.name);
-              return (
-                <SettingRow key={c.name} label={c.name} last={i === courses.length - 1}>
-                  <Toggle on={!muted} onChange={async () => setSettings(await toggleMutedCourse(c.name))} />
-                </SettingRow>
-              );
-            })}
-          </Group>
-          <div style={{ fontSize: AT.micro, color: T.muted, margin: '8px 6px 0' }}>On = you’ll get alerts for this course.</div>
-        </>
+        <MuteCourses courses={courses} settings={settings} onToggle={toggleMute} />
       )}
 
       <div style={{ height: 24 }} />

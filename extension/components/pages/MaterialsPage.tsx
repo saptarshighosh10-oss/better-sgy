@@ -21,6 +21,7 @@ import {
 } from '../../lib/fetch-materials';
 import { loadStarredFolders, toggleStarredFolder, type StarredFolder } from '../../lib/starred-folders';
 import { T, getActiveTheme, onThemeChange, inkOnAccent } from '../../lib/theme';
+import { tileBg } from '../../lib/apple';
 
 interface GradesState { courses: ScrapedCourse[]; }
 interface Props { grades: GradesState; }
@@ -347,8 +348,8 @@ export function MaterialsPage({ grades }: Props) {
           Courses
         </div>
         {courses.map(course => {
-          const cBg = courseColor(course.name, false);
-          const cText = courseColor(course.name, true);
+          const cBg = tileBg();
+          const cText = T.text;
           const a = courseAbbr(course.name);
           const isActive = selected?.name === course.name;
           return (
@@ -361,7 +362,7 @@ export function MaterialsPage({ grades }: Props) {
                 display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative' }}>
                 <span style={{ fontSize: Math.round(abbrFontSize(a) * 0.42), fontWeight: 900, color: getActiveTheme() === 'mono-light' ? 'rgba(0,0,0,0.34)' : 'rgba(255,255,255,0.22)', userSelect: 'none', lineHeight: 1 }} aria-hidden="true">{a}</span>
               </div>
-              <span style={{ flex: 1, fontSize: 12, fontWeight: isActive ? 600 : 400, color: isActive ? T.text : '#8892a4', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span style={{ flex: 1, fontSize: 12, fontWeight: isActive ? 600 : 400, color: isActive ? T.text : T.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {course.name}
               </span>
             </button>

@@ -10,7 +10,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { GlobalStyles } from './GlobalStyles';
 import { T } from '../lib/theme';
-import { AT, tileBg, hairline } from '../lib/apple';
+import { AT, tileBg, hairline } from '../lib/halo';
 import { parseGradeString, gradeColor } from '../lib/grade-utils';
 import { computeSemesterTrend, type GradePoint } from '../lib/grade-history';
 import { loadGradeData } from '../lib/storage';
@@ -199,7 +199,7 @@ function SidePanelSkeleton() {
 /** Big ink average + course count + last-checked line. */
 function Hero({ avg, courseCount, watch }: { avg: number | null; courseCount: number; watch: WatchStatus | null }) {
   return (
-    <div className="bs-apple-in" style={{ padding: '0 6px' }}>
+    <div className="bs-halo-in" style={{ padding: '0 6px' }}>
       <div style={{ fontSize: AT.caption, color: T.muted, letterSpacing: AT.trackBody }}>Better SGY</div>
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: 5, marginTop: 6 }}>
         <span style={{ fontSize: 46, fontWeight: AT.semibold, letterSpacing: AT.trackTight, lineHeight: 1, color: T.text, fontVariantNumeric: 'tabular-nums' }}>
@@ -223,7 +223,7 @@ function WatcherHealth({ watch }: { watch: WatchStatus }) {
         ? 'Couldn’t reach Schoology just now. It’ll retry shortly.'
         : 'Couldn’t read your grades this time. It’ll retry shortly.';
   return (
-    <div className="bs-apple-in" style={{ marginTop: 18, padding: '12px 14px', borderRadius: 14, background: `${T.failed}12`, display: 'flex', gap: 9, alignItems: 'flex-start' }}>
+    <div className="bs-halo-in" style={{ marginTop: 18, padding: '12px 14px', borderRadius: 14, background: `${T.failed}12`, display: 'flex', gap: 9, alignItems: 'flex-start' }}>
       <span aria-hidden="true" style={{ color: T.failed, fontWeight: AT.semibold }}>·</span>
       <div style={{ fontSize: AT.caption, color: T.text, lineHeight: 1.5 }}>{message}</div>
     </div>

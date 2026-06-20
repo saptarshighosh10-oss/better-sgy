@@ -80,12 +80,12 @@ export function GlobalStyles() {
       /* ── Apple-style motion + interactions ───────────────────────────
          Calm fade-up entrance (replaces the flashy 3D fly-in), gentle press
          feedback on pills, and underline-on-hover for chevron text links. */
-      @keyframes bsAppleIn {
+      @keyframes bsHaloIn {
         from { opacity: 0; transform: translateY(12px); }
         to   { opacity: 1; transform: translateY(0); }
       }
-      .bs-apple-in {
-        animation: bsAppleIn 620ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+      .bs-halo-in {
+        animation: bsHaloIn 620ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
       }
       .bs-press { transition: transform 140ms cubic-bezier(0.22,1,0.36,1), filter 140ms ease-out; }
       .bs-press:hover { filter: brightness(1.05); }
@@ -94,7 +94,7 @@ export function GlobalStyles() {
       .bs-applink:hover { opacity: 0.6; }
       .bs-applink:hover > span:first-child { text-decoration: underline; text-underline-offset: 3px; }
       /* Apple card hover lift — soft and slow */
-      .bs-apple-card { transition: transform 240ms cubic-bezier(0.22,1,0.36,1), box-shadow 240ms ease-out, border-color 240ms ease-out; }
+      .bs-halo-card { transition: transform 240ms cubic-bezier(0.22,1,0.36,1), box-shadow 240ms ease-out, border-color 240ms ease-out; }
 
       /* Skeleton loader — gentle shimmer sweep across a neutral block */
       @keyframes bsSkel {
@@ -184,7 +184,7 @@ export function GlobalStyles() {
         .bs-page-enter, .bs-row-enter, .bs-fade-in, .bs-collapse,
         .bs-collapse-content, .bs-expand-in, .bs-nav-btn, .bs-card-fly,
         .bs-decor, .bs-decor *,
-        .bs-apple-in, .bs-press, .bs-applink, .bs-apple-card,
+        .bs-halo-in, .bs-press, .bs-applink, .bs-halo-card,
         .bs-motion, .bs-reveal, .bs-lift {
           animation: none !important;
           transition: none !important;

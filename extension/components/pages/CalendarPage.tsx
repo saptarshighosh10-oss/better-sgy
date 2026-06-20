@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import type { ScrapedCourse } from '../../lib/schemas';
 import { courseAbbr } from '../../lib/course-colors';
 import { T } from '../../lib/theme';
-import { AT, tileBg, hairline } from '../../lib/apple';
-import { appleCardStyle } from '../apple-ui';
+import { AT, tileBg, hairline } from '../../lib/halo';
+import { haloCardStyle } from '../halo-ui';
 
 interface GradesState { courses: ScrapedCourse[]; }
 interface Props { grades: GradesState; }
@@ -412,7 +412,7 @@ export function CalendarPage({ grades }: Props) {
       {/* Selected-day detail */}
       {selectedDay && selectedItems.length > 0 && (
         <div style={{
-          ...appleCardStyle(true),
+          ...haloCardStyle(true),
           marginTop: 14,
           borderRadius: AT.rTile,
           padding: '16px 18px',

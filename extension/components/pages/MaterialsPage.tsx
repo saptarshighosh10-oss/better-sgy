@@ -21,7 +21,7 @@ import {
 } from '../../lib/fetch-materials';
 import { loadStarredFolders, toggleStarredFolder, type StarredFolder } from '../../lib/starred-folders';
 import { T, getActiveTheme, onThemeChange, inkOnAccent } from '../../lib/theme';
-import { tileBg, hairline } from '../../lib/apple';
+import { tileBg, hairline } from '../../lib/halo';
 import { openSafe } from '../../lib/safe-url';
 
 interface GradesState { courses: ScrapedCourse[]; }

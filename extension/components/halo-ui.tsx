@@ -1,14 +1,14 @@
 /**
- * apple-ui.tsx — small shared building blocks for the Apple-style overlay.
+ * halo-ui.tsx — small shared building blocks for the Halo edition overlay.
  * Pages compose these so the type scale, pills, tiles and section headers stay
- * identical everywhere. Colors come from the theme (T); see lib/apple.ts.
+ * identical everywhere. Colors come from the theme (T); see lib/halo.ts.
  */
 import React from 'react';
 import { T, inkOnAccent } from '../lib/theme';
-import { AT, tileBg, hairline, cardShadow } from '../lib/apple';
+import { AT, tileBg, hairline, cardShadow } from '../lib/halo';
 
 /** Pill CTA — Apple's filled blue button (uses the active accent). */
-export function AppleButton({
+export function HaloButton({
   children, onClick, variant = 'filled', size = 'md', title, ariaLabel,
 }: {
   children: React.ReactNode;
@@ -40,7 +40,7 @@ export function AppleButton({
 }
 
 /** Text link with the Apple chevron, e.g. "View grades ›". */
-export function AppleLink({
+export function HaloLink({
   children, onClick, size = AT.sub, ariaLabel,
 }: {
   children: React.ReactNode;
@@ -124,7 +124,7 @@ export function Eyebrow({ children }: { children: React.ReactNode }) {
 }
 
 /** Raised content card (white surface on light, bordered on dark). */
-export function appleCardStyle(elevated = false): React.CSSProperties {
+export function haloCardStyle(elevated = false): React.CSSProperties {
   return {
     background: T.card,
     border: `1px solid ${hairline()}`,

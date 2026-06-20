@@ -2,8 +2,8 @@ import React, { useState, useMemo } from 'react';
 import type { ScrapedCourse } from '../lib/schemas';
 import { isMissing, parseMaxGrade, parseScore, formatDueDate } from '../lib/grade-utils';
 import { T } from '../lib/theme';
-import { AT, tileBg, hairline } from '../lib/apple';
-import { appleCardStyle } from './apple-ui';
+import { AT, tileBg, hairline } from '../lib/halo';
+import { haloCardStyle } from './halo-ui';
 
 interface Priority {
   id: string;
@@ -73,7 +73,7 @@ export function SmartPriorities({ courses }: { courses: ScrapedCourse[] }) {
   if (items.length === 0) return null;
 
   return (
-    <div style={{ ...appleCardStyle(), overflow: 'hidden' }}>
+    <div style={{ ...haloCardStyle(), overflow: 'hidden' }}>
       {/* Header */}
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '18px 24px', borderBottom: `1px solid ${hairline()}` }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>

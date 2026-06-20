@@ -3,8 +3,8 @@ import type { ScrapedCourse, SchoologyData } from '../../lib/schemas';
 import { parseGradeString, isMissing, scorePercent } from '../../lib/grade-utils';
 import { SmartPriorities } from '../SmartPriorities';
 import { T, isMinimalist } from '../../lib/theme';
-import { AT, tileBg, hairline, cardShadow } from '../../lib/apple';
-import { AppleButton, FeatureTile, SectionHeader, Eyebrow, appleCardStyle } from '../apple-ui';
+import { AT, tileBg, hairline, cardShadow } from '../../lib/halo';
+import { HaloButton, FeatureTile, SectionHeader, Eyebrow, haloCardStyle } from '../halo-ui';
 
 interface GradesState {
   courses: ScrapedCourse[];
@@ -92,7 +92,7 @@ function CourseCard({ course, index, onClick }: {
       onClick={onClick}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      className="bs-focusable bs-apple-card bs-apple-in"
+      className="bs-focusable bs-halo-card bs-halo-in"
       aria-label={`${course.name}${percent !== null ? `, ${percent.toFixed(1)} percent` : ''}${missCt > 0 ? `, ${missCt} missing` : ''} — open gradebook`}
       style={{
         all: 'unset',
@@ -195,7 +195,7 @@ export function OverviewPage({ grades, onCourseSelect }: Props) {
       <div style={{ maxWidth: 1040, margin: '0 auto', padding: '48px clamp(20px, 4vw, 40px) 96px' }}>
 
         {/* ── Hero ─────────────────────────────────────────────── */}
-        <div className="bs-apple-in">
+        <div className="bs-halo-in">
           <Eyebrow>{eyebrowText}</Eyebrow>
           <div style={{ marginTop: 14, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 32, flexWrap: 'wrap' }}>
             <div style={{ minWidth: 260 }}>
@@ -218,7 +218,7 @@ export function OverviewPage({ grades, onCourseSelect }: Props) {
               )}
             </div>
             {courses.length > 0 && (
-              <AppleButton onClick={() => onCourseSelect(courses[0].name)}>View all grades</AppleButton>
+              <HaloButton onClick={() => onCourseSelect(courses[0].name)}>View all grades</HaloButton>
             )}
           </div>
         </div>
@@ -237,7 +237,7 @@ export function OverviewPage({ grades, onCourseSelect }: Props) {
         <div style={{ marginTop: 60 }}>
           <SectionHeader title="Your courses" meta={`${courses.length} course${courses.length === 1 ? '' : 's'}`} />
           {courses.length === 0 ? (
-            <div style={{ marginTop: 24, padding: '48px 24px', textAlign: 'center', color: T.muted, fontSize: AT.body, ...appleCardStyle() }}>
+            <div style={{ marginTop: 24, padding: '48px 24px', textAlign: 'center', color: T.muted, fontSize: AT.body, ...haloCardStyle() }}>
               <div>No courses found in the last scrape.</div>
               <div style={{ marginTop: 8, fontSize: AT.sub, opacity: 0.8 }}>
                 Open <span style={{ color: T.primary, fontWeight: AT.medium }}>{location.host}/grades/grades</span> to re-read your grades.

@@ -4,8 +4,8 @@ import { courseAbbr } from '../../lib/course-colors';
 import { scorePercent, parseMaxGrade, gradeColor, parseDueDate, formatDueDate, isDatePast } from '../../lib/grade-utils';
 import { Icon } from '../Icon';
 import { T } from '../../lib/theme';
-import { AT, tileBg, hairline } from '../../lib/apple';
-import { appleCardStyle } from '../apple-ui';
+import { AT, tileBg, hairline } from '../../lib/halo';
+import { haloCardStyle } from '../halo-ui';
 import { ContentViewer, NativeTaskViewer } from './MaterialsPage';
 import { fetchItemContent, submitDropboxText, submitDropboxFiles, type FetchedContent } from '../../lib/fetch-materials';
 
@@ -332,9 +332,9 @@ function BucketCard({
 
   return (
     <div
-      className="bs-apple-in"
+      className="bs-halo-in"
       style={{
-        ...appleCardStyle(),
+        ...haloCardStyle(),
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',

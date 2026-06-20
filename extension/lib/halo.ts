@@ -1,8 +1,8 @@
 /**
- * apple.ts — shared "Apple Store" design language for the whole overlay.
+ * halo.ts — design language for the Halo edition (Apple-Store-inspired) overlay.
  *
- * The redesign keeps using the existing theme system (T / accents) for *color*,
- * and layers an Apple-flavoured type scale, spacing, radii and surfaces on top so
+ * Halo keeps using the existing theme system (T / accents) for *color*,
+ * and layers a refined type scale, spacing, radii and surfaces on top so
  * every page reads the same. Pure-grayscale ("Mono / B&W") is just the mono accent
  * + a mono theme — see isMono() in theme.ts; the helpers here drop shadows/chroma
  * accordingly. Nothing here is page-specific; pages compose these tokens.
@@ -10,12 +10,12 @@
 import { isLightTheme, getActiveTheme } from './theme';
 
 /** San Francisco on Apple platforms, Inter elsewhere, system fallback last. */
-export const APPLE_FONT =
+export const HALO_FONT =
   "-apple-system, 'SF Pro Display', 'SF Pro Text', 'Inter', system-ui, 'Helvetica Neue', Helvetica, Arial, sans-serif";
 
 /** Apple type scale (px) + the letter-spacing / weight pairings Apple uses. */
 export const AT = {
-  font: APPLE_FONT,
+  font: HALO_FONT,
   // sizes
   hero: 80,
   display: 56,

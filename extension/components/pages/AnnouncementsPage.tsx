@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { T, inkOnAccent } from '../../lib/theme';
-import { AT, tileBg, hairline } from '../../lib/apple';
-import { appleCardStyle } from '../apple-ui';
+import { AT, tileBg, hairline } from '../../lib/halo';
+import { haloCardStyle } from '../halo-ui';
 import type { UseAnnouncements } from '../../lib/use-announcements';
 import type { Announcement } from '../../lib/fetch-announcements';
 import { openSafe } from '../../lib/safe-url';
@@ -70,7 +70,7 @@ export function AnnouncementsPage({ announcements }: Props) {
           <span style={{ color: T.muted, fontSize: AT.body }}>Loading announcements…</span>
         </div>
       ) : error && items.length === 0 ? (
-        <div style={{ ...appleCardStyle(), padding: '16px 20px', fontSize: AT.body, color: T.muted, lineHeight: 1.6 }}>{error}</div>
+        <div style={{ ...haloCardStyle(), padding: '16px 20px', fontSize: AT.body, color: T.muted, lineHeight: 1.6 }}>{error}</div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20, alignItems: 'start' }}>
           {buckets.map((b, i) => (
@@ -109,7 +109,7 @@ function CategoryCard({ bucket, index, newIds, announcements }: {
   if (authorFilter) visible = visible.filter((a) => a.author === authorFilter);
 
   return (
-    <div className="bs-apple-in" style={{ ...appleCardStyle(), overflow: 'hidden', display: 'flex', flexDirection: 'column', animationDelay: `${index * 70}ms` }}>
+    <div className="bs-halo-in" style={{ ...haloCardStyle(), overflow: 'hidden', display: 'flex', flexDirection: 'column', animationDelay: `${index * 70}ms` }}>
       <div style={{ padding: '20px 22px 14px', borderBottom: `1px solid ${hairline()}`, flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
           <span style={{ fontSize: AT.h1, fontWeight: AT.semibold, color: bucket.color, lineHeight: 1, letterSpacing: AT.trackHead, fontVariantNumeric: 'tabular-nums' }}>

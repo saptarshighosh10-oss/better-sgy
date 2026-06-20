@@ -6,8 +6,8 @@ import { CourseGradebook } from '../CourseGradebook';
 import { computeSemesterTrend } from '../../lib/grade-history';
 import type { GradePoint } from '../../lib/grade-history';
 import { T, isMinimalist } from '../../lib/theme';
-import { AT, tileBg, hairline } from '../../lib/apple';
-import { appleCardStyle } from '../apple-ui';
+import { AT, tileBg, hairline } from '../../lib/halo';
+import { haloCardStyle } from '../halo-ui';
 import type { GradeSnapshot } from '../../lib/storage';
 
 function getGPAPointsForCourse(gradeStr: string): number | null {

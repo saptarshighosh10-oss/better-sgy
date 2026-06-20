@@ -1,5 +1,5 @@
 import { loadGradeData } from '../lib/storage';
-import { loadChanges, dedupeChanges, type ChangeEvent } from '../lib/grade-changes';
+import { loadChanges, appendChanges, dedupeChanges, type ChangeEvent } from '../lib/grade-changes';
 import { parseGradeString } from '../lib/grade-utils';
 import { loadCachedAnnouncements } from '../lib/announcement-cache';
 import { loadWatchStatus } from '../lib/watch-status';
@@ -369,6 +369,12 @@ export default defineContentScript({
 
     // Prime the baseline so pre-existing history doesn't pop the panel on load.
     void loadChanges().then((c) => { lastSeenTs = newestTs(c); primed = true; });
+
+    // Dev helper: run __bsTestUpdate() in the console to simulate a fresh grade
+    // change and watch the panel auto-open. (Dev-only; no UI.)
+    (window as unknown as { __bsTestUpdate?: () => void }).__bsTestUpdate = () => {
+      void appendChanges([{ kind: 'grade', course: 'Test Course', oldPct: 90, newPct: 93, delta: 3, ts: Date.now() }]);
+    };
 
     // ── Init ──────────────────────────────────────────────────────────────────
     void renderBtn();

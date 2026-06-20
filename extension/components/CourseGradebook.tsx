@@ -2,7 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import type { ScrapedCourse, ScrapedCategory } from '../lib/schemas';
 import type { GradePoint } from '../lib/grade-history';
 import {
-  parseGradeString, gradeColor, checkBorderline,
+  parseGradeString, checkBorderline,
   parseScore, parseMaxGrade, formatDueDate, parseDueDate,
 } from '../lib/grade-utils';
 import { Icon, ICON_PATHS } from './Icon';
@@ -616,7 +616,7 @@ function CategoryRow({
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr' }}>
             <div>
               <div style={{ fontSize: 11, fontWeight: 500, color: T.muted, letterSpacing: '-0.01em', marginBottom: 2 }}>Current %</div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: gradeColor(effPct) ?? T.muted, fontVariantNumeric: 'tabular-nums' }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: T.text, fontVariantNumeric: 'tabular-nums' }}>
                 {animatedEffPct !== null ? `${animatedEffPct.toFixed(1)}%` : '—'}
               </div>
             </div>
@@ -648,7 +648,7 @@ function CategoryRow({
             const ov = overrides.get(a.key);
             const hypo = a.isHypo ? hypos.find(h => `h:${h.id}` === a.key) : undefined;
             const pct = a.score !== null && a.max ? (a.score / a.max) * 100 : null;
-            const clr = gradeColor(pct);
+            const clr = T.muted;
             // Pre-fill with the real current value (override if edited, else original)
             // so existing scores like "16.5/19.5" are visible and directly editable.
             const scoreStr = a.isHypo
@@ -860,7 +860,7 @@ export function CourseGradebook({ course, nickname }: Props) {
     : delta !== null && projectedGrade !== null
     ? projectedGrade
     : percent;
-  const displayColor = gradeColor(displayPct);
+  const displayColor = T.text;
   const borderInfo = checkBorderline(displayPct);
   const animatedDisplayPct = useAnimatedNumber(displayPct);
 

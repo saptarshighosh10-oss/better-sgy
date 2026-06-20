@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import type { ScrapedCourse, ScrapedAssignment } from '../../lib/schemas';
-import { courseColor, courseAbbr, abbrFontSize } from '../../lib/course-colors';
+import { courseAbbr, abbrFontSize } from '../../lib/course-colors';
 import {
   fetchMaterials,
   fetchItemContent,
@@ -21,7 +21,7 @@ import {
 } from '../../lib/fetch-materials';
 import { loadStarredFolders, toggleStarredFolder, type StarredFolder } from '../../lib/starred-folders';
 import { T, getActiveTheme, onThemeChange, inkOnAccent } from '../../lib/theme';
-import { tileBg } from '../../lib/apple';
+import { tileBg, hairline } from '../../lib/apple';
 
 interface GradesState { courses: ScrapedCourse[]; }
 interface Props { grades: GradesState; }
@@ -335,7 +335,7 @@ export function MaterialsPage({ grades }: Props) {
     return null;
   }
 
-  const color = selected ? courseColor(selected.name) : '#3b82f6';
+  const color = tileBg();
   const abbr = selected ? courseAbbr(selected.name) : '';
   const fs = selected ? abbrFontSize(abbr) : 48;
 
@@ -375,14 +375,14 @@ export function MaterialsPage({ grades }: Props) {
 
         {/* Course banner */}
         {selected && (
-          <div style={{ height: 64, flexShrink: 0, background: color, position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', padding: '0 20px', gap: 12 }}>
-            <div style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', fontSize: fs * 0.65, fontWeight: 900, color: 'rgba(255,255,255,0.1)', userSelect: 'none', lineHeight: 1, letterSpacing: '-1px' }} aria-hidden="true">{abbr}</div>
+          <div style={{ height: 64, flexShrink: 0, background: color, borderBottom: `1px solid ${hairline()}`, position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', padding: '0 20px', gap: 12 }}>
+            <div style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', fontSize: fs * 0.65, fontWeight: 900, color: T.text, opacity: 0.06, userSelect: 'none', lineHeight: 1, letterSpacing: '-1px' }} aria-hidden="true">{abbr}</div>
             <div style={{ zIndex: 1 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', lineHeight: 1.2 }}>{selected.name}</div>
-              {selected.teacher && <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)', marginTop: 2 }}>{selected.teacher}</div>}
+              <div style={{ fontSize: 15, fontWeight: 700, color: T.text, lineHeight: 1.2 }}>{selected.name}</div>
+              {selected.teacher && <div style={{ fontSize: 11, color: T.muted, marginTop: 2 }}>{selected.teacher}</div>}
             </div>
             {viewer && (
-              <span style={{ zIndex: 1, fontSize: 11, color: 'rgba(255,255,255,0.6)', marginLeft: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span style={{ zIndex: 1, fontSize: 11, color: T.muted, marginLeft: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 / {viewer.title}
               </span>
             )}
@@ -752,7 +752,7 @@ function StarredPanel({ starred, activeHref, onOpen, onUnstar }: {
       </div>
       <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 2 }}>
         {starred.map((folder) => {
-          const c = courseColor(folder.courseName, true);
+          const c = T.muted;
           const isActive = folder.href === activeHref;
           return (
             <div

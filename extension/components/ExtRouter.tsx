@@ -18,18 +18,19 @@ import { CalendarPage } from './pages/CalendarPage';
 import { GameHub } from './pages/GameHub';
 import { AnnouncementsPage } from './pages/AnnouncementsPage';
 import { NostalgiaPage } from './pages/NostalgiaPage';
+import { SettingsPage } from './pages/SettingsPage';
 import { DashboardSkeleton } from './DashboardSkeleton';
 import { seedDemoData } from '../lib/demo-data';
 import { type GradeSnapshot } from '../lib/storage';
 import { useAnnouncements } from '../lib/use-announcements';
+import { loadSettings, saveSettings, DEFAULT_SETTINGS, type Settings } from '../lib/settings';
 import { T, uiFontStack } from '../lib/theme';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import type { Page } from '../lib/pages';
 
-export type Page = 'overview' | 'grades' | 'assignments' | 'calendar' | 'materials' | 'game' | 'announcements' | 'nostalgia';
+export type { Page };
 
-/** Same order as the FloatingNav carousel — the Arcade (game) sits last so it's the
- *  final page you scroll to. */
-const PAGE_ORDER: Page[] = ['overview', 'grades', 'assignments', 'calendar', 'materials', 'announcements', 'nostalgia', 'game'];
+const DEFAULT_TAB_ORDER: Page[] = ['overview', 'grades', 'assignments', 'calendar', 'materials', 'announcements', 'nostalgia', 'game'];
 
 const IN_PROGRESS = new Set([
   'checking_session',
@@ -65,11 +66,32 @@ const COURSE_KEY = '__bs_course__';
 
 export function ExtRouter({ scrapeResult }: Props) {
   const grades = useExtensionGrades();
+  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
+
+  React.useEffect(() => {
+    loadSettings().then(setSettings).catch(() => {});
+    const unsub = (() => {
+      const handler = (_c: Record<string, unknown>, area: string) => {
+        if (area === 'local') loadSettings().then(setSettings).catch(() => {});
+      };
+      browser.storage.onChanged.addListener(handler);
+      return () => browser.storage.onChanged.removeListener(handler);
+    })();
+    return unsub;
+  }, []);
+
+  // Effective tab order: user's saved order, filtered to remove hidden tabs.
+  const pageOrder = React.useMemo<Page[]>(() => {
+    const order = (settings.tabOrder.length > 0 ? settings.tabOrder : DEFAULT_TAB_ORDER) as Page[];
+    const hidden = new Set(settings.hiddenTabs);
+    return order.filter((p) => !hidden.has(p));
+  }, [settings.tabOrder, settings.hiddenTabs]);
+
   // Restore the page (and selected course) the user was on before a reload.
   const [page, setPage] = useState<Page>(() => {
     if (typeof localStorage === 'undefined') return 'overview';
     const saved = localStorage.getItem(PAGE_KEY) as Page | null;
-    return saved && PAGE_ORDER.includes(saved) ? saved : 'overview';
+    return saved && (DEFAULT_TAB_ORDER.includes(saved) || saved === 'settings') ? saved : 'overview';
   });
   const [selectedCourseName, setSelectedCourseName] = useState<string | null>(() => {
     if (typeof localStorage === 'undefined') return null;
@@ -117,22 +139,32 @@ export function ExtRouter({ scrapeResult }: Props) {
   // SELECT GAME menu still lets you arrow-key away — Caveman/Neon keep arrows in-game).
   const pageRef = React.useRef(page);
   pageRef.current = page;
+  const pageOrderRef = React.useRef(pageOrder);
+  pageOrderRef.current = pageOrder;
   React.useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
       if (pageRef.current === 'game' && (window as { __bsGameActive?: boolean }).__bsGameActive) return;
+      if (pageRef.current === 'settings') return;
       const target = (e.composedPath?.()[0] ?? e.target) as HTMLElement | null;
       const tag = target?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable) return;
       setPage((p) => {
-        const i = Math.max(0, PAGE_ORDER.indexOf(p));
+        const ord = pageOrderRef.current;
+        const i = Math.max(0, ord.indexOf(p));
         return e.key === 'ArrowRight'
-          ? PAGE_ORDER[(i + 1) % PAGE_ORDER.length]
-          : PAGE_ORDER[(i - 1 + PAGE_ORDER.length) % PAGE_ORDER.length];
+          ? ord[(i + 1) % ord.length]
+          : ord[(i - 1 + ord.length) % ord.length];
       });
     }
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
+  }, []);
+
+  const saveSettingsAndApply = React.useCallback(async (patch: Partial<Settings>): Promise<Settings> => {
+    const next = await saveSettings(patch);
+    setSettings(next);
+    return next;
   }, []);
 
   function navigate(p: Page, courseName?: string) {
@@ -148,6 +180,14 @@ export function ExtRouter({ scrapeResult }: Props) {
       if (p === 'announcements') return prevPageRef.current;
       prevPageRef.current = p;
       return 'announcements';
+    });
+  }
+
+  function toggleSettings() {
+    setPage((p) => {
+      if (p === 'settings') return prevPageRef.current;
+      prevPageRef.current = p;
+      return 'settings';
     });
   }
 
@@ -220,6 +260,9 @@ export function ExtRouter({ scrapeResult }: Props) {
     );
   }
 
+  const isSlate = settings.edition === 'slate';
+  const isForge = settings.edition === 'forge';
+
   return (
     <div
       style={{
@@ -231,9 +274,10 @@ export function ExtRouter({ scrapeResult }: Props) {
         color: T.text,
         zIndex: 1,
         overflow: 'hidden',
+        ...(isSlate ? { filter: 'grayscale(1) saturate(0)' } : {}),
       }}
     >
-      <div style={{ flex: 1, position: 'relative', minWidth: 0 }}>
+      <div style={{ flex: 1, position: 'relative', minWidth: 0, ...(isForge ? { zoom: 0.92 } : {}) }}>
         <AnimatePresence mode="wait">
           <motion.main
             key={page}
@@ -279,16 +323,31 @@ export function ExtRouter({ scrapeResult }: Props) {
                 }}
               />
             )}
+            {page === 'settings' && (
+              <SettingsPage
+                settings={settings}
+                onSave={saveSettingsAndApply}
+                data={grades.data}
+              />
+            )}
           </motion.main>
         </AnimatePresence>
       </div>
 
-      <FloatingNav page={page} onNavigate={(p) => navigate(p)} announcementsUnread={announcements.unreadCount} onBell={toggleAnnouncements} />
+      <FloatingNav
+        page={page}
+        onNavigate={(p) => navigate(p)}
+        announcementsUnread={announcements.unreadCount}
+        onBell={toggleAnnouncements}
+        onSettings={toggleSettings}
+        pageOrder={pageOrder}
+      />
       <QuickNav
         page={page}
         courseName={selectedCourseName}
         courses={grades.courses}
         onJump={(p, courseName) => navigate(p, courseName)}
+        pageOrder={pageOrder}
       />
     </div>
   );

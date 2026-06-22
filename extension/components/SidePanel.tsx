@@ -415,6 +415,29 @@ function EditionPicker({ settings, onSave }: { settings: Settings; onSave: (patc
   );
 }
 
+function DetectedSection({ data }: { data: SchoologyData }) {
+  const totalAssignments = data.courses.reduce((sum, c) => sum + c.categories.reduce((s, cat) => s + cat.assignments.length, 0), 0);
+  const rows: { label: string; value: string; last?: boolean }[] = [
+    { label: 'Last synced', value: timeAgo(data.scrapedAt) },
+    { label: 'Grading period', value: data.gradingPeriod || '—' },
+    { label: 'Courses', value: String(data.courses.length) },
+    { label: 'Assignments', value: String(totalAssignments), last: true },
+  ];
+  return (
+    <>
+      <SectionLabel>Detected</SectionLabel>
+      <Group>
+        {rows.map((r) => (
+          <div key={r.label} style={{ ...rowStyle(r.last), display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+            <span style={{ fontSize: AT.sub, color: T.text }}>{r.label}</span>
+            <span style={{ fontSize: AT.sub, color: T.muted, fontVariantNumeric: 'tabular-nums' }}>{r.value}</span>
+          </div>
+        ))}
+      </Group>
+    </>
+  );
+}
+
 export function SidePanel() {
   const [data, setData] = useState<SchoologyData | null>(null);
   const [changes, setChanges] = useState<ChangeEvent[]>([]);
@@ -493,6 +516,8 @@ export function SidePanel() {
       )}
 
       <EditionPicker settings={settings} onSave={saveAndApply} />
+
+      {data && <DetectedSection data={data} />}
 
       <div style={{ height: 24 }} />
     </div>

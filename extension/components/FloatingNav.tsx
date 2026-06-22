@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import type { Page } from './ExtRouter';
+import type { Page } from '../lib/pages';
 import {
   T, ACCENT_PRESETS, getAccentColor, setAccentColor,
   getActiveTheme, cycleTheme, THEME_ORDER, THEME_LABELS,
@@ -103,6 +103,10 @@ interface Props {
   announcementsUnread?: number;
   /** Bell tap: opens Announcements, or leaves it (back to previous page) if there. */
   onBell?: () => void;
+  /** Gear tap: opens Settings, or leaves it if already there. */
+  onSettings?: () => void;
+  /** Effective tab order (hidden tabs already filtered out). */
+  pageOrder?: Page[];
 }
 
 /**
@@ -110,7 +114,7 @@ interface Props {
  * full-width content. Lets you jump straight back to Overview, or step
  * to the page before/after the current one — that's the whole surface.
  */
-export function FloatingNav({ page, onNavigate, announcementsUnread = 0, onBell }: Props) {
+export function FloatingNav({ page, onNavigate, announcementsUnread = 0, onBell, onSettings, pageOrder }: Props) {
   const [showColorDrawer, setShowColorDrawer] = useState(false);
   const [expanded, setExpanded] = useState(false); // popout: collapsed handle → full bar on hover
   // Forgiving collapse — a brief mouse-out won't snap it shut (so the far-right
@@ -118,10 +122,18 @@ export function FloatingNav({ page, onNavigate, announcementsUnread = 0, onBell 
   const collapseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cancelCollapse = () => { if (collapseTimer.current) { clearTimeout(collapseTimer.current); collapseTimer.current = null; } };
   const scheduleCollapse = () => { cancelCollapse(); collapseTimer.current = setTimeout(() => { if (!showColorDrawer) setExpanded(false); }, 300); };
-  const idx = Math.max(0, NAV_ITEMS.findIndex((i) => i.id === page));
-  const prev = NAV_ITEMS[(idx - 1 + NAV_ITEMS.length) % NAV_ITEMS.length];
-  const next = NAV_ITEMS[(idx + 1) % NAV_ITEMS.length];
-  const current = NAV_ITEMS[idx];
+
+  // Use the custom page order for prev/next; fall back to the full NAV_ITEMS list.
+  const orderedItems = pageOrder
+    ? NAV_ITEMS.filter((item) => pageOrder.includes(item.id))
+        .sort((a, b) => pageOrder.indexOf(a.id) - pageOrder.indexOf(b.id))
+    : NAV_ITEMS.filter((item) => item.id !== 'settings');
+  // When on Settings, treat 'overview' as the current position for the pill label.
+  const activePage = page === 'settings' ? 'overview' : page;
+  const idx = Math.max(0, orderedItems.findIndex((i) => i.id === activePage));
+  const prev = orderedItems[(idx - 1 + orderedItems.length) % orderedItems.length];
+  const next = orderedItems[(idx + 1) % orderedItems.length];
+  const current = orderedItems[idx] ?? NAV_ITEMS[0];
 
   return (
     <nav
@@ -322,6 +334,14 @@ export function FloatingNav({ page, onNavigate, announcementsUnread = 0, onBell 
         </NavBtn>
         <NavBtn onClick={() => setShowColorDrawer(!showColorDrawer)} title="Change Highlight Color" active={showColorDrawer} ariaExpanded={showColorDrawer}>
           <Icon d="M12 22C17.52 22 22 17.52 22 12S17.52 2 12 2 2 6.47 2 12c0 2.76 2.24 5 5 5h1c.55 0 1 .45 1 1 0 .55-.45 1-1 1-2.76 0-5 2.24-5 5h11zm-5-14a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm4 4a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm4 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm4-4a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z" size={18} />
+        </NavBtn>
+        <NavBtn
+          onClick={() => onSettings?.()}
+          title="Settings"
+          active={page === 'settings'}
+          ariaCurrent={page === 'settings' ? 'page' : undefined}
+        >
+          <Icon d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z" size={18} />
         </NavBtn>
         <NavBtn
           onClick={() => {

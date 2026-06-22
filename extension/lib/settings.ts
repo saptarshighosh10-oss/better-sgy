@@ -20,7 +20,15 @@ export interface Settings {
   mutedCourses: string[];
   /** Active UI edition: 'halo' (default), 'forge' (dense), 'slate' (monochrome). */
   edition: Edition;
+  /** User-defined tab order (page IDs). Falls back to ORDERABLE_PAGES default. */
+  tabOrder: string[];
+  /** Page IDs the user has hidden from the tab cycle. */
+  hiddenTabs: string[];
 }
+
+const DEFAULT_TAB_ORDER = [
+  'overview', 'grades', 'assignments', 'calendar', 'materials', 'announcements', 'nostalgia', 'game',
+];
 
 export const DEFAULT_SETTINGS: Settings = {
   notifications: true,
@@ -29,6 +37,8 @@ export const DEFAULT_SETTINGS: Settings = {
   pollMinutes: 15,
   mutedCourses: [],
   edition: 'halo',
+  tabOrder: DEFAULT_TAB_ORDER,
+  hiddenTabs: [],
 };
 
 const KEY = 'bs_settings';

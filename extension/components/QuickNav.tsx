@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import type { Page } from './ExtRouter';
+import type { Page } from '../lib/pages';
 import type { ScrapedCourse } from '../lib/schemas';
 import { parseGradeString, gradeColor } from '../lib/grade-utils';
 import { courseColor } from '../lib/course-colors';
@@ -50,14 +50,16 @@ function monoLabelInk(): string {
   return inkOnAccent();
 }
 
-const PAGES: Array<{ id: Page; label: string }> = [
+const STATIC_PAGES: Array<{ id: Page; label: string }> = [
   { id: 'overview', label: 'Overview' },
   { id: 'grades', label: 'Grades' },
   { id: 'assignments', label: 'Assignments' },
   { id: 'calendar', label: 'Calendar' },
   { id: 'materials', label: 'Materials' },
-  { id: 'game', label: 'Grade Breaker' },
+  { id: 'announcements', label: 'Announcements' },
+  { id: 'game', label: 'Arcade' },
   { id: 'nostalgia', label: 'Nostalgia' },
+  { id: 'settings', label: 'Settings' },
 ];
 
 // ── Pins: user-saved shortcuts, persisted in localStorage ───────────────────
@@ -92,6 +94,8 @@ interface Props {
   courseName: string | null;
   courses: ScrapedCourse[];
   onJump: (page: Page, courseName?: string) => void;
+  /** Effective tab order (hidden tabs already filtered out). */
+  pageOrder?: Page[];
 }
 
 /**
@@ -99,7 +103,7 @@ interface Props {
  * slide-out rail of jump links — every page, every course gradebook, plus the
  * user's own pinned shortcuts. Lets students hop around without scrolling.
  */
-export function QuickNav({ page, courseName, courses, onJump }: Props) {
+export function QuickNav({ page, courseName, courses, onJump, pageOrder }: Props) {
   // ── State ──────────────────────────────────────────────────────────────────
   const [open, setOpen] = useState(false);
   const [pins, setPins] = useState<QuickPin[]>([]);
@@ -122,12 +126,24 @@ export function QuickNav({ page, courseName, courses, onJump }: Props) {
     }
   }, [open]);
 
+  // Build the visible pages list from pageOrder (respecting custom order + hidden tabs).
+  const visiblePages = useMemo<Array<{ id: Page; label: string }>>(() => {
+    if (pageOrder) {
+      const byId = Object.fromEntries(STATIC_PAGES.map((p) => [p.id, p]));
+      const ordered = pageOrder.map((id) => byId[id]).filter(Boolean);
+      // Always append Settings at the end so it's always reachable.
+      if (!ordered.find((p) => p.id === 'settings')) ordered.push(byId['settings']);
+      return ordered;
+    }
+    return STATIC_PAGES;
+  }, [pageOrder]);
+
   // ── Search: fuzzy results across pages, courses, and every assignment ───────
   const results = useMemo<SearchResult[]>(() => {
     const q = query.trim();
     if (!q) return [];
     const out: SearchResult[] = [];
-    for (const p of PAGES) {
+    for (const p of visiblePages) {
       const s = fuzzyScore(q, p.label);
       if (s >= 0) out.push({ key: `page:${p.id}`, label: p.label, sublabel: 'Page', accent: T.primary, score: s + 1, run: () => jump(p.id) });
     }
@@ -180,7 +196,7 @@ export function QuickNav({ page, courseName, courses, onJump }: Props) {
   function pinCurrent() {
     const label = courseName && page === 'grades'
       ? courseName
-      : PAGES.find((p) => p.id === page)?.label ?? page;
+      : STATIC_PAGES.find((p) => p.id === page)?.label ?? page;
     const id = `${page}|${courseName ?? ''}`;
     if (pins.some((p) => p.id === id)) return;
     const next = [...pins, { id, label, page, courseName: courseName ?? undefined }];
@@ -280,6 +296,7 @@ export function QuickNav({ page, courseName, courses, onJump }: Props) {
           <BrowseSections
             page={page} courseName={courseName} courses={courses} pins={pins} starred={starred}
             onJump={jump} onJumpFolder={jumpFolder} onRemovePin={removePin}
+            visiblePages={visiblePages}
           />
         )}
 
@@ -323,7 +340,7 @@ function SearchResultsList({ query, results }: { query: string; results: SearchR
 }
 
 /** Default drawer contents (shown when the search box is empty): Pinned, Pages, Starred, Courses. */
-function BrowseSections({ page, courseName, courses, pins, starred, onJump, onJumpFolder, onRemovePin }: {
+function BrowseSections({ page, courseName, courses, pins, starred, onJump, onJumpFolder, onRemovePin, visiblePages }: {
   page: Page;
   courseName: string | null;
   courses: ScrapedCourse[];
@@ -332,6 +349,7 @@ function BrowseSections({ page, courseName, courses, pins, starred, onJump, onJu
   onJump: (p: Page, course?: string) => void;
   onJumpFolder: (folder: StarredFolder) => void;
   onRemovePin: (id: string) => void;
+  visiblePages: Array<{ id: Page; label: string }>;
 }) {
   return (
     <>
@@ -350,7 +368,7 @@ function BrowseSections({ page, courseName, courses, pins, starred, onJump, onJu
 
       {/* Pages */}
       <Section label="Pages">
-        {PAGES.map((p) => (
+        {visiblePages.map((p) => (
           <Row key={p.id} onClick={() => onJump(p.id)} label={p.label}
             accent={T.primary} active={page === p.id && !courseName} />
         ))}

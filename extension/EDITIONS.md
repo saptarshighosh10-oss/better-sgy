@@ -1,81 +1,90 @@
-# Better SGY — How to Install
+# Better SGY — Install Guide
 
-Better SGY is a Chrome extension that replaces the Schoology dashboard with
-something that actually looks good. One install, three looks — you pick the
-style in the Settings tab after it's running.
+This makes Schoology actually look good. Takes about 2 minutes to install.
 
 ---
 
-## Installing the extension
+## What you need
 
-**You'll need the zip file.** Get `better-sgy-extension-1.0.0-chrome.zip`
-from whoever shared this with you (or build it yourself — see bottom of page).
-
-### Step-by-step
-
-1. **Unzip the file** — double-click it. You'll get a folder called
-   `better-sgy-1.0.0-chrome` (or similar). Put it somewhere you won't
-   accidentally delete it, like your Documents folder.
-
-2. **Open Chrome** and go to **`chrome://extensions`** in the address bar.
-
-3. **Turn on Developer mode** — there's a toggle in the top-right corner of
-   that page. Flip it on.
-
-4. **Click "Load unpacked"** — a file picker opens. Navigate to the folder
-   you unzipped in step 1 and select it.
-
-5. **Done.** The extension is installed. Go to any Schoology page and the
-   new UI loads automatically.
-
-> **Tip:** click the puzzle-piece icon in Chrome's toolbar and pin Better SGY
-> so you can open the side panel any time.
+Just the zip file — ask whoever sent you this for
+**`better-sgy-extension-1.0.0-chrome.zip`**.
 
 ---
 
-## Switching looks
+## How to install
 
-Once it's running, open the Better SGY side panel and scroll down to
-**Settings → UI style**. Three options:
+### 1 — Unzip the file
 
-| Style | What it looks like |
-|---|---|
-| **Halo** ⭐ | Clean Apple-minimal. Color only where it means something — red for missing work, green for a grade that went up. The default. |
-| **Forge** | Dense view. Everything tighter and smaller — more info per screen, less whitespace. Good if you want all your numbers at once. |
-| **Slate** | Pure black and white. Zero color, zero ornament. Good for focus. |
+Find the zip in your Downloads folder and double-click it.
+It turns into a regular folder. **Don't delete that folder** — Chrome
+needs it to stay there. Move it somewhere safe like your Desktop or
+Documents.
 
-Hit **Switch** next to the style you want. It changes instantly and sticks.
+### 2 — Open the extensions page in Chrome
+
+Copy and paste this into your Chrome address bar and press Enter:
+
+```
+chrome://extensions
+```
+
+### 3 — Turn on Developer mode
+
+Look for the **Developer mode** toggle in the top-right corner of that
+page. Turn it on. (It just means you're loading an extension manually
+instead of from the Chrome Web Store — totally safe.)
+
+### 4 — Load the extension
+
+Click the **Load unpacked** button that appears after you turn on
+Developer mode. A file picker opens — find and select the folder from
+step 1.
+
+### 5 — You're done
+
+Go to schoology.com and the new UI loads automatically.
+
+> **Can't find it?** Click the puzzle-piece icon 🧩 in your Chrome toolbar
+> and pin Better SGY so it's always one click away.
 
 ---
 
-## Troubleshooting
+## Changing the look
 
-**"Manifest file is missing or unreadable"** — you selected the zip itself
-instead of the unzipped folder. Make sure you unzip first, then load the
-folder.
+Open the Better SGY side panel, scroll down to **Settings**, and look for
+**UI style**. You'll see three options — hit **Switch** to try any of them:
 
-**The UI doesn't appear on Schoology** — make sure the extension is enabled
-on the `chrome://extensions` page (the toggle next to it should be blue).
+- **Halo** — clean and minimal, recommended for most people
+- **Forge** — shows more information, more compact
+- **Slate** — black and white only, no color at all
 
-**It stopped working after a Chrome update** — Chrome occasionally disables
-unpacked extensions. Go back to `chrome://extensions` and re-enable it.
+Your choice saves automatically.
 
 ---
 
-## Building from source (optional)
+## If something goes wrong
 
-If you want to build it yourself instead of using the zip:
+**Nothing changed on Schoology** — go back to `chrome://extensions` and
+make sure the Better SGY toggle is turned on (it should be blue).
+
+**"Manifest file is missing or unreadable"** — you picked the zip file
+itself instead of the unzipped folder. Unzip it first, then try again.
+
+**It stopped working out of nowhere** — Chrome sometimes turns off
+manually-installed extensions after an update. Go to
+`chrome://extensions` and turn it back on.
+
+---
+
+<details>
+<summary>For developers — building from source</summary>
 
 ```
 git clone https://github.com/saptarshighosh10-oss/better-sgy
 cd better-sgy/extension
-npm install
-npm run build
+npm install && npm run build
 ```
 
-Then load the `extension/.output/chrome-mv3` folder as "Load unpacked" in
-step 4 above.
+Load `extension/.output/chrome-mv3` as an unpacked extension.
 
----
-
-*Better SGY — Halo edition. Branch: `halo`.*
+</details>

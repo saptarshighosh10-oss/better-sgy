@@ -402,7 +402,7 @@ function createEscapeHatch() {
   btn.title = 'Toggle back to Better SGY overlay';
 
   const label = document.createElement('span');
-  label.textContent = '✨ Show Better SGY';
+  label.textContent = 'Show Better SGY';
   btn.appendChild(label);
 
   // Notification badge — pings when new announcements/updates arrive while you're

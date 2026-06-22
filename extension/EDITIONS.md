@@ -1,110 +1,96 @@
-# Better SGY — Install Guide
+# Better SGY — Download & Install
 
-Better SGY is a Chrome extension that replaces the Schoology dashboard with
-something that actually looks good. Takes about 2 minutes to install.
-
-There are two versions — pick one below.
+Two downloads available. **Start with the Demo** — no Schoology account
+needed, shows all three looks instantly.
 
 ---
 
-## Version 1 — Regular (needs your Schoology login)
+## Which file do I download?
 
-This is the real extension. It reads your actual grades and courses. You need
-to already have a Schoology account and be logged in for it to work.
+| File | What it is | Needs login? |
+|---|---|---|
+| **`Better-SGY-Demo.zip`** ⭐ | Try all three styles with fake data | No |
+| `better-sgy-extension-1.0.0-chrome.zip` | Real extension, reads your actual grades | Yes |
 
-**Get the file:** go to the GitHub page below, find the file called
-`better-sgy-extension-1.0.0-chrome.zip`, and click to download it.
-
-```
-https://github.com/saptarshighosh10-oss/better-sgy
-```
-
-*(Click the green Code button → there's no release yet, so ask whoever
-shared this with you for the zip directly.)*
+Get them from the [Releases page](https://github.com/saptarshighosh10-oss/better-sgy/releases)
+or ask whoever shared this.
 
 ---
 
-## Version 2 — Demo (fake data, no login needed) ⭐ try this first
+## How to install (same four steps for both)
 
-**This one works without a Schoology account.** It comes preloaded with a
-full fake gradebook — 6 courses, real-looking grades, teacher messages,
-grade history charts — so you can see exactly what the extension looks like
-before committing to installing the real one.
+**1 — Unzip it**
 
-**Get the file:** download `Better-SGY-Demo.zip` from the releases page, or
-ask whoever shared this for it.
+Double-click the zip in your Downloads folder. You get a regular folder.
+Don't delete it — Chrome needs it to stay there. Move it somewhere safe
+like your Desktop or Documents folder.
 
----
+**2 — Open Chrome extensions**
 
-## How to install (same steps for both versions)
-
-### 1 — Unzip the file
-
-Find the zip in your Downloads folder and double-click it.
-It turns into a regular folder. **Don't delete that folder** — Chrome
-needs it to stay there. Move it somewhere safe like your Desktop or
-Documents.
-
-### 2 — Open the extensions page in Chrome
-
-Copy and paste this into your Chrome address bar and press Enter:
+Copy this into your address bar and press Enter:
 
 ```
 chrome://extensions
 ```
 
-### 3 — Turn on Developer mode
+**3 — Turn on Developer mode**
 
-Look for the **Developer mode** toggle in the top-right corner of that
-page. Turn it on. (This just means you're loading an extension manually
-instead of from the Chrome Web Store — totally safe.)
+There's a toggle in the top-right corner of that page. Flip it on.
+(This just means you're installing it manually instead of from the Store —
+it's safe.)
 
-### 4 — Load the extension
+**4 — Load the extension**
 
-Click the **Load unpacked** button that appears. A file picker opens —
-find and select the folder you unzipped in step 1.
+Click **Load unpacked**, then pick the folder from step 1.
 
-### 5 — You're done
+Done. It's installed.
 
-**Regular version:** go to schoology.com and the new UI loads automatically.
-
-**Demo version:** click the puzzle-piece icon 🧩 in your Chrome toolbar,
-find "Better SGY — Demo", and open the side panel. Your fake gradebook
-loads straight away — no login needed.
-
-> **Tip:** pin Better SGY from the 🧩 toolbar icon so it's always one click away.
+> **Tip:** click the 🧩 puzzle-piece icon in Chrome's toolbar → find
+> Better SGY → click the pin so it's always visible.
 
 ---
 
-## Changing the look
+## The Demo version — try all three looks
 
-Open the Better SGY side panel, scroll down to **Settings → UI style**.
-Three options — hit **Switch** to try any of them:
+Open the **Better SGY — Demo** side panel (click its icon in the toolbar).
+A fake gradebook loads instantly — 6 courses, real-looking grades, teacher
+messages — no login needed.
+
+Scroll to **Settings → UI style** to switch between:
 
 | Style | What it looks like |
 |---|---|
-| **Halo** ⭐ | Clean and minimal. Recommended for most people. |
-| **Forge** | More compact — shows more info per screen. |
+| **Halo** ⭐ | Clean and minimal. Color only for real signals — red for missing work, green when a grade goes up. The default. |
+| **Forge** | Compact. Tighter layout, more info per screen. |
 | **Slate** | Pure black and white. No color at all. |
 
-Your choice saves automatically.
+Hit **Switch** to change it. Your choice saves and carries over to the real
+extension if you install that too.
 
 ---
 
-## If something goes wrong
+## The real extension — your actual grades
 
-**"Manifest file is missing or unreadable"** — you picked the zip file itself
+Install `better-sgy-extension-1.0.0-chrome.zip` the same way (same four steps),
+then go to **schoology.com** — the redesigned UI loads over your dashboard.
+Whatever style you picked in the Demo is already set.
+
+---
+
+## Something not working?
+
+**"Manifest file is missing or unreadable"** — you selected the zip file
 instead of the unzipped folder. Unzip it first, then try again.
 
-**Nothing changed on Schoology** — go to `chrome://extensions` and make
-sure the Better SGY toggle is blue (enabled).
+**Demo shows nothing** — open it from the 🧩 toolbar icon. The demo side
+panel works on any page, not just Schoology.
 
-**Demo version shows nothing** — open the side panel from the 🧩 toolbar
-icon, not by going to Schoology.
+**Real extension: nothing changed on Schoology** — go to
+`chrome://extensions` and check the toggle next to Better SGY is blue.
 
-**It stopped working after a Chrome update** — Chrome sometimes turns off
-manually-installed extensions. Go to `chrome://extensions` and turn it
-back on.
+**Stopped working out of nowhere** — Chrome sometimes disables manually-
+installed extensions after an update. Go to `chrome://extensions` and
+turn it back on.
 
 ---
 
@@ -116,12 +102,17 @@ git clone https://github.com/saptarshighosh10-oss/better-sgy
 cd better-sgy/extension
 npm install
 
-npm run build        # regular build → .output/chrome-mv3/
-npm run build:demo   # demo build   → .output/chrome-mv3-demo/
-npm run zip          # zip regular
+npm run build        # real build  → .output/chrome-mv3/
+npm run build:demo   # demo build  → .output/chrome-mv3-demo/
+npm run zip          # zip real
 npm run zip:demo     # zip demo
 ```
 
-Load the output folder as an unpacked extension in `chrome://extensions`.
+Load the output folder as an unpacked extension.
+
+**Branch notes:**
+- `halo` — the active branch. Halo/Forge/Slate are all switchable in Settings.
+- `feature/minimalist-mode` / `main` — older separate codebases, not maintained.
+  The styles from those branches are now built into `halo` as UI style options.
 
 </details>

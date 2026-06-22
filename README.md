@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Better SGY
 
-## Getting Started
+A Chrome extension that replaces the Schoology dashboard with something that
+actually looks good. Grades, assignments, materials, and teacher updates —
+all in one clean panel.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Try it first (no Schoology account needed)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Download **`Better-SGY-Demo.zip`** from the
+[Releases](https://github.com/saptarshighosh10-oss/better-sgy/releases) page.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+It comes preloaded with a fake gradebook so you can see exactly what the
+extension looks like before installing the real thing.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Install
 
-## Learn More
+Same four steps for the Demo and the real extension:
 
-To learn more about Next.js, take a look at the following resources:
+1. **Unzip** the file — double-click it. You get a folder. Don't delete it.
+2. Open **`chrome://extensions`** in Chrome.
+3. Turn on **Developer mode** (toggle, top-right corner).
+4. Click **Load unpacked** → pick the unzipped folder.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Done. Pin it from the 🧩 toolbar icon so the side panel is one click away.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Switch looks
 
-## Deploy on Vercel
+Open the Better SGY side panel → scroll to **Settings → UI style**:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Halo** — clean and minimal, recommended ⭐
+- **Forge** — compact, more info per screen
+- **Slate** — pure black and white
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Downloads
+
+| File | What it is |
+|---|---|
+| `Better-SGY-Demo.zip` | Demo with fake data, no login needed |
+| `better-sgy-extension-1.0.0-chrome.zip` | Real extension, reads your actual grades |
+
+→ [Releases page](https://github.com/saptarshighosh10-oss/better-sgy/releases)
+
+## Troubleshooting
+
+**"Manifest file is missing"** — you loaded the zip itself. Unzip it first, then load the folder.
+
+**Nothing changed on Schoology** — go to `chrome://extensions` and make sure the toggle is blue.
+
+**Stopped working after a Chrome update** — re-enable it on the `chrome://extensions` page.
+
+---
+
+*Chrome extension · MV3 · Runs locally, nothing leaves your device.*

@@ -160,14 +160,77 @@ function Chip({ label, active, onClick }: { label: string; active: boolean; onCl
   );
 }
 
+function AnnouncementModal({ item: a, onClose }: { item: Announcement; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 2147482100,
+        background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '24px', boxSizing: 'border-box',
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: T.bg, borderRadius: AT.rTile, maxWidth: 600, width: '100%',
+          maxHeight: '80vh', display: 'flex', flexDirection: 'column',
+          boxShadow: '0 24px 64px rgba(0,0,0,0.4)',
+        }}
+      >
+        {/* Header */}
+        <div style={{ padding: '20px 22px 16px', borderBottom: `1px solid ${hairline()}`, flexShrink: 0, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+          <div style={{ width: 36, height: 36, flexShrink: 0, borderRadius: '50%', background: tileBg(), color: T.muted, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: AT.caption, fontWeight: AT.semibold }}>
+            {initials(a.author)}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: AT.sub, fontWeight: AT.semibold, color: T.text }}>{a.author}</div>
+            {a.courseName && <div style={{ fontSize: AT.caption, color: T.muted, marginTop: 2 }}>{a.courseName}</div>}
+            <div style={{ fontSize: AT.micro, color: T.muted, marginTop: 2 }}>{a.timeText}</div>
+          </div>
+          <button type="button" onClick={onClose} aria-label="Close"
+            style={{ all: 'unset', cursor: 'pointer', color: T.muted, fontSize: 20, lineHeight: 1, padding: 4 }}>×</button>
+        </div>
+        {/* Body */}
+        <div style={{ padding: '18px 22px', overflowY: 'auto', flex: 1 }}>
+          {a.bodyHtml ? (
+            <div
+              dangerouslySetInnerHTML={{ __html: a.bodyHtml }}
+              style={{ fontSize: AT.body, color: T.text, lineHeight: 1.65 }}
+            />
+          ) : (
+            <p style={{ fontSize: AT.body, color: T.text, lineHeight: 1.65, margin: 0 }}>{a.body}</p>
+          )}
+        </div>
+        {/* Footer — link only if available */}
+        {a.link && (
+          <div style={{ padding: '12px 22px', borderTop: `1px solid ${hairline()}`, flexShrink: 0 }}>
+            <button type="button" onClick={() => openSafe(a.link)} className="bs-focusable bs-applink"
+              style={{ all: 'unset', cursor: 'pointer', fontSize: AT.caption, color: T.primary, letterSpacing: AT.trackBody }}>
+              Open in Schoology →
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function InboxRow({ item: a, index, isNew, important, onStar }: {
   item: Announcement; index: number; isNew: boolean; important: boolean; onStar: () => void;
 }) {
-  const open = () => openSafe(a.link);
+  const [open, setOpen] = useState(false);
   return (
-    <button type="button" onClick={open} className="bs-row-enter bs-focusable"
+    <>
+    <button type="button" onClick={() => setOpen(true)} className="bs-row-enter bs-focusable"
       style={{
-        all: 'unset', cursor: a.link ? 'pointer' : 'default', display: 'flex', gap: 11, alignItems: 'flex-start',
+        all: 'unset', cursor: 'pointer', display: 'flex', gap: 11, alignItems: 'flex-start',
         width: '100%', boxSizing: 'border-box', padding: '13px 22px', borderBottom: `1px solid ${hairline()}`,
         borderLeft: `3px solid ${important ? T.amber : isNew ? T.primary : 'transparent'}`,
         animationDelay: `${Math.min(index, 12) * 30}ms`,
@@ -201,5 +264,7 @@ function InboxRow({ item: a, index, isNew, important, onStar }: {
         </div>
       </div>
     </button>
+    {open && <AnnouncementModal item={a} onClose={() => setOpen(false)} />}
+    </>
   );
 }

@@ -1,6 +1,9 @@
 import { defineConfig } from 'wxt';
 import removeConsole from 'vite-plugin-remove-console';
 
+// Set by the build:demo npm script via DEMO=true env var.
+const isDemo = process.env.DEMO === 'true';
+
 const ICONS = {
   16: 'icon/16.png',
   32: 'icon/32.png',
@@ -12,9 +15,10 @@ export default defineConfig({
   modules: ['@wxt-dev/module-react'],
   browser: 'chrome',
   manifest: {
-    name: 'Better SGY',
-    description:
-      'A cleaner, faster dashboard for Schoology — grades, assignments, materials & calendar, redesigned. Runs locally on your device.',
+    name: isDemo ? 'Better SGY — Demo' : 'Better SGY',
+    description: isDemo
+      ? 'Better SGY preloaded with sample data — try it without a Schoology account.'
+      : 'A cleaner, faster dashboard for Schoology — grades, assignments, materials & calendar, redesigned. Runs locally on your device.',
     version: '1.0.0',
     // Only ever runs on a school's own Schoology site (any *.schoology.com subdomain).
     // The background worker fetches attachments/feeds with the user's own session.

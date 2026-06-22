@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "wxt",
     "build": "wxt build",
+    "build:demo": "DEMO=true wxt build --mode demo",
     "zip": "wxt zip",
+    "zip:demo": "DEMO=true wxt zip --mode demo",
     "icons": "node scripts/gen-icons.mjs",
     "typecheck": "wxt prepare && tsc --noEmit"
   },

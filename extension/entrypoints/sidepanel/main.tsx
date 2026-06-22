@@ -16,6 +16,14 @@ async function hydrateTheme(): Promise<void> {
 }
 
 async function start() {
+  // In demo builds (VITE_DEMO=true) seed fake grade data before first paint
+  // so the panel shows content without a real Schoology account.
+  // Vite eliminates this block entirely in non-demo builds (dead code).
+  if (import.meta.env.VITE_DEMO === 'true') {
+    const { seedDemoData } = await import('../../lib/demo-data');
+    await seedDemoData();
+  }
+
   await hydrateTheme();
   const root = document.getElementById('root');
   if (!root) return;

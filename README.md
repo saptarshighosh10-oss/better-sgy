@@ -11,8 +11,8 @@ all in one clean panel.
 Download **`Better-SGY-Demo.zip`** from the
 [Releases](https://github.com/saptarshighosh10-oss/better-sgy/releases) page.
 
-It comes with fake grades built in so you can see what the extension looks
-like. No login, no school account — just install and open it.
+It has fake demo grades loaded in so you can see what the extension looks
+like — no login needed, just install and open it.
 
 ## Install
 
@@ -37,8 +37,8 @@ Open the Better SGY side panel → scroll to **Settings → UI style**:
 
 | File | What it is |
 |---|---|
-| `Better-SGY-Demo.zip` | Fake grades built in — no Schoology account needed |
-| `better-sgy-extension-1.0.0-chrome.zip` | Needs a Schoology account — shows your real grades |
+| `Better-SGY-Demo.zip` | Fake demo grades loaded in — no login needed |
+| `better-sgy-extension-1.0.0-chrome.zip` | Log into Schoology normally — shows your real grades |
 
 → [Releases page](https://github.com/saptarshighosh10-oss/better-sgy/releases)
 

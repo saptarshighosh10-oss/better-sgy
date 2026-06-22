@@ -9,8 +9,8 @@ needed, shows all three looks instantly.
 
 | File | What it is | Needs login? |
 |---|---|---|
-| **`Better-SGY-Demo.zip`** ⭐ | Fake grades built in — no Schoology account needed | No |
-| `better-sgy-extension-1.0.0-chrome.zip` | Shows your real grades — needs a Schoology account | Yes |
+| **`Better-SGY-Demo.zip`** ⭐ | Fake demo grades loaded in — no login needed | No |
+| `better-sgy-extension-1.0.0-chrome.zip` | Log into Schoology normally — shows your real grades | Yes |
 
 Get them from the [Releases page](https://github.com/saptarshighosh10-oss/better-sgy/releases)
 or ask whoever shared this.

@@ -16,11 +16,15 @@ import { computeSemesterTrend, type GradePoint } from '../lib/grade-history';
 import { loadGradeData } from '../lib/storage';
 import { loadChanges, dedupeChanges, type ChangeEvent } from '../lib/grade-changes';
 import { loadWatchStatus, type WatchStatus } from '../lib/watch-status';
-import { loadSettings, saveSettings, toggleMutedCourse, DEFAULT_SETTINGS, type Settings } from '../lib/settings';
+import { loadSettings, saveSettings, toggleMutedCourse, DEFAULT_SETTINGS, type Settings, type Edition } from '../lib/settings';
 import { safeExternalUrl } from '../lib/safe-url';
 import { loadCachedAnnouncements } from '../lib/announcement-cache';
 import type { SchoologyData } from '../lib/schemas';
 import type { Announcement } from '../lib/fetch-announcements';
+
+// Set at the top of each SidePanel render so helper functions pick up the
+// active edition without needing React context plumbing.
+let _dense = false;
 
 function timeAgo(ts: number): string {
   if (!ts) return '';
@@ -37,7 +41,7 @@ function timeAgo(ts: number): string {
  * they all line up identically.
  */
 function rowStyle(last?: boolean): React.CSSProperties {
-  return { padding: '13px 16px', borderBottom: last ? 'none' : `1px solid ${hairline()}` };
+  return { padding: _dense ? '9px 14px' : '13px 16px', borderBottom: last ? 'none' : `1px solid ${hairline()}` };
 }
 
 /** Single-line text that truncates with an ellipsis. */
@@ -46,7 +50,7 @@ const ELLIPSIS: React.CSSProperties = { overflow: 'hidden', textOverflow: 'ellip
 /** Quiet iOS-style section header. */
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ fontSize: AT.caption, fontWeight: AT.medium, color: T.muted, letterSpacing: AT.trackBody, margin: '34px 6px 10px' }}>
+    <div style={{ fontSize: AT.caption, fontWeight: AT.medium, color: T.muted, letterSpacing: AT.trackBody, margin: _dense ? '20px 6px 8px' : '34px 6px 10px' }}>
       {children}
     </div>
   );
@@ -54,7 +58,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 /** Quiet grouped surface — the single rounded container per section. */
 function Group({ children }: { children: React.ReactNode }) {
-  return <div style={{ background: tileBg(), borderRadius: 18, overflow: 'hidden' }}>{children}</div>;
+  return <div style={{ background: tileBg(), borderRadius: _dense ? 12 : 18, overflow: 'hidden' }}>{children}</div>;
 }
 
 function EmptyRow({ children }: { children: React.ReactNode }) {
@@ -381,6 +385,36 @@ function MuteCourses({ courses, settings, onToggle }: {
   );
 }
 
+const EDITIONS: { id: Edition; label: string; note: string }[] = [
+  { id: 'halo',  label: 'Halo',  note: 'Clean · color accents · recommended' },
+  { id: 'forge', label: 'Forge', note: 'Dense · everything at a glance' },
+  { id: 'slate', label: 'Slate', note: 'Monochrome · zero distraction' },
+];
+
+function EditionPicker({ settings, onSave }: { settings: Settings; onSave: (patch: Partial<Settings>) => Promise<Settings> }) {
+  return (
+    <>
+      <SectionLabel>UI style</SectionLabel>
+      <Group>
+        {EDITIONS.map((e, i) => (
+          <SettingRow key={e.id} label={e.label} note={e.note} last={i === EDITIONS.length - 1}>
+            {settings.edition === e.id ? (
+              <span style={{ fontSize: AT.caption, fontWeight: AT.semibold, color: T.primary }}>Active</span>
+            ) : (
+              <button type="button" className="bs-focusable bs-press"
+                onClick={() => onSave({ edition: e.id })}
+                style={{ all: 'unset', cursor: 'pointer', fontSize: AT.caption, fontWeight: AT.medium,
+                  color: T.primary, padding: '5px 12px', borderRadius: 8, background: `${T.primary}18` }}>
+                Switch
+              </button>
+            )}
+          </SettingRow>
+        ))}
+      </Group>
+    </>
+  );
+}
+
 export function SidePanel() {
   const [data, setData] = useState<SchoologyData | null>(null);
   const [changes, setChanges] = useState<ChangeEvent[]>([]);
@@ -430,8 +464,12 @@ export function SidePanel() {
     return next;
   };
 
+  // Apply edition flags before any helper reads _dense.
+  _dense = settings.edition === 'forge';
+  const slate = settings.edition === 'slate';
+
   return (
-    <div style={pageStyle()}>
+    <div style={{ ...pageStyle(), ...(slate ? { filter: 'grayscale(1) saturate(0)' } : {}) }}>
       <GlobalStyles />
 
       <Hero avg={avg} courseCount={courses.length} watch={watch} />
@@ -453,6 +491,8 @@ export function SidePanel() {
       {courses.length > 0 && (
         <MuteCourses courses={courses} settings={settings} onToggle={toggleMute} />
       )}
+
+      <EditionPicker settings={settings} onSave={saveAndApply} />
 
       <div style={{ height: 24 }} />
     </div>

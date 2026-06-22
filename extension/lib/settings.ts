@@ -4,6 +4,9 @@
  * every context (incl. the service worker) reads the same values.
  */
 
+/** Which UI skin is active. Persisted so the choice survives panel close. */
+export type Edition = 'halo' | 'forge' | 'slate';
+
 export interface Settings {
   /** Master switch for grade-change desktop notifications. */
   notifications: boolean;
@@ -15,6 +18,8 @@ export interface Settings {
   pollMinutes: number;
   /** Courses to silence — no notifications for these. */
   mutedCourses: string[];
+  /** Active UI edition: 'halo' (default), 'forge' (dense), 'slate' (monochrome). */
+  edition: Edition;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -23,6 +28,7 @@ export const DEFAULT_SETTINGS: Settings = {
   chime: true,
   pollMinutes: 15,
   mutedCourses: [],
+  edition: 'halo',
 };
 
 const KEY = 'bs_settings';

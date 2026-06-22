@@ -72,7 +72,8 @@ extension if you install that too.
 ## The real extension — your actual grades
 
 Install `better-sgy-extension-1.0.0-chrome.zip` the same way (same four steps),
-then go to **schoology.com** — the redesigned UI loads over your dashboard.
+then go to **your school's Schoology page** (e.g. `yourschool.schoology.com`) —
+the redesigned UI loads over your dashboard automatically.
 Whatever style you picked in the Demo is already set.
 
 ---
@@ -87,6 +88,10 @@ panel works on any page, not just Schoology.
 
 **Real extension: nothing changed on Schoology** — go to
 `chrome://extensions` and check the toggle next to Better SGY is blue.
+
+**Chrome keeps popping up "Disable developer mode extensions"** — that's
+normal for manually-installed extensions. Just close the banner. It's safe
+to ignore.
 
 **Stopped working out of nowhere** — Chrome sometimes disables manually-
 installed extensions after an update. Go to `chrome://extensions` and

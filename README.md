@@ -48,8 +48,10 @@ Open the Better SGY side panel → scroll to **Settings → UI style**:
 
 **Nothing changed on Schoology** — go to `chrome://extensions` and make sure the toggle is blue.
 
+**Chrome keeps popping up "Disable developer mode extensions"** — normal for manually-installed extensions. Just close it.
+
 **Stopped working after a Chrome update** — re-enable it on the `chrome://extensions` page.
 
 ---
 
-*Chrome extension · MV3 · Runs locally, nothing leaves your device.*
+*Chrome extension · Runs locally, nothing leaves your device.*

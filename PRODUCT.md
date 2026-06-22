@@ -10,7 +10,7 @@ Students (primarily the builder, potentially other Schoology users) who are stuc
 
 ## Product Purpose
 
-Better Schoology replaces the Schoology gradebook UI with a personal, interactive grade dashboard. It pulls the same data but presents it in a way that feels crafted and expressive rather than institutional. Success looks like: checking your grades actually feels good, the data is immediately readable, and the interface feels like yours — not like a school's.
+Better SGY replaces the Schoology gradebook UI with a personal, interactive grade dashboard. It pulls the same data but presents it in a way that feels crafted and expressive rather than institutional. Success looks like: checking your grades actually feels good, the data is immediately readable, and the interface feels like yours — not like a school's.
 
 ## Brand Personality
 

@@ -10,6 +10,8 @@ interface Props {
   settings: Settings;
   onSave: (patch: Partial<Settings>) => Promise<Settings>;
   data: SchoologyData | null;
+  /** Open the Versions gallery — a hands-on demo/tutorial with sample data. */
+  onOpenTour?: () => void;
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -257,7 +259,7 @@ function DetectedSection({ data }: { data: SchoologyData }) {
 
 // ── Main page ────────────────────────────────────────────────────────────────
 
-export function SettingsPage({ settings, onSave, data }: Props) {
+export function SettingsPage({ settings, onSave, data, onOpenTour }: Props) {
   return (
     <div style={{
       position: 'absolute', inset: 0, overflowY: 'auto',
@@ -274,6 +276,35 @@ export function SettingsPage({ settings, onSave, data }: Props) {
         <p style={{ margin: '0 0 8px', fontSize: AT.caption, color: T.muted }}>
           Customise Better SGY to fit how you use it.
         </p>
+
+        {onOpenTour && (
+          <>
+            <SectionTitle>Demo &amp; tutorial</SectionTitle>
+            <div style={{
+              ...haloCardStyle(), padding: '16px 18px', display: 'flex',
+              alignItems: 'center', justifyContent: 'space-between', gap: 14,
+            }}>
+              <div>
+                <div style={{ fontSize: AT.sub, fontWeight: AT.semibold, color: T.text }}>Take a tour</div>
+                <div style={{ fontSize: AT.caption, color: T.muted, marginTop: 2, lineHeight: 1.45 }}>
+                  Explore the looks with sample grades and a guided walkthrough of the shortcuts. Nothing to log into.
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={onOpenTour}
+                className="bs-focusable bs-press"
+                style={{
+                  all: 'unset', cursor: 'pointer', flexShrink: 0,
+                  fontSize: AT.sub, fontWeight: AT.semibold, color: '#fff',
+                  background: T.primary, borderRadius: AT.rPill, padding: '9px 18px',
+                }}
+              >
+                Open
+              </button>
+            </div>
+          </>
+        )}
 
         <TabOrderSection settings={settings} onSave={onSave} />
         <UIStyleSection settings={settings} onSave={onSave} />

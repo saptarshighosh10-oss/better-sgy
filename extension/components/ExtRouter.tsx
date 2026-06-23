@@ -339,6 +339,7 @@ export function ExtRouter({ scrapeResult }: Props) {
                 settings={settings}
                 onSave={saveSettingsAndApply}
                 data={grades.data}
+                onOpenTour={() => navigate('versions')}
               />
             )}
           </motion.main>

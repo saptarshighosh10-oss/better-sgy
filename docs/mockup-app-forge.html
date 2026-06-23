@@ -2974,12 +2974,8 @@ applyTheme();
 renderNav();
 renderScreen();
 wireGlobalKeys();
-// first open → launch the guided tour once
-(function maybeFirstRunTour(){
-  let done = false;
-  try{ done = localStorage.getItem(WELCOME_KEY)==='1'; }catch(e){}
-  if(!done) setTimeout(startTour, 400);
-})();
+// no auto-launch — the guided tour only auto-runs in the apple edition.
+// it stays available here via settings → "take the tour".
 </script>
 </body>
 </html>

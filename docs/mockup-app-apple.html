@@ -2849,7 +2849,7 @@ function markWelcomed(){ try{ localStorage.setItem(WELCOME_KEY, "1"); }catch(e){
 function showWelcomeIfFirstRun(){
   let seen = false;
   try{ seen = localStorage.getItem(WELCOME_KEY)==="1"; }catch(e){}
-  if(!seen) $("#welcomeOverlay").classList.add("show");
+  if(!seen){ $("#welcomeOverlay").classList.add("show"); markWelcomed(); /* persist on first show — never auto-run again */ }
 }
 function dismissWelcome(){ $("#welcomeOverlay").classList.remove("show"); }
 $("#welcomeSkip").addEventListener("click", ()=>{ dismissWelcome(); markWelcomed(); });

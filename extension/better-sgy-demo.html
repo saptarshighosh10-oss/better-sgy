@@ -7598,7 +7598,7 @@ function markWelcomed(){ try{ localStorage.setItem(WELCOME_KEY, "1"); }catch(e){
 function showWelcomeIfFirstRun(){
   let seen = false;
   try{ seen = localStorage.getItem(WELCOME_KEY)==="1"; }catch(e){}
-  if(!seen) $("#welcomeOverlay").classList.add("show");
+  if(!seen){ $("#welcomeOverlay").classList.add("show"); markWelcomed(); /* persist on first show — never auto-run again */ }
 }
 function dismissWelcome(){ $("#welcomeOverlay").classList.remove("show"); }
 $("#welcomeSkip").addEventListener("click", ()=>{ dismissWelcome(); markWelcomed(); });
@@ -10716,8 +10716,11 @@ showWelcomeIfFirstRun();  // first-run welcome card
       }
     }
 
-    // style switcher (edition)
-    var curStyle = load("style", "halo");
+    // style switcher (edition) — this file IS the Halo edition, so it is always
+    // the active one here. (Don't read a stale shared key, or a prior visit to
+    // another edition would show the wrong card as active.)
+    var curStyle = "halo";
+    save("style", "halo");
     function applyStyle() {
       $$("#styleGrid .style-card").forEach(function (card) {
         var on = card.getAttribute("data-style") === curStyle;
@@ -12023,14 +12026,9 @@ showWelcomeIfFirstRun();  // first-run welcome card
     var helpTourBtn = $("#helpTour");
     if (helpTourBtn) helpTourBtn.addEventListener("click", function () { closeHelp(); startTour(true); });
 
-    // first-run launch
-    (function () {
-      var done;
-      try { done = localStorage.getItem(WELCOME_KEY) === "1"; } catch (e) { done = false; }
-      if (done) return;
-      // let layout settle, then launch
-      setTimeout(function () { startTour(false); }, 350);
-    })();
+    // No auto-launch — the guided tour only auto-runs in the Apple edition (the
+    // layouts are near-identical, so one walkthrough is enough). It stays
+    // available here on demand via Settings → "Take the tour".
 
     // ============================================================
     // ADDED · EXPORT DASHBOARD IMAGE
@@ -15142,12 +15140,8 @@ applyTheme();
 renderNav();
 renderScreen();
 wireGlobalKeys();
-// first open → launch the guided tour once
-(function maybeFirstRunTour(){
-  let done = false;
-  try{ done = localStorage.getItem(WELCOME_KEY)==='1'; }catch(e){}
-  if(!done) setTimeout(startTour, 400);
-})();
+// no auto-launch — the guided tour only auto-runs in the apple edition.
+// it stays available here via settings → "take the tour".
 <\/script>
 </body>
 </html>
@@ -19416,8 +19410,8 @@ wireGlobalKeys();
     else ARCADE.openGame(QS.game);
   }
 
-  /* first-run guided tutorial (after the first paint) */
-  TOUR.maybeShowFirstRun();
+  /* No auto-launch — the guided tour only auto-runs in the Apple edition.
+     It stays available here via Settings → "Take the tour". */
 })();
 <\/script>
 </body>

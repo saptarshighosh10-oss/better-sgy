@@ -2625,8 +2625,11 @@
       }
     }
 
-    // style switcher (edition)
-    var curStyle = load("style", "halo");
+    // style switcher (edition) — this file IS the Halo edition, so it is always
+    // the active one here. (Don't read a stale shared key, or a prior visit to
+    // another edition would show the wrong card as active.)
+    var curStyle = "halo";
+    save("style", "halo");
     function applyStyle() {
       $$("#styleGrid .style-card").forEach(function (card) {
         var on = card.getAttribute("data-style") === curStyle;
@@ -3932,14 +3935,9 @@
     var helpTourBtn = $("#helpTour");
     if (helpTourBtn) helpTourBtn.addEventListener("click", function () { closeHelp(); startTour(true); });
 
-    // first-run launch
-    (function () {
-      var done;
-      try { done = localStorage.getItem(WELCOME_KEY) === "1"; } catch (e) { done = false; }
-      if (done) return;
-      // let layout settle, then launch
-      setTimeout(function () { startTour(false); }, 350);
-    })();
+    // No auto-launch — the guided tour only auto-runs in the Apple edition (the
+    // layouts are near-identical, so one walkthrough is enough). It stays
+    // available here on demand via Settings → "Take the tour".
 
     // ============================================================
     // ADDED · EXPORT DASHBOARD IMAGE

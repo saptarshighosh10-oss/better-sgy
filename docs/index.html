@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Better SGY — a readable gradebook for Schoology</title>
+<meta name="description" content="Better SGY is a free Chrome extension that redesigns Schoology so your grades are actually readable. It runs on your own logged-in session, and your grades stay in your browser.">
+<style>
+  /* ---------- Reset & tokens ---------- */
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#f7f5f0;
+    --bg-raised:#fffdf9;
+    --ink:#1c1a17;
+    --ink-soft:#54504a;
+    --ink-faint:#8a857d;
+    --line:#e4ded3;
+    --line-strong:#d3ccbf;
+    --accent:#2f5d3a;          /* deep, calm green */
+    --accent-soft:#e8f0e7;
+    --accent-ink:#234a2c;
+    --warm:#c8632b;            /* secondary warm accent */
+    --shadow-sm:0 1px 2px rgba(28,26,23,.06), 0 1px 1px rgba(28,26,23,.04);
+    --shadow-md:0 6px 24px -8px rgba(28,26,23,.18), 0 2px 6px rgba(28,26,23,.06);
+    --shadow-lg:0 24px 60px -20px rgba(28,26,23,.30);
+    --radius:14px;
+    --radius-lg:22px;
+    --maxw:1120px;
+    --serif:ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --sans:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono:ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+  }
+  html[data-theme="dark"]{
+    --bg:#15140f;
+    --bg-raised:#1f1d17;
+    --ink:#f1ede4;
+    --ink-soft:#bdb7ab;
+    --ink-faint:#8c867a;
+    --line:#322f27;
+    --line-strong:#403c32;
+    --accent:#7fc18b;
+    --accent-soft:#1e2a20;
+    --accent-ink:#a9d8b1;
+    --warm:#e08851;
+    --shadow-sm:0 1px 2px rgba(0,0,0,.4);
+    --shadow-md:0 8px 28px -10px rgba(0,0,0,.6);
+    --shadow-lg:0 28px 70px -22px rgba(0,0,0,.7);
+  }
+
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    overflow-x:hidden;
+  }
+  /* subtle paper grain */
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+    background-image:radial-gradient(rgba(28,26,23,.025) 1px, transparent 1px);
+    background-size:4px 4px;
+  }
+  html[data-theme="dark"] body::before{opacity:.35;background-image:radial-gradient(rgba(255,255,255,.02) 1px, transparent 1px);}
+
+  a{color:inherit;text-decoration:none}
+  img,svg{display:block;max-width:100%}
+  ::selection{background:var(--accent);color:#fff}
+
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;position:relative;z-index:1}
+
+  h1,h2,h3{font-family:var(--serif);font-weight:600;line-height:1.1;letter-spacing:-.01em}
+  h2{font-size:clamp(1.8rem,3.4vw,2.7rem)}
+  .eyebrow{
+    font-family:var(--mono);font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--accent-ink);font-weight:600;display:inline-flex;align-items:center;gap:.5rem;
+  }
+  .eyebrow::before{content:"";width:20px;height:1px;background:currentColor;opacity:.6}
+
+  /* ---------- Buttons ---------- */
+  .btn{
+    display:inline-flex;align-items:center;gap:.5rem;font-family:var(--sans);
+    font-size:.98rem;font-weight:560;padding:.78rem 1.3rem;border-radius:999px;
+    border:1px solid transparent;cursor:pointer;transition:transform .18s ease, box-shadow .25s ease, background .2s ease, border-color .2s ease;
+    will-change:transform;
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--accent);color:#fff;box-shadow:var(--shadow-sm)}
+  .btn-primary:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
+  .btn-ghost{background:transparent;color:var(--ink);border-color:var(--line-strong)}
+  .btn-ghost:hover{border-color:var(--ink);background:var(--bg-raised)}
+  .btn svg{width:16px;height:16px}
+
+  /* ---------- Header ---------- */
+  header.site{
+    position:sticky;top:0;z-index:50;backdrop-filter:saturate(140%) blur(12px);
+    background:color-mix(in srgb, var(--bg) 82%, transparent);
+    border-bottom:1px solid transparent;transition:border-color .3s ease, background .3s ease;
+  }
+  header.site.scrolled{border-color:var(--line)}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .brand{display:flex;align-items:center;gap:.6rem;font-family:var(--serif);font-weight:600;font-size:1.18rem;letter-spacing:-.01em}
+  .brand .mark{width:30px;height:30px;flex:0 0 auto}
+  .nav-links{display:flex;align-items:center;gap:1.7rem}
+  .nav-links a.lnk{font-size:.93rem;color:var(--ink-soft);font-weight:500;position:relative;transition:color .2s ease}
+  .nav-links a.lnk::after{content:"";position:absolute;left:0;bottom:-5px;height:2px;width:0;background:var(--accent);transition:width .25s ease}
+  .nav-links a.lnk:hover{color:var(--ink)}
+  .nav-links a.lnk:hover::after{width:100%}
+  .nav-right{display:flex;align-items:center;gap:.8rem}
+  .theme-toggle{
+    width:38px;height:38px;border-radius:999px;border:1px solid var(--line-strong);background:var(--bg-raised);
+    display:grid;place-items:center;cursor:pointer;color:var(--ink-soft);transition:color .2s, border-color .2s, transform .3s;
+  }
+  .theme-toggle:hover{color:var(--ink);border-color:var(--ink);transform:rotate(15deg)}
+  .theme-toggle svg{width:18px;height:18px}
+  .menu-btn{display:none}
+
+  /* ---------- Hero ---------- */
+  .hero{padding:clamp(3.5rem,8vw,6.5rem) 0 clamp(2.5rem,5vw,4rem)}
+  .hero-grid{display:grid;grid-template-columns:1.02fr .98fr;gap:clamp(2rem,4vw,4rem);align-items:center}
+  .hero h1{font-size:clamp(2.4rem,5.6vw,4rem);margin:1.1rem 0 1.2rem}
+  .hero h1 em{font-style:italic;color:var(--accent)}
+  .hero p.lede{font-size:clamp(1.05rem,1.6vw,1.22rem);color:var(--ink-soft);max-width:34ch;margin-bottom:1.9rem}
+  .hero-cta{display:flex;gap:.8rem;flex-wrap:wrap;align-items:center}
+  .hero-note{margin-top:1.3rem;font-size:.85rem;color:var(--ink-faint);display:flex;align-items:center;gap:.45rem}
+  .hero-note svg{width:15px;height:15px;color:var(--accent)}
+
+  /* Hero visual: stylized dashboard drawn in markup */
+  .device{
+    background:var(--bg-raised);border:1px solid var(--line);border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-lg);overflow:hidden;position:relative;
+    transform:perspective(1400px) rotateY(-7deg) rotateX(3deg);transform-origin:center;
+  }
+  @media (hover:hover){.device{transition:transform .5s cubic-bezier(.2,.7,.2,1)}.device:hover{transform:perspective(1400px) rotateY(-3deg) rotateX(1deg)}}
+  .device-bar{display:flex;align-items:center;gap:.4rem;padding:.7rem .9rem;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg) 60%, var(--bg-raised))}
+  .dot{width:10px;height:10px;border-radius:50%}
+  .dot.r{background:#e9695f}.dot.y{background:#e9b84a}.dot.g{background:#5fb56f}
+  .device-bar .url{margin-left:.6rem;font-family:var(--mono);font-size:.7rem;color:var(--ink-faint)}
+  .dash{padding:1.2rem 1.2rem 1.4rem}
+  .dash-top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:1.1rem}
+  .dash-top .gpa{font-family:var(--serif);font-size:2.6rem;line-height:1;font-weight:600}
+  .dash-top .gpa small{display:block;font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:.3rem;font-weight:600}
+  .spark{width:120px;height:46px}
+  .courses{display:grid;gap:.55rem}
+  .course{display:grid;grid-template-columns:1fr auto;align-items:center;gap:.8rem;padding:.6rem .75rem;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+  .course .nm{font-size:.82rem;font-weight:550}
+  .course .meta{font-size:.68rem;color:var(--ink-faint);margin-top:1px}
+  .course .grade{font-family:var(--mono);font-weight:600;font-size:.92rem;padding:.18rem .5rem;border-radius:7px;background:var(--accent-soft);color:var(--accent-ink)}
+  .course .grade.warn{background:#f6e6d8;color:#a14e1f}
+  html[data-theme="dark"] .course .grade.warn{background:#3a2a1c;color:#e0a16f}
+  .chip-trend{display:inline-flex;align-items:center;gap:.25rem;font-family:var(--mono);font-size:.6rem;color:var(--accent-ink)}
+
+  /* floating ping card */
+  .ping{
+    position:absolute;right:-14px;bottom:34px;background:var(--bg-raised);border:1px solid var(--line);
+    border-radius:12px;box-shadow:var(--shadow-md);padding:.65rem .8rem;display:flex;gap:.6rem;align-items:center;
+    max-width:240px;animation:floaty 5s ease-in-out infinite;
+  }
+  .ping .ic{width:32px;height:32px;border-radius:9px;background:var(--accent);color:#fff;display:grid;place-items:center;flex:0 0 auto}
+  .ping .ic svg{width:17px;height:17px}
+  .ping .t1{font-size:.78rem;font-weight:600;line-height:1.2}
+  .ping .t2{font-size:.68rem;color:var(--ink-faint)}
+  @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+  /* ---------- Section scaffold ---------- */
+  section{padding:clamp(3.5rem,7vw,6rem) 0;position:relative}
+  .sec-head{max-width:62ch}
+  .sec-head h2{margin:.8rem 0 .6rem}
+  .sec-head p{color:var(--ink-soft);font-size:1.05rem}
+
+  /* reveal on scroll */
+  .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+
+  /* ---------- Story timeline ---------- */
+  .story{background:linear-gradient(180deg, transparent, color-mix(in srgb,var(--accent-soft) 40%, transparent), transparent)}
+  .timeline{margin-top:3rem;position:relative}
+  .timeline::before{content:"";position:absolute;left:18px;top:8px;bottom:8px;width:2px;background:linear-gradient(var(--line-strong),var(--accent),var(--line-strong))}
+  @media (min-width:760px){.timeline::before{left:50%;transform:translateX(-1px)}}
+  .step{position:relative;padding-left:54px;margin-bottom:2.4rem}
+  @media (min-width:760px){
+    .step{width:50%;padding-left:0}
+    .step.l{left:0;padding-right:48px;text-align:right}
+    .step.r{left:50%;padding-left:48px}
+    .step .node{left:auto}
+  }
+  .step .node{
+    position:absolute;left:9px;top:2px;width:20px;height:20px;border-radius:50%;
+    background:var(--bg);border:2px solid var(--accent);display:grid;place-items:center;
+  }
+  .step .node::after{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent)}
+  @media (min-width:760px){
+    .step.l .node{right:-10px;left:auto}
+    .step.r .node{left:-10px}
+  }
+  .step .knum{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;color:var(--accent-ink);font-weight:600}
+  .step h3{font-size:1.35rem;margin:.35rem 0 .5rem}
+  .step p{color:var(--ink-soft);font-size:.98rem}
+  .step .card{background:var(--bg-raised);border:1px solid var(--line);border-radius:var(--radius);padding:1.3rem 1.4rem;box-shadow:var(--shadow-sm);display:inline-block}
+
+  /* ---------- Editions ---------- */
+  .editions-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.3rem;margin-top:2.6rem}
+  @media (max-width:680px){.editions-grid{grid-template-columns:1fr}}
+  .edition{
+    position:relative;border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--line);
+    background:var(--bg-raised);box-shadow:var(--shadow-sm);transition:transform .3s cubic-bezier(.2,.7,.2,1), box-shadow .3s ease;
+    display:flex;flex-direction:column;min-height:300px;
+  }
+  .edition:hover{transform:translateY(-6px);box-shadow:var(--shadow-md)}
+  .edition .preview{height:148px;position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
+  .edition .body{padding:1.3rem 1.4rem 1.5rem;display:flex;flex-direction:column;gap:.4rem;flex:1}
+  .edition .name{font-family:var(--serif);font-size:1.4rem;font-weight:600;display:flex;align-items:center;justify-content:space-between}
+  .edition .desc{color:var(--ink-soft);font-size:.95rem;flex:1}
+  .edition .open{margin-top:.7rem;font-size:.85rem;font-weight:600;color:var(--accent-ink);display:inline-flex;align-items:center;gap:.4rem;transition:gap .2s ease}
+  .edition:hover .open{gap:.7rem}
+  .edition .open svg{width:14px;height:14px}
+  .edition .tag{font-family:var(--mono);font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);font-weight:600}
+
+  /* edition preview styles — distinct per look */
+  .pv-rows{position:absolute;inset:18px;display:flex;flex-direction:column;gap:8px}
+  .pv-row{height:14px;border-radius:5px;display:flex;align-items:center;justify-content:space-between;padding:0 8px}
+  .pv-pill{height:8px;border-radius:4px}
+
+  /* Apple: clean light, blue accent */
+  .pv-apple{background:#fbfbfd}
+  .pv-apple .pv-row{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .pv-apple .pv-pill{background:#0071e3}
+  .pv-apple .pv-bar{background:#e8e8ed}
+  /* Halo: grayscale, single meaning color */
+  .pv-halo{background:#fff}
+  .pv-halo .pv-row{background:#f4f4f4}
+  .pv-halo .pv-bar{background:#d8d8d8}
+  .pv-halo .pv-pill{background:#111}
+  .pv-halo .pv-pill.accent{background:#16a34a}
+  /* Slate: editorial b/w serif */
+  .pv-slate{background:#111;color:#fff}
+  .pv-slate .ed-serif{position:absolute;left:16px;top:14px;font-family:var(--serif);font-style:italic;font-size:1.6rem;color:#fff}
+  .pv-slate .pv-row{background:#1d1d1d}
+  .pv-slate .pv-bar{background:#333}
+  .pv-slate .pv-pill{background:#fff}
+  /* Friendly (forge): warm cream, rounded */
+  .pv-forge{background:#fbf3e6}
+  .pv-forge .pv-row{background:#fff;border-radius:10px;box-shadow:0 2px 6px rgba(180,120,40,.12)}
+  .pv-forge .pv-bar{background:#f1dcb8}
+  .pv-forge .pv-pill{background:#e2802f;border-radius:6px}
+  .pv-forge .blob{position:absolute;width:90px;height:90px;border-radius:50%;background:radial-gradient(circle at 30% 30%, #ffcf86, #e2802f);right:-20px;top:-20px;opacity:.5}
+
+  /* ---------- Features ---------- */
+  .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;margin-top:2.6rem}
+  @media (max-width:880px){.feat-grid{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:560px){.feat-grid{grid-template-columns:1fr}}
+  .feat{padding:1.5rem;border:1px solid var(--line);border-radius:var(--radius);background:var(--bg-raised);transition:border-color .25s ease, transform .25s ease}
+  .feat:hover{border-color:var(--line-strong);transform:translateY(-3px)}
+  .feat .ic{width:42px;height:42px;border-radius:11px;background:var(--accent-soft);color:var(--accent-ink);display:grid;place-items:center;margin-bottom:.9rem}
+  .feat .ic svg{width:21px;height:21px}
+  .feat h3{font-family:var(--sans);font-size:1.06rem;font-weight:600;letter-spacing:-.01em;margin-bottom:.35rem;line-height:1.3}
+  .feat p{color:var(--ink-soft);font-size:.92rem}
+
+  /* ---------- Download ---------- */
+  .dl-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.4rem;margin-top:2.6rem}
+  @media (max-width:760px){.dl-grid{grid-template-columns:1fr}}
+  .dl-card{border:1px solid var(--line);border-radius:var(--radius-lg);background:var(--bg-raised);padding:1.8rem;display:flex;flex-direction:column;box-shadow:var(--shadow-sm)}
+  .dl-card.feature{border-color:var(--accent);box-shadow:var(--shadow-md);position:relative}
+  .dl-card .kicker{font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);font-weight:600}
+  .dl-card h3{font-family:var(--serif);font-size:1.5rem;margin:.5rem 0 .5rem}
+  .dl-card p{color:var(--ink-soft);font-size:.95rem;margin-bottom:1.3rem;flex:1}
+  .dl-card .fname{font-family:var(--mono);font-size:.72rem;color:var(--ink-faint);margin-top:.9rem;word-break:break-all}
+  .badge{position:absolute;top:1.2rem;right:1.4rem;font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;background:var(--accent);color:#fff;padding:.25rem .55rem;border-radius:999px;font-weight:600}
+
+  .install{margin-top:3rem;border:1px solid var(--line);border-radius:var(--radius-lg);background:var(--bg-raised);padding:clamp(1.5rem,4vw,2.4rem)}
+  .install h3{font-family:var(--serif);font-size:1.4rem;margin-bottom:1.5rem}
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem;counter-reset:step}
+  @media (max-width:760px){.steps{grid-template-columns:1fr 1fr}}
+  @media (max-width:440px){.steps{grid-template-columns:1fr}}
+  .istep{position:relative;padding-top:.4rem}
+  .istep .n{font-family:var(--serif);font-size:1.6rem;color:var(--accent);font-weight:600;line-height:1}
+  .istep h4{font-size:.96rem;font-weight:600;margin:.5rem 0 .3rem;letter-spacing:-.01em}
+  .istep p{font-size:.86rem;color:var(--ink-soft)}
+  .istep code{font-family:var(--mono);font-size:.82rem;background:var(--bg);border:1px solid var(--line);padding:.05rem .35rem;border-radius:5px;color:var(--ink)}
+  .install-note{margin-top:1.6rem;font-size:.85rem;color:var(--ink-faint);display:flex;gap:.5rem;align-items:flex-start}
+  .install-note svg{width:16px;height:16px;flex:0 0 auto;margin-top:2px;color:var(--accent)}
+
+  /* ---------- Footer ---------- */
+  footer.site{border-top:1px solid var(--line);padding:3rem 0 2.5rem;margin-top:2rem}
+  .foot{display:flex;justify-content:space-between;align-items:flex-start;gap:2rem;flex-wrap:wrap}
+  .foot .brand{margin-bottom:.7rem}
+  .foot p{color:var(--ink-soft);font-size:.9rem;max-width:42ch}
+  .foot .links{display:flex;gap:1.6rem;flex-wrap:wrap}
+  .foot .links a{font-size:.9rem;color:var(--ink-soft);transition:color .2s}
+  .foot .links a:hover{color:var(--ink)}
+  .foot .fine{margin-top:2rem;font-size:.8rem;color:var(--ink-faint);width:100%;border-top:1px solid var(--line);padding-top:1.4rem}
+
+  /* mobile nav */
+  @media (max-width:760px){
+    .nav-links{position:fixed;inset:64px 0 auto 0;flex-direction:column;align-items:stretch;gap:0;
+      background:var(--bg-raised);border-bottom:1px solid var(--line);padding:.5rem 24px 1.2rem;
+      transform:translateY(-120%);transition:transform .35s cubic-bezier(.2,.7,.2,1);box-shadow:var(--shadow-md)}
+    .nav-links.open{transform:none}
+    .nav-links a.lnk{padding:.85rem 0;border-bottom:1px solid var(--line);font-size:1rem}
+    .nav-links a.lnk::after{display:none}
+    .menu-btn{display:grid;place-items:center;width:38px;height:38px;border-radius:10px;border:1px solid var(--line-strong);background:var(--bg-raised);cursor:pointer;color:var(--ink)}
+    .menu-btn svg{width:20px;height:20px}
+    .hero-grid{grid-template-columns:1fr}
+    .device{transform:none;margin-top:1rem}
+    @media (hover:hover){.device:hover{transform:none}}
+    .ping{right:8px}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+    .reveal{opacity:1;transform:none}
+    .device{transform:none}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ HEADER ============ -->
+<header class="site" id="top">
+  <div class="wrap nav">
+    <a href="#top" class="brand" aria-label="Better SGY home">
+      <svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <rect x="1.5" y="1.5" width="29" height="29" rx="8" fill="var(--accent)"/>
+        <path d="M9 21.5 13 14l3.5 4.5L20 11l4 10.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="24" cy="11" r="2.2" fill="#fff"/>
+      </svg>
+      Better SGY
+    </a>
+    <nav class="nav-links" id="navlinks">
+      <a class="lnk" href="#story">Story</a>
+      <a class="lnk" href="#editions">Editions</a>
+      <a class="lnk" href="#features">Features</a>
+      <a class="lnk" href="#download">Download</a>
+    </nav>
+    <div class="nav-right">
+      <button class="theme-toggle" id="themeBtn" aria-label="Toggle dark mode" title="Toggle theme">
+        <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
+      </button>
+      <a href="#download" class="btn btn-primary" style="padding:.6rem 1.05rem">Get it free</a>
+      <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <span class="eyebrow">Free Chrome extension for Schoology</span>
+      <h1>Your grades, <em>finally</em> readable.</h1>
+      <p class="lede">Better SGY lays a clean dashboard over the Schoology you already use. Same grades, far less clutter, and a layout that tells you where you stand without the squinting.</p>
+      <div class="hero-cta">
+        <a href="#download" class="btn btn-primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          Try the demo
+        </a>
+        <a href="#editions" class="btn btn-ghost">See the editions</a>
+      </div>
+      <p class="hero-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 5 3.4 7.7 8 9 4.6-1.3 8-4 8-9V6l-8-3Z"/></svg>
+        Runs on your own logged-in session. Your grades stay in your browser.
+      </p>
+    </div>
+
+    <div class="hero-visual">
+      <div class="device">
+        <div class="device-bar">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <span class="url">app.schoology.com</span>
+        </div>
+        <div class="dash">
+          <div class="dash-top">
+            <div class="gpa"><small>Term grade avg</small>91.4%</div>
+            <svg class="spark" viewBox="0 0 120 46" fill="none" aria-hidden="true">
+              <polyline points="2,38 22,30 40,33 58,20 78,24 98,12 118,8" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="118" cy="8" r="3" fill="var(--accent)"/>
+              <path d="M2,38 22,30 40,33 58,20 78,24 98,12 118,8 118,46 2,46Z" fill="var(--accent)" opacity=".08"/>
+            </svg>
+          </div>
+          <div class="courses">
+            <div class="course"><div><div class="nm">AP Literature</div><div class="meta">Essay returned · 2h ago</div></div><span class="grade">94%</span></div>
+            <div class="course"><div><div class="nm">Algebra II</div><div class="meta"><span class="chip-trend">▲ up 2.1 this week</span></div></div><span class="grade">88%</span></div>
+            <div class="course"><div><div class="nm">Biology</div><div class="meta">1 assignment missing</div></div><span class="grade warn">79%</span></div>
+            <div class="course"><div><div class="nm">French I</div><div class="meta">Quiz graded · today</div></div><span class="grade">96%</span></div>
+          </div>
+        </div>
+        <div class="ping">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>
+          <div><div class="t1">Biology grade updated</div><div class="t2">81% → 84% · just now</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STORY ============ -->
+<section class="story" id="story">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">How it came together</span>
+      <h2>A small project that got a little out of hand.</h2>
+      <p>Better SGY started as a personal fix for a daily annoyance and grew into something worth sharing. Here is the honest version of how it got here.</p>
+    </div>
+
+    <div class="timeline">
+      <div class="step l reveal">
+        <span class="node"></span>
+        <div class="card">
+          <span class="knum">01 — The problem</span>
+          <h3>Checking grades was a chore</h3>
+          <p>Schoology has the numbers, but finding them means digging through a cluttered gradebook. Wanting to know "how am I doing right now" turned into clicking around three menus and reading a wall of rows.</p>
+        </div>
+      </div>
+
+      <div class="step r reveal">
+        <span class="node"></span>
+        <div class="card">
+          <span class="knum">02 — The build</span>
+          <h3>An overlay, not a rebuild</h3>
+          <p>Rather than ask anyone to move their data, the extension reads your own logged-in Schoology session and draws a cleaner view on top of it. Install it and that is the setup. The numbers come from the same place they always did.</p>
+        </div>
+      </div>
+
+      <div class="step l reveal">
+        <span class="node"></span>
+        <div class="card">
+          <span class="knum">03 — The exploration</span>
+          <h3>Four looks, all real</h3>
+          <p>Picking a single design felt like guessing, so four complete directions got built and made fully interactive. Each one is a different answer to the same question: what should a gradebook feel like? You can open all four below.</p>
+        </div>
+      </div>
+
+      <div class="step r reveal">
+        <span class="node"></span>
+        <div class="card">
+          <span class="knum">04 — Where it is now</span>
+          <h3>A demo and the real thing</h3>
+          <p>There is a demo with sample grades that needs no login, so you can poke around in seconds. And there is the real version that reads your actual Schoology once you install it. Both are below.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ EDITIONS ============ -->
+<section id="editions">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">Four editions</span>
+      <h2>One gradebook, four personalities.</h2>
+      <p>Same data underneath, four distinct takes on top. Each link opens a live, clickable prototype in a new tab. Try a couple and keep the one that fits how you think.</p>
+    </div>
+
+    <div class="editions-grid">
+      <!-- Apple -->
+      <a class="edition reveal" href="./mockup-app-apple.html" target="_blank" rel="noopener">
+        <div class="preview pv-apple">
+          <div class="pv-rows">
+            <div class="pv-row pv-bar" style="height:30px"><span class="pv-pill" style="width:38px"></span><span class="pv-pill" style="width:18px;background:#86868b"></span></div>
+            <div class="pv-row"><span class="pv-pill" style="width:52px;background:#d2d2d7"></span><span class="pv-pill" style="width:14px"></span></div>
+            <div class="pv-row"><span class="pv-pill" style="width:40px;background:#d2d2d7"></span><span class="pv-pill" style="width:14px"></span></div>
+          </div>
+        </div>
+        <div class="body">
+          <div class="name">Apple <span class="tag">prototype</span></div>
+          <p class="desc">Spare and confident. Lots of white, one calm blue, nothing fighting for attention.</p>
+          <span class="open">Open prototype <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+        </div>
+      </a>
+
+      <!-- Halo -->
+      <a class="edition reveal" href="./mockup-app-halo.html" target="_blank" rel="noopener">
+        <div class="preview pv-halo">
+          <div class="pv-rows">
+            <div class="pv-row"><span class="pv-pill" style="width:46px;background:#bbb"></span><span class="pv-pill accent" style="width:16px"></span></div>
+            <div class="pv-row"><span class="pv-pill" style="width:34px;background:#ccc"></span><span class="pv-pill" style="width:12px"></span></div>
+            <div class="pv-row"><span class="pv-pill" style="width:50px;background:#ccc"></span><span class="pv-pill accent" style="width:12px"></span></div>
+          </div>
+        </div>
+        <div class="body">
+          <div class="name">Halo <span class="tag">prototype</span></div>
+          <p class="desc">Quiet and minimal. Mostly grayscale, with color only where it actually means something.</p>
+          <span class="open">Open prototype <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+        </div>
+      </a>
+
+      <!-- Slate -->
+      <a class="edition reveal" href="./mockup-app-slate.html" target="_blank" rel="noopener">
+        <div class="preview pv-slate">
+          <div class="ed-serif">A+</div>
+          <div class="pv-rows" style="top:auto;bottom:14px;height:auto">
+            <div class="pv-row"><span class="pv-pill" style="width:44px"></span><span class="pv-pill" style="width:14px;background:#777"></span></div>
+            <div class="pv-row"><span class="pv-pill" style="width:30px;background:#999"></span><span class="pv-pill" style="width:12px"></span></div>
+          </div>
+        </div>
+        <div class="body">
+          <div class="name">Slate <span class="tag">prototype</span></div>
+          <p class="desc">Black-and-white editorial. Serif headlines, strong type, the feel of a printed page.</p>
+          <span class="open">Open prototype <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+        </div>
+      </a>
+
+      <!-- Friendly -->
+      <a class="edition reveal" href="./mockup-app-forge.html" target="_blank" rel="noopener">
+        <div class="preview pv-forge">
+          <span class="blob"></span>
+          <div class="pv-rows">
+            <div class="pv-row" style="height:30px"><span class="pv-pill" style="width:40px"></span><span class="pv-pill" style="width:18px;background:#c79b5a"></span></div>
+            <div class="pv-row"><span class="pv-pill" style="width:52px;background:#e8cda0"></span><span class="pv-pill" style="width:14px"></span></div>
+            <div class="pv-row"><span class="pv-pill" style="width:38px;background:#e8cda0"></span><span class="pv-pill" style="width:14px"></span></div>
+          </div>
+        </div>
+        <div class="body">
+          <div class="name">Friendly <span class="tag">prototype</span></div>
+          <p class="desc">Warm and rounded, like a friend who has a lot to say about your grades. The chatty one.</p>
+          <span class="open">Open prototype <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+        </div>
+      </a>
+    </div>
+
+    <p class="portable-row reveal" style="margin-top:28px;text-align:center;font-size:15px;line-height:1.7;color:var(--muted,#6e6e73)">
+      Each edition also has a <strong>portable widget</strong> &mdash; a small panel that floats on any page and keeps your grades a glance away:
+      <br>
+      <a href="./mockup-portable-apple.html" target="_blank" rel="noopener">Apple</a> &middot;
+      <a href="./mockup-portable-halo.html" target="_blank" rel="noopener">Halo</a> &middot;
+      <a href="./mockup-portable-slate.html" target="_blank" rel="noopener">Slate</a> &middot;
+      <a href="./mockup-portable-forge.html" target="_blank" rel="noopener">Friendly</a>
+    </p>
+  </div>
+</section>
+
+<!-- ============ FEATURES ============ -->
+<section id="features">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">What it actually does</span>
+      <h2>Built around the things you check most.</h2>
+      <p>No grand claims. These are the parts that are shipped and working today.</p>
+    </div>
+
+    <div class="feat-grid">
+      <div class="feat reveal">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div>
+        <h3>Every class at once</h3>
+        <p>A clean overview of all your courses with the current grade and which way it is heading. The whole term in one screen.</p>
+      </div>
+      <div class="feat reveal">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l3-4 3 2 4-7"/></svg></div>
+        <h3>Grade-over-time graphs</h3>
+        <p>Watch a grade move across the term. History builds as new grades post, so you can see a real trend instead of a single number.</p>
+      </div>
+      <div class="feat reveal">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>
+        <h3>Notifications that find you</h3>
+        <p>Get a desktop notification when a grade changes, something gets graded, or a new assignment shows up. It can check in the background even with no Schoology tab open.</p>
+      </div>
+      <div class="feat reveal">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16M4 12h16M4 19h10"/><circle cx="19" cy="19" r="2.5"/></svg></div>
+        <h3>Per-course gradebooks</h3>
+        <p>Open any class for the full breakdown, including weighted categories, so you can see exactly what is pulling your grade up or down.</p>
+      </div>
+      <div class="feat reveal">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v5h5"/><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M9 14l2 2 4-4"/></svg></div>
+        <h3>Submit assignments</h3>
+        <p>Hand in work to Schoology from inside the extension. Text or a file, and it creates a proper revision, the same as the site would.</p>
+      </div>
+      <div class="feat reveal">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></div>
+        <h3>The rest of the day</h3>
+        <p>Assignments list, calendar, announcements, and course materials are all here too, so the extension covers more than just the numbers.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DOWNLOAD ============ -->
+<section id="download" class="story">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">Get it</span>
+      <h2>Two ways to start.</h2>
+      <p>Have a look with sample data first, or install the real version and see your own grades. Both are free and download from the project's GitHub Releases page.</p>
+    </div>
+
+    <div class="dl-grid">
+      <div class="dl-card reveal">
+        <span class="kicker">No login needed</span>
+        <h3>Try the demo</h3>
+        <p>Loads with sample grades so you can see all four editions right away. Nothing connects to Schoology, so it is a safe way to look around before installing the real thing.</p>
+        <a href="https://github.com/saptarshighosh10-oss/better-sgy/releases" target="_blank" rel="noopener" class="btn btn-ghost" style="align-self:flex-start">
+          Download the demo
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+        </a>
+        <span class="fname">Better-SGY-Demo.zip</span>
+      </div>
+
+      <div class="dl-card feature reveal">
+        <span class="badge">Real grades</span>
+        <span class="kicker">Reads your Schoology</span>
+        <h3>Install the real version</h3>
+        <p>Log into Schoology the way you normally do, and the extension shows your actual grades. The gradebook data stays in your browser; it is not uploaded anywhere.</p>
+        <a href="https://github.com/saptarshighosh10-oss/better-sgy/releases" target="_blank" rel="noopener" class="btn btn-primary" style="align-self:flex-start">
+          Download the extension
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+        </a>
+        <span class="fname">better-sgy-extension-1.0.0-chrome.zip</span>
+      </div>
+    </div>
+
+    <div class="install reveal">
+      <h3>Installing it (about two minutes)</h3>
+      <div class="steps">
+        <div class="istep">
+          <div class="n">1</div>
+          <h4>Unzip the download</h4>
+          <p>Double-click the .zip you got from Releases. You will end up with a folder. Leave it somewhere you will not delete by accident.</p>
+        </div>
+        <div class="istep">
+          <div class="n">2</div>
+          <h4>Open extensions</h4>
+          <p>In Chrome, go to <code>chrome://extensions</code> in the address bar and press enter.</p>
+        </div>
+        <div class="istep">
+          <div class="n">3</div>
+          <h4>Turn on Developer mode</h4>
+          <p>Flip the <code>Developer mode</code> switch in the top-right corner of that page.</p>
+        </div>
+        <div class="istep">
+          <div class="n">4</div>
+          <h4>Load unpacked</h4>
+          <p>Click <code>Load unpacked</code>, pick the folder you unzipped, and it is in. Open Schoology to see it.</p>
+        </div>
+      </div>
+      <p class="install-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+        For now it installs through Chrome's developer mode, which is normal for an extension that is not on the Web Store yet. If a step looks unfamiliar, the GitHub Releases page has the same instructions.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="site">
+  <div class="wrap foot">
+    <div>
+      <div class="brand">
+        <svg class="mark" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <rect x="1.5" y="1.5" width="29" height="29" rx="8" fill="var(--accent)"/>
+          <path d="M9 21.5 13 14l3.5 4.5L20 11l4 10.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="24" cy="11" r="2.2" fill="#fff"/>
+        </svg>
+        Better SGY
+      </div>
+      <p>A student project to make checking your grades feel less like a chore. Free, and built to sit quietly on top of the Schoology you already have.</p>
+    </div>
+    <div class="links">
+      <a href="#story">Story</a>
+      <a href="#editions">Editions</a>
+      <a href="#features">Features</a>
+      <a href="#download">Download</a>
+      <a href="https://github.com/saptarshighosh10-oss/better-sgy" target="_blank" rel="noopener">GitHub</a>
+    </div>
+    <p class="fine">Better SGY is not affiliated with or endorsed by Schoology or PowerSchool. It reads grades through your own logged-in session and keeps gradebook data in your browser. Schoology is a trademark of its respective owner.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---- Theme ---- */
+  var root = document.documentElement;
+  var btn = document.getElementById("themeBtn");
+  var sun = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>';
+  var moon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8Z"/></svg>';
+  function applyTheme(t){
+    root.setAttribute("data-theme", t);
+    btn.innerHTML = (t === "dark") ? moon : sun;
+    try{ localStorage.setItem("bsgy-theme", t); }catch(e){}
+  }
+  var saved;
+  try{ saved = localStorage.getItem("bsgy-theme"); }catch(e){}
+  if(!saved){ saved = (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light"; }
+  applyTheme(saved);
+  btn.addEventListener("click", function(){
+    applyTheme(root.getAttribute("data-theme") === "dark" ? "light" : "dark");
+  });
+
+  /* ---- Header shadow on scroll ---- */
+  var header = document.querySelector("header.site");
+  function onScroll(){ header.classList.toggle("scrolled", window.scrollY > 8); }
+  onScroll();
+  window.addEventListener("scroll", onScroll, {passive:true});
+
+  /* ---- Mobile menu ---- */
+  var menuBtn = document.getElementById("menuBtn");
+  var navLinks = document.getElementById("navlinks");
+  menuBtn.addEventListener("click", function(){
+    var open = navLinks.classList.toggle("open");
+    menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
+  });
+  navLinks.addEventListener("click", function(e){
+    if(e.target.classList.contains("lnk")){ navLinks.classList.remove("open"); menuBtn.setAttribute("aria-expanded","false"); }
+  });
+
+  /* ---- Reveal on scroll ---- */
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var items = document.querySelectorAll(".reveal");
+  if(reduce || !("IntersectionObserver" in window)){
+    items.forEach(function(el){ el.classList.add("in"); });
+  } else {
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(en.isIntersecting){ en.target.classList.add("in"); io.unobserve(en.target); }
+      });
+    }, {threshold:.12, rootMargin:"0px 0px -8% 0px"});
+    items.forEach(function(el, i){
+      // gentle stagger within a row group
+      el.style.transitionDelay = (Math.min(i % 4, 3) * 70) + "ms";
+      io.observe(el);
+    });
+  }
+})();
+</script>
+</body>
+</html>

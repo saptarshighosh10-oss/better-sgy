@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Better SGY — the friendly one</title>
+<style>
+  /* ============================================================
+     "A friend who has too much to say."
+     Warm cream paper · rounded type · speech bubbles · margin notes.
+     The grades are the facts; the friend is the voice all over them.
+     One rounded component system, reused on every screen.
+     Now driven by vanilla JS off MOCKUP_DATA. Works on double-click.
+     ============================================================ */
+  :root{
+    --paper:   #fdf4e6;
+    --paper-2: #f7ead6;
+    --card:    #fffdf9;
+    --ink:     #3a2f25;
+    --ink-2:   #8a7a66;
+    --ink-3:   #b6a690;
+    --line:    #ece0cd;
+    --coral:   #ff6f61;
+    --peach:   #ffb454;
+    --sun:     #ffcf4d;
+    --sage:    #4fb286;
+    --sky:     #5aa9e6;
+    --grape:   #9b87f2;
+    --rose:    #ef6a52;
+    --bubble:  #fff4dd;
+    --softfill:#fff1d6;   /* generic soft chip/emoji fill */
+    --bubble-tail:#fff4dd;
+    --grid:    #ece0cd;
+    --shadow:  rgba(120,80,30,.5);
+    --glow-a:  rgba(255,180,84,.10);
+    --glow-b:  rgba(155,135,242,.10);
+    --font: "SF Pro Rounded","ui-rounded","Hiragino Maru Gothic ProN",
+            "Segoe UI Variable","Nunito",system-ui,-apple-system,sans-serif;
+  }
+
+  /* ---- DARK (warm cocoa paper, not cold) ---- */
+  html[data-theme="dark"]{
+    --paper:   #241c15;
+    --paper-2: #322619;
+    --card:    #2e241a;
+    --ink:     #f3e6d3;
+    --ink-2:   #c2ac90;
+    --ink-3:   #8f7a60;
+    --line:    #463728;
+    --bubble:  #3a2c1c;
+    --bubble-tail:#3a2c1c;
+    --softfill:#3d2f1e;
+    --grid:    #443524;
+    --shadow:  rgba(0,0,0,.55);
+    --glow-a:  rgba(255,180,84,.07);
+    --glow-b:  rgba(155,135,242,.06);
+  }
+  /* dark: warm up the hardcoded pastel fills so nothing reads cold/white */
+  html[data-theme="dark"] .chip .ic.a{background:#1f3a2c}
+  html[data-theme="dark"] .chip .ic.b{background:#3d2f1a}
+  html[data-theme="dark"] .chip .ic.c{background:#3d241e}
+  html[data-theme="dark"] .chip .ic.d{background:#2c2742}
+  html[data-theme="dark"] .missrow td{background:#3a241c}
+  html[data-theme="dark"] .stat.urgent{background:#3d241e;color:#ff9b87}
+  html[data-theme="dark"] .stat.soon{background:#3d2f1a;color:#e6b96a}
+  html[data-theme="dark"] .stat.ok{background:#1f3a2c;color:#7cd0a7}
+  html[data-theme="dark"] .sticky{background:#3a2f17;border-color:#5a4a22}
+  html[data-theme="dark"] .sticky p{color:#e9d29a}
+  html[data-theme="dark"] .day.sel{background:#3a2c1c}
+  html[data-theme="dark"] .file .fi.folder{background:#3d2f1a}
+  html[data-theme="dark"] .file .fi.pdf{background:#3d241e}
+  html[data-theme="dark"] .file .fi.link{background:#22344a}
+  html[data-theme="dark"] .file .fi.doc{background:#1f3a2c}
+  html[data-theme="dark"] .detected .glob{background:#1f3a2c}
+  html[data-theme="dark"] .toast .ti{background:var(--paper-2)}
+  html[data-theme="dark"] .sidefoot{border-color:#5a4a2e}
+  html[data-theme="dark"] .outro{border-color:#5a4a2e}
+  html[data-theme="dark"] .sechd .miss,html[data-theme="dark"] .miss{color:#ff8a72}
+  html[data-theme="dark"] .stylecard.on{background:#3a2c1c}
+  html[data-theme="dark"] .day.today .dn{color:var(--coral)}
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:var(--font);background:var(--paper);color:var(--ink);
+    line-height:1.5;-webkit-font-smoothing:antialiased;
+    transition:background-color .25s ease,color .25s ease;
+    background-image:radial-gradient(circle at 12% 8%,var(--glow-a),transparent 38%),
+                     radial-gradient(circle at 90% 0%,var(--glow-b),transparent 36%);
+  }
+
+  /* highlighter + wave (shared) */
+  .hl{background:linear-gradient(transparent 62%,rgba(255,207,77,.55) 62%);padding:0 1px}
+  .wave{text-decoration:underline wavy var(--peach);text-underline-offset:3px;text-decoration-thickness:1.5px}
+  .miss{color:var(--rose);font-weight:800}
+  .up{color:var(--sage);font-weight:800}
+
+  /* ============================================================
+     APP SHELL — sidebar + screen area
+     ============================================================ */
+  .app{display:flex;min-height:100vh;max-width:1180px;margin:0 auto;gap:22px;padding:24px 20px 60px}
+
+  /* ---- sidebar ---- */
+  .side{flex:none;width:236px;position:sticky;top:24px;align-self:flex-start;
+        background:var(--card);border:1.5px solid var(--line);border-radius:26px;
+        padding:18px 14px;box-shadow:0 12px 30px -20px rgba(120,80,30,.5)}
+  .brand{display:flex;align-items:center;gap:11px;padding:6px 8px 16px}
+  .brand .ava{width:42px;height:42px;border-radius:50%;flex:none;
+       background:radial-gradient(circle at 35% 30%,#ffd98a,#ff9d5c);
+       box-shadow:0 4px 0 rgba(214,140,70,.25);display:grid;place-items:center;font-size:20px}
+  .brand .nm{font-size:16px;font-weight:800;letter-spacing:-.01em;line-height:1.1}
+  .brand .sub{font-size:11.5px;color:var(--ink-2);font-weight:600}
+
+  .nav{display:flex;flex-direction:column;gap:3px}
+  .nav button{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:16px;
+        font-size:14.5px;font-weight:700;color:var(--ink-2);cursor:pointer;font-family:inherit;
+        background:none;border:none;text-align:left;width:100%;
+        transition:background .12s,color .12s;user-select:none}
+  .nav button .ni{width:28px;height:28px;border-radius:10px;flex:none;display:grid;place-items:center;
+        font-size:15px;background:var(--paper-2);transition:background .12s}
+  .nav button:hover{background:var(--paper-2);color:var(--ink)}
+  .nav button.active{background:var(--ink);color:#fff;box-shadow:0 8px 18px -10px rgba(58,47,37,.6)}
+  .nav button.active .ni{background:rgba(255,255,255,.18)}
+
+  .sidefoot{margin-top:16px;padding:12px;border-radius:18px;background:var(--paper-2);
+        border:1.5px dashed #e3d2b6}
+  .sidefoot p{font-size:12.5px;font-weight:700;color:var(--ink)}
+  .sidefoot p span{color:var(--ink-2);font-weight:600}
+
+  /* ---- screen area ---- */
+  .main{flex:1;min-width:0}
+  .screen{display:none}
+  .screen.show{display:block;animation:fade .26s cubic-bezier(.2,.8,.2,1)}
+  @keyframes fade{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+
+  /* ============================================================
+     SHARED COMPONENTS
+     ============================================================ */
+  .pagehd{display:flex;align-items:flex-end;gap:12px;margin-bottom:4px;flex-wrap:wrap}
+  .pagehd h1{font-size:25px;font-weight:800;letter-spacing:-.015em}
+  .pagehd .when{font-size:13px;color:var(--ink-2);font-weight:600}
+  .lead{font-size:14.5px;color:var(--ink-2);font-weight:600;margin:8px 0 18px}
+
+  .bubble{position:relative;background:var(--bubble);border:1.5px solid var(--line);
+        border-radius:22px;padding:14px 17px;font-size:15.5px;font-weight:600;
+        box-shadow:0 8px 20px -14px rgba(120,80,30,.5)}
+  .bubble.tail:before{content:"";position:absolute;left:-9px;top:22px;width:18px;height:18px;
+        background:var(--bubble-tail);border-left:1.5px solid var(--line);border-bottom:1.5px solid var(--line);
+        transform:rotate(45deg)}
+  .bubble.small{font-size:13.5px;font-weight:600;color:var(--ink-2)}
+
+  .card{background:var(--card);border:1.5px solid var(--line);border-radius:22px;
+        box-shadow:0 8px 20px -16px rgba(120,80,30,.5)}
+
+  .sechd{margin:30px 0 4px;display:flex;align-items:baseline;gap:10px}
+  .sechd h2{font-size:20px;font-weight:800;letter-spacing:-.01em}
+  .sechd .sub{font-size:13px;color:var(--ink-2);font-weight:600}
+
+  /* course card (shared from anchor) */
+  .course{background:var(--card);border:1.5px solid var(--line);border-radius:22px;
+        padding:16px 18px;margin-bottom:14px;box-shadow:0 8px 20px -16px rgba(120,80,30,.5);
+        position:relative;overflow:hidden;cursor:pointer;
+        transition:transform .14s cubic-bezier(.2,.8,.2,1),box-shadow .14s}
+  .course:hover{transform:translateY(-2px);box-shadow:0 14px 26px -16px rgba(120,80,30,.55)}
+  .course:active{transform:translateY(0)}
+  .course:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--dot,var(--peach))}
+  .crow{display:flex;align-items:center;gap:14px}
+  .emoji{width:42px;height:42px;border-radius:14px;flex:none;display:grid;place-items:center;font-size:21px;
+        background:var(--soft,var(--softfill))}
+  .cmeta{flex:1;min-width:0}
+  .cmeta .nm{font-size:17px;font-weight:800;letter-spacing:-.01em;line-height:1.25;margin-bottom:3px}
+  .cmeta .tc{font-size:13px;color:var(--ink-2);font-weight:600;line-height:1.3}
+  .grade{display:flex;flex-direction:column;align-items:flex-end;flex:none}
+  .grade .g{font-size:24px;font-weight:800;line-height:1;letter-spacing:-.02em}
+  .grade .g .pct{font-size:13px;color:var(--ink-3);font-weight:700}
+  .grade .lt{font-size:12px;font-weight:800;color:var(--ink-2);margin-top:3px}
+  .spark{flex:none;margin-left:2px}
+
+  .say{margin-top:12px;display:flex;gap:9px;align-items:flex-start}
+  .say .q{flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:13px;
+        background:var(--soft,var(--softfill))}
+  .say p{font-size:14.5px;font-weight:600;color:var(--ink);line-height:1.45}
+  .say .add{display:block;margin-top:5px;font-size:13.5px;color:var(--ink-2);font-weight:600}
+
+  /* pill / chip */
+  .tagpill{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;
+        padding:4px 11px;border-radius:20px;background:var(--paper-2);color:var(--ink-2)}
+  .tagpill .dot{width:8px;height:8px;border-radius:50%;background:var(--dot,var(--peach))}
+
+  /* ============================================================
+     OVERVIEW
+     ============================================================ */
+  .hello{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+  .hello h1{font-size:25px;font-weight:800;letter-spacing:-.01em}
+  .hello .when{font-size:13.5px;color:var(--ink-2);font-weight:600;margin-top:1px}
+  .hero{display:flex;gap:18px;align-items:flex-start;margin-top:20px;flex-wrap:wrap}
+  .score{background:var(--card);border:1.5px solid var(--line);border-radius:26px;
+         padding:20px 26px 18px;box-shadow:0 10px 24px -14px rgba(120,80,30,.45);position:relative;flex:none}
+  .score .big{font-size:58px;font-weight:800;line-height:1;letter-spacing:-.03em}
+  .score .big .pct{font-size:24px;color:var(--ink-3)}
+  .score .cap{font-size:13px;color:var(--ink-2);font-weight:700;margin-top:6px}
+  .score .tag{position:absolute;top:-12px;right:-10px;background:var(--sage);color:#fff;
+        font-size:12px;font-weight:800;padding:4px 12px;border-radius:20px;
+        box-shadow:0 5px 12px -3px rgba(79,178,134,.6);transform:rotate(4deg)}
+  .herobub{max-width:380px}
+  .herobub .bubble{margin-bottom:9px}
+  .gist{margin-top:24px;display:flex;flex-wrap:wrap;gap:11px}
+  .chip{background:var(--card);border:1.5px solid var(--line);border-radius:18px;
+        padding:11px 15px;display:flex;align-items:center;gap:11px;box-shadow:0 6px 16px -14px rgba(120,80,30,.5)}
+  .chip .ic{width:34px;height:34px;border-radius:12px;flex:none;display:grid;place-items:center;font-size:17px}
+  .chip .ic.a{background:#eafaf2} .chip .ic.b{background:#fff1d6}
+  .chip .ic.c{background:#ffe6e0} .chip .ic.d{background:#ece7ff}
+  .chip .n{font-size:18px;font-weight:800;line-height:1}
+  .chip .l{font-size:12px;color:var(--ink-2);font-weight:600}
+  .outro{margin-top:28px;background:var(--paper-2);border:1.5px dashed #e3d2b6;border-radius:22px;
+        padding:18px 20px;display:flex;gap:13px;align-items:center}
+  .outro .ic{font-size:26px}
+  .outro p{font-size:15px;font-weight:700;color:var(--ink)}
+  .outro p span{color:var(--ink-2);font-weight:600}
+
+  /* ============================================================
+     LINE CHART (shared) — warm, rounded, soft gridlines
+     ============================================================ */
+  .chartcard{padding:18px 20px 16px;margin-top:20px}
+  .chartcard .chd{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+  .chartcard .chd .ct{font-size:16px;font-weight:800;letter-spacing:-.01em}
+  .chartcard .chd .cs{font-size:12.5px;color:var(--ink-2);font-weight:600}
+  .chartwrap{width:100%;position:relative}
+  .chartwrap svg{display:block;width:100%;height:auto;overflow:visible}
+  .ax{font-size:10px;font-weight:700;fill:var(--ink-3)}
+  .axy{font-size:9.5px;font-weight:700;fill:var(--ink-3)}
+  .grid{stroke:var(--grid);stroke-width:1}
+  .endlabel{font-size:11px;font-weight:800;fill:var(--ink)}
+  .hoverpt{cursor:pointer;transition:r .1s}
+  .chiprow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .lchip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;
+        padding:5px 11px;border-radius:16px;background:var(--paper-2);color:var(--ink-2);cursor:pointer;
+        user-select:none;transition:background .12s,color .12s,opacity .12s}
+  .lchip.on{background:var(--paper-2);color:var(--ink-2)}
+  .lchip.on.sel{background:var(--ink);color:#fff}
+  .lchip.off{opacity:.4}
+  .lchip.sel .dot{box-shadow:0 0 0 2px var(--card),0 0 0 3.5px var(--dot)}
+  .lchip .dot{width:9px;height:9px;border-radius:50%;background:var(--dot,var(--peach))}
+  .charttip{position:absolute;pointer-events:none;background:var(--ink);color:#fff;font-size:11.5px;
+        font-weight:800;padding:5px 9px;border-radius:11px;white-space:nowrap;opacity:0;transform:translateX(-50%);
+        transition:opacity .1s;box-shadow:0 8px 18px -8px rgba(58,47,37,.6);z-index:5}
+
+  /* ============================================================
+     GRADES
+     ============================================================ */
+  .classpick{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 20px}
+  .ctab{display:flex;align-items:center;gap:8px;padding:9px 13px;border-radius:16px;
+        border:1.5px solid var(--line);background:var(--card);font-size:13.5px;font-weight:700;
+        color:var(--ink-2);cursor:pointer;box-shadow:0 5px 14px -14px rgba(120,80,30,.5);
+        transition:transform .12s,background .12s,color .12s,border-color .12s}
+  .ctab:hover{transform:translateY(-1px)}
+  .ctab .dot{width:9px;height:9px;border-radius:50%;background:var(--dot)}
+  .ctab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .gradehero{display:flex;gap:16px;align-items:center;padding:18px 20px;margin-bottom:6px}
+  .gradehero .emoji{width:54px;height:54px;border-radius:16px;font-size:26px}
+  .gradehero .gh-meta{flex:1;min-width:0}
+  .gradehero .gh-meta .nm{font-size:20px;font-weight:800;line-height:1.25;margin-bottom:3px}
+  .gradehero .gh-meta .tc{font-size:13.5px;color:var(--ink-2);font-weight:600;line-height:1.3}
+  .gradehero .gh-g{text-align:right;flex:none}
+  .gradehero .gh-g .g{font-size:34px;font-weight:800;line-height:1;letter-spacing:-.02em}
+  .gradehero .gh-g .g .pct{font-size:16px;color:var(--ink-3)}
+  .gradehero .gh-g .lt{font-size:13px;font-weight:800;color:var(--ink-2)}
+
+  .cats{display:flex;flex-direction:column;gap:10px;margin:18px 0 8px}
+  .cat{display:flex;align-items:center;gap:14px;padding:13px 16px}
+  .cat .cn{font-size:15px;font-weight:800;width:130px;flex:none}
+  .cat .wt{font-size:12px;font-weight:700;color:var(--ink-2);flex:none;width:64px}
+  .cat .bar{flex:1;height:9px;border-radius:6px;background:var(--paper-2);overflow:hidden}
+  .cat .bar i{display:block;height:100%;border-radius:6px;background:var(--dot,var(--sage));width:0;
+        transition:width .6s cubic-bezier(.2,.8,.2,1)}
+  .cat .av{font-size:15px;font-weight:800;flex:none;width:58px;text-align:right}
+
+  table.asg{width:100%;border-collapse:collapse}
+  table.asg th{text-align:left;font-size:11.5px;font-weight:800;color:var(--ink-2);
+        text-transform:uppercase;letter-spacing:.04em;padding:10px 16px;border-bottom:1.5px solid var(--line)}
+  table.asg th.r,table.asg td.r{text-align:right}
+  table.asg td{padding:13px 16px;font-size:14px;font-weight:600;border-bottom:1px solid var(--line)}
+  table.asg tr:last-child td{border-bottom:none}
+  table.asg .anm{font-weight:800;color:var(--ink)}
+  table.asg .adt{font-size:12.5px;color:var(--ink-2);font-weight:600}
+  table.asg .pc{font-weight:800}
+  .missrow td{background:#fff3ee}
+  .missbadge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:#fff;
+        background:var(--rose);padding:3px 9px;border-radius:14px}
+
+  /* ============================================================
+     ASSIGNMENTS
+     ============================================================ */
+  .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:14px 0 8px}
+  .search{flex:1;min-width:200px;display:flex;align-items:center;gap:10px;padding:11px 15px;
+        border-radius:18px;border:1.5px solid var(--line);background:var(--card);
+        box-shadow:0 5px 14px -14px rgba(120,80,30,.5)}
+  .search input{border:none;background:none;outline:none;font:inherit;font-size:14.5px;font-weight:600;
+        color:var(--ink);flex:1}
+  .search input::placeholder{color:var(--ink-3)}
+  .tabs{display:flex;gap:6px;background:var(--paper-2);padding:5px;border-radius:18px}
+  .tabs button{padding:8px 16px;border-radius:14px;font-size:13.5px;font-weight:800;color:var(--ink-2);
+        cursor:pointer;user-select:none;border:none;background:none;font-family:inherit}
+  .tabs button .ct{font-size:11px;color:var(--ink-3);font-weight:800}
+  .tabs button.on{background:var(--card);color:var(--ink);box-shadow:0 4px 10px -6px rgba(120,80,30,.5)}
+  .tabs button.on .ct{color:var(--ink-2)}
+
+  .todo{display:flex;align-items:center;gap:14px;padding:14px 16px;margin-bottom:11px;position:relative;overflow:hidden;
+        transition:transform .14s cubic-bezier(.2,.8,.2,1),opacity .25s}
+  .todo:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--dot,var(--peach))}
+  .todo .box{width:22px;height:22px;border-radius:8px;border:2px solid var(--ink-3);flex:none;cursor:pointer;
+        display:grid;place-items:center;transition:background .15s,border-color .15s,transform .12s}
+  .todo .box:hover{transform:scale(1.08)}
+  .todo .box.done{background:var(--sage);border-color:var(--sage)}
+  .todo .tmeta{flex:1;min-width:0}
+  .todo .tt{font-size:15px;font-weight:800;letter-spacing:-.01em}
+  .todo .tt.struck{text-decoration:line-through;color:var(--ink-3)}
+  .todo .tsub{font-size:12.5px;color:var(--ink-2);font-weight:600;margin-top:2px}
+  .todo .tsub .aside{color:var(--rose);font-weight:700}
+  .todo .tsub .aside.soft{color:var(--ink-2);font-style:italic;font-weight:600}
+  .todo .due{font-size:12.5px;font-weight:800;color:var(--ink-2);flex:none;text-align:right}
+  .due.today{color:var(--rose)}
+  .stat{font-size:11px;font-weight:800;padding:4px 10px;border-radius:14px;flex:none}
+  .stat.urgent{background:#ffe6e0;color:var(--rose)}
+  .stat.soon{background:#fff1d6;color:#b5781f}
+  .stat.ok{background:#eafaf2;color:#2f8a63}
+  .emptynote{font-size:14px;color:var(--ink-2);font-weight:600;padding:24px 4px}
+
+  /* ============================================================
+     CALENDAR
+     ============================================================ */
+  .calbar{display:flex;align-items:center;gap:10px;margin:14px 0 16px;flex-wrap:wrap}
+  .calbar .mo{font-size:19px;font-weight:800;letter-spacing:-.01em;min-width:150px}
+  .navbtn{width:34px;height:34px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);
+        display:grid;place-items:center;cursor:pointer;font-size:15px;font-weight:800;color:var(--ink-2);
+        box-shadow:0 5px 14px -14px rgba(120,80,30,.5);transition:transform .12s,background .12s}
+  .navbtn:hover{transform:translateY(-1px);background:var(--paper-2)}
+  .todaybtn{padding:8px 15px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);
+        font-size:13px;font-weight:800;color:var(--ink);cursor:pointer;font-family:inherit;
+        box-shadow:0 5px 14px -14px rgba(120,80,30,.5);transition:transform .12s,background .12s}
+  .todaybtn:hover{transform:translateY(-1px);background:var(--paper-2)}
+  .calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+  .dow{font-size:11.5px;font-weight:800;color:var(--ink-2);text-align:center;padding:4px 0}
+  .day{aspect-ratio:1/.92;border-radius:16px;border:1.5px solid var(--line);background:var(--card);
+        padding:8px 9px;display:flex;flex-direction:column;gap:5px;box-shadow:0 5px 14px -16px rgba(120,80,30,.5);
+        transition:transform .12s,box-shadow .12s}
+  .day.has{cursor:pointer}
+  .day.has:hover{transform:translateY(-2px);box-shadow:0 12px 20px -14px rgba(120,80,30,.5)}
+  .day.out{background:transparent;border-color:transparent;box-shadow:none}
+  .day .dn{font-size:13px;font-weight:800;color:var(--ink-2)}
+  .day.today{border-color:var(--coral);border-width:2px}
+  .day.today .dn{color:var(--coral)}
+  .day.sel{border-color:var(--ink);border-width:2px;background:#fff8ee}
+  .day .dots{display:flex;gap:4px;flex-wrap:wrap;margin-top:auto}
+  .day .dd{width:8px;height:8px;border-radius:50%}
+  .sticky{margin-top:18px;background:#fff6c9;border:1.5px solid #f0d98a;border-radius:18px;
+        padding:13px 16px;display:flex;gap:11px;align-items:center;transform:rotate(-.5deg);
+        box-shadow:0 8px 20px -14px rgba(180,140,40,.5);max-width:420px}
+  .sticky .ic{font-size:20px}
+  .sticky p{font-size:14px;font-weight:700;color:#6b5224}
+  .daydetail{margin-top:18px;max-width:460px;animation:fade .2s ease}
+  .daydetail .ddh{font-size:14px;font-weight:800;margin-bottom:10px}
+  .dayitem{display:flex;align-items:center;gap:11px;padding:11px 14px;margin-bottom:9px}
+  .dayitem .dd{width:10px;height:10px;border-radius:50%;flex:none}
+  .dayitem .di-nm{font-size:14px;font-weight:800;flex:1}
+  .dayitem .di-c{font-size:12px;font-weight:700;color:var(--ink-2)}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:16px}
+  .legend .li{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:var(--ink-2)}
+  .legend .li .dd{width:9px;height:9px;border-radius:50%}
+
+  /* ============================================================
+     ANNOUNCEMENTS
+     ============================================================ */
+  .ann{padding:16px 18px;margin-bottom:13px;position:relative}
+  .ann .atop{display:flex;align-items:center;gap:10px}
+  .ann .tag2{font-size:11.5px;font-weight:800;padding:4px 11px;border-radius:14px;color:#fff}
+  .ann .who{font-size:13.5px;font-weight:700;color:var(--ink)}
+  .ann .tm{font-size:12px;color:var(--ink-2);font-weight:600;margin-left:auto}
+  .ann .star{font-size:16px;color:var(--ink-3);cursor:pointer;user-select:none;transition:transform .12s,color .12s}
+  .ann .star:hover{transform:scale(1.15)}
+  .ann .star.on{color:#ffb454}
+  .ann .msg{font-size:14.5px;font-weight:600;color:var(--ink);margin-top:10px;line-height:1.5}
+  .ann .react{margin-top:9px;display:flex;gap:8px;align-items:center;font-size:13px;font-weight:600;color:var(--ink-2)}
+  .ann .react .q{width:22px;height:22px;border-radius:50%;background:var(--paper-2);display:grid;place-items:center;font-size:12px}
+
+  /* ============================================================
+     MATERIALS
+     ============================================================ */
+  .matwrap{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .matlist{flex:1;min-width:280px}
+  .matpanel{flex:1;min-width:300px}
+  .file{display:flex;align-items:center;gap:13px;padding:13px 15px;margin-bottom:10px;cursor:pointer;
+        transition:transform .12s,box-shadow .12s}
+  .file:hover{transform:translateY(-1px);box-shadow:0 12px 22px -16px rgba(120,80,30,.5)}
+  .file.on{border:2px solid var(--ink)}
+  .file .fi{width:38px;height:38px;border-radius:12px;flex:none;display:grid;place-items:center;font-size:18px}
+  .file .fi.folder{background:#fff1d6}.file .fi.pdf{background:#ffe6e0}
+  .file .fi.link{background:#e3f0fb}.file .fi.doc{background:#eafaf2}
+  .file .fnm{flex:1;min-width:0;font-size:14.5px;font-weight:800}
+  .file .fsub{font-size:12px;color:var(--ink-2);font-weight:600}
+  .file .chev{color:var(--ink-3);font-weight:800}
+  .panelhd{padding:16px 18px 4px}
+  .panelhd .ptitle{font-size:18px;font-weight:800;letter-spacing:-.01em}
+  .panelhd .psub{font-size:13px;color:var(--ink-2);font-weight:600;margin-top:2px}
+  .attach{display:flex;align-items:center;gap:10px;padding:10px 14px;margin:6px 18px;border-radius:14px;
+        background:var(--paper-2);font-size:13.5px;font-weight:700}
+  .attach .ai{font-size:16px}
+  .field{margin:10px 18px}
+  .field label{font-size:12.5px;font-weight:800;color:var(--ink-2);display:block;margin-bottom:6px}
+  .field textarea,.field input.txt{width:100%;border:1.5px solid var(--line);border-radius:14px;
+        background:var(--card);font:inherit;font-size:14px;font-weight:600;color:var(--ink);
+        padding:11px 13px;resize:vertical;outline:none}
+  .field textarea:focus,.field input.txt:focus{border-color:var(--peach)}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:16px;
+        font:inherit;font-size:14px;font-weight:800;cursor:pointer;border:1.5px solid transparent;
+        transition:transform .12s,filter .12s}
+  .btn:hover{transform:translateY(-1px)}
+  .btn:active{transform:translateY(0)}
+  .btn.primary{background:var(--ink);color:#fff;box-shadow:0 8px 18px -10px rgba(58,47,37,.6)}
+  .btn.ghost{background:var(--card);color:var(--ink);border-color:var(--line)}
+  .panelfoot{display:flex;gap:10px;align-items:center;padding:14px 18px 18px;flex-wrap:wrap}
+  .revnote{font-size:12px;color:var(--ink-2);font-weight:600;margin:2px 18px 0}
+  .subok{font-size:12.5px;color:var(--sage);font-weight:800;margin:8px 18px 0;display:none}
+  .subok.show{display:block;animation:fade .2s ease}
+  .commentlist{margin:6px 18px 0}
+  .cmt{font-size:13px;font-weight:600;color:var(--ink);background:var(--paper-2);border-radius:12px;
+        padding:8px 12px;margin-bottom:7px;animation:fade .2s ease}
+  .cmt .cmt-w{font-weight:800;color:var(--ink-2);font-size:12px;margin-right:6px}
+
+  /* ============================================================
+     SETTINGS
+     ============================================================ */
+  .styles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:14px 0 8px}
+  .stylecard{padding:15px 16px;cursor:pointer;border:1.5px solid var(--line);border-radius:20px;
+        background:var(--card);box-shadow:0 6px 16px -16px rgba(120,80,30,.5);transition:transform .12s,border-color .12s}
+  .stylecard:hover{transform:translateY(-2px)}
+  .stylecard.on{border-color:var(--coral);border-width:2px;background:#fff8ee}
+  .stylecard .sw{height:40px;border-radius:12px;margin-bottom:11px}
+  .stylecard .sn{font-size:15px;font-weight:800}
+  .stylecard .sd{font-size:12px;color:var(--ink-2);font-weight:600;margin-top:2px}
+  .stylecard .pick{font-size:11px;font-weight:800;color:var(--coral);margin-top:7px;visibility:hidden}
+  .stylecard.on .pick{visibility:visible}
+  .detected{display:flex;align-items:center;gap:12px;padding:14px 18px;margin-top:8px}
+  .detected .glob{width:38px;height:38px;border-radius:12px;background:#eafaf2;display:grid;place-items:center;font-size:18px}
+  .detected .du{font-size:14.5px;font-weight:800}
+  .detected .ds{font-size:12.5px;color:var(--ink-2);font-weight:600}
+  .detected .active{margin-left:auto;font-size:12px;font-weight:800;color:#fff;background:var(--sage);
+        padding:5px 12px;border-radius:14px}
+  .togrow{display:flex;align-items:center;gap:13px;padding:13px 18px;border-bottom:1px solid var(--line)}
+  .togrow:last-child{border-bottom:none}
+  .togrow .tn{flex:1;font-size:14.5px;font-weight:700}
+  .togrow .td{font-size:12.5px;color:var(--ink-2);font-weight:600}
+  .toggle{width:46px;height:27px;border-radius:16px;background:var(--ink-3);position:relative;flex:none;cursor:pointer;transition:background .15s}
+  .toggle:after{content:"";position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;background:#fff;transition:left .18s cubic-bezier(.2,.8,.2,1)}
+  .toggle.on{background:var(--sage)}.toggle.on:after{left:22px}
+  .themes{display:flex;gap:10px;margin:6px 18px 16px;align-items:center;flex-wrap:wrap}
+  .theme{width:46px;height:46px;border-radius:14px;border:2px solid var(--line);cursor:pointer;transition:transform .12s}
+  .theme:hover{transform:translateY(-2px)}
+  .theme.on{border-color:var(--coral)}
+  .theme.dim{opacity:.4;cursor:not-allowed}
+  .theme.dim:hover{transform:none}
+  .modeseg{display:inline-flex;gap:6px;background:var(--paper-2);padding:5px;border-radius:16px;margin:6px 18px 4px}
+  .modeseg button{display:flex;align-items:center;gap:7px;padding:9px 16px;border-radius:12px;font:inherit;
+        font-size:13.5px;font-weight:800;color:var(--ink-2);cursor:pointer;border:none;background:none;
+        transition:background .12s,color .12s}
+  .modeseg button.on{background:var(--card);color:var(--ink);box-shadow:0 4px 10px -6px var(--shadow)}
+  .modehint{font-size:12.5px;color:var(--ink-2);font-weight:600;margin:0 18px 14px}
+
+  /* ping toast */
+  .toastwrap{position:fixed;top:20px;right:20px;display:flex;flex-direction:column;gap:10px;z-index:50;max-width:330px}
+  .toast{background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:13px 15px;
+        box-shadow:0 16px 36px -16px rgba(120,80,30,.65);display:flex;gap:11px;align-items:flex-start;
+        animation:toastin .32s cubic-bezier(.2,.9,.25,1)}
+  .toast.out{animation:toastout .3s ease forwards}
+  @keyframes toastin{from{opacity:0;transform:translateX(30px) scale(.96)}to{opacity:1;transform:none}}
+  @keyframes toastout{to{opacity:0;transform:translateX(30px) scale(.96)}}
+  .toast .ti{width:34px;height:34px;border-radius:12px;flex:none;display:grid;place-items:center;font-size:17px;
+        background:var(--paper-2)}
+  .toast .tt{font-size:13.5px;font-weight:800;color:var(--ink)}
+  .toast .ts{font-size:12.5px;font-weight:600;color:var(--ink-2);margin-top:2px}
+  .toast .tw{font-size:11px;font-weight:700;color:var(--ink-3);margin-top:4px}
+
+  .pingbtn{padding:8px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);
+        font-size:12.5px;font-weight:800;color:var(--ink);cursor:pointer;font-family:inherit;
+        box-shadow:0 5px 14px -14px rgba(120,80,30,.5);transition:transform .12s,background .12s}
+  .pingbtn:hover{transform:translateY(-1px);background:var(--paper-2)}
+
+  @media(max-width:840px){
+    .app{flex-direction:column}
+    .side{width:100%;position:static;display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+    .brand{padding:6px 8px;flex:1 1 100%}
+    .nav{flex-direction:row;flex-wrap:wrap;flex:1 1 100%}
+    .nav button{flex:1 1 auto}
+    .sidefoot{display:none}
+  }
+  @media(max-width:560px){
+    .hero{flex-direction:column}.herobub{max-width:100%}
+    .calgrid{gap:5px}.day{padding:5px}
+  }
+</style>
+</head>
+<body>
+
+  <div class="app">
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="side">
+      <div class="brand">
+        <div class="ava">🙂</div>
+        <div>
+          <div class="nm">Better SGY</div>
+          <div class="sub">hey, it's me again</div>
+        </div>
+      </div>
+      <nav class="nav" id="nav"></nav>
+      <div class="sidefoot">
+        <p>2 due today.<br><span>doable. go.</span></p>
+      </div>
+    </aside>
+
+    <!-- ===== SCREEN AREA ===== -->
+    <main class="main" id="main"></main>
+  </div>
+
+  <div class="toastwrap" id="toastwrap"></div>
+
+<script>
+/* ============================================================
+   DATA — straight from MOCKUP_DATA.md. today = Mon Jun 22, 2026.
+   ============================================================ */
+const TODAY = 22;
+const COURSES = [
+  {id:'alg', name:'Algebra 2 / Trig', short:'Algebra 2/Trig', teacher:'Mr. Stubbs', per:'P1', subject:'Math',
+   emoji:'📐', accent:'#5aa9e6', soft:'#e3f0fb', grade:97.4, ltr:'A', trend:'up', missing:0},
+  {id:'bio', name:'Biology', short:'Biology', teacher:'Ms. Carrington', per:'P2', subject:'Science',
+   emoji:'🧬', accent:'#4fb286', soft:'#e6f7ef', grade:96.7, ltr:'A', trend:'flat', missing:1},
+  {id:'fre', name:'French 1', short:'French 1', teacher:'Mme. Laurent', per:'P4', subject:'World Language',
+   emoji:'🥐', accent:'#ffb454', soft:'#fff1d6', grade:96.5, ltr:'A', trend:'up', missing:0},
+  {id:'dra', name:'Drama', short:'Drama', teacher:'Mr. Ellison', per:'P5', subject:'Performing Arts',
+   emoji:'🎭', accent:'#9b87f2', soft:'#ece7ff', grade:90.3, ltr:'A−', trend:'down', missing:1},
+  {id:'lit', name:'Literature', short:'Literature', teacher:'Ms. Howe', per:'P6', subject:'English',
+   emoji:'📚', accent:'#ef6a9b', soft:'#ffe4ef', grade:94.1, ltr:'A', trend:'up', missing:0},
+  {id:'pe',  name:'PE 9', short:'PE 9', teacher:'Coach Bryant', per:'P7', subject:'Phys Ed',
+   emoji:'🏃', accent:'#4fb286', soft:'#e6f7ef', grade:99.1, ltr:'A', trend:'flat', missing:0},
+];
+const byId = id => COURSES.find(c => c.id === id);
+
+const HISTORY = {
+  overall:[94.2,94.6,94.9,95.3,95.6,95.9,96.0,96.2],
+  alg:[92.0,93.0,94.0,95.0,95.5,96.3,97.0,97.4],
+  bio:[96.0,96.4,96.2,96.8,96.5,96.9,96.6,96.7],
+  fre:[91.0,92.5,93.0,94.0,94.8,95.5,96.1,96.5],
+  dra:[95.0,94.5,94.0,93.2,92.5,91.6,91.0,90.3],
+  lit:[90.0,90.8,91.5,92.0,92.6,93.2,93.7,94.1],
+  pe :[98.5,98.7,98.6,99.0,98.9,99.1,99.0,99.1],
+};
+const WEEKS = ['apr 27','may 4','may 11','may 18','may 25','jun 1','jun 8','jun 22'];
+
+const GRADEBOOK = {
+  alg:{cats:[['Tests',40,96.8],['Quizzes',25,97.5],['Homework',20,98.9],['Participation',15,100]],
+    asg:[
+      {nm:'HW 7.3 problems', cat:'Homework', date:'due today', score:'—/10', pct:'—', status:'due'},
+      {nm:'HW 7.1–7.2', cat:'Homework', date:'Jun 17', score:'10/10', pct:'100%', status:'graded'},
+      {nm:'Participation Wk 14', cat:'Participation', date:'Jun 13', score:'15/15', pct:'100%', status:'graded'},
+      {nm:'Unit 6 Test', cat:'Tests', date:'Jun 12', score:'96/100', pct:'96%', status:'graded'},
+      {nm:'Trig Identities Quiz', cat:'Quizzes', date:'Jun 9', score:'19/20', pct:'95%', status:'graded'},
+    ], note:"clean sheet here — nothing missing, everything graded high. the 7.3 set is the only open one, and it's due today."},
+  bio:{cats:[['Tests',40,95.0],['Labs',25,97.2],['Homework',20,98.5],['Participation',15,100]],
+    asg:[
+      {nm:'Cell Energetics Lab', cat:'Labs', date:'was Jun 19', score:'0/25', pct:'—', status:'missing'},
+      {nm:'Enzymes Problem Set', cat:'Homework', date:'Jun 16', score:'18/20', pct:'90%', status:'graded'},
+      {nm:'Participation Wk 14', cat:'Participation', date:'Jun 13', score:'15/15', pct:'100%', status:'graded'},
+      {nm:'Photosynthesis Test', cat:'Tests', date:'Jun 11', score:'95/100', pct:'95%', status:'graded'},
+      {nm:'Mitosis Quiz', cat:'Labs', date:'Jun 5', score:'24/25', pct:'96%', status:'graded'},
+    ], note:"your tests and homework are carrying this. the only blank row is that lab. fix the one blank and you're basically at a 97."},
+  fre:{cats:[['Tests',40,95.5],['Speaking',25,97.0],['Homework',20,98.0],['Participation',15,100]],
+    asg:[
+      {nm:'Devoirs 5.3', cat:'Homework', date:'Jun 16', score:'10/10', pct:'100%', status:'graded'},
+      {nm:'Participation Wk 14', cat:'Participation', date:'Jun 13', score:'15/15', pct:'100%', status:'graded'},
+      {nm:'Unité 5 Exam', cat:'Tests', date:'Jun 12', score:'95/100', pct:'95%', status:'graded'},
+      {nm:'Dialogue oral', cat:'Speaking', date:'Jun 10', score:'29/30', pct:'97%', status:'graded'},
+      {nm:'Vocab Quiz', cat:'Tests', date:'Jun 6', score:'48/50', pct:'96%', status:'graded'},
+    ], note:"speaking is your strongest piece here. all caught up, nothing hanging."},
+  dra:{cats:[['Performance',40,91.0],['Reflections',25,85.0],['Participation',20,95.0],['Projects',15,90.0]],
+    asg:[
+      {nm:'Monologue Reflection', cat:'Reflections', date:'was Jun 18', score:'0/20', pct:'—', status:'missing'},
+      {nm:'Scene Performance', cat:'Performance', date:'Jun 15', score:'88/100', pct:'88%', status:'graded'},
+      {nm:'Participation Wk 14', cat:'Participation', date:'Jun 13', score:'19/20', pct:'95%', status:'graded'},
+      {nm:'Character Study', cat:'Projects', date:'Jun 9', score:'27/30', pct:'90%', status:'graded'},
+      {nm:'Theater Journal', cat:'Reflections', date:'Jun 4', score:'17/20', pct:'85%', status:'graded'},
+    ], note:"the reflections category is the soft spot, and that missing one is sitting right in it. turn it in and this category jumps."},
+  lit:{cats:[['Essays',40,93.0],['Reading Quizzes',25,94.5],['Homework',20,95.0],['Participation',15,98.0]],
+    asg:[
+      {nm:'Chapter 4 Response', cat:'Homework', date:'due today', score:'—/10', pct:'—', status:'due'},
+      {nm:'Annotation HW', cat:'Homework', date:'Jun 16', score:'10/10', pct:'100%', status:'graded'},
+      {nm:'Theme Essay', cat:'Essays', date:'Jun 13', score:'92/100', pct:'92%', status:'graded'},
+      {nm:'Participation Wk 14', cat:'Participation', date:'Jun 13', score:'14/15', pct:'93%', status:'graded'},
+      {nm:'Reading Quiz 8', cat:'Reading Quizzes', date:'Jun 10', score:'19/20', pct:'95%', status:'graded'},
+    ], note:"slow climb up. the chapter 4 response is the one open thing, and it's due today. one paragraph."},
+  pe:{cats:[['Fitness',40,99.0],['Skills',25,99.5],['Participation',35,99.0]],
+    asg:[
+      {nm:'Fitness Log Wk 14', cat:'Fitness', date:'Jun 13', score:'20/20', pct:'100%', status:'graded'},
+      {nm:'Participation Wk 14', cat:'Participation', date:'Jun 13', score:'99/100', pct:'99%', status:'graded'},
+      {nm:'Mile Run', cat:'Fitness', date:'Jun 9', score:'49/50', pct:'98%', status:'graded'},
+      {nm:'Volleyball Skills', cat:'Skills', date:'Jun 6', score:'25/25', pct:'100%', status:'graded'},
+    ], note:"your highest class. nothing to fix. don't change a thing."},
+};
+
+// per-course chart context (focus line + 2 faint references + aside)
+const GRADE_CHART = {
+  alg:{refs:['fre','lit'], aside:"strongest climb of the bunch. up about 5 points since april 📈"},
+  bio:{refs:['alg','dra'], aside:"basically a flat line in the high 96s. boring in the good way 🧬"},
+  fre:{refs:['alg','lit'], aside:"steady climb. your french keeps inching up 🇫🇷"},
+  dra:{refs:['bio','pe'], aside:"this is the one drifting down. still an A−, but worth watching."},
+  lit:{refs:['fre','alg'], aside:"slow and steady up the whole semester 📚"},
+  pe :{refs:['bio','alg'], aside:"flat at the top. nothing to do here 🏆"},
+};
+
+let ASSIGNMENTS = [
+  {nm:'Section 7.3 problems', cid:'alg', due:'today', dueLabel:'today', stat:'urgent', statLabel:'due today', state:'todo', aside:'· due today, it\'s like 8 problems', subInfo:'turned in just now · pending'},
+  {nm:'Chapter 4 response', cid:'lit', due:'today', dueLabel:'today', stat:'urgent', statLabel:'due today', state:'todo', aside:'· due today, one good paragraph', subInfo:'turned in just now · pending'},
+  {nm:'Cell Energetics Lab', cid:'bio', due:'was Jun 19', dueLabel:'was Jun 19', stat:'urgent', statLabel:'missing', state:'missing', aside:'· barely dents your grade, but might as well', subInfo:'turned in just now'},
+  {nm:'Monologue reflection', cid:'dra', due:'was Jun 18', dueLabel:'was Jun 18', stat:'urgent', statLabel:'missing', state:'missing', aside:'· this is the one dragging Drama down a touch', subInfo:'turned in just now'},
+  {nm:'Vocab set 9 — la maison', cid:'fre', due:'Thu', dueLabel:'Thu', stat:'soon', statLabel:'soon', state:'todo', asideSoft:'· due thursday, low effort', subInfo:'turned in just now'},
+  {nm:'Unit 7 review packet', cid:'alg', due:'Fri', dueLabel:'Fri', stat:'soon', statLabel:'soon', state:'todo', subInfo:'turned in just now'},
+  {nm:'Fitness log — week 15', cid:'pe', due:'Mon', dueLabel:'Mon', stat:'ok', statLabel:'upcoming', state:'todo', subInfo:'turned in just now'},
+  {nm:'Photosynthesis Reading Notes', cid:'bio', due:'Jun 12', dueLabel:'', stat:'ok', statLabel:'done', state:'done', subInfo:'turned in Jun 12 · 100%'},
+  {nm:'Section 7.2 problems', cid:'alg', due:'Jun 14', dueLabel:'', stat:'ok', statLabel:'done', state:'done', subInfo:'turned in Jun 14 · 98%'},
+];
+
+// Calendar events per month. key = "year-month" (0-indexed month). value = {day:[{cid,nm}]}
+const CAL_EVENTS = {
+  '2026-5':{ // June 2026
+    2:[{cid:'pe',nm:'Conditioning'}],
+    4:[{cid:'fre',nm:'Devoirs 5.1'}],
+    5:[{cid:'bio',nm:'Mitosis Quiz'},{cid:'alg',nm:'HW 6.4'}],
+    9:[{cid:'alg',nm:'Trig Identities Quiz'},{cid:'pe',nm:'Mile Run'}],
+    11:[{cid:'lit',nm:'Reading Quiz 8'}],
+    12:[{cid:'alg',nm:'Unit 6 Test'},{cid:'fre',nm:'Unité 5 Exam'}],
+    15:[{cid:'dra',nm:'Scene Performance'}],
+    16:[{cid:'bio',nm:'Enzymes Problem Set'}],
+    18:[{cid:'dra',nm:'Monologue Reflection (now missing)'}],
+    19:[{cid:'bio',nm:'Cell Energetics Lab (now missing)'}],
+    22:[{cid:'alg',nm:'HW 7.3 problems'},{cid:'lit',nm:'Chapter 4 Response'}],
+    24:[{cid:'lit',nm:'Book club notes'}],
+    25:[{cid:'bio',nm:'Ecology reading'}],
+    26:[{cid:'fre',nm:'Unité 6 vocab'},{cid:'pe',nm:'Fitness Log Wk 15'}],
+    29:[{cid:'alg',nm:'Unit 7 Test'}],
+  },
+};
+
+let ANNOUNCEMENTS = [
+  {cid:'bio', who:'Ms. Carrington', tm:'2h ago', star:true,
+   msg:"reminder the Cell Energetics Lab is still open for late credit through friday. if you missed it, get it in — i'd rather have it late than not at all.",
+   react:{q:'💬', t:'ok this is literally your missing one. friday. noted.'}},
+  {cid:'alg', who:'Mr. Stubbs', tm:'5h ago', star:true,
+   msg:"section 7.3 is due tonight at 11:59. unit 7 review packet goes out friday, test is next wednesday. pace yourself.",
+   react:{q:'📌', t:'7.3 is one of your two due-today things.'}},
+  {cid:'lit', who:'Ms. Howe', tm:'yesterday', star:true,
+   msg:"chapter 4 response due today. keep it to a paragraph but make it a real one — i want a claim, not a summary."},
+  {cid:'dra', who:'Mr. Ellison', tm:'yesterday', star:false,
+   msg:"a few of you still owe the monologue reflection. it's short. come find me if you're stuck on what to write.",
+   react:{q:'👀', t:'hi, yes, that\'s you. it\'s the thing bugging your Drama grade.'}},
+  {cid:'fre', who:'Mme. Laurent', tm:'2 days ago', star:false,
+   msg:"vocab set 9 (la maison) posted, due thursday. small quiz next week, nothing scary."},
+  {cid:'pe', who:'Coach Bryant', tm:'3 days ago', star:false,
+   msg:"fitness logs for week 14 due monday. outdoor unit starts after — bring water and a hat.",
+   react:{q:'🏆', t:'your 99.1 class. you\'ve got this part handled.'}},
+];
+
+const MATERIALS = [
+  {type:'folder', nm:'Unit 5 — Cell Energetics', sub:'9 items · updated Jun 16'},
+  {type:'pdf', nm:'Cell Energetics Lab handout.pdf', sub:'your submission is open ↓', target:true},
+  {type:'pdf', nm:'Enzymes notes.pdf', sub:'820 KB · posted Jun 14'},
+  {type:'link', nm:'Khan Academy: Cellular respiration', sub:'external link'},
+  {type:'doc', nm:'Lab report template.docx', sub:'posted Jun 12'},
+  {type:'pdf', nm:'Photosynthesis study guide.pdf', sub:'1.2 MB · posted Jun 12'},
+];
+const MAT_TARGET = {
+  nm:'Cell Energetics Lab', sub:'Biology · due Jun 18 · 20 pts · <span style="color:var(--rose);font-weight:800">missing</span>',
+  attach:[['📄','Cell Energetics Lab handout.pdf'],['📝','Lab report template.docx']],
+};
+
+const PINGS = [
+  {ic:'▲', tt:'Biology rose 1.2%', ts:'95.5% → 96.7%'},
+  {ic:'✓', tt:'Graded · Cell Energetics Lab', ts:'90% (Biology)'},
+  {ic:'＋', tt:'New assignment', ts:'Monologue reflection (Drama)'},
+];
+
+/* ============================================================
+   STATE (with localStorage persistence)
+   ============================================================ */
+const LS = 'bsgy-friendly-forge';
+let state = {
+  screen:'overview',
+  gradeCourse:'bio',
+  asgTab:'todo',
+  asgQuery:'',
+  asgDone:{},           // nm -> true once checked off
+  calMonth:5, calYear:2026, calSel:null,
+  matFile:1,            // index of selected material (the lab)
+  matRev:0,             // submission revision count
+  comments:[],
+  stars:{},             // index -> bool override
+  uiEdition:'friendly',
+  theme:'cream',         // light paper tint (cream/oat/peach/sage)
+  themeMode:'light',     // light | dark | auto
+  sections:{overview:true,grades:true,assign:true,cal:true,ann:true,mat:true,asides:true},
+  notify:true,
+};
+try{ const saved = JSON.parse(localStorage.getItem(LS)); if(saved) state = {...state, ...saved}; }catch(e){}
+function save(){ try{ localStorage.setItem(LS, JSON.stringify(state)); }catch(e){} }
+
+/* ---- THEME ENGINE: light / dark / auto + light paper tint ---- */
+const PAPER_TINTS = {
+  cream:{paper:'#fdf4e6',paper2:'#f7ead6',card:'#fffdf9'},
+  oat:  {paper:'#f3ece1',paper2:'#e9dfcd',card:'#fbf7ef'},
+  peach:{paper:'#ffeede',paper2:'#ffe2c9',card:'#fff8f1'},
+  sage: {paper:'#eaf2ec',paper2:'#dde9df',card:'#f6fbf7'},
+};
+function prefersDark(){
+  return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+function effectiveDark(){
+  if(state.themeMode==='dark') return true;
+  if(state.themeMode==='light') return false;
+  return prefersDark(); // auto
+}
+function applyTheme(){
+  const root = document.documentElement;
+  if(effectiveDark()){
+    root.setAttribute('data-theme','dark');
+    // dark owns its own palette — clear any light paper-tint overrides
+    ['--paper','--paper-2','--card'].forEach(v => root.style.removeProperty(v));
+  } else {
+    root.removeAttribute('data-theme');
+    const t = PAPER_TINTS[state.theme] || PAPER_TINTS.cream;
+    root.style.setProperty('--paper', t.paper);
+    root.style.setProperty('--paper-2', t.paper2);
+    root.style.setProperty('--card', t.card);
+  }
+}
+// auto mode reacts live to OS changes
+if(window.matchMedia){
+  try{
+    window.matchMedia('(prefers-color-scheme: dark)')
+      .addEventListener('change', () => { if(state.themeMode==='auto') applyTheme(); });
+  }catch(e){}
+}
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const $ = (sel,root=document) => root.querySelector(sel);
+const $$ = (sel,root=document) => [...root.querySelectorAll(sel)];
+
+// y mapping for chart: 88..100 -> y 175..17.5
+function ymap(v){ return 175 - ((v-88)/(100-88))*(175-17.5); }
+function xmap(i,n){ return 50 + (i/(n-1))*(580-50); }
+function pts(arr){ const n=arr.length; return arr.map((v,i)=>`${xmap(i,n).toFixed(1)},${ymap(v).toFixed(2)}`).join(' '); }
+
+/* ============================================================
+   NAV
+   ============================================================ */
+const NAVITEMS = [
+  ['overview','🏠','Overview'],
+  ['grades','📊','Grades'],
+  ['assign','✅','Assignments'],
+  ['cal','📅','Calendar'],
+  ['ann','📣','Announcements'],
+  ['mat','📂','Materials'],
+  ['set','⚙️','Settings'],
+];
+function renderNav(){
+  $('#nav').innerHTML = NAVITEMS.map(([k,ic,label]) =>
+    `<button data-screen="${k}" class="${state.screen===k?'active':''}"><span class="ni">${ic}</span> ${label}</button>`
+  ).join('');
+  $$('#nav button').forEach(b => b.onclick = () => go(b.dataset.screen));
+}
+function go(screen){
+  state.screen = screen; save();
+  renderNav();
+  renderScreen();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ============================================================
+   SCREEN ROUTER
+   ============================================================ */
+function renderScreen(){
+  const m = $('#main');
+  const r = {overview:viewOverview, grades:viewGrades, assign:viewAssign, cal:viewCalendar,
+             ann:viewAnnouncements, mat:viewMaterials, set:viewSettings}[state.screen];
+  m.innerHTML = `<section class="screen show">${r()}</section>`;
+  ({overview:wireOverview, grades:wireGrades, assign:wireAssign, cal:wireCalendar,
+    ann:wireAnnouncements, mat:wireMaterials, set:wireSettings}[state.screen])();
+}
+
+/* ============================================================
+   1 · OVERVIEW
+   ============================================================ */
+function sparkFor(cid){
+  const h = HISTORY[cid]; const n=h.length;
+  // small spark in 58x26, y: high grade -> low y
+  const min=Math.min(...h), max=Math.max(...h), span=(max-min)||1;
+  const pn = h.map((v,i)=>`${(2+i*(50/(n-1))).toFixed(0)},${(22-((v-min)/span)*18).toFixed(0)}`).join(' ');
+  const c = byId(cid);
+  const col = c.trend==='up' ? '#4fb286' : c.trend==='down' ? '#ef6a52' : '#b6a690';
+  const last = pn.split(' ').pop().split(',');
+  return `<svg class="spark" width="58" height="26" viewBox="0 0 58 26" fill="none" aria-hidden="true">
+    <polyline points="${pn}" stroke="${col}" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${last[0]}" cy="${last[1]}" r="2.6" fill="${col}"/></svg>`;
+}
+const OV_SAY = {
+  alg:{q:'💬', html:'keeps <span class="up">ticking up</span> every week 📈 nice.<span class="add">nothing missing here either, so no notes.</span>'},
+  bio:{q:'💬', html:'steady A. one thing though: there\'s <span class="miss">1 missing assignment</span> in here 👀<span class="add">it\'s barely touching your grade, but might as well clear it.</span>'},
+  fre:{q:'💬', html:'<span class="up">going up</span>, and your French is getting there 🇫🇷<span class="add">all caught up, nothing missing.</span>'},
+  dra:{q:'💬', html:'<span class="wave">this is the other one.</span> it\'s slipped a bit lately and there\'s a <span class="miss">missing assignment</span> too.<span class="add">still an A−, so you\'re fine. one assignment and a decent week and it\'s back up. just keep an eye on it.</span>'},
+  lit:{q:'💬', html:'slowly going up 📚 and nothing missing.<span class="add">zero notes on this one. all good.</span>'},
+  pe :{q:'🏆', html:'<span class="hl">99.1%</span> this is your highest one 🏆<span class="add">don\'t change a thing.</span>'},
+};
+function overallChartSVG(){
+  const h=HISTORY.overall, n=h.length;
+  return `<svg viewBox="0 0 600 220" role="img" aria-label="overall grade rising to 96.2 over semester 2">
+    ${[17.5,70.33,122.67,175].map(y=>`<line class="grid" x1="50" y1="${y}" x2="580" y2="${y}"/>`).join('')}
+    <text class="axy" x="42" y="20.5" text-anchor="end">100</text>
+    <text class="axy" x="42" y="73.5" text-anchor="end">96</text>
+    <text class="axy" x="42" y="125.5" text-anchor="end">92</text>
+    <text class="axy" x="42" y="178" text-anchor="end">88</text>
+    ${['feb','mar','apr','may','jun'].map((mo,i)=>`<text class="ax" x="${[50,201.4,352.9,504.3,580][i]}" y="200" text-anchor="middle">${mo}</text>`).join('')}
+    <polyline points="${pts(h)}" fill="none" stroke="#4fb286" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${xmap(n-1,n).toFixed(1)}" cy="${ymap(h[n-1]).toFixed(2)}" r="5.5" fill="#4fb286"/>
+    <circle cx="${xmap(n-1,n).toFixed(1)}" cy="${ymap(h[n-1]).toFixed(2)}" r="10" fill="#4fb286" opacity="0.16"/>
+    <rect x="503" y="44" width="74" height="20" rx="10" fill="var(--ink)"/>
+    <text class="endlabel" x="540" y="58" text-anchor="middle" fill="#fff">now: 96.2%</text>
+  </svg>`;
+}
+function viewOverview(){
+  const cards = COURSES.map(c => {
+    const s = OV_SAY[c.id];
+    return `<div class="course" data-course="${c.id}" style="--dot:${c.accent};--soft:${c.soft}">
+      <div class="crow">
+        <div class="emoji">${c.emoji}</div>
+        <div class="cmeta"><div class="nm">${esc(c.name)}</div><div class="tc">${esc(c.teacher)} · ${c.per}</div></div>
+        ${sparkFor(c.id)}
+        <div class="grade"><div class="g">${c.grade}<span class="pct">%</span></div><div class="lt">${c.ltr}</div></div>
+      </div>
+      <div class="say"><div class="q">${s.q}</div><p>${s.html}</p></div>
+    </div>`;
+  }).join('');
+  return `
+    <div class="hello"><div>
+      <h1>Hey, here's where things are at</h1>
+      <div class="when">2025–2026 · Freshman year · Semester 2</div>
+    </div></div>
+    <div class="hero">
+      <div class="score">
+        <span class="tag">on track ✶</span>
+        <div class="big">96.2<span class="pct">%</span></div>
+        <div class="cap">average across 6 classes</div>
+      </div>
+      <div class="herobub">
+        <div class="bubble tail"><span class="hl">96.2%</span> across all six classes. that's a really strong spot to be in.</div>
+        <div class="bubble small">couple little things i want to point out, but nothing to stress about.</div>
+      </div>
+    </div>
+    <div class="gist">
+      <div class="chip" data-go="grades"><div class="ic a">🎓</div><div><div class="n">3.94</div><div class="l">GPA estimate · weighted</div></div></div>
+      <div class="chip" data-go="assign"><div class="ic b">📌</div><div><div class="n">2</div><div class="l">due today, very doable</div></div></div>
+      <div class="chip" data-go="assign-miss"><div class="ic c">👀</div><div><div class="n">2</div><div class="l">missing, worth a look</div></div></div>
+      <div class="chip" data-course="pe"><div class="ic d">🏆</div><div><div class="n">PE 9</div><div class="l">your best, 99.1%</div></div></div>
+    </div>
+    <div class="card chartcard">
+      <div class="chd"><span class="ct">overall grade over time</span><span class="cs">semester 2 · weekly</span></div>
+      <div class="chartwrap">${overallChartSVG()}</div>
+      <div class="bubble small tail" style="margin-top:4px;max-width:420px">slow and steady climb. up about 2 points since february 📈</div>
+    </div>
+    <div class="sechd"><h2>Your classes</h2><span class="sub">all 6 of them · tap one to open its grades</span></div>
+    <p class="lead">quick notes on each:</p>
+    ${cards}
+    <div class="outro">
+      <div class="ic">🧃</div>
+      <p>that's all of them. <span>clear those 2 missing things when you get a chance and you're set. go grab a snack.</span></p>
+    </div>`;
+}
+function wireOverview(){
+  $$('#main .course').forEach(el => el.onclick = () => { state.gradeCourse = el.dataset.course; save(); go('grades'); });
+  $$('#main .chip[data-course]').forEach(el => el.onclick = () => { state.gradeCourse = el.dataset.course; save(); go('grades'); });
+  $$('#main .chip[data-go]').forEach(el => el.onclick = () => {
+    const g = el.dataset.go;
+    if(g==='assign-miss'){ state.asgTab='missing'; save(); go('assign'); }
+    else go(g);
+  });
+}
+
+/* ============================================================
+   2 · GRADES
+   ============================================================ */
+function gradeChartSVG(cid){
+  const focus = HISTORY[cid], c = byId(cid), n = focus.length;
+  // every OTHER course as a light reference line, behind the focus line
+  const refLines = COURSES.filter(x => x.id!==cid).map(x =>
+    `<polyline points="${pts(HISTORY[x.id])}" data-line="${x.id}" fill="none" stroke="${x.accent}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.30"/>`
+  ).join('');
+  // hover points for ALL six lines so any line can be inspected
+  const allPoints = COURSES.map(x => {
+    const h = HISTORY[x.id], hn = h.length, focused = x.id===cid;
+    return h.map((v,i)=>
+      `<circle class="hoverpt" data-line="${x.id}" data-i="${i}" cx="${xmap(i,hn).toFixed(1)}" cy="${ymap(v).toFixed(2)}" r="${focused?4:3.4}" fill="${x.accent}" opacity="0"/>`
+    ).join('');
+  }).join('');
+  return `<svg viewBox="0 0 600 220" role="img" aria-label="${esc(c.name)} grade across semester 2, shown against all six classes">
+    ${[17.5,70.33,122.67,175].map(y=>`<line class="grid" x1="50" y1="${y}" x2="580" y2="${y}"/>`).join('')}
+    <text class="axy" x="42" y="20.5" text-anchor="end">100</text>
+    <text class="axy" x="42" y="73.5" text-anchor="end">96</text>
+    <text class="axy" x="42" y="125.5" text-anchor="end">92</text>
+    <text class="axy" x="42" y="178" text-anchor="end">88</text>
+    ${['feb','mar','apr','may','jun'].map((mo,i)=>`<text class="ax" x="${[50,201.4,352.9,504.3,580][i]}" y="200" text-anchor="middle">${mo}</text>`).join('')}
+    <g id="refgroup">${refLines}</g>
+    <polyline data-line="${cid}" points="${pts(focus)}" fill="none" stroke="${c.accent}" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle data-line="${cid}" cx="${xmap(n-1,n).toFixed(1)}" cy="${ymap(focus[n-1]).toFixed(2)}" r="5.5" fill="${c.accent}"/>
+    <circle data-line="${cid}" cx="${xmap(n-1,n).toFixed(1)}" cy="${ymap(focus[n-1]).toFixed(2)}" r="10" fill="${c.accent}" opacity="0.16"/>
+    <rect x="503" y="38" width="74" height="20" rx="10" fill="var(--ink)"/>
+    <text class="endlabel" x="540" y="52" text-anchor="middle" fill="#fff">now: ${c.grade}%</text>
+    ${allPoints}
+  </svg>`;
+}
+function viewGrades(){
+  const c = byId(state.gradeCourse);
+  const gb = GRADEBOOK[c.id];
+  const chips = COURSES.map(x =>
+    `<div class="ctab ${x.id===c.id?'on':''}" data-course="${x.id}" style="--dot:${x.accent}"><span class="dot"></span>${esc(x.short)}</div>`
+  ).join('');
+  const trendLabel = c.trend==='up'?'climbing':c.trend==='down'?'slipping':'flat';
+  // legend covers all 6, selected course first + emphasized; each toggles its line
+  const legendIds = [c.id, ...COURSES.filter(x => x.id!==c.id).map(x => x.id)];
+  const legend = legendIds.map(id => {
+    const x = byId(id);
+    const sel = id===c.id;
+    return `<span class="lchip on${sel?' sel':''}" data-line="${id}" style="--dot:${x.accent}"><span class="dot"></span>${esc(x.short)}</span>`;
+  }).join('');
+  const maxAv = Math.max(...gb.cats.map(c=>c[2]));
+  const cats = gb.cats.map(([nm,wt,av],i) => {
+    const col = [c.accent,'#ffb454','#5aa9e6','#9b87f2'][i%4];
+    return `<div class="card cat"><div class="cn">${esc(nm)}</div><div class="wt">${wt}%</div>
+      <div class="bar"><i data-w="${av}" style="background:${col}"></i></div><div class="av">${av}%</div></div>`;
+  }).join('');
+  const rows = gb.asg.map(a => {
+    const miss = a.status==='missing';
+    const due = a.status==='due';
+    let pcCell = a.pct==='—' ? `<span class="pc" style="color:${miss?'var(--rose)':'var(--ink-3)'}">—</span>` :
+      `<span class="pc"${a.pct==='100%'?' style="color:var(--sage)"':''}>${a.pct}</span>`;
+    const badge = miss?' <span class="missbadge">missing</span>': due?' <span class="missbadge" style="background:var(--peach);color:#5a4112">due today</span>':'';
+    return `<tr class="${miss?'missrow':''}"><td><div class="anm">${esc(a.nm)}${badge}</div><div class="adt" style="font-size:11.5px">${esc(a.cat)}</div></td>
+      <td class="adt">${esc(a.date)}</td><td class="r">${esc(a.score)}</td><td class="r">${pcCell}</td></tr>`;
+  }).join('');
+  const missCourse = c.missing > 0;
+  const missNm = c.id==='bio' ? 'Cell Energetics Lab' : c.id==='dra' ? 'Monologue Reflection' : '';
+  const missBubble = missCourse
+    ? `<div class="bubble tail" style="margin-top:12px"><span class="miss">1 missing</span>: the <b>${esc(missNm)}</b>. it's a small one, hand it in and this nudges back up. no big deal 👀</div>`
+    : `<div class="bubble tail small" style="margin-top:12px">nothing missing in here. all rows accounted for ✓</div>`;
+  const lead = missCourse
+    ? `picked ${esc(c.name)} — it's got a loose end worth clearing. switch anytime.`
+    : `${esc(c.name)}, ${trendLabel} and all caught up. switch classes anytime.`;
+  return `
+    <div class="pagehd"><h1>Grades</h1><span class="when">2025–2026 · Semester 2 · pick a class</span></div>
+    <p class="lead">${lead}</p>
+    <div class="classpick">${chips}</div>
+    <div class="card gradehero" style="--dot:${c.accent}">
+      <div class="emoji" style="background:${c.soft}">${c.emoji}</div>
+      <div class="gh-meta"><div class="nm">${esc(c.name)}</div><div class="tc">${esc(c.teacher)} · Period ${c.per.slice(1)} · ${esc(c.subject)}</div></div>
+      <div class="gh-g"><div class="g">${c.grade}<span class="pct">%</span></div><div class="lt">${c.ltr} · ${trendLabel}</div></div>
+    </div>
+    <div class="card chartcard" style="--dot:${c.accent}">
+      <div class="chd"><span class="ct">${esc(c.short)} over the semester</span><span class="cs">tap legend to toggle · hover a point</span></div>
+      <div class="chiprow">${legend}</div>
+      <div class="chartwrap" id="gradechart">${gradeChartSVG(c.id)}<div class="charttip" id="ctip"></div></div>
+      <div class="bubble small tail" style="margin-top:4px;max-width:430px">${GRADE_CHART[c.id].aside}</div>
+    </div>
+    ${missBubble}
+    <div class="sechd"><h2>Categories</h2><span class="sub">weighted</span></div>
+    <div class="cats">${cats}</div>
+    <div class="sechd"><h2>Assignments</h2><span class="sub">recent first</span></div>
+    <div class="card" style="overflow:hidden">
+      <table class="asg">
+        <thead><tr><th>Assignment</th><th>Date</th><th class="r">Score</th><th class="r">%</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <div class="say" style="margin-top:14px"><div class="q" style="background:${c.soft}">💬</div><p>${esc(gb.note)}</p></div>`;
+}
+function wireGrades(){
+  $$('#main .ctab').forEach(el => el.onclick = () => { state.gradeCourse = el.dataset.course; save(); renderScreen(); });
+  // animate category bars
+  requestAnimationFrame(() => $$('#main .cat .bar i').forEach(b => b.style.width = b.dataset.w + '%'));
+  wireChartInteractions('#gradechart');
+}
+
+// shared: legend toggle + point hover tooltip
+function wireChartInteractions(wrapSel){
+  const wrap = $(wrapSel); if(!wrap) return;
+  const tip = $('#ctip', wrap) || $('#ctip');
+  // legend toggles
+  $$('#main .lchip').forEach(chip => chip.onclick = () => {
+    const id = chip.dataset.line;
+    const on = chip.classList.toggle('off');
+    chip.classList.toggle('on', !on);
+    $$(`[data-line="${id}"]`, wrap).forEach(el => el.style.display = on ? 'none' : '');
+  });
+  // hover points
+  $$('.hoverpt', wrap).forEach(pt => {
+    pt.addEventListener('mouseenter', () => {
+      const cid = pt.dataset.line, i = +pt.dataset.i;
+      pt.setAttribute('r','6'); pt.setAttribute('opacity','1');
+      const v = HISTORY[cid][i];
+      tip.textContent = `${WEEKS[i]} · ${v.toFixed(1)}%`;
+      // position relative to wrap using svg coords
+      const svg = $('svg', wrap);
+      const box = svg.getBoundingClientRect();
+      const wbox = wrap.getBoundingClientRect();
+      const x = (+pt.getAttribute('cx'))/600 * box.width + (box.left - wbox.left);
+      const y = (+pt.getAttribute('cy'))/220 * box.height + (box.top - wbox.top);
+      tip.style.left = x + 'px';
+      tip.style.top = (y - 34) + 'px';
+      tip.style.transform = 'translateX(-50%)';
+      tip.style.opacity = '1';
+    });
+    pt.addEventListener('mouseleave', () => {
+      pt.setAttribute('r','4'); pt.setAttribute('opacity','0');
+      tip.style.opacity = '0';
+    });
+  });
+}
+
+/* ============================================================
+   3 · ASSIGNMENTS
+   ============================================================ */
+function counts(){
+  return {
+    todo: ASSIGNMENTS.filter(a => a.state==='todo' && !state.asgDone[a.nm]).length,
+    missing: ASSIGNMENTS.filter(a => a.state==='missing' && !state.asgDone[a.nm]).length,
+    done: ASSIGNMENTS.filter(a => a.state==='done' || state.asgDone[a.nm]).length,
+  };
+}
+function todoCard(a){
+  const c = byId(a.cid);
+  const checked = !!state.asgDone[a.nm];
+  const isDoneState = a.state==='done';
+  const done = checked || isDoneState;
+  let asideHtml = '';
+  if(a.aside) asideHtml = ` <span class="aside">${esc(a.aside)}</span>`;
+  else if(a.asideSoft) asideHtml = ` <span class="aside soft">${esc(a.asideSoft)}</span>`;
+  const sub = done
+    ? `${esc(c.name)} · ${esc(a.subInfo)}`
+    : `${esc(c.name)} · ${esc(c.teacher)}${asideHtml}`;
+  const right = done
+    ? `<div class="stat ok">done</div>`
+    : (a.dueLabel ? `<div class="due ${a.due==='today'?'today':''}">${esc(a.dueLabel)}</div>` : '') +
+      `<div class="stat ${a.stat}">${esc(a.statLabel)}</div>`;
+  return `<div class="card todo" data-nm="${esc(a.nm)}" style="--dot:${c.accent}">
+    <div class="box ${done?'done':''}" data-check="${esc(a.nm)}">${done?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>':''}</div>
+    <div class="tmeta"><div class="tt ${done?'struck':''}">${esc(a.nm)}</div><div class="tsub">${sub}</div></div>
+    ${right}
+  </div>`;
+}
+function viewAssign(){
+  const c = counts();
+  const tabBtn = (k,label,n) => `<button data-atab="${k}" class="${state.asgTab===k?'on':''}">${label} <span class="ct">${n}</span></button>`;
+  return `
+    <div class="pagehd"><h1>Assignments</h1><span class="when">your to-do, sorted by what matters</span></div>
+    <p class="lead">2 due today, 2 you skipped. let's deal with those first.</p>
+    <div class="toolbar">
+      <div class="search">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="#b6a690" stroke-width="2.2"/><path d="M20 20l-3.2-3.2" stroke="#b6a690" stroke-width="2.2" stroke-linecap="round"/></svg>
+        <input type="text" id="asgsearch" placeholder="search assignments…" value="${esc(state.asgQuery)}">
+      </div>
+      <div class="tabs">${tabBtn('todo','To-do',c.todo)}${tabBtn('missing','Missing',c.missing)}${tabBtn('done','Done',c.done)}</div>
+    </div>
+    <div id="asglist"></div>`;
+}
+function renderAsgList(){
+  const list = $('#asglist'); if(!list) return;
+  const q = state.asgQuery.trim().toLowerCase();
+  let items;
+  if(state.asgTab==='todo') items = ASSIGNMENTS.filter(a => a.state==='todo' && !state.asgDone[a.nm]);
+  else if(state.asgTab==='missing') items = ASSIGNMENTS.filter(a => a.state==='missing' && !state.asgDone[a.nm]);
+  else items = ASSIGNMENTS.filter(a => a.state==='done' || state.asgDone[a.nm]);
+  if(q) items = items.filter(a => a.nm.toLowerCase().includes(q) || byId(a.cid).name.toLowerCase().includes(q));
+  let head = '';
+  if(state.asgTab==='missing' && !q) head = `<div class="bubble tail small" style="margin-bottom:14px">both of these are small. an hour total, honestly, and the missing tag goes away 🧹</div>`;
+  const body = items.length ? items.map(todoCard).join('')
+    : `<div class="emptynote">${q ? 'nothing matches that. try a shorter word.' : state.asgTab==='missing' ? 'nothing missing. nice — you cleared them 🎉' : state.asgTab==='done' ? 'nothing checked off yet. tick a box and it lands here.' : 'to-do list is empty. go outside?'}</div>`;
+  list.innerHTML = head + body;
+  // wire checkboxes
+  $$('.box[data-check]', list).forEach(b => b.onclick = () => {
+    const nm = b.dataset.check;
+    const a = ASSIGNMENTS.find(x => x.nm===nm);
+    if(a.state==='done'){ return; } // already permanently done
+    state.asgDone[nm] = !state.asgDone[nm];
+    save();
+    if(state.asgDone[nm]){
+      const c = byId(a.cid);
+      toast({ic:'✓', tt:'checked off · '+nm, ts:esc(c.name)+' · moved to Done'});
+    }
+    // refresh tab counts + list
+    refreshAsgTabs();
+    renderAsgList();
+  });
+}
+function refreshAsgTabs(){
+  const c = counts();
+  const map = {todo:c.todo, missing:c.missing, done:c.done};
+  $$('#main .tabs button').forEach(b => {
+    const ct = $('.ct', b);
+    if(ct) ct.textContent = map[b.dataset.atab];
+  });
+}
+function wireAssign(){
+  $$('#main .tabs button').forEach(b => b.onclick = () => { state.asgTab = b.dataset.atab; save();
+    $$('#main .tabs button').forEach(x => x.classList.toggle('on', x===b)); renderAsgList(); });
+  const inp = $('#asgsearch');
+  inp.oninput = () => { state.asgQuery = inp.value; save(); renderAsgList(); };
+  renderAsgList();
+}
+
+/* ============================================================
+   4 · CALENDAR
+   ============================================================ */
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+function viewCalendar(){
+  return `
+    <div class="pagehd"><h1>Calendar</h1><span class="when">due dates, colored by class</span></div>
+    <p class="lead">today's the 22nd. the dots are stuff due. that's it.</p>
+    <div class="calbar">
+      <div class="navbtn" id="calprev">‹</div>
+      <div class="mo" id="calmo"></div>
+      <div class="navbtn" id="calnext">›</div>
+      <div class="todaybtn" id="caltoday">Today</div>
+    </div>
+    <div class="calgrid" id="calgrid"></div>
+    <div id="caldetail"></div>
+    <div class="sticky">
+      <div class="ic">📌</div>
+      <p>kinda busy thursday btw — French vocab plus the Algebra packet creeping up. maybe start the packet wednesday.</p>
+    </div>
+    <div class="legend">
+      <div class="li"><span class="dd" style="background:#5aa9e6"></span>Algebra</div>
+      <div class="li"><span class="dd" style="background:#4fb286"></span>Biology / PE</div>
+      <div class="li"><span class="dd" style="background:#ffb454"></span>French</div>
+      <div class="li"><span class="dd" style="background:#9b87f2"></span>Drama</div>
+      <div class="li"><span class="dd" style="background:#ef6a9b"></span>Literature</div>
+    </div>`;
+}
+function renderCalendar(){
+  const grid = $('#calgrid'); if(!grid) return;
+  const y = state.calYear, mo = state.calMonth;
+  $('#calmo').textContent = `${MONTH_NAMES[mo]} ${y}`;
+  const events = CAL_EVENTS[`${y}-${mo}`] || {};
+  const first = new Date(y, mo, 1).getDay(); // 0=Sun
+  const daysIn = new Date(y, mo+1, 0).getDate();
+  const isThisMonth = (y===2026 && mo===5);
+  let html = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="dow">${d}</div>`).join('');
+  for(let i=0;i<first;i++) html += `<div class="day out"></div>`;
+  for(let d=1; d<=daysIn; d++){
+    const ev = events[d];
+    const dotcols = ev ? ev.map(e => byId(e.cid).accent) : [];
+    const dots = dotcols.length ? `<div class="dots">${dotcols.map(col=>`<span class="dd" style="background:${col}"></span>`).join('')}</div>` : '';
+    const cls = ['day'];
+    if(isThisMonth && d===TODAY) cls.push('today');
+    if(ev){ cls.push('has'); }
+    if(state.calSel===d && (CAL_EVENTS[`${y}-${mo}`]||{})[d]) cls.push('sel');
+    html += `<div class="${cls.join(' ')}" data-day="${d}"><div class="dn">${d}</div>${dots}</div>`;
+  }
+  const trailing = (7 - ((first + daysIn) % 7)) % 7;
+  for(let i=0;i<trailing;i++) html += `<div class="day out"></div>`;
+  grid.innerHTML = html;
+  $$('.day.has', grid).forEach(el => el.onclick = () => {
+    const d = +el.dataset.day;
+    state.calSel = state.calSel===d ? null : d; save();
+    renderCalendar(); renderCalDetail();
+  });
+  renderCalDetail();
+}
+function renderCalDetail(){
+  const wrap = $('#caldetail'); if(!wrap) return;
+  const y = state.calYear, mo = state.calMonth, d = state.calSel;
+  const events = (CAL_EVENTS[`${y}-${mo}`] || {})[d];
+  if(!d || !events){ wrap.innerHTML=''; return; }
+  const items = events.map(e => {
+    const c = byId(e.cid);
+    return `<div class="card dayitem"><span class="dd" style="background:${c.accent}"></span>
+      <div class="di-nm">${esc(e.nm)}</div><div class="di-c">${esc(c.short)}</div></div>`;
+  }).join('');
+  const tail = (mo===5 && d===TODAY) ? "both of these are due today. the 7.3 set and one paragraph for lit."
+    : "click another day to see its stuff, or the same one to close.";
+  wrap.innerHTML = `<div class="daydetail">
+    <div class="ddh">${MONTH_NAMES[mo]} ${d} — ${events.length} thing${events.length>1?'s':''} due</div>
+    ${items}
+    <div class="bubble tail small" style="margin-top:6px;max-width:420px">${esc(tail)}</div>
+  </div>`;
+}
+function wireCalendar(){
+  $('#calprev').onclick = () => { state.calMonth--; if(state.calMonth<0){state.calMonth=11;state.calYear--;} state.calSel=null; save(); renderCalendar(); };
+  $('#calnext').onclick = () => { state.calMonth++; if(state.calMonth>11){state.calMonth=0;state.calYear++;} state.calSel=null; save(); renderCalendar(); };
+  $('#caltoday').onclick = () => { state.calMonth=5; state.calYear=2026; state.calSel=null; save(); renderCalendar(); };
+  renderCalendar();
+}
+
+/* ============================================================
+   5 · ANNOUNCEMENTS
+   ============================================================ */
+function viewAnnouncements(){
+  const cards = ANNOUNCEMENTS.map((a,i) => {
+    const c = byId(a.cid);
+    const starred = state.stars[i] !== undefined ? state.stars[i] : a.star;
+    const react = a.react ? `<div class="react"><span class="q">${a.react.q}</span> ${esc(a.react.t)}</div>` : '';
+    return `<div class="card ann" style="border-left:5px solid ${c.accent}">
+      <div class="atop">
+        <span class="tag2" style="background:${c.accent}">${esc(c.short)}</span>
+        <span class="who">${esc(a.who)}</span>
+        <span class="tm" data-tm="${i}">${esc(a.tm)}</span>
+        <span class="star ${starred?'on':''}" data-star="${i}">${starred?'★':'☆'}</span>
+      </div>
+      <div class="msg">${esc(a.msg)}</div>
+      ${react}
+    </div>`;
+  }).join('');
+  return `
+    <div class="pagehd"><h1>Announcements</h1><span class="when">what your teachers just posted</span>
+      <button class="pingbtn" id="annrefresh" style="margin-left:auto" title="refresh">⟳ refresh</button></div>
+    <p class="lead">newest up top. starred a couple i think you actually need.</p>
+    ${cards}`;
+}
+function wireAnnouncements(){
+  $$('#main .star').forEach(s => s.onclick = () => {
+    const i = +s.dataset.star;
+    const cur = state.stars[i] !== undefined ? state.stars[i] : ANNOUNCEMENTS[i].star;
+    state.stars[i] = !cur; save();
+    s.classList.toggle('on', !cur);
+    s.textContent = !cur ? '★' : '☆';
+  });
+  $('#annrefresh').onclick = () => {
+    $$('#main .tm').forEach(el => el.textContent = 'updated just now');
+    toast({ic:'📣', tt:'announcements refreshed', ts:'nothing new since you last looked'});
+  };
+}
+
+/* ============================================================
+   6 · MATERIALS
+   ============================================================ */
+function fileIcon(t){ return {folder:'📁',pdf:'📄',doc:'📝',link:'🔗'}[t]||'📄'; }
+function viewMaterials(){
+  const files = MATERIALS.map((f,i) => {
+    const sel = state.matFile===i;
+    const subStyle = f.target ? ' style="color:var(--rose);font-weight:800"' : '';
+    return `<div class="card file ${sel?'on':''}" data-file="${i}">
+      <div class="fi ${f.type}">${fileIcon(f.type)}</div>
+      <div class="fnm">${esc(f.nm)}<div class="fsub"${subStyle}>${f.target?'your submission is open ↓':esc(f.sub)}</div></div>
+      <span class="chev">›</span></div>`;
+  }).join('');
+  return `
+    <div class="pagehd"><h1>Materials</h1><span class="when">Biology · Ms. Carrington</span></div>
+    <p class="lead">files and links for the class, plus the lab you still owe is right here. submit it from this page.</p>
+    <div class="matwrap">
+      <div class="matlist">${files}</div>
+      <div class="card matpanel" id="matpanel"></div>
+    </div>
+    <div class="say" style="margin-top:16px"><div class="q" style="background:#e6f7ef">💬</div><p>everything you need for this lab is sitting right there.<span class="add">handout, data template, a box to type in. ten minutes and the red goes away.</span></p></div>`;
+}
+function renderMatPanel(){
+  const panel = $('#matpanel'); if(!panel) return;
+  const f = MATERIALS[state.matFile];
+  if(!f.target){
+    // generic file view
+    panel.innerHTML = `
+      <div class="panelhd"><div class="ptitle">${esc(f.nm)}</div><div class="psub">${esc(f.sub)}</div></div>
+      <div class="attach"><span class="ai">${fileIcon(f.type)}</span> ${esc(f.nm)}</div>
+      <p class="revnote">${f.type==='link'?'opens in a new tab on the real thing.':'preview here · download from Schoology.'}</p>
+      <div class="panelfoot">
+        <button class="btn ghost" id="matopen">Open in Schoology ↗</button>
+      </div>
+      <div class="bubble small tail" style="margin:12px 18px 16px;max-width:none">not the one you owe — that's the lab below. tap it to submit.</div>`;
+    $('#matopen').onclick = () => toast({ic:'↗', tt:'would open in Schoology', ts:esc(f.nm)});
+    return;
+  }
+  // submission target
+  const revLine = state.matRev>0
+    ? `submitted · revision ${state.matRev} ✓ · ${new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})}`
+    : '';
+  const comments = state.comments.map(c => `<div class="cmt"><span class="cmt-w">you</span>${esc(c)}</div>`).join('');
+  panel.innerHTML = `
+    <div class="panelhd">
+      <div class="ptitle">${esc(MAT_TARGET.nm)}</div>
+      <div class="psub">${MAT_TARGET.sub}</div>
+    </div>
+    ${MAT_TARGET.attach.map(([ic,nm])=>`<div class="attach"><span class="ai">${ic}</span> ${esc(nm)}</div>`).join('')}
+    <div class="field">
+      <label>your submission</label>
+      <textarea id="matsub" rows="4" placeholder="paste your write-up or notes here, or attach a file below…"></textarea>
+    </div>
+    <div class="field">
+      <label>add a comment for Ms. Carrington</label>
+      <input class="txt" id="matcomment" type="text" placeholder="optional — e.g. sorry this is late!">
+    </div>
+    <div class="commentlist" id="matcmts">${comments}</div>
+    <p class="revnote">revisions allowed until friday · late credit applies</p>
+    <p class="subok ${state.matRev>0?'show':''}" id="matsubok">${revLine}</p>
+    <div class="panelfoot">
+      <button class="btn primary" id="matsubmit">${state.matRev>0?'Submit revision':'Submit lab'}</button>
+      <button class="btn ghost" id="matattach">📎 Attach file</button>
+      <button class="btn ghost" id="matschool">Open in Schoology ↗</button>
+    </div>
+    <div class="bubble small tail" style="margin:0 18px 16px;max-width:none">small one. type a couple lines, hit submit, and the missing tag is gone 👀</div>`;
+  $('#matsubmit').onclick = () => {
+    state.matRev++; save();
+    const t = new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
+    const ok = $('#matsubok');
+    ok.textContent = `submitted · revision ${state.matRev} ✓ · ${t}`;
+    ok.classList.add('show');
+    $('#matsubmit').textContent = 'Submit revision';
+    toast({ic:'✓', tt:'submitted · revision '+state.matRev, ts:'Cell Energetics Lab (Biology)'});
+  };
+  const addComment = () => {
+    const inp = $('#matcomment'); const v = inp.value.trim();
+    if(!v) return;
+    state.comments.push(v); save();
+    inp.value='';
+    $('#matcmts').innerHTML = state.comments.map(c => `<div class="cmt"><span class="cmt-w">you</span>${esc(c)}</div>`).join('');
+  };
+  $('#matcomment').addEventListener('keydown', e => { if(e.key==='Enter'){ e.preventDefault(); addComment(); }});
+  $('#matattach').onclick = () => toast({ic:'📎', tt:'attach (demo)', ts:'file picker would open here'});
+  $('#matschool').onclick = () => toast({ic:'↗', tt:'would open in Schoology', ts:'Cell Energetics Lab'});
+}
+function wireMaterials(){
+  $$('#main .file').forEach(el => el.onclick = () => {
+    state.matFile = +el.dataset.file; save();
+    $$('#main .file').forEach(x => x.classList.toggle('on', x===el));
+    renderMatPanel();
+  });
+  renderMatPanel();
+}
+
+/* ============================================================
+   7 · SETTINGS
+   ============================================================ */
+const EDITIONS = [
+  ['apple','Apple','clean, glassy, quiet','linear-gradient(135deg,#f5f5f7,#e8e8ed)','mockup-app-apple.html'],
+  ['halo','Halo','deep blue, sci-fi','linear-gradient(135deg,#1b2a4a,#3a6ea5)','mockup-app-halo.html'],
+  ['slate','Slate','dark, no nonsense','linear-gradient(135deg,#2b2b30,#46464d)','mockup-app-slate.html'],
+  ['friendly','Friendly 🙂','warm, chatty, this one','linear-gradient(135deg,#ffd98a,#ff9d5c)','mockup-app-forge.html'],
+];
+const SECTIONS = [
+  ['overview','Overview','the home screen with the greeting'],
+  ['grades','Grades','per-class gradebook'],
+  ['assign','Assignments','to-do, missing, done'],
+  ['cal','Calendar','due dates by month'],
+  ['ann','Announcements','teacher posts'],
+  ['mat','Materials','files & submissions'],
+  ['asides','The friendly asides','my little comments. you can mute me, no offense taken'],
+];
+const THEMES = [['cream','#fdf4e6','Cream'],['oat','#f3ece1','Oat'],['peach','#ffeede','Peach'],['sage','#eaf2ec','Sage']];
+const THEME_MODES = [['light','☀️','Light'],['dark','🌙','Dark'],['auto','🌗','Auto']];
+function viewSettings(){
+  const styles = EDITIONS.map(([k,nm,sd,sw,file]) =>
+    `<div class="stylecard ${k==='friendly'?'on':''}" data-edition="${k}" data-file="${file}">
+      <div class="sw" style="background:${sw}"></div>
+      <div class="sn">${nm}</div><div class="sd">${sd}</div>
+      <div class="pick">active ✓</div></div>`
+  ).join('');
+  const secs = SECTIONS.map(([k,nm,td]) =>
+    `<div class="togrow"><div><div class="tn">${nm}</div><div class="td">${td}</div></div>
+      <div class="toggle ${state.sections[k]?'on':''}" data-section="${k}"></div></div>`
+  ).join('');
+  const dark = effectiveDark();
+  const themes = THEMES.map(([k,col,title]) =>
+    `<div class="theme ${state.theme===k?'on':''} ${dark?'dim':''}" data-theme="${k}" style="background:${col}" title="${dark?'switch to Light to use paper tints':title}"></div>`
+  ).join('');
+  const modes = THEME_MODES.map(([k,ic,label]) =>
+    `<button data-mode="${k}" class="${state.themeMode===k?'on':''}">${ic} ${label}</button>`
+  ).join('');
+  const modeHint = state.themeMode==='auto'
+    ? `following your system right now (${dark?'dark':'light'}).`
+    : state.themeMode==='dark'
+      ? `cozy dark cocoa. easy on the eyes at night.`
+      : `pick a paper color below.`;
+  return `
+    <div class="pagehd"><h1>Settings</h1><span class="when">make it yours</span></div>
+    <p class="lead">you're on Friendly mode. obviously the correct choice, but the others are there.</p>
+    <div class="sechd"><h2>UI Style</h2><span class="sub">pick a vibe</span></div>
+    <div class="styles">${styles}</div>
+    <div class="sechd"><h2>Your school</h2></div>
+    <div class="card detected">
+      <div class="glob">🌐</div>
+      <div><div class="du">yourschool.schoology.com</div><div class="ds">detected automatically · grades pulled locally</div></div>
+      <div class="active">Active ✓</div>
+    </div>
+    <div class="sechd"><h2>Notifications</h2><span class="sub">the friendly pings</span></div>
+    <div class="card">
+      <div class="togrow"><div><div class="tn">Desktop pings</div><div class="td">grade changes, new assignments, the occasional nudge</div></div>
+        <div class="toggle ${state.notify?'on':''}" data-notify></div></div>
+      <div class="togrow"><div><div class="tn">Test a ping</div><div class="td">see what a notification looks like</div></div>
+        <button class="pingbtn" id="testping">test a ping</button></div>
+    </div>
+    <div class="sechd"><h2>Sections &amp; tabs</h2><span class="sub">show or hide</span></div>
+    <div class="card">${secs}</div>
+    <div class="sechd"><h2>Theme</h2><span class="sub">light, dark, or follow your system</span></div>
+    <div class="card" style="padding:8px 0">
+      <div class="modeseg">${modes}</div>
+      <p class="modehint">${modeHint}</p>
+      <div class="themes">${themes}</div>
+    </div>
+    <div class="outro" style="margin-top:24px">
+      <div class="ic">⚙️</div>
+      <p>that's everything. <span>changes save on their own. close this whenever.</span></p>
+    </div>`;
+}
+function wireSettings(){
+  $$('#main .stylecard').forEach(el => el.onclick = () => {
+    const ed = el.dataset.edition, file = el.dataset.file;
+    if(ed==='friendly'){
+      state.uiEdition = 'friendly'; save();
+      $$('#main .stylecard').forEach(x => x.classList.toggle('on', x===el));
+      return; // already here
+    }
+    // navigate to that edition's mockup (same folder, file://-safe relative href)
+    toast({ic:'🙂', tt:'switching to '+ed, ts:'opening that edition…'});
+    window.location.href = file;
+  });
+  $$('#main .toggle[data-section]').forEach(el => el.onclick = () => {
+    const k = el.dataset.section;
+    state.sections[k] = !state.sections[k]; save();
+    el.classList.toggle('on', state.sections[k]);
+  });
+  const notif = $('#main .toggle[data-notify]');
+  notif.onclick = () => { state.notify = !state.notify; save(); notif.classList.toggle('on', state.notify);
+    toast({ic: state.notify?'🔔':'🔕', tt: state.notify?'pings on':'pings off', ts: state.notify?'i\'ll let you know about the important stuff':'quiet mode. i\'ll keep it to myself'}); };
+  $$('#main .modeseg button').forEach(b => b.onclick = () => {
+    state.themeMode = b.dataset.mode; save();
+    applyTheme();
+    renderScreen(); // refresh swatches dim state + hint
+  });
+  $$('#main .theme').forEach(el => el.onclick = () => {
+    if(effectiveDark()) return; // paper tints only apply in light mode
+    state.theme = el.dataset.theme; save();
+    $$('#main .theme').forEach(x => x.classList.toggle('on', x===el));
+    applyTheme();
+  });
+  $('#testping').onclick = () => firePing();
+}
+
+/* ============================================================
+   TOAST / PING
+   ============================================================ */
+function toast({ic,tt,ts,tw}){
+  if(!state.notify && tt && !/pings (on|off)/.test(tt)) {
+    // respect notifications-off, but always allow the on/off confirmation itself
+    return;
+  }
+  const wrap = $('#toastwrap');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<div class="ti">${ic}</div><div><div class="tt">${tt}</div>${ts?`<div class="ts">${ts}</div>`:''}${tw?`<div class="tw">${tw}</div>`:''}</div>`;
+  wrap.appendChild(el);
+  const kill = () => { el.classList.add('out'); setTimeout(()=>el.remove(),300); };
+  setTimeout(kill, 4200);
+  el.onclick = kill;
+}
+let pingIdx = 0;
+function firePing(){
+  const p = PINGS[pingIdx % PINGS.length]; pingIdx++;
+  // temporarily ignore notify gate for the explicit "test" action
+  const wrap = $('#toastwrap');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<div class="ti">${p.ic}</div><div><div class="tt">${esc(p.tt)}</div><div class="ts">${esc(p.ts)}</div><div class="tw">Better SGY · just now</div></div>`;
+  wrap.appendChild(el);
+  const kill = () => { el.classList.add('out'); setTimeout(()=>el.remove(),300); };
+  setTimeout(kill, 4200);
+  el.onclick = kill;
+}
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+applyTheme();
+renderNav();
+renderScreen();
+</script>
+</body>
+</html>

@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Better SGY — Portable Widget — SLATE</title>
+<style>
+  /* ============================================================
+     SLATE — Swiss / International Typographic Style
+     Portable widget that lives on any webpage.
+     Pure black & white. No hue, ever. Type, grid, rules, space.
+     Single-file. No dependencies. Double-click / file:// safe.
+     ============================================================ */
+
+  :root{
+    --ink:#000;
+    --paper:#fff;
+    --ink-80:rgba(0,0,0,.80);
+    --ink-60:rgba(0,0,0,.60);
+    --ink-45:rgba(0,0,0,.45);
+    --ink-30:rgba(0,0,0,.30);
+    --ink-15:rgba(0,0,0,.15);
+    --ink-08:rgba(0,0,0,.08);
+    --serif:Georgia,"Times New Roman",serif;
+    --sans:Helvetica,"Helvetica Neue",Arial,system-ui,sans-serif;
+    --rule:1px solid var(--ink);
+    --hairline:1px solid var(--ink-15);
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{ -webkit-text-size-adjust:100%; }
+  body{
+    background:#ececec;
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.4;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    min-height:100vh;
+  }
+
+  /* ============================================================
+     FAUX WEBPAGE — a study article behind the widget.
+     Deliberately plain; the widget is the subject, not this.
+     ============================================================ */
+  .site{ background:#ececec; min-height:100vh; }
+  .site__bar{
+    position:sticky; top:0; z-index:1;
+    background:#f6f6f6; border-bottom:1px solid rgba(0,0,0,.12);
+    display:flex; align-items:center; gap:18px;
+    padding:11px clamp(16px,4vw,40px);
+    font-family:var(--sans); font-size:12px; color:rgba(0,0,0,.55);
+  }
+  .site__brand{ font-weight:700; letter-spacing:.04em; color:rgba(0,0,0,.78); }
+  .site__nav{ display:flex; gap:16px; }
+  .site__nav span{ letter-spacing:.02em; }
+  .site__nav span:first-child{ color:rgba(0,0,0,.78); font-weight:700; }
+  .site__url{
+    margin-left:auto; font-family:var(--sans); font-size:11px;
+    color:rgba(0,0,0,.4); letter-spacing:.02em;
+    border:1px solid rgba(0,0,0,.14); border-radius:20px;
+    padding:5px 14px; background:#fff;
+  }
+  .article{
+    max-width:680px; margin:0 auto; padding:clamp(28px,5vw,60px) clamp(20px,4vw,32px) 160px;
+    background:#fbfbfb; min-height:100vh;
+    box-shadow:0 0 60px rgba(0,0,0,.05);
+  }
+  .article__eyebrow{
+    font-family:var(--sans); font-size:11px; font-weight:700;
+    letter-spacing:.18em; text-transform:uppercase; color:rgba(0,0,0,.45);
+  }
+  .article h1{
+    font-family:var(--serif); font-weight:700; line-height:1.08;
+    font-size:clamp(28px,5vw,42px); letter-spacing:-.02em;
+    margin:14px 0 16px; color:rgba(0,0,0,.86);
+  }
+  .article__byline{
+    font-family:var(--serif); font-style:italic; font-size:14px;
+    color:rgba(0,0,0,.5); padding-bottom:20px;
+    border-bottom:1px solid rgba(0,0,0,.12); margin-bottom:24px;
+  }
+  .article p{
+    font-family:var(--serif); font-size:17px; line-height:1.62;
+    color:rgba(0,0,0,.74); margin-bottom:18px;
+  }
+  .article h2{
+    font-family:var(--serif); font-weight:700; font-size:22px;
+    color:rgba(0,0,0,.84); margin:32px 0 12px; letter-spacing:-.01em;
+  }
+  .article blockquote{
+    border-left:2px solid rgba(0,0,0,.25); margin:24px 0;
+    padding:4px 0 4px 22px; font-family:var(--serif); font-style:italic;
+    font-size:18px; color:rgba(0,0,0,.62);
+  }
+
+  /* ============================================================
+     SCRIM — dims the page slightly when the panel is open
+     ============================================================ */
+  .scrim{
+    position:fixed; inset:0; z-index:40;
+    background:rgba(0,0,0,.22);
+    opacity:0; pointer-events:none;
+    transition:opacity .26s ease;
+  }
+  .scrim--on{ opacity:1; pointer-events:auto; }
+
+  /* ============================================================
+     COLLAPSED PILL — fixed bottom-right, always visible
+     ============================================================ */
+  .pill{
+    position:fixed; right:22px; bottom:22px; z-index:60;
+    display:flex; align-items:stretch;
+    background:var(--paper); color:var(--ink);
+    border:2px solid var(--ink);
+    box-shadow:5px 5px 0 var(--ink);
+    font-family:var(--sans);
+    cursor:pointer;
+    transition:transform .16s ease, box-shadow .16s ease, opacity .2s ease;
+  }
+  .pill:hover{ transform:translate(-1px,-1px); box-shadow:6px 6px 0 var(--ink); }
+  .pill:active{ transform:translate(1px,1px); box-shadow:3px 3px 0 var(--ink); }
+  .pill--hidden{ opacity:0; pointer-events:none; transform:translateY(10px); }
+
+  .pill__mark{
+    display:flex; align-items:center; justify-content:center;
+    background:var(--ink); color:var(--paper);
+    font-family:var(--serif); font-weight:700; font-size:15px;
+    letter-spacing:.02em; padding:0 11px; line-height:1;
+  }
+  .pill__body{ display:flex; align-items:center; gap:13px; padding:9px 14px 8px; }
+  .pill__pct{
+    font-family:var(--serif); font-weight:700; font-size:21px;
+    line-height:1; letter-spacing:-.02em; font-variant-numeric:tabular-nums;
+  }
+  .pill__pct .u{ font-family:var(--sans); font-size:11px; font-weight:400; color:var(--ink-45); margin-left:1px; }
+  .pill__div{ width:1px; align-self:stretch; background:var(--ink-15); }
+  .pill__grade{ display:flex; flex-direction:column; gap:2px; }
+  .pill__label{
+    font-size:8.5px; font-weight:700; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--ink-60); line-height:1;
+  }
+  .pill__delta{
+    font-size:12px; font-weight:700; letter-spacing:.02em;
+    line-height:1; font-variant-numeric:tabular-nums;
+    display:flex; align-items:baseline; gap:3px;
+  }
+  .pill__delta .arr{ font-size:10px; }
+
+  /* ============================================================
+     EXPANDED SIDE PANEL — narrow newspaper column from the right
+     ============================================================ */
+  .panel{
+    position:fixed; top:0; right:0; bottom:0; z-index:55;
+    width:380px; max-width:92vw;
+    background:var(--paper); color:var(--ink);
+    border-left:3px solid var(--ink);
+    box-shadow:-8px 0 28px rgba(0,0,0,.16);
+    display:flex; flex-direction:column;
+    transform:translateX(100%);
+    transition:transform .28s cubic-bezier(.4,0,.1,1);
+    overflow:hidden;
+  }
+  .panel--on{ transform:translateX(0); }
+
+  .panel__scroll{ overflow-y:auto; flex:1; }
+
+  /* nameplate header */
+  .ph{
+    border-top:3px solid var(--ink);
+    padding:14px clamp(18px,5vw,22px) 0;
+    background:var(--paper);
+    position:sticky; top:0; z-index:2;
+  }
+  .ph__top{
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-size:9px; font-weight:700; letter-spacing:.22em;
+    text-transform:uppercase; color:var(--ink-60);
+  }
+  .ph__top .ed{ color:var(--ink); }
+  .ph__bar{ display:flex; justify-content:space-between; align-items:flex-end; margin:8px 0 12px; }
+  .ph__name{
+    font-family:var(--serif); font-weight:700; font-size:32px;
+    line-height:.9; letter-spacing:-.025em;
+  }
+  .ph__name em{ font-style:italic; font-weight:400; }
+  .ph__close{
+    font-family:var(--serif); font-size:26px; line-height:1;
+    color:var(--ink-45); background:none; border:none; cursor:pointer;
+    padding:0 0 0 12px; transition:color .12s ease;
+    align-self:flex-start; margin-top:-2px;
+  }
+  .ph__close:hover{ color:var(--ink); }
+  .ph__rule{ border-top:3px solid var(--ink); }
+
+  .pbody{ padding:0 clamp(18px,5vw,22px) 26px; }
+
+  /* big overall figure */
+  .lede{ padding:20px 0 18px; border-bottom:var(--rule); }
+  .lede__kicker{
+    font-size:10px; font-weight:700; letter-spacing:.2em;
+    text-transform:uppercase; color:var(--ink-60); display:block; margin-bottom:8px;
+  }
+  .lede__num{
+    font-family:var(--serif); font-weight:700; font-size:72px;
+    line-height:.84; letter-spacing:-.04em; font-variant-numeric:tabular-nums;
+    display:flex; align-items:flex-start;
+  }
+  .lede__num .pct{
+    font-size:.28em; font-weight:400; font-style:italic;
+    letter-spacing:0; margin-left:.1em; margin-top:.35em; color:var(--ink-60);
+  }
+  .lede__cap{
+    margin-top:13px; font-family:var(--serif); font-style:italic;
+    font-size:13px; line-height:1.5; color:var(--ink-80);
+  }
+  .lede__cap .sep{ color:var(--ink-30); font-style:normal; }
+  .lede__note{
+    margin-top:10px; display:inline-flex; align-items:baseline; gap:7px;
+    font-family:var(--sans); font-size:10px; font-weight:700;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--ink-60);
+    border-top:var(--hairline); padding-top:10px; width:100%;
+  }
+  .lede__note .n-num{
+    font-family:var(--serif); font-weight:700; font-size:16px;
+    letter-spacing:-.01em; color:var(--ink); text-transform:none;
+  }
+
+  /* section heads inside panel */
+  .psec{
+    display:flex; justify-content:space-between; align-items:baseline;
+    padding:18px 0 8px; gap:12px;
+  }
+  .psec__title{
+    font-family:var(--sans); font-size:10px; font-weight:700;
+    letter-spacing:.2em; text-transform:uppercase; color:var(--ink);
+  }
+  .psec__meta{
+    font-family:var(--serif); font-style:italic; font-size:11px; color:var(--ink-45);
+  }
+
+  /* recent activity — ruled briefs */
+  .briefs{ border-top:var(--rule); }
+  .b{
+    display:grid; grid-template-columns:minmax(0,1fr) auto;
+    gap:6px 14px; align-items:baseline;
+    padding:12px 2px; border-bottom:var(--hairline);
+  }
+  .b:last-child{ border-bottom:none; }
+  .b__title{
+    font-family:var(--serif); font-weight:700; font-size:15px;
+    line-height:1.2; letter-spacing:-.01em;
+  }
+  .b__sub{
+    grid-column:1; margin-top:4px;
+    font-family:var(--sans); font-size:10.5px; letter-spacing:.03em;
+    color:var(--ink-60);
+  }
+  .b__sub .sep{ color:var(--ink-30); }
+  .b__val{
+    grid-row:1 / span 2; align-self:center;
+    text-align:right; white-space:nowrap;
+  }
+  .b__num{
+    font-family:var(--serif); font-weight:700; font-size:16px;
+    line-height:1; letter-spacing:-.01em; font-variant-numeric:tabular-nums;
+  }
+  .b__delta{
+    font-family:var(--sans); font-weight:700; font-size:13px;
+    letter-spacing:.01em; line-height:1; font-variant-numeric:tabular-nums;
+    display:inline-flex; align-items:baseline; gap:3px;
+  }
+  .b__delta .arr{ font-size:11px; }
+  .b__new{
+    font-family:var(--sans); font-size:9px; font-weight:700;
+    letter-spacing:.16em; text-transform:uppercase;
+    border:1px solid var(--ink); background:var(--ink); color:var(--paper);
+    padding:3px 7px 2px; display:inline-block; line-height:1.2;
+  }
+
+  /* grade over time — tabs + sparkline */
+  .gtabs{
+    display:flex; flex-wrap:wrap; gap:0;
+    border:var(--rule); border-bottom:none;
+  }
+  .gtab{
+    flex:1 1 auto; min-width:0;
+    font-family:var(--sans); font-size:9.5px; font-weight:700;
+    letter-spacing:.1em; text-transform:uppercase;
+    color:var(--ink-60); background:var(--paper);
+    border:none; border-right:var(--hairline); border-bottom:var(--rule);
+    padding:9px 4px 8px; cursor:pointer; text-align:center;
+    transition:background .12s ease, color .12s ease;
+  }
+  .gtab:last-child{ border-right:none; }
+  .gtab:hover{ background:var(--ink-08); color:var(--ink); }
+  .gtab--on{ background:var(--ink); color:var(--paper); }
+  .gtab--on:hover{ background:var(--ink); color:var(--paper); }
+
+  .gchart{ border:var(--rule); border-top:none; padding:14px 14px 10px; }
+  .gchart__top{
+    display:flex; justify-content:space-between; align-items:baseline;
+    margin-bottom:10px; gap:12px;
+  }
+  .gchart__name{
+    font-family:var(--serif); font-weight:700; font-size:16px;
+    letter-spacing:-.01em;
+  }
+  .gchart__read{
+    font-family:var(--serif); font-weight:700; font-size:18px;
+    letter-spacing:-.01em; font-variant-numeric:tabular-nums; text-align:right;
+  }
+  .gchart__read .lt{ font-family:var(--sans); font-size:10px; font-weight:700; color:var(--ink-45); margin-left:5px; }
+  .spark{ width:100%; height:auto; display:block; }
+  .spark .grid{ stroke:var(--ink-15); stroke-width:1; }
+  .spark .axis{ stroke:var(--ink); stroke-width:1; }
+  .spark .series{ fill:none; stroke:var(--ink); stroke-width:1.6; }
+  .spark .dot-open{ fill:var(--paper); stroke:var(--ink); stroke-width:1.2; }
+  .spark .dot-fill{ fill:var(--ink); }
+  .spark .ylab{
+    font-family:Helvetica,Arial,sans-serif; font-size:9px; font-weight:700;
+    fill:var(--ink-45); text-anchor:end;
+  }
+  .spark .xlab{
+    font-family:Helvetica,Arial,sans-serif; font-size:9px; font-weight:700;
+    fill:var(--ink-45); text-anchor:middle;
+  }
+  .gchart__foot{
+    margin-top:9px; font-family:var(--serif); font-style:italic;
+    font-size:11px; line-height:1.45; color:var(--ink-60);
+  }
+
+  /* panel colophon */
+  .pcol{
+    border-top:3px solid var(--ink); margin-top:22px; padding:10px 0 4px;
+    display:flex; justify-content:space-between; gap:12px;
+    font-family:var(--sans); font-size:9px; font-weight:700;
+    letter-spacing:.18em; text-transform:uppercase; color:var(--ink-45);
+  }
+  .pcol .mk{ color:var(--ink); }
+
+  /* prompt strip below faux page header on first load */
+  .hint{
+    position:fixed; left:22px; bottom:26px; z-index:50;
+    max-width:300px;
+    font-family:var(--serif); font-style:italic; font-size:13px;
+    line-height:1.45; color:rgba(0,0,0,.5);
+    pointer-events:none;
+    transition:opacity .3s ease;
+  }
+  .hint b{ font-style:normal; font-family:var(--sans); font-weight:700; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:rgba(0,0,0,.7); display:block; margin-bottom:4px; }
+  .hint--off{ opacity:0; }
+
+  @media (max-width:520px){
+    .hint{ display:none; }
+    .pill{ right:14px; bottom:14px; }
+  }
+
+  /* respect reduced motion */
+  @media (prefers-reduced-motion:reduce){
+    .panel, .scrim, .pill{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== FAUX WEBPAGE (the page the student is reading) ===================== -->
+<div class="site">
+  <div class="site__bar">
+    <span class="site__brand">The Study Desk</span>
+    <nav class="site__nav"><span>Reading</span><span>Method</span><span>Notes</span><span>Archive</span></nav>
+    <span class="site__url">readwise.study/articles/spacing-effect</span>
+  </div>
+
+  <article class="article">
+    <span class="article__eyebrow">Learning Science</span>
+    <h1>The Spacing Effect, and Why Cramming Fails You by Morning</h1>
+    <p class="article__byline">A short guide to distributing practice across days rather than hours.</p>
+
+    <p>There is a stubborn, well-documented finding in the study of memory: information reviewed across spaced intervals is retained far longer than the same information reviewed in a single sitting. The phenomenon is old, first described in the eighteen-eighties, and it has survived more than a century of replication.</p>
+
+    <p>The intuition runs the other way. A long evening with the textbook feels productive, and by the end of it the material feels known. That feeling is the trap. Fluency in the moment is a poor predictor of recall a week later, and the cramming session that ends in confidence often ends, by the exam, in blanks.</p>
+
+    <h2>Why distance helps</h2>
+
+    <p>Each time a memory is retrieved after a delay, the act of retrieval is harder, and that difficulty is the point. Effortful recall strengthens the trace more than easy recall does. Spacing introduces forgetting between sessions, and a little forgetting, recovered, is what makes the memory durable.</p>
+
+    <blockquote>The student who reviews for twenty minutes on four separate days will, on the test, outperform the one who reviewed for eighty minutes the night before.</blockquote>
+
+    <p>None of this requires more total time. It requires the same time, cut into pieces and set apart. The schedule does the work. A reading on Monday, a quiz on Wednesday, a second pass on Friday, and the material settles into a place harder to dislodge.</p>
+
+    <h2>Putting it to use</h2>
+
+    <p>Begin from the calendar, not the clock. Take what is due, scatter the first encounter early, and leave deliberate gaps before each return. Resist the urge to mass everything against a deadline. The deadline is not the enemy of memory; proximity to it is.</p>
+
+    <p>What follows is the practical part, which most accounts skip: the bookkeeping. Knowing what to space, and when each thing was last seen, is half the discipline. Keep that ledger close, glance at it often, and the method mostly runs itself.</p>
+  </article>
+</div>
+
+<!-- on-page hint (decorative, dimmed away after first open) -->
+<div class="hint" id="hint"><b>Better SGY</b>Your grades travel with you. The pill, lower right, follows on every page. Open it for the full account.</div>
+
+<!-- ===================== SCRIM ===================== -->
+<div class="scrim" id="scrim"></div>
+
+<!-- ===================== COLLAPSED PILL ===================== -->
+<button class="pill" id="pill" type="button" aria-label="Open Better SGY — overall average 96.2 percent, grades up 1.4">
+  <span class="pill__mark">SGY</span>
+  <span class="pill__body">
+    <span class="pill__pct">96.2<span class="u">%</span></span>
+    <span class="pill__div"></span>
+    <span class="pill__grade">
+      <span class="pill__label">Grades</span>
+      <span class="pill__delta"><span class="arr">&#9650;</span>1.4</span>
+    </span>
+  </span>
+</button>
+
+<!-- ===================== EXPANDED SIDE PANEL ===================== -->
+<aside class="panel" id="panel" aria-label="Better SGY panel" aria-hidden="true">
+  <div class="panel__scroll">
+
+    <header class="ph">
+      <div class="ph__top">
+        <span class="ed">Better&nbsp;SGY</span>
+        <span>The Standing</span>
+      </div>
+      <div class="ph__bar">
+        <div class="ph__name">Better <em>SGY</em></div>
+        <button class="ph__close" id="close" type="button" aria-label="Close panel">&times;</button>
+      </div>
+      <div class="ph__rule"></div>
+    </header>
+
+    <div class="pbody">
+
+      <!-- big overall -->
+      <section class="lede">
+        <span class="lede__kicker">Overall Average</span>
+        <div class="lede__num">96.2<span class="pct">%</span></div>
+        <p class="lede__cap">Overall average <span class="sep">·</span> 6 courses <span class="sep">·</span> checked just now</p>
+        <span class="lede__note"><span class="n-num">2</span> missing, both held quietly</span>
+      </section>
+
+      <!-- recent activity -->
+      <div class="psec">
+        <span class="psec__title">Recent Activity</span>
+        <span class="psec__meta">last six entries</span>
+      </div>
+      <div class="briefs">
+
+        <article class="b">
+          <div class="b__title">Algebra 2 / Trig</div>
+          <div class="b__sub">96.3% &rarr; 97.4% <span class="sep">·</span> 2d ago</div>
+          <div class="b__val"><span class="b__delta"><span class="arr">&#9650;</span>1.1%</span></div>
+        </article>
+
+        <article class="b">
+          <div class="b__title">Enzymes Problem Set</div>
+          <div class="b__sub">Graded <span class="sep">·</span> Biology <span class="sep">·</span> 3d ago</div>
+          <div class="b__val"><span class="b__num">18/20</span></div>
+        </article>
+
+        <article class="b">
+          <div class="b__title">Monologue Reflection</div>
+          <div class="b__sub">New <span class="sep">·</span> Drama <span class="sep">·</span> 3d ago</div>
+          <div class="b__val"><span class="b__new">New</span></div>
+        </article>
+
+        <article class="b">
+          <div class="b__title">Drama</div>
+          <div class="b__sub">91.0% &rarr; 90.3% <span class="sep">·</span> 4d ago</div>
+          <div class="b__val"><span class="b__delta"><span class="arr">&#9660;</span>0.7%</span></div>
+        </article>
+
+        <article class="b">
+          <div class="b__title">Unit&eacute; 5 Exam</div>
+          <div class="b__sub">Graded <span class="sep">·</span> French 1 <span class="sep">·</span> 5d ago</div>
+          <div class="b__val"><span class="b__num">95%</span></div>
+        </article>
+
+        <article class="b">
+          <div class="b__title">Cell Energetics Lab</div>
+          <div class="b__sub">New <span class="sep">·</span> Biology <span class="sep">·</span> 6d ago</div>
+          <div class="b__val"><span class="b__new">New</span></div>
+        </article>
+
+      </div>
+
+      <!-- grade over time -->
+      <div class="psec">
+        <span class="psec__title">Grade Over Time</span>
+        <span class="psec__meta" id="g-range">weekly &middot; 88&ndash;100</span>
+      </div>
+
+      <div class="gtabs" id="gtabs" role="tablist"></div>
+
+      <div class="gchart">
+        <div class="gchart__top">
+          <span class="gchart__name" id="g-name">Algebra 2 / Trig</span>
+          <span class="gchart__read"><span id="g-read">97.4%</span><span class="lt" id="g-lt">A</span></span>
+        </div>
+        <svg class="spark" id="spark" viewBox="0 0 320 130" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Grade history sparkline"></svg>
+        <p class="gchart__foot" id="g-foot"></p>
+      </div>
+
+      <div class="pcol">
+        <span>Filed Semester 2</span>
+        <span class="mk">Better&nbsp;SGY &middot; v1</span>
+      </div>
+
+    </div>
+  </div>
+</aside>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- canonical data (MOCKUP_DATA.md) ----
+  var COURSES = [
+    { id:"alg", short:"Alg 2", name:"Algebra 2 / Trig", grade:97.4, letter:"A",
+      hist:[92.0,93.0,94.0,95.0,95.5,96.3,97.0,97.4],
+      foot:"A two-point climb across the term, no week given back." },
+    { id:"bio", short:"Bio", name:"Biology", grade:96.7, letter:"A",
+      hist:[96.0,96.4,96.2,96.8,96.5,96.9,96.6,96.7],
+      foot:"Level throughout, held in the high nineties. One lab unsubmitted." },
+    { id:"fre", short:"Fr 1", name:"French 1", grade:96.5, letter:"A",
+      hist:[91.0,92.5,93.0,94.0,94.8,95.5,96.1,96.5],
+      foot:"A long, even rise from the low nineties since spring." },
+    { id:"dra", short:"Drama", name:"Drama", grade:90.3, letter:"A−",
+      hist:[95.0,94.5,94.0,93.2,92.5,91.6,91.0,90.3],
+      foot:"The term's one soft spot, easing a few points and still slipping." },
+    { id:"lit", short:"Lit", name:"Literature", grade:94.1, letter:"A",
+      hist:[90.0,90.8,91.5,92.0,92.6,93.2,93.7,94.1],
+      foot:"A steady gain, four points over eight weeks of reading." },
+    { id:"pe",  short:"PE 9", name:"PE 9", grade:99.1, letter:"A",
+      hist:[98.5,98.7,98.6,99.0,98.9,99.1,99.0,99.1],
+      foot:"Flat and high, never far from full marks." }
+  ];
+
+  var X_LABELS = ["Apr 27","Jun 22"]; // first and last reading
+
+  // ---- sparkline geometry ----
+  var VB = { w:320, h:130 };
+  var PAD = { l:30, r:14, t:14, b:22 };
+  var Y_MIN = 88, Y_MAX = 100;
+
+  function px(i, n){
+    var span = VB.w - PAD.l - PAD.r;
+    return PAD.l + (n === 1 ? 0 : (span * i / (n - 1)));
+  }
+  function py(v){
+    var span = VB.h - PAD.t - PAD.b;
+    var t = (v - Y_MIN) / (Y_MAX - Y_MIN);
+    return PAD.t + span * (1 - t);
+  }
+
+  function buildSpark(course){
+    var h = course.hist, n = h.length;
+    var svg = "";
+    // gridlines at 88, 92, 96, 100
+    var lines = [88,92,96,100];
+    for (var g=0; g<lines.length; g++){
+      var gy = py(lines[g]);
+      svg += '<line class="grid" x1="'+PAD.l+'" y1="'+gy.toFixed(1)+'" x2="'+(VB.w-PAD.r)+'" y2="'+gy.toFixed(1)+'"/>';
+      svg += '<text class="ylab" x="'+(PAD.l-5)+'" y="'+(gy+3).toFixed(1)+'">'+lines[g]+'</text>';
+    }
+    // y axis
+    svg += '<line class="axis" x1="'+PAD.l+'" y1="'+PAD.t+'" x2="'+PAD.l+'" y2="'+(VB.h-PAD.b)+'"/>';
+    // x axis
+    var ay = VB.h - PAD.b;
+    svg += '<line class="axis" x1="'+PAD.l+'" y1="'+ay+'" x2="'+(VB.w-PAD.r)+'" y2="'+ay+'"/>';
+    // x labels (first + last)
+    svg += '<text class="xlab" x="'+px(0,n).toFixed(1)+'" y="'+(VB.h-7)+'" text-anchor="start">'+X_LABELS[0]+'</text>';
+    svg += '<text class="xlab" x="'+px(n-1,n).toFixed(1)+'" y="'+(VB.h-7)+'" text-anchor="end">'+X_LABELS[1]+'</text>';
+    // series polyline
+    var pts = [];
+    for (var i=0; i<n; i++){ pts.push(px(i,n).toFixed(1)+","+py(h[i]).toFixed(1)); }
+    svg += '<polyline class="series" points="'+pts.join(" ")+'"/>';
+    // open dots for past, filled for present
+    for (var j=0; j<n; j++){
+      var cx = px(j,n).toFixed(1), cy = py(h[j]).toFixed(1);
+      if (j === n-1) svg += '<circle class="dot-fill" cx="'+cx+'" cy="'+cy+'" r="3.4"/>';
+      else svg += '<circle class="dot-open" cx="'+cx+'" cy="'+cy+'" r="2.6"/>';
+    }
+    return svg;
+  }
+
+  // ---- DOM ----
+  var pill   = document.getElementById("pill");
+  var panel  = document.getElementById("panel");
+  var scrim  = document.getElementById("scrim");
+  var closeB = document.getElementById("close");
+  var hint   = document.getElementById("hint");
+  var tabsEl = document.getElementById("gtabs");
+  var spark  = document.getElementById("spark");
+  var gName  = document.getElementById("g-name");
+  var gRead  = document.getElementById("g-read");
+  var gLt    = document.getElementById("g-lt");
+  var gFoot  = document.getElementById("g-foot");
+
+  var STORE_OPEN = "bsgy.portable.open";
+  var STORE_TAB  = "bsgy.portable.course";
+
+  function lsGet(k){ try { return window.localStorage.getItem(k); } catch(e){ return null; } }
+  function lsSet(k,v){ try { window.localStorage.setItem(k,v); } catch(e){} }
+
+  // build tabs
+  COURSES.forEach(function(c, idx){
+    var b = document.createElement("button");
+    b.className = "gtab";
+    b.type = "button";
+    b.setAttribute("role","tab");
+    b.dataset.course = c.id;
+    b.textContent = c.short;
+    b.addEventListener("click", function(){ selectCourse(c.id); });
+    tabsEl.appendChild(b);
+  });
+
+  function selectCourse(id){
+    var c = null;
+    for (var i=0;i<COURSES.length;i++){ if (COURSES[i].id===id){ c=COURSES[i]; break; } }
+    if (!c) c = COURSES[0];
+    // tabs active state
+    var tabs = tabsEl.querySelectorAll(".gtab");
+    tabs.forEach(function(t){
+      var on = t.dataset.course === c.id;
+      t.classList.toggle("gtab--on", on);
+      t.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    // chart
+    spark.innerHTML = buildSpark(c);
+    gName.textContent = c.name;
+    gRead.textContent = c.grade.toFixed(1) + "%";
+    gLt.textContent = c.letter;
+    gFoot.textContent = c.foot;
+    lsSet(STORE_TAB, c.id);
+  }
+
+  function openPanel(){
+    panel.classList.add("panel--on");
+    panel.setAttribute("aria-hidden","false");
+    scrim.classList.add("scrim--on");
+    pill.classList.add("pill--hidden");
+    hint.classList.add("hint--off");
+    lsSet(STORE_OPEN, "1");
+    // focus close for keyboard users
+    window.setTimeout(function(){ closeB.focus(); }, 60);
+  }
+  function closePanel(){
+    panel.classList.remove("panel--on");
+    panel.setAttribute("aria-hidden","true");
+    scrim.classList.remove("scrim--on");
+    pill.classList.remove("pill--hidden");
+    lsSet(STORE_OPEN, "0");
+    pill.focus();
+  }
+
+  pill.addEventListener("click", openPanel);
+  closeB.addEventListener("click", closePanel);
+  scrim.addEventListener("click", closePanel);
+  document.addEventListener("keydown", function(e){
+    if (e.key === "Escape" && panel.classList.contains("panel--on")) closePanel();
+  });
+
+  // restore state
+  var savedTab = lsGet(STORE_TAB);
+  var validTab = savedTab && COURSES.some(function(c){ return c.id === savedTab; });
+  selectCourse(validTab ? savedTab : COURSES[0].id);
+
+  if (lsGet(STORE_OPEN) === "1"){
+    // open without focus-stealing transition jump
+    panel.classList.add("panel--on");
+    panel.setAttribute("aria-hidden","false");
+    scrim.classList.add("scrim--on");
+    pill.classList.add("pill--hidden");
+    hint.classList.add("hint--off");
+  }
+})();
+</script>
+</body>
+</html>

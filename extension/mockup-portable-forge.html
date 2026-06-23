@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Better SGY — portable widget</title>
+<style>
+  /* ============================================================
+     Better SGY — the friendly one, but portable.
+     A little floating thing that rides along on any webpage.
+     Same warm cream paper, rounded type, dry voice as the app.
+     Self-contained: inline CSS + inline SVG + vanilla JS.
+     Works on double-click. No frameworks, no network.
+     ============================================================ */
+  :root{
+    --paper:   #fdf4e6;
+    --paper-2: #f7ead6;
+    --card:    #fffdf9;
+    --ink:     #3a2f25;
+    --ink-2:   #8a7a66;
+    --ink-3:   #b6a690;
+    --line:    #ece0cd;
+    --coral:   #ff6f61;
+    --peach:   #ffb454;
+    --sun:     #ffcf4d;
+    --sage:    #4fb286;
+    --sky:     #5aa9e6;
+    --grape:   #9b87f2;
+    --rose:    #ef6a52;
+    --bubble:  #fff4dd;
+    --softfill:#fff1d6;
+    --shadow:  rgba(120,80,30,.5);
+    --font: "SF Pro Rounded","ui-rounded","Hiragino Maru Gothic ProN",
+            "Segoe UI Variable","Nunito",system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+
+  /* ============================================================
+     FAUX WEBPAGE behind the widget — a plain study article.
+     Deliberately not cream; it's "some other site" so the
+     warm widget reads as a thing that lives on top of it.
+     ============================================================ */
+  html,body{height:100%}
+  body{
+    font-family:Georgia,"Times New Roman",serif;
+    background:#f4f5f7;color:#2b2f36;line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page-top{background:#fff;border-bottom:1px solid #e3e6ea}
+  .page-top .inner{max-width:760px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:14px;
+    font-family:-apple-system,system-ui,sans-serif}
+  .page-top .logo{font-weight:800;font-size:16px;color:#1a1d22;letter-spacing:-.01em}
+  .page-top .logo span{color:#7a818c;font-weight:600}
+  .page-top nav{margin-left:auto;display:flex;gap:20px;font-size:13.5px;color:#646b76;font-weight:600}
+  .page-top nav a{color:inherit;text-decoration:none}
+  .article{max-width:680px;margin:0 auto;padding:40px 24px 160px}
+  .article .kicker{font-family:-apple-system,system-ui,sans-serif;font-size:12.5px;font-weight:800;
+    letter-spacing:.08em;text-transform:uppercase;color:#9aa0aa;margin-bottom:14px}
+  .article h1{font-size:34px;line-height:1.2;letter-spacing:-.01em;color:#161a1f;margin-bottom:10px;font-weight:700}
+  .article .byline{font-family:-apple-system,system-ui,sans-serif;font-size:13.5px;color:#8b919b;margin-bottom:30px}
+  .article h2{font-size:23px;margin:34px 0 10px;color:#1c2026;letter-spacing:-.005em}
+  .article p{font-size:18px;margin-bottom:20px;color:#373c44}
+  .article blockquote{border-left:3px solid #c9ced6;margin:24px 0;padding:4px 0 4px 20px;
+    font-style:italic;color:#5a616b}
+  .article figure{margin:28px 0}
+  .article figure .ph{height:220px;border-radius:12px;
+    background:linear-gradient(120deg,#e7eaee,#dde1e7);display:grid;place-items:center;color:#aab0ba;
+    font-family:-apple-system,system-ui,sans-serif;font-size:13px;font-weight:700}
+  .article figcaption{font-family:-apple-system,system-ui,sans-serif;font-size:12.5px;color:#9aa0aa;margin-top:8px}
+
+  /* ============================================================
+     SHARED — dim layer when panel is open
+     ============================================================ */
+  .dim{position:fixed;inset:0;background:rgba(40,32,22,.16);backdrop-filter:saturate(.9) blur(.5px);
+    opacity:0;pointer-events:none;transition:opacity .28s ease;z-index:998}
+  .dim.show{opacity:1;pointer-events:auto}
+
+  /* ============================================================
+     1 · COLLAPSED PILL — bottom-right, always there
+     ============================================================ */
+  .pill{
+    position:fixed;right:22px;bottom:22px;z-index:1000;
+    display:flex;align-items:center;gap:11px;
+    padding:9px 16px 9px 10px;border-radius:30px;cursor:pointer;
+    background:var(--card);border:1.5px solid var(--line);
+    font-family:var(--font);color:var(--ink);
+    box-shadow:0 14px 34px -14px rgba(120,80,30,.55),0 3px 0 rgba(214,140,70,.16);
+    transition:transform .16s cubic-bezier(.2,.8,.2,1),box-shadow .16s,opacity .2s;
+    transform-origin:bottom right;
+  }
+  .pill:hover{transform:translateY(-2px);box-shadow:0 20px 40px -14px rgba(120,80,30,.6),0 3px 0 rgba(214,140,70,.16)}
+  .pill:active{transform:translateY(0)}
+  .pill.gone{opacity:0;transform:scale(.85) translateY(8px);pointer-events:none}
+  .pill .mark{
+    width:34px;height:34px;border-radius:50%;flex:none;display:grid;place-items:center;
+    font-size:13px;font-weight:800;letter-spacing:-.02em;color:#fff;
+    background:radial-gradient(circle at 35% 30%,#ffd98a,#ff9d5c);
+    box-shadow:0 4px 0 rgba(214,140,70,.28);
+  }
+  .pill .pg{display:flex;flex-direction:column;line-height:1.05}
+  .pill .pg .g{font-size:17px;font-weight:800;letter-spacing:-.02em}
+  .pill .pg .g .pct{font-size:11px;color:var(--ink-3);font-weight:700}
+  .pill .pg .t{font-size:11px;font-weight:700;color:var(--ink-2);display:flex;align-items:center;gap:3px;margin-top:1px}
+  .pill .pg .t .up{color:var(--sage);font-weight:800}
+
+  /* ============================================================
+     2 · EXPANDED SIDE PANEL — slides in from the right
+     ============================================================ */
+  .panel{
+    position:fixed;top:14px;right:14px;bottom:14px;z-index:1001;
+    width:392px;max-width:calc(100vw - 28px);
+    background:var(--paper);border:1.5px solid var(--line);border-radius:26px;
+    font-family:var(--font);color:var(--ink);
+    box-shadow:0 30px 70px -24px rgba(80,50,15,.6);
+    display:flex;flex-direction:column;overflow:hidden;
+    transform:translateX(calc(100% + 26px));opacity:0;
+    transition:transform .42s cubic-bezier(.18,.9,.22,1.06),opacity .26s ease;
+    background-image:radial-gradient(circle at 12% 4%,rgba(255,180,84,.1),transparent 40%),
+                     radial-gradient(circle at 96% 0%,rgba(155,135,242,.09),transparent 38%);
+  }
+  .panel.open{transform:translateX(0);opacity:1}
+
+  /* header */
+  .ph{display:flex;align-items:center;gap:11px;padding:16px 16px 12px}
+  .ph .ava{width:36px;height:36px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:18px;
+    background:radial-gradient(circle at 35% 30%,#ffd98a,#ff9d5c);box-shadow:0 4px 0 rgba(214,140,70,.25)}
+  .ph .ttl{flex:1;min-width:0}
+  .ph .ttl .nm{font-size:16px;font-weight:800;letter-spacing:-.01em;line-height:1.05}
+  .ph .ttl .sub{font-size:11.5px;color:var(--ink-2);font-weight:600}
+  .ph .x{width:32px;height:32px;border-radius:12px;flex:none;display:grid;place-items:center;cursor:pointer;
+    background:var(--card);border:1.5px solid var(--line);color:var(--ink-2);font-size:17px;font-weight:700;
+    transition:transform .12s,background .12s,color .12s}
+  .ph .x:hover{transform:translateY(-1px);background:var(--paper-2);color:var(--ink)}
+
+  /* scroll body */
+  .pbody{flex:1;min-height:0;overflow-y:auto;padding:4px 16px 18px}
+  .pbody::-webkit-scrollbar{width:9px}
+  .pbody::-webkit-scrollbar-thumb{background:#e2d2b8;border-radius:8px;border:2px solid var(--paper)}
+  .pbody::-webkit-scrollbar-track{background:transparent}
+
+  /* big overall block */
+  .overall{background:var(--card);border:1.5px solid var(--line);border-radius:20px;
+    padding:16px 18px;box-shadow:0 8px 20px -16px rgba(120,80,30,.5);position:relative}
+  .overall .tag{position:absolute;top:-10px;right:14px;background:var(--sage);color:#fff;
+    font-size:11px;font-weight:800;padding:3px 11px;border-radius:18px;
+    box-shadow:0 5px 12px -3px rgba(79,178,134,.55);transform:rotate(3deg)}
+  .overall .big{font-size:46px;font-weight:800;line-height:1;letter-spacing:-.03em}
+  .overall .big .pct{font-size:20px;color:var(--ink-3)}
+  .overall .cap{font-size:12.5px;color:var(--ink-2);font-weight:700;margin-top:6px}
+  .overall .peek{margin-top:11px;display:flex;gap:8px;align-items:center;
+    background:var(--bubble);border:1.5px solid var(--line);border-radius:14px;padding:9px 12px}
+  .overall .peek .e{font-size:15px}
+  .overall .peek p{font-size:12.5px;font-weight:700;color:var(--ink)}
+  .overall .peek p b{color:var(--peach);font-weight:800}
+
+  /* section heading */
+  .sh{display:flex;align-items:baseline;gap:8px;margin:22px 2px 10px}
+  .sh h3{font-size:14px;font-weight:800;letter-spacing:.01em;text-transform:lowercase}
+  .sh .s{font-size:11.5px;color:var(--ink-2);font-weight:600}
+
+  /* recent activity rows */
+  .row{display:flex;align-items:center;gap:12px;padding:11px 13px;margin-bottom:9px;
+    background:var(--card);border:1.5px solid var(--line);border-radius:16px;
+    box-shadow:0 6px 16px -16px rgba(120,80,30,.5);position:relative;overflow:hidden}
+  .row:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--dot,var(--peach))}
+  .row .ic{width:34px;height:34px;border-radius:11px;flex:none;display:grid;place-items:center;font-size:16px;
+    background:var(--soft,var(--softfill))}
+  .row .meta{flex:1;min-width:0}
+  .row .meta .t{font-size:13.5px;font-weight:800;letter-spacing:-.01em;line-height:1.25;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row .meta .s{font-size:11.5px;color:var(--ink-2);font-weight:600;margin-top:1px;line-height:1.3}
+  .row .meta .aside{display:block;font-size:11.5px;font-weight:600;color:var(--ink-2);font-style:italic;margin-top:3px}
+  .row .meta .aside.warn{color:var(--rose);font-style:normal;font-weight:700}
+  .row .val{flex:none;text-align:right;font-size:14px;font-weight:800;letter-spacing:-.01em}
+  .row .val.up{color:var(--sage)}
+  .row .val.down{color:var(--rose)}
+  .row .val.neutral{color:var(--ink)}
+  .row .val .nw{display:inline-block;font-size:10.5px;font-weight:800;color:#fff;background:var(--grape);
+    padding:3px 9px;border-radius:12px}
+
+  /* grade over time */
+  .chartcard{background:var(--card);border:1.5px solid var(--line);border-radius:18px;
+    padding:13px 14px 12px;box-shadow:0 8px 20px -16px rgba(120,80,30,.5)}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .gchip{font-size:11.5px;font-weight:800;padding:5px 11px;border-radius:14px;cursor:pointer;user-select:none;
+    background:var(--paper-2);color:var(--ink-2);border:1.5px solid transparent;display:inline-flex;align-items:center;gap:6px;
+    transition:transform .12s,background .12s,color .12s,border-color .12s}
+  .gchip:hover{transform:translateY(-1px)}
+  .gchip .dot{width:8px;height:8px;border-radius:50%;background:var(--dot,var(--peach))}
+  .gchip.on{background:var(--ink);color:#fff}
+  .gchip.on .dot{box-shadow:0 0 0 2px var(--ink),0 0 0 3.5px var(--dot)}
+  .chartwrap{width:100%}
+  .chartwrap svg{display:block;width:100%;height:auto;overflow:visible}
+  .grid{stroke:var(--line);stroke-width:1}
+  .axy{font-size:9px;font-weight:700;fill:var(--ink-3)}
+  .chartnote{font-size:12px;font-weight:600;color:var(--ink-2);margin-top:9px;display:flex;gap:7px;align-items:flex-start}
+  .chartnote .q{flex:none;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:11px;
+    background:var(--soft,var(--softfill))}
+  .chartnote p{line-height:1.4}
+  .chartnote p b{color:var(--ink);font-weight:800}
+
+  .pfoot{font-size:11px;color:var(--ink-3);font-weight:600;text-align:center;margin-top:18px}
+
+  @media(max-width:480px){
+    .panel{width:auto;left:10px;right:10px;top:10px;bottom:10px}
+  }
+</style>
+</head>
+<body>
+
+  <!-- ===== FAUX WEBPAGE (the page the student is reading) ===== -->
+  <header class="page-top">
+    <div class="inner">
+      <div class="logo">study<span>notes.io</span></div>
+      <nav><a href="#">topics</a><a href="#">saved</a><a href="#">about</a></nav>
+    </div>
+  </header>
+
+  <article class="article">
+    <div class="kicker">Biology · cellular respiration</div>
+    <h1>How a cell actually turns food into usable energy</h1>
+    <div class="byline">9 min read · updated this spring</div>
+
+    <p>Every cell you have is, at some level, a tiny factory that takes the sugar from your last meal and converts it into a molecule it can actually spend. That molecule is ATP, and the conversion happens in stages, each one handing off to the next.</p>
+
+    <p>The first stage, glycolysis, splits a glucose molecule in two out in the cytoplasm. It doesn't need oxygen, and it's quick, but it only releases a small fraction of the energy locked in the original sugar. Most of what's useful is still waiting downstream.</p>
+
+    <h2>Where the real payoff happens</h2>
+    <p>The mitochondria are where the cell gets most of its return. The pyruvate from glycolysis is fed into the citric acid cycle, electrons are stripped off and shuttled into the electron transport chain, and oxygen sits at the very end as the final acceptor. This is the part most lab handouts ask you to diagram.</p>
+
+    <blockquote>If glycolysis is the appetizer, the electron transport chain is the entire rest of the meal.</blockquote>
+
+    <figure>
+      <div class="ph">diagram: the electron transport chain</div>
+      <figcaption>Fig 3. Electrons move down the chain; the gradient drives ATP synthase.</figcaption>
+    </figure>
+
+    <p>The reason this matters for a problem set is that almost every exam question hides in the handoffs: which stage makes which product, where oxygen comes in, and what happens when it isn't around. Get the order straight and most of the questions answer themselves.</p>
+
+    <h2>What to remember for the test</h2>
+    <p>Keep three things straight and you'll be fine: glycolysis is in the cytoplasm and needs no oxygen, the citric acid cycle and electron transport chain run in the mitochondria, and oxygen's whole job is to wait at the end. Everything else is detail you can rebuild from those three.</p>
+
+    <p>Once the order clicks, the math on ATP yield stops feeling arbitrary and starts feeling like bookkeeping. Which, honestly, is all it ever was.</p>
+  </article>
+
+  <!-- ===== DIM LAYER ===== -->
+  <div class="dim" id="dim"></div>
+
+  <!-- ===== COLLAPSED PILL ===== -->
+  <button class="pill" id="pill" aria-label="open better sgy">
+    <span class="mark">SGY</span>
+    <span class="pg">
+      <span class="g">96.2<span class="pct">%</span></span>
+      <span class="t">grades <span class="up">▲ 1.4</span></span>
+    </span>
+  </button>
+
+  <!-- ===== EXPANDED SIDE PANEL ===== -->
+  <aside class="panel" id="panel" aria-hidden="true">
+    <div class="ph">
+      <div class="ava">🙂</div>
+      <div class="ttl">
+        <div class="nm">better sgy</div>
+        <div class="sub">riding along on this page</div>
+      </div>
+      <button class="x" id="closebtn" aria-label="collapse">×</button>
+    </div>
+
+    <div class="pbody">
+      <!-- big overall -->
+      <div class="overall">
+        <span class="tag">on track ✶</span>
+        <div class="big">96.2<span class="pct">%</span></div>
+        <div class="cap">overall average · 6 courses · checked just now</div>
+        <div class="peek">
+          <span class="e">👀</span>
+          <p><b>2 missing</b>, worth a peek when you get a sec</p>
+        </div>
+      </div>
+
+      <!-- recent activity -->
+      <div class="sh"><h3>recent activity</h3><span class="s">last few days</span></div>
+      <div id="activity"></div>
+
+      <!-- grade over time -->
+      <div class="sh"><h3>grade over time</h3><span class="s">tap a class</span></div>
+      <div class="chartcard" id="chartcard">
+        <div class="chips" id="chips"></div>
+        <div class="chartwrap" id="chartwrap"></div>
+        <div class="chartnote" id="chartnote"></div>
+      </div>
+
+      <div class="pfoot">that's the gist. close me and keep reading.</div>
+    </div>
+  </aside>
+
+<script>
+/* ============================================================
+   DATA — from MOCKUP_DATA.md. today = Mon Jun 22, 2026.
+   ============================================================ */
+const COURSES = [
+  {id:'alg', name:'Algebra 2 / Trig', short:'alg 2', emoji:'📐', accent:'#5aa9e6', soft:'#e3f0fb', grade:97.4, trend:'up'},
+  {id:'bio', name:'Biology',          short:'bio',   emoji:'🧬', accent:'#4fb286', soft:'#e6f7ef', grade:96.7, trend:'flat'},
+  {id:'fre', name:'French 1',         short:'french',emoji:'🥐', accent:'#ffb454', soft:'#fff1d6', grade:96.5, trend:'up'},
+  {id:'dra', name:'Drama',            short:'drama', emoji:'🎭', accent:'#9b87f2', soft:'#ece7ff', grade:90.3, trend:'down'},
+  {id:'lit', name:'Literature',       short:'lit',   emoji:'📚', accent:'#ef6a9b', soft:'#ffe4ef', grade:94.1, trend:'up'},
+  {id:'pe',  name:'PE 9',             short:'pe',    emoji:'🏃', accent:'#4fb286', soft:'#e6f7ef', grade:99.1, trend:'flat'},
+];
+const byId = id => COURSES.find(c => c.id === id);
+
+const HISTORY = {
+  alg:[92.0,93.0,94.0,95.0,95.5,96.3,97.0,97.4],
+  bio:[96.0,96.4,96.2,96.8,96.5,96.9,96.6,96.7],
+  fre:[91.0,92.5,93.0,94.0,94.8,95.5,96.1,96.5],
+  dra:[95.0,94.5,94.0,93.2,92.5,91.6,91.0,90.3],
+  lit:[90.0,90.8,91.5,92.0,92.6,93.2,93.7,94.1],
+  pe :[98.5,98.7,98.6,99.0,98.9,99.1,99.0,99.1],
+};
+
+// little warm aside per course's chart
+const CHART_NOTE = {
+  alg:{q:'📈', html:'up about <b>5 points</b> since april. strongest climb of the lot.'},
+  bio:{q:'🧬', html:'flat in the high 96s. boring in the good way.'},
+  fre:{q:'🥐', html:'steady climb. your french keeps inching up.'},
+  dra:{q:'👀', html:'this is the one drifting down. still an A−, just keep an eye on it.'},
+  lit:{q:'📚', html:'slow and steady the whole semester.'},
+  pe :{q:'🏆', html:'flat at the top. nothing to do here.'},
+};
+
+// recent activity — exactly the six the brief asked for
+const ACTIVITY = [
+  {cid:'alg', t:'Algebra 2 / Trig', s:'96.3% → 97.4% · 2d ago',
+   val:'+1.1%', dir:'up', aside:'best week in a while, no notes'},
+  {cid:'bio', t:'Enzymes Problem Set', s:'graded · biology · 3d ago',
+   val:'18/20', dir:'neutral'},
+  {cid:'dra', t:'Monologue Reflection', s:'new · drama · 3d ago',
+   val:'new', dir:'new', aside:'this is one of the missing ones', warn:true},
+  {cid:'dra', t:'Drama', s:'91.0% → 90.3% · 4d ago',
+   val:'−0.7%', dir:'down', aside:'turning that reflection in nudges it back'},
+  {cid:'fre', t:'Unité 5 Exam', s:'graded · french 1 · 5d ago',
+   val:'95%', dir:'neutral'},
+  {cid:'bio', t:'Cell Energetics Lab', s:'new · biology · 6d ago',
+   val:'new', dir:'new'},
+];
+
+/* ============================================================
+   STATE (light localStorage)
+   ============================================================ */
+const LS = 'bsgy-portable-forge';
+let state = { open:false, chart:'alg' };
+try{ const s = JSON.parse(localStorage.getItem(LS)); if(s) state = {...state, ...s}; }catch(e){}
+function save(){ try{ localStorage.setItem(LS, JSON.stringify(state)); }catch(e){} }
+
+/* ============================================================
+   RECENT ACTIVITY
+   ============================================================ */
+function renderActivity(){
+  document.getElementById('activity').innerHTML = ACTIVITY.map(a => {
+    const c = byId(a.cid);
+    let val;
+    if(a.dir==='new') val = `<span class="nw">new</span>`;
+    else if(a.dir==='up') val = a.val;
+    else if(a.dir==='down') val = a.val;
+    else val = a.val;
+    const aside = a.aside ? `<span class="aside${a.warn?' warn':''}">${a.aside}</span>` : '';
+    return `<div class="row" style="--dot:${c.accent};--soft:${c.soft}">
+      <div class="ic">${c.emoji}</div>
+      <div class="meta">
+        <div class="t">${a.t}</div>
+        <div class="s">${a.s}</div>
+        ${aside}
+      </div>
+      <div class="val ${a.dir==='new'?'neutral':a.dir}">${val}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ============================================================
+   GRADE OVER TIME — inline SVG sparkline w/ area fill
+   y range 88..100. rounded caps, end dot.
+   ============================================================ */
+const W = 340, H = 96, PAD_L = 8, PAD_R = 14, PAD_T = 12, PAD_B = 14;
+function ymap(v){ return PAD_T + (1 - (v-88)/(100-88)) * (H-PAD_T-PAD_B); }
+function xmap(i,n){ return PAD_L + (i/(n-1)) * (W-PAD_L-PAD_R); }
+
+function chartSVG(cid){
+  const h = HISTORY[cid], n = h.length, c = byId(cid);
+  const linePts = h.map((v,i)=>`${xmap(i,n).toFixed(1)},${ymap(v).toFixed(1)}`);
+  const lastX = xmap(n-1,n), lastY = ymap(h[n-1]);
+  const baseY = H - PAD_B;
+  const area = `${xmap(0,n).toFixed(1)},${baseY} ` + linePts.join(' ') + ` ${lastX.toFixed(1)},${baseY}`;
+  // soft horizontal guides at 100/96/92/88
+  const guides = [100,96,92,88].map(v =>
+    `<line class="grid" x1="${PAD_L}" y1="${ymap(v).toFixed(1)}" x2="${W-PAD_R}" y2="${ymap(v).toFixed(1)}"/>
+     <text class="axy" x="${W-PAD_R+2}" y="${(ymap(v)+3).toFixed(1)}">${v}</text>`
+  ).join('');
+  const gid = 'gr-'+cid;
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${c.name} grade over the semester, now ${c.grade}%">
+    <defs>
+      <linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="${c.accent}" stop-opacity="0.26"/>
+        <stop offset="1" stop-color="${c.accent}" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    ${guides}
+    <polygon points="${area}" fill="url(#${gid})"/>
+    <polyline points="${linePts.join(' ')}" fill="none" stroke="${c.accent}" stroke-width="2.8"
+      stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${lastX.toFixed(1)}" cy="${lastY.toFixed(1)}" r="9" fill="${c.accent}" opacity="0.16"/>
+    <circle cx="${lastX.toFixed(1)}" cy="${lastY.toFixed(1)}" r="4.2" fill="${c.accent}"/>
+  </svg>`;
+}
+function renderChips(){
+  document.getElementById('chips').innerHTML = COURSES.map(c =>
+    `<span class="gchip ${c.id===state.chart?'on':''}" data-chip="${c.id}" style="--dot:${c.accent}">
+       <span class="dot"></span>${c.short}</span>`
+  ).join('');
+  document.querySelectorAll('#chips .gchip').forEach(el =>
+    el.onclick = () => { state.chart = el.dataset.chip; save(); renderChart(); });
+}
+function renderChart(){
+  const c = byId(state.chart);
+  document.getElementById('chartwrap').innerHTML = chartSVG(state.chart);
+  const note = CHART_NOTE[state.chart];
+  document.getElementById('chartnote').innerHTML =
+    `<span class="q" style="background:${c.soft}">${note.q}</span><p>${note.html}</p>`;
+  // refresh chip "on" states without rebuilding (keeps it snappy)
+  document.querySelectorAll('#chips .gchip').forEach(el =>
+    el.classList.toggle('on', el.dataset.chip===state.chart));
+}
+
+/* ============================================================
+   OPEN / CLOSE
+   ============================================================ */
+const pill = document.getElementById('pill');
+const panel = document.getElementById('panel');
+const dim = document.getElementById('dim');
+
+function openPanel(){
+  state.open = true; save();
+  pill.classList.add('gone');
+  dim.classList.add('show');
+  panel.setAttribute('aria-hidden','false');
+  // next frame so the transition runs
+  requestAnimationFrame(() => panel.classList.add('open'));
+}
+function closePanel(){
+  state.open = false; save();
+  panel.classList.remove('open');
+  panel.setAttribute('aria-hidden','true');
+  dim.classList.remove('show');
+  setTimeout(() => pill.classList.remove('gone'), 180);
+}
+
+pill.onclick = openPanel;
+document.getElementById('closebtn').onclick = closePanel;
+dim.onclick = closePanel;
+document.addEventListener('keydown', e => { if(e.key==='Escape' && state.open) closePanel(); });
+
+/* ============================================================
+   INIT
+   ============================================================ */
+renderActivity();
+renderChips();
+renderChart();
+if(state.open){
+  // restore expanded state without the slide-in flash
+  pill.classList.add('gone');
+  dim.classList.add('show');
+  panel.classList.add('open');
+  panel.setAttribute('aria-hidden','false');
+}
+</script>
+</body>
+</html>

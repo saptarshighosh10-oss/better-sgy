@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Better SGY · Portable widget · HALO</title>
+<style>
+  /* ============================================================
+     HALO — calm, near-silent, monochrome.
+     Color is reserved for meaning: green = upward, red = down /
+     missing. Everything else is quiet grayscale.
+     This file is the portable "lives on any webpage" widget,
+     shown over a faux study article.
+     ============================================================ */
+
+  :root {
+    --paper:        #fcfcfb;
+    --paper-2:      #f6f6f4;
+    --paper-3:      #f0f0ed;
+    --ink:          #14140f;
+    --ink-2:        #3a3a35;
+    --ink-3:        #6c6c64;
+    --ink-4:        #9a9a91;
+    --hair:         rgba(0,0,0,0.07);
+    --hair-strong:  rgba(0,0,0,0.11);
+
+    --signal-up:        #2f8f5b;
+    --signal-up-soft:   rgba(47,143,91,0.10);
+    --signal-miss:      #c0392b;
+    --signal-miss-soft: rgba(192,57,43,0.08);
+
+    --radius:    14px;
+    --radius-sm: 9px;
+
+    --panel-w:   384px;
+    --spark-mute: #9a9a91;
+    --shadow:    0 18px 60px rgba(20,20,15,0.16), 0 2px 8px rgba(20,20,15,0.06);
+    --shadow-pill: 0 10px 34px rgba(20,20,15,0.16), 0 1px 4px rgba(20,20,15,0.08);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "cv11", "ss01", "tnum";
+    line-height: 1.5;
+    letter-spacing: -0.006em;
+  }
+
+  /* ============================================================
+     FAUX WEBPAGE — a student reading a study article.
+     Intentionally plain; the widget is the subject, not this.
+     ============================================================ */
+  .pagebar {
+    position: sticky; top: 0; z-index: 1;
+    display: flex; align-items: center; gap: 16px;
+    padding: 14px 28px;
+    border-bottom: 1px solid var(--hair);
+    background: rgba(252,252,251,0.86);
+    backdrop-filter: saturate(140%) blur(8px);
+  }
+  .pagebar .glyph {
+    width: 26px; height: 26px; border-radius: 7px;
+    background: var(--ink); color: var(--paper);
+    display: grid; place-items: center;
+    font-size: 12px; font-weight: 700; letter-spacing: -0.02em; flex: none;
+  }
+  .pagebar .site { font-size: 14px; font-weight: 600; color: var(--ink); }
+  .pagebar .pgnav {
+    margin-left: auto; display: flex; gap: 22px;
+    font-size: 13px; font-weight: 500; color: var(--ink-4);
+  }
+  .pagebar .pgnav span { cursor: default; }
+
+  .article {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 64px 28px 160px;
+  }
+  .article .kicker {
+    font-size: 12px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ink-4); margin: 0 0 16px;
+  }
+  .article h1 {
+    font-size: 38px; font-weight: 600; letter-spacing: -0.03em;
+    line-height: 1.12; color: var(--ink); margin: 0 0 18px;
+  }
+  .article .byline {
+    font-size: 13.5px; color: var(--ink-4); font-weight: 450;
+    margin: 0 0 40px; padding-bottom: 28px;
+    border-bottom: 1px solid var(--hair);
+  }
+  .article h2 {
+    font-size: 21px; font-weight: 600; letter-spacing: -0.02em;
+    color: var(--ink); margin: 44px 0 16px;
+  }
+  .article p {
+    font-size: 17px; line-height: 1.72; color: var(--ink-2);
+    font-weight: 420; margin: 0 0 22px; letter-spacing: -0.003em;
+  }
+  .article .pull {
+    margin: 36px 0; padding: 4px 0 4px 22px;
+    border-left: 2px solid var(--hair-strong);
+    font-size: 19px; line-height: 1.6; color: var(--ink);
+    font-weight: 450; letter-spacing: -0.01em;
+  }
+  .article figure {
+    margin: 36px 0; border: 1px solid var(--hair);
+    border-radius: var(--radius); overflow: hidden; background: var(--paper-2);
+  }
+  .article figure .band { height: 168px; background:
+      repeating-linear-gradient(135deg, var(--paper-2) 0 16px, var(--paper-3) 16px 32px); }
+  .article figcaption {
+    font-size: 12.5px; color: var(--ink-4); font-weight: 450;
+    padding: 12px 16px; border-top: 1px solid var(--hair); background: var(--paper);
+  }
+
+  /* page dim while panel is open */
+  .scrim {
+    position: fixed; inset: 0; z-index: 40;
+    background: rgba(20,20,15,0.10);
+    opacity: 0; pointer-events: none;
+    transition: opacity 260ms ease;
+  }
+  body.open .scrim { opacity: 1; pointer-events: auto; }
+
+  /* ============================================================
+     COLLAPSED PILL — fixed bottom-right, always visible
+     ============================================================ */
+  .pill {
+    position: fixed; right: 22px; bottom: 22px; z-index: 50;
+    display: flex; align-items: center; gap: 11px;
+    padding: 9px 15px 9px 11px;
+    background: var(--paper);
+    border: 1px solid var(--hair-strong);
+    border-radius: 999px;
+    box-shadow: var(--shadow-pill);
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform 200ms cubic-bezier(.2,.7,.3,1),
+                opacity 200ms ease, box-shadow 200ms ease;
+  }
+  .pill:hover { transform: translateY(-1px); box-shadow: 0 14px 40px rgba(20,20,15,0.20), 0 1px 4px rgba(20,20,15,0.08); }
+  .pill:active { transform: translateY(0); }
+  body.open .pill { opacity: 0; pointer-events: none; transform: translateY(6px) scale(0.98); }
+
+  .pill .mark { width: 22px; height: 22px; flex: none; display: block; }
+  .pill .mark circle[stroke] { stroke: var(--ink); }
+  .pill .mark circle[fill]   { fill: var(--ink); }
+
+  .pill .grade {
+    font-size: 14.5px; font-weight: 600; color: var(--ink);
+    letter-spacing: -0.012em; font-variant-numeric: tabular-nums;
+  }
+  .pill .div { width: 1px; height: 16px; background: var(--hair-strong); }
+  .pill .trend {
+    display: inline-flex; align-items: baseline; gap: 4px;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.02em;
+    color: var(--ink-4);
+  }
+  .pill .trend .lab { color: var(--ink-4); font-weight: 600; }
+  .pill .trend .val { color: var(--signal-up); font-variant-numeric: tabular-nums; }
+  .pill .trend .car { color: var(--signal-up); font-size: 10px; }
+
+  /* ============================================================
+     EXPANDED PANEL — slides in from the right
+     ============================================================ */
+  .panel {
+    position: fixed; top: 0; right: 0; bottom: 0; z-index: 60;
+    width: var(--panel-w); max-width: 92vw;
+    background: var(--paper);
+    border-left: 1px solid var(--hair);
+    box-shadow: var(--shadow);
+    display: flex; flex-direction: column;
+    transform: translateX(calc(100% + 12px));
+    transition: transform 320ms cubic-bezier(.22,.61,.30,1);
+    overflow: hidden;
+  }
+  body.open .panel { transform: translateX(0); }
+
+  .panel-scroll { overflow-y: auto; flex: 1; }
+  .panel-scroll::-webkit-scrollbar { width: 9px; }
+  .panel-scroll::-webkit-scrollbar-thumb { background: var(--hair-strong); border-radius: 999px; border: 3px solid var(--paper); }
+
+  /* header */
+  .p-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 16px 16px 16px 20px;
+    border-bottom: 1px solid var(--hair);
+    flex: none;
+  }
+  .p-head .mark { width: 20px; height: 20px; flex: none; }
+  .p-head .mark circle[stroke] { stroke: var(--ink); }
+  .p-head .mark circle[fill]   { fill: var(--ink); }
+  .p-head .name {
+    font-size: 14px; font-weight: 600; color: var(--ink); letter-spacing: -0.006em;
+  }
+  .p-head .x {
+    margin-left: auto; appearance: none; cursor: pointer;
+    background: var(--paper); border: 1px solid var(--hair);
+    border-radius: var(--radius-sm); width: 30px; height: 30px;
+    display: grid; place-items: center; color: var(--ink-3);
+    transition: background 130ms ease, color 130ms ease;
+  }
+  .p-head .x:hover { background: var(--paper-2); color: var(--ink); }
+  .p-head .x svg { width: 15px; height: 15px; }
+
+  /* big overall */
+  .p-hero { padding: 26px 20px 24px; border-bottom: 1px solid var(--hair); }
+  .p-hero .lede {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--ink-4); margin: 0 0 14px;
+  }
+  .p-hero .row { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .p-hero .num {
+    font-size: 52px; font-weight: 600; letter-spacing: -0.04em;
+    line-height: 0.92; color: var(--ink); font-variant-numeric: tabular-nums;
+  }
+  .p-hero .num .pct { font-size: 24px; font-weight: 500; color: var(--ink-4); letter-spacing: -0.02em; }
+  .p-hero .delta {
+    display: inline-flex; align-items: baseline; gap: 4px;
+    font-size: 13px; font-weight: 600; color: var(--signal-up);
+    font-variant-numeric: tabular-nums; padding-bottom: 6px;
+  }
+  .p-hero .delta .car { font-size: 11px; }
+  .p-hero .meta { margin-top: 14px; font-size: 12.5px; color: var(--ink-3); font-weight: 450; letter-spacing: 0.004em; }
+  .p-hero .chips { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11.5px; font-weight: 500; letter-spacing: 0.01em;
+    padding: 3px 10px; border-radius: 999px;
+    border: 1px solid var(--hair-strong); color: var(--ink-3); background: var(--paper-2);
+  }
+  .chip.miss { color: var(--signal-miss); background: var(--signal-miss-soft); border-color: rgba(192,57,43,0.16); }
+  .chip .cdot { width: 5px; height: 5px; border-radius: 50%; background: var(--ink-4); }
+  .chip.miss .cdot { background: var(--signal-miss); }
+
+  /* sections */
+  .p-sec { padding: 22px 20px; border-bottom: 1px solid var(--hair); }
+  .p-sec:last-child { border-bottom: none; }
+  .p-sec .sec-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  .p-sec .sec-title {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--ink-4); margin: 0;
+  }
+  .p-sec .sec-aside { font-size: 11.5px; color: var(--ink-4); font-weight: 450; }
+
+  /* recent activity rows */
+  .act { display: flex; flex-direction: column; }
+  .arow {
+    display: grid; grid-template-columns: 1fr auto;
+    align-items: baseline; gap: 14px;
+    padding: 13px 0; border-bottom: 1px solid var(--hair);
+  }
+  .arow:last-child { border-bottom: none; }
+  .arow .at {
+    font-size: 13.5px; font-weight: 500; color: var(--ink);
+    letter-spacing: -0.008em; line-height: 1.3;
+  }
+  .arow .at.miss { color: var(--signal-miss); }
+  .arow .asub {
+    margin-top: 3px; font-size: 11.5px; color: var(--ink-4);
+    font-weight: 450; letter-spacing: 0.004em; line-height: 1.35;
+  }
+  .arow .av {
+    font-size: 13px; font-weight: 600; color: var(--ink-2);
+    font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right;
+  }
+  .arow .av.up   { color: var(--signal-up); }
+  .arow .av.down { color: var(--signal-miss); }
+  .arow .av.new  {
+    color: var(--ink-4); font-weight: 500; font-size: 11px;
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .arow .av .car { font-size: 10px; }
+
+  /* chart */
+  .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 16px; }
+  .tab {
+    appearance: none; cursor: pointer; font-family: inherit;
+    font-size: 11.5px; font-weight: 500; letter-spacing: 0.01em;
+    color: var(--ink-3); background: var(--paper);
+    border: 1px solid var(--hair-strong); border-radius: 999px;
+    padding: 4px 11px;
+    transition: background 130ms ease, color 130ms ease, border-color 130ms ease;
+  }
+  .tab:hover { background: var(--paper-2); }
+  .tab.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  .chartwrap {
+    border: 1px solid var(--hair); border-radius: var(--radius);
+    background: var(--paper); padding: 16px 14px 10px; position: relative;
+  }
+  .chartwrap .chead {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 12px; margin-bottom: 10px;
+  }
+  .chartwrap .ctitle { font-size: 12.5px; font-weight: 600; color: var(--ink); letter-spacing: -0.006em; }
+  .chartwrap .cnow {
+    font-size: 12px; font-weight: 600; color: var(--ink-3);
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+    display: inline-flex; align-items: baseline; gap: 4px;
+  }
+  .chartwrap .cnow.up   { color: var(--signal-up); }
+  .chartwrap .cnow.down { color: var(--signal-miss); }
+  .chartwrap .cnow .car { font-size: 10px; }
+  .chartwrap svg { display: block; width: 100%; height: auto; }
+  .chartwrap .cap { margin-top: 8px; font-size: 11px; color: var(--ink-4); font-weight: 450; letter-spacing: 0.004em; }
+
+  .chartwrap .axis { stroke: var(--hair); stroke-width: 1; }
+  .chartwrap .grid { stroke: var(--hair); stroke-width: 1; }
+  .chartwrap .ylab { fill: var(--ink-4); font-size: 9.5px; font-weight: 500; font-family: inherit; }
+  .chartwrap .area { stroke: none; }
+  .chartwrap .line {
+    fill: none; stroke: var(--ink); stroke-width: 1.8;
+    stroke-linecap: round; stroke-linejoin: round;
+  }
+  .chartwrap .endpt      { fill: var(--ink); }
+  .chartwrap .endpt-up   { fill: var(--signal-up); }
+  .chartwrap .endpt-down { fill: var(--signal-miss); }
+
+  /* foot */
+  .p-foot {
+    flex: none; padding: 12px 20px;
+    border-top: 1px solid var(--hair);
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 11px; color: var(--ink-4); font-weight: 450; letter-spacing: 0.01em;
+    background: var(--paper);
+  }
+  .p-foot .dotmark { width: 12px; height: 12px; opacity: 0.65; }
+  .p-foot .dotmark circle[stroke] { stroke: var(--ink-4); }
+  .p-foot .dotmark circle[fill]   { fill: var(--ink-4); }
+  .p-foot .l { display: inline-flex; align-items: center; gap: 7px; }
+
+  @media (max-width: 560px) {
+    .article h1 { font-size: 30px; }
+    .article p { font-size: 16px; }
+    .pill .trend { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pill, .panel, .scrim { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- ============================================================
+       FAUX WEBPAGE — the page the widget lives on
+       ============================================================ -->
+  <header class="pagebar">
+    <div class="glyph">SR</div>
+    <span class="site">StudyReader</span>
+    <nav class="pgnav"><span>Library</span><span>Notes</span><span>Saved</span></nav>
+  </header>
+
+  <article class="article">
+    <p class="kicker">Learning Science</p>
+    <h1>Spacing it out: why studying a little at a time beats cramming</h1>
+    <p class="byline">By Dana Okafor · 9 min read · Updated June 20, 2026</p>
+
+    <p>Most students discover the night before an exam that there is more material than hours left in the evening. The temptation is to push through in one long sitting. Decades of research on memory suggest this is close to the least efficient way to learn anything you actually want to keep.</p>
+
+    <p>The effect has a name: spaced repetition. When you revisit material across several shorter sessions instead of one marathon, more of it survives the week, the month, and the final. The gaps between sessions are not wasted time. They are part of how the memory consolidates.</p>
+
+    <div class="pull">"The forgetting is the point. Each time you almost lose a fact and then recover it, the recovery is what makes it stick."</div>
+
+    <h2>Why the gap helps</h2>
+    <p>During a single long session, the second hour rarely teaches you much the first hour did not. Attention drifts, and rereading starts to feel like progress without being progress. A short break — even a day — lets the trace fade just enough that retrieving it again counts as real practice.</p>
+
+    <p>Researchers call this desirable difficulty. Easy review feels good and does little. Slightly effortful review feels worse and does more. The discomfort of nearly forgetting is a feature, not a bug.</p>
+
+    <figure>
+      <div class="band" aria-hidden="true"></div>
+      <figcaption>Figure 1 — Retention over time for massed versus spaced study. Spaced practice (lower curve, slower decay) outlasts a single long session.</figcaption>
+    </figure>
+
+    <h2>Putting it to use</h2>
+    <p>Practically, this means breaking a topic into a handful of fifteen-minute reviews spread across a week, rather than a single two-hour block the night before. Self-testing beats rereading. Mixing related topics, rather than drilling one at a time, helps too.</p>
+
+    <p>None of this requires special tools. A calendar, a stack of questions, and the discipline to start a few days early will do. The hardest part is trusting that the slower path is the faster one.</p>
+  </article>
+
+  <!-- page dim while the panel is open -->
+  <div class="scrim" id="scrim" aria-hidden="true"></div>
+
+  <!-- ============================================================
+       COLLAPSED PILL
+       ============================================================ -->
+  <button class="pill" id="pill" aria-label="Open Better SGY grades">
+    <svg class="mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="8.4" stroke="#14140f" stroke-width="1.4"/>
+      <circle cx="12" cy="12" r="2.1" fill="#14140f"/>
+    </svg>
+    <span class="grade">96.2%</span>
+    <span class="div"></span>
+    <span class="trend"><span class="lab">GRADES</span> <span class="car">&#9650;</span><span class="val">1.4</span></span>
+  </button>
+
+  <!-- ============================================================
+       EXPANDED PANEL
+       ============================================================ -->
+  <aside class="panel" id="panel" role="dialog" aria-modal="false" aria-label="Better SGY" aria-hidden="true">
+    <div class="p-head">
+      <svg class="mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="12" r="8.4" stroke="#14140f" stroke-width="1.4"/>
+        <circle cx="12" cy="12" r="2.1" fill="#14140f"/>
+      </svg>
+      <span class="name">Better SGY</span>
+      <button class="x" id="closeBtn" aria-label="Close panel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <div class="panel-scroll">
+      <!-- big overall -->
+      <section class="p-hero">
+        <p class="lede">Overall average</p>
+        <div class="row">
+          <div class="num">96.2<span class="pct">%</span></div>
+          <div class="delta"><span class="car">&#9650;</span>1.4</div>
+        </div>
+        <div class="meta">Across 6 courses · checked just now</div>
+        <div class="chips">
+          <span class="chip"><span class="cdot"></span>Trending up</span>
+          <span class="chip miss"><span class="cdot"></span>2 missing</span>
+        </div>
+      </section>
+
+      <!-- recent activity -->
+      <section class="p-sec">
+        <div class="sec-head">
+          <h3 class="sec-title">Recent activity</h3>
+          <span class="sec-aside">Last 6 days</span>
+        </div>
+        <div class="act" id="act"></div>
+      </section>
+
+      <!-- grade over time -->
+      <section class="p-sec">
+        <div class="sec-head">
+          <h3 class="sec-title">Grade over time</h3>
+        </div>
+        <div class="tabs" id="tabs"></div>
+        <div class="chartwrap">
+          <div class="chead">
+            <span class="ctitle" id="chartTitle">Algebra 2 / Trig</span>
+            <span class="cnow up" id="chartNow">97.4% now</span>
+          </div>
+          <svg id="chart" viewBox="0 0 340 132" role="img" aria-label="Grade over time"></svg>
+          <p class="cap" id="chartCap">8 weeks · since late April</p>
+        </div>
+      </section>
+    </div>
+
+    <div class="p-foot">
+      <span class="l">
+        <svg class="dotmark" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.4" stroke="#9a9a91" stroke-width="1.4"/><circle cx="12" cy="12" r="2.1" fill="#9a9a91"/></svg>
+        HALO
+      </span>
+      <span>Updated today</span>
+    </div>
+  </aside>
+
+  <script>
+  (function () {
+    "use strict";
+
+    // ---------- data (mirrors MOCKUP_DATA.md; today = Mon Jun 22 2026) ----------
+    var COURSES = [
+      { id: "alg", name: "Algebra 2 / Trig", abbr: "Algebra", grade: 97.4, trend: "up" },
+      { id: "bio", name: "Biology",          abbr: "Biology", grade: 96.7, trend: "flat" },
+      { id: "fre", name: "French 1",         abbr: "French",  grade: 96.5, trend: "up" },
+      { id: "dra", name: "Drama",            abbr: "Drama",   grade: 90.3, trend: "down" },
+      { id: "lit", name: "Literature",       abbr: "Lit",     grade: 94.1, trend: "up" },
+      { id: "pe",  name: "PE 9",             abbr: "PE 9",    grade: 99.1, trend: "flat" }
+    ];
+
+    // weekly grade history, oldest -> newest (8 points)
+    var HIST = {
+      alg: [92.0, 93.0, 94.0, 95.0, 95.5, 96.3, 97.0, 97.4],
+      bio: [96.0, 96.4, 96.2, 96.8, 96.5, 96.9, 96.6, 96.7],
+      fre: [91.0, 92.5, 93.0, 94.0, 94.8, 95.5, 96.1, 96.5],
+      dra: [95.0, 94.5, 94.0, 93.2, 92.5, 91.6, 91.0, 90.3],
+      lit: [90.0, 90.8, 91.5, 92.0, 92.6, 93.2, 93.7, 94.1],
+      pe:  [98.5, 98.7, 98.6, 99.0, 98.9, 99.1, 99.0, 99.1]
+    };
+
+    // recent activity feed (newest first)
+    var ACTIVITY = [
+      { t: "Algebra 2 / Trig",      sub: "96.3% → 97.4% · 2d ago",   kind: "up",   v: "1.1" },
+      { t: "Enzymes Problem Set",   sub: "Graded · Biology · 3d ago", kind: "score", v: "18/20" },
+      { t: "Monologue Reflection",  sub: "New · Drama · 3d ago",      kind: "new",  v: "New" },
+      { t: "Drama",                 sub: "91.0% → 90.3% · 4d ago",   kind: "down", v: "0.7" },
+      { t: "Unité 5 Exam",     sub: "Graded · French 1 · 5d ago", kind: "score", v: "95%" },
+      { t: "Cell Energetics Lab",   sub: "New · Biology · 6d ago",    kind: "new",  v: "New" }
+    ];
+
+    var $ = function (s, r) { return (r || document).querySelector(s); };
+
+    // ---------- recent activity ----------
+    function renderActivity() {
+      var html = "";
+      ACTIVITY.forEach(function (a) {
+        var av;
+        if (a.kind === "up") {
+          av = '<span class="av up"><span class="car">▲</span>' + a.v + '%</span>';
+        } else if (a.kind === "down") {
+          av = '<span class="av down"><span class="car">▼</span>' + a.v + '%</span>';
+        } else if (a.kind === "new") {
+          av = '<span class="av new">New</span>';
+        } else {
+          av = '<span class="av">' + a.v + '</span>';
+        }
+        var miss = (a.kind === "new") ? " " : "";
+        html +=
+          '<div class="arow">' +
+            '<div><div class="at">' + a.t + '</div><div class="asub">' + a.sub + '</div></div>' +
+            av +
+          '</div>';
+      });
+      $("#act").innerHTML = html;
+    }
+
+    // ---------- chart geometry (y 88..100) ----------
+    var YMIN = 88, YMAX = 100;
+    var W = 340, H = 132, padL = 24, padR = 12, padT = 12, padB = 14;
+
+    function gx(i, n) { return padL + (W - padL - padR) * (n <= 1 ? 0 : i / (n - 1)); }
+    function gy(v)    { return padT + (H - padT - padB) * (1 - (v - YMIN) / (YMAX - YMIN)); }
+
+    function trendOf(course) {
+      var arr = HIST[course], first = arr[0], last = arr[arr.length - 1];
+      if (last - first > 0.4) return "up";
+      if (first - last > 0.4) return "down";
+      return "flat";
+    }
+
+    function renderTabs() {
+      var html = "";
+      COURSES.forEach(function (c, i) {
+        html += '<button class="tab' + (i === 0 ? " on" : "") + '" data-id="' + c.id + '">' + c.abbr + '</button>';
+      });
+      $("#tabs").innerHTML = html;
+    }
+
+    function renderChart(id) {
+      var c = null;
+      for (var i = 0; i < COURSES.length; i++) { if (COURSES[i].id === id) { c = COURSES[i]; break; } }
+      if (!c) return;
+      var arr = HIST[id], n = arr.length;
+      var tr = trendOf(id);
+
+      var s = "";
+      // gridlines + y labels
+      var grids = [100, 96, 92, 88];
+      grids.forEach(function (gv, idx) {
+        var yy = gy(gv).toFixed(1);
+        s += '<line class="' + (idx === grids.length - 1 ? "axis" : "grid") + '" x1="' + padL + '" y1="' + yy + '" x2="' + (W - padR) + '" y2="' + yy + '"/>';
+        s += '<text class="ylab" x="2" y="' + (parseFloat(yy) + 3).toFixed(1) + '">' + gv + '</text>';
+      });
+
+      // area + line points
+      var pts = arr.map(function (v, i2) { return gx(i2, n).toFixed(1) + "," + gy(v).toFixed(1); });
+      var baseY = gy(YMIN).toFixed(1);
+      var areaD = "M" + gx(0, n).toFixed(1) + "," + baseY + " L" + pts.join(" L") + " L" + gx(n - 1, n).toFixed(1) + "," + baseY + " Z";
+
+      // monochrome area fill; tinted only when up/down
+      var areaFill = "rgba(20,20,15,0.05)";
+      if (tr === "up")   areaFill = "var(--signal-up-soft)";
+      if (tr === "down") areaFill = "var(--signal-miss-soft)";
+      s += '<path class="area" d="' + areaD + '" fill="' + areaFill + '"/>';
+      s += '<polyline class="line" points="' + pts.join(" ") + '"/>';
+
+      // endpoint, colored only for signal
+      var lx = gx(n - 1, n).toFixed(1), ly = gy(arr[n - 1]).toFixed(1);
+      var endCls = tr === "up" ? "endpt-up" : tr === "down" ? "endpt-down" : "endpt";
+      s += '<circle class="' + endCls + '" cx="' + lx + '" cy="' + ly + '" r="3"/>';
+
+      $("#chart").innerHTML = s;
+      $("#chart").setAttribute("aria-label",
+        c.name + " grade over time, " + arr[0].toFixed(1) + " to " + c.grade.toFixed(1) + " percent");
+
+      // header
+      $("#chartTitle").textContent = c.name;
+      var now = $("#chartNow");
+      now.className = "cnow" + (tr === "up" ? " up" : tr === "down" ? " down" : "");
+      var car = tr === "up" ? '<span class="car">▲</span> ' : tr === "down" ? '<span class="car">▼</span> ' : "";
+      now.innerHTML = car + c.grade.toFixed(1) + "% now";
+    }
+
+    function selectTab(id) {
+      var tabs = document.querySelectorAll(".tab");
+      for (var i = 0; i < tabs.length; i++) {
+        tabs[i].classList.toggle("on", tabs[i].getAttribute("data-id") === id);
+      }
+      renderChart(id);
+      try { localStorage.setItem("halo.widget.course", id); } catch (e) {}
+    }
+
+    $("#tabs").addEventListener("click", function (e) {
+      var b = e.target.closest(".tab");
+      if (b) selectTab(b.getAttribute("data-id"));
+    });
+
+    // ---------- open / collapse ----------
+    function open() {
+      document.body.classList.add("open");
+      $("#panel").setAttribute("aria-hidden", "false");
+      $("#scrim").setAttribute("aria-hidden", "false");
+      try { localStorage.setItem("halo.widget.open", "1"); } catch (e) {}
+    }
+    function collapse() {
+      document.body.classList.remove("open");
+      $("#panel").setAttribute("aria-hidden", "true");
+      $("#scrim").setAttribute("aria-hidden", "true");
+      try { localStorage.setItem("halo.widget.open", "0"); } catch (e) {}
+    }
+
+    $("#pill").addEventListener("click", open);
+    $("#closeBtn").addEventListener("click", collapse);
+    $("#scrim").addEventListener("click", collapse);
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && document.body.classList.contains("open")) collapse();
+    });
+
+    // ---------- init ----------
+    renderActivity();
+    renderTabs();
+
+    var savedCourse = "alg";
+    try { savedCourse = localStorage.getItem("halo.widget.course") || "alg"; } catch (e) {}
+    if (!HIST[savedCourse]) savedCourse = "alg";
+    selectTab(savedCourse);
+
+    // restore open state quietly (default collapsed)
+    var wasOpen = "0";
+    try { wasOpen = localStorage.getItem("halo.widget.open") || "0"; } catch (e) {}
+    if (wasOpen === "1") open();
+  })();
+  </script>
+</body>
+</html>

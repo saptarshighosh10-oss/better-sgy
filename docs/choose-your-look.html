@@ -42,10 +42,10 @@
   /* ============================================================
      THEMED BACKDROP — fixed, behind everything, pointer-inert.
      One .skinlayer per edition; the active edition's layer fades
-     to opacity:1 while the others fade out. Each layer is pure
-     CSS/SVG (gradients, conic/radial blooms, inline-SVG data URIs)
-     tuned to evoke that edition while staying calm enough that the
-     carousel cards remain the clear focal point.
+     to opacity:1 while the others fade out. Every edition shares
+     the SAME motif — large diagonal SOLID-color wedges — recolored
+     to its palette. Bands stay deep/muted so the light foreground
+     text on top stays readable and the cards remain the focal point.
      ============================================================ */
   .skinbg{
     position:fixed; inset:0; z-index:-1;
@@ -65,156 +65,103 @@
   body.skin-forge  .skinlayer[data-skin="forge"],
   body.skin-carbon .skinlayer[data-skin="carbon"]{ opacity:1; }
 
-  /* ---- apple: soft luminous gradient mesh, pale blue/white light blooms ---- */
+  /* ============================================================
+     ONE SHARED MOTIF FOR EVERY EDITION: big diagonal SOLID-color
+     wedges (walnut/oak/honey style), recolored per palette. No
+     circles, glow rings, gradient mesh, ghosted "S", blobs, or
+     hairline/pinstripe grain — just a few large hard-edged solid
+     diagonal bands per the user's "use the stripe for everything".
+     The bands are kept deep/muted so the light foreground text on
+     top stays high-contrast and readable on every skin.
+     ============================================================ */
+
+  /* ---- apple: deep blue / slate-blue diagonal bands (cool) ---- */
   .skinlayer[data-skin="apple"]{
     background:
-      radial-gradient(900px 620px at 78% -6%, rgba(120,185,255,.34), transparent 62%),
-      radial-gradient(820px 560px at 14% 8%,  rgba(168,210,255,.26), transparent 60%),
-      radial-gradient(1000px 760px at 92% 96%, rgba(196,224,255,.30), transparent 64%),
-      radial-gradient(760px 600px at 6% 102%, rgba(225,238,255,.40), transparent 66%),
-      linear-gradient(180deg,#fbfdff,#eef4fc 60%,#f4f8ff);
+      linear-gradient(115deg, transparent 0 62%, #1f3a63 62% 100%),
+      linear-gradient(115deg, transparent 0 30%, #294a78 30% 62%, transparent 62%),
+      linear-gradient(115deg, #16284a 0 30%, transparent 30%),
+      #1a3155;
   }
-  /* a slow, oversized light bloom drifting for a "live light" feel */
-  .skinlayer[data-skin="apple"]::after{
-    content:""; position:absolute; inset:-20%;
-    background:radial-gradient(closest-side at 50% 50%, rgba(140,195,255,.22), transparent 70%);
-    filter:blur(40px);
-    animation:appleDrift 26s ease-in-out infinite alternate;
-  }
-  @keyframes appleDrift{
-    0%{transform:translate(-6%,-4%) scale(1);}
-    100%{transform:translate(8%,6%) scale(1.12);}
-  }
-  .reduced .skinlayer[data-skin="apple"]::after{animation:none;}
   @media (prefers-color-scheme:dark){
     .skinlayer[data-skin="apple"]{
       background:
-        radial-gradient(900px 620px at 78% -6%, rgba(40,95,170,.34), transparent 62%),
-        radial-gradient(1000px 760px at 92% 96%, rgba(28,70,135,.30), transparent 64%),
-        linear-gradient(180deg,#0a0f1a,#0c1220 60%,#0a0f1c);
+        linear-gradient(115deg, transparent 0 62%, #16243f 62% 100%),
+        linear-gradient(115deg, transparent 0 30%, #1d3050 30% 62%, transparent 62%),
+        linear-gradient(115deg, #0f1b30 0 30%, transparent 30%),
+        #111d33;
     }
   }
 
-  /* ---- halo: near-white with one soft glow ring of the accent ---- */
+  /* ---- halo: muted teal / gray-green diagonal bands ---- */
   .skinlayer[data-skin="halo"]{
     background:
-      radial-gradient(1100px 1100px at 50% 42%,
-        rgba(22,163,148,.10) 0%,
-        rgba(22,163,148,.05) 26%,
-        transparent 42%),
-      #fafaf9;
-  }
-  /* a single thin halo ring — the only "signal" on lots of negative space */
-  .skinlayer[data-skin="halo"]::before{
-    content:""; position:absolute;
-    top:50%; left:50%; width:min(78vmin,760px); aspect-ratio:1;
-    transform:translate(-50%,-46%);
-    border-radius:50%;
-    background:radial-gradient(closest-side,
-      transparent 60%,
-      rgba(22,163,148,.16) 70%,
-      rgba(22,163,148,.05) 78%,
-      transparent 84%);
+      linear-gradient(115deg, transparent 0 62%, #2a5650 62% 100%),
+      linear-gradient(115deg, transparent 0 30%, #35655c 30% 62%, transparent 62%),
+      linear-gradient(115deg, #1f4640 0 30%, transparent 30%),
+      #244b45;
   }
   @media (prefers-color-scheme:dark){
     .skinlayer[data-skin="halo"]{
       background:
-        radial-gradient(1100px 1100px at 50% 42%, rgba(31,193,175,.12) 0%, transparent 42%),
-        #0c0e16;
-    }
-    .skinlayer[data-skin="halo"]::before{
-      background:radial-gradient(closest-side, transparent 60%, rgba(31,193,175,.22) 70%, transparent 84%);
+        linear-gradient(115deg, transparent 0 62%, #1b3a35 62% 100%),
+        linear-gradient(115deg, transparent 0 30%, #234741 30% 62%, transparent 62%),
+        linear-gradient(115deg, #142e2a 0 30%, transparent 30%),
+        #173430;
     }
   }
 
-  /* ---- slate: editorial newsprint — ruled baseline grid + faint serif glyph ---- */
+  /* ---- slate: grayscale — charcoal / near-black / dark-gray (strictly B&W) ---- */
   .skinlayer[data-skin="slate"]{
     background:
-      /* oversized faint serif letterform watermark (inline SVG, B&W only) */
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='760' viewBox='0 0 600 760'%3E%3Ctext x='50%25' y='78%25' text-anchor='middle' font-family='Georgia,Times New Roman,serif' font-size='720' font-weight='700' fill='%23000000' fill-opacity='0.035'%3ES%3C/text%3E%3C/svg%3E"),
-      /* subtle ruled baseline grid, like a printed page */
-      repeating-linear-gradient(180deg, transparent 0 37px, rgba(0,0,0,.045) 37px 38px),
-      #fbfbfa;
-    background-repeat:no-repeat,repeat,no-repeat;
-    background-position:left -40px top,0 0,0 0;
-    background-size:auto 92%,auto,auto;
-  }
-  /* a thin printer's rule bleeding in from each edge for a "page margin" feel */
-  .skinlayer[data-skin="slate"]::after{
-    content:""; position:absolute; inset:34px;
-    border:1px solid rgba(0,0,0,.06);
+      linear-gradient(115deg, transparent 0 62%, #2b2b2b 62% 100%),
+      linear-gradient(115deg, transparent 0 30%, #3a3a3a 30% 62%, transparent 62%),
+      linear-gradient(115deg, #161616 0 30%, transparent 30%),
+      #242424;
   }
   @media (prefers-color-scheme:dark){
     .skinlayer[data-skin="slate"]{
       background:
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='760' viewBox='0 0 600 760'%3E%3Ctext x='50%25' y='78%25' text-anchor='middle' font-family='Georgia,serif' font-size='720' font-weight='700' fill='%23ffffff' fill-opacity='0.04'%3ES%3C/text%3E%3C/svg%3E"),
-        repeating-linear-gradient(180deg, transparent 0 37px, rgba(255,255,255,.05) 37px 38px),
-        #0c0e16;
-      background-repeat:no-repeat,repeat,no-repeat;
-      background-position:left -40px top,0 0,0 0;
-      background-size:auto 92%,auto,auto;
+        linear-gradient(115deg, transparent 0 62%, #1f1f1f 62% 100%),
+        linear-gradient(115deg, transparent 0 30%, #2c2c2c 30% 62%, transparent 62%),
+        linear-gradient(115deg, #0c0c0c 0 30%, transparent 30%),
+        #161616;
     }
-    .skinlayer[data-skin="slate"]::after{ border-color:rgba(255,255,255,.08); }
   }
 
-  /* ---- forge (Friendly): warm cream with soft rounded peach + sage blobs ---- */
+  /* ---- forge (Friendly): warm peach / terracotta / cocoa diagonal bands ---- */
   .skinlayer[data-skin="forge"]{
     background:
-      radial-gradient(440px 440px at 84% 14%, rgba(240,160,106,.34), transparent 66%),
-      radial-gradient(520px 520px at 10% 88%, rgba(150,182,128,.30), transparent 66%),
-      radial-gradient(360px 360px at 18% 6%,  rgba(245,200,150,.30), transparent 66%),
-      radial-gradient(420px 420px at 94% 92%, rgba(170,196,150,.22), transparent 68%),
-      linear-gradient(170deg,#fdf5ea,#f8edda);
+      linear-gradient(115deg, transparent 0 62%, #b56a45 62% 100%),
+      linear-gradient(115deg, transparent 0 30%, #c97f4e 30% 62%, transparent 62%),
+      linear-gradient(115deg, #6e4129 0 30%, transparent 30%),
+      #8a4f31;
   }
-  /* one gently floating blob for a soft, friendly, hand-made feel */
-  .skinlayer[data-skin="forge"]::after{
-    content:""; position:absolute;
-    width:min(46vmin,420px); aspect-ratio:1.15/1;
-    top:8%; right:6%;
-    background:radial-gradient(closest-side, rgba(240,160,106,.30), transparent 72%);
-    border-radius:48% 52% 56% 44%/52% 44% 56% 48%;
-    filter:blur(8px);
-    animation:forgeFloat 18s ease-in-out infinite alternate;
-  }
-  @keyframes forgeFloat{
-    0%{transform:translate(0,0) rotate(0deg);}
-    100%{transform:translate(-4%,5%) rotate(8deg);}
-  }
-  .reduced .skinlayer[data-skin="forge"]::after{animation:none;}
   @media (prefers-color-scheme:dark){
     .skinlayer[data-skin="forge"]{
       background:
-        radial-gradient(440px 440px at 84% 14%, rgba(180,110,60,.30), transparent 66%),
-        radial-gradient(520px 520px at 10% 88%, rgba(90,120,72,.28), transparent 66%),
-        linear-gradient(170deg,#16110b,#120e09);
+        linear-gradient(115deg, transparent 0 62%, #7c452b 62% 100%),
+        linear-gradient(115deg, transparent 0 30%, #8f5536 30% 62%, transparent 62%),
+        linear-gradient(115deg, #4d2c1b 0 30%, transparent 30%),
+        #5f3722;
     }
   }
 
-  /* ---- carbon: warm wood as SOLID color planes — NO grain/pinstripe lines ---- */
-  /* Flat, hard-edged solid color fields (no soft gradients, no repeating lines)
-     layered like warm walnut / oak / honey planks of solid color, plus one warm
-     honey radial glow. Strictly solid color blocks per the Carbon ban on lines. */
+  /* ---- carbon: warm wood — walnut / oak / honey diagonal bands ---- */
   .skinlayer[data-skin="carbon"]{
     background:
-      /* honey warmth pooling top-right (solid-feeling soft glow, no lines) */
-      radial-gradient(900px 760px at 88% 8%, rgba(214,150,58,.30), transparent 60%),
-      /* solid plane: honey wedge */
-      linear-gradient(115deg, transparent 0 62%, #d9b06a 62% 100%),
-      /* solid plane: oak band */
-      linear-gradient(115deg, transparent 0 30%, #cda973 30% 62%, transparent 62%),
-      /* solid plane: walnut base block */
-      linear-gradient(115deg, #b88f54 0 30%, transparent 30%),
-      /* warm base fill */
-      #e7d6b6;
+      linear-gradient(115deg, transparent 0 62%, #9c7333 62% 100%),
+      linear-gradient(115deg, transparent 0 30%, #b08a4a 30% 62%, transparent 62%),
+      linear-gradient(115deg, #6b4c25 0 30%, transparent 30%),
+      #835f2e;
   }
   @media (prefers-color-scheme:dark){
     .skinlayer[data-skin="carbon"]{
       background:
-        radial-gradient(900px 760px at 88% 8%, rgba(150,100,40,.34), transparent 60%),
         linear-gradient(115deg, transparent 0 62%, #4a371f 62% 100%),
-        linear-gradient(115deg, transparent 0 30%, #3c2c19 30% 62%, transparent 62%),
+        linear-gradient(115deg, transparent 0 30%, #5c4626 30% 62%, transparent 62%),
         linear-gradient(115deg, #2c2012 0 30%, transparent 30%),
-        #18120a;
+        #3a2b18;
     }
   }
   /* Themed elements ease between editions. prefers-reduced-motion makes them instant. */
@@ -506,6 +453,73 @@
     --skin-grain:none;
   }
   body.skin-carbon .preview{ box-shadow:0 1px 2px rgba(58,42,26,.12),0 16px 44px -14px rgba(58,42,26,.4); }
+
+  /* ============================================================
+     FOREGROUND TEXT CONTRAST — every edition now paints a deep,
+     dark diagonal backdrop, so all text that floats directly on it
+     must be light and high-contrast on EVERY skin (the per-edition
+     re-skin would otherwise leave it dark-on-dark and unreadable).
+     A subtle text shadow lifts it off the bands; a soft scrim sits
+     behind the slide copy column for extra separation. These rules
+     come last so they win over the .skin-* variable overrides.
+     ============================================================ */
+  body[class*="skin-"]{ color:#f4f6fb; }
+  body[class*="skin-"] .wordmark{ color:#f4f6fb; text-shadow:0 1px 6px rgba(0,0,0,.45); }
+  body[class*="skin-"] .wordmark b{ color:#ffffff; }
+
+  body[class*="skin-"] .intro h1{
+    color:#ffffff;
+    text-shadow:0 1px 2px rgba(0,0,0,.35),0 6px 22px rgba(0,0,0,.45);
+  }
+  body[class*="skin-"] .intro p{
+    color:#e7eaf2;
+    text-shadow:0 1px 5px rgba(0,0,0,.45);
+  }
+  body[class*="skin-"] .intro p b{ color:#ffffff; }
+
+  body[class*="skin-"] .eyebrow{
+    color:#e4e7f0;
+    text-shadow:0 1px 4px rgba(0,0,0,.4);
+  }
+  body[class*="skin-"] .copy h2{
+    color:#ffffff;
+    text-shadow:0 1px 2px rgba(0,0,0,.35),0 6px 18px rgba(0,0,0,.42);
+  }
+  body[class*="skin-"] .copy .desc{
+    color:#eceef5;
+    text-shadow:0 1px 5px rgba(0,0,0,.45);
+  }
+  body[class*="skin-"] .footnote{
+    color:#dfe2ec;
+    text-shadow:0 1px 4px rgba(0,0,0,.4);
+  }
+  body[class*="skin-"] .footnote kbd{
+    background:rgba(255,255,255,.14);
+    border-color:rgba(255,255,255,.32);
+    color:#ffffff;
+    text-shadow:none;
+  }
+
+  /* Soft scrim behind the slide copy column so the light text always
+     has a calm, slightly darker bed to sit on, regardless of which
+     diagonal band falls behind it. Subtle, no hard edge. */
+  .copy{ position:relative; z-index:0; }
+  body[class*="skin-"] .copy::before{
+    content:""; position:absolute; z-index:-1;
+    inset:-14px -18px;
+    border-radius:18px;
+    background:radial-gradient(120% 120% at 30% 35%, rgba(0,0,0,.34), rgba(0,0,0,.14) 70%, transparent 100%);
+  }
+  @media (max-width:760px){
+    body[class*="skin-"] .copy::before{ inset:-12px -14px; }
+  }
+
+  /* Slate is strictly black & white — keep its scrim neutral too (already is). */
+
+  /* Slate forces a dark heading underline in its re-skin; on the dark
+     backdrop make that rule light so it reads. */
+  body.skin-slate .intro h1{ border-bottom-color:#ffffff; }
+  body.skin-slate .eyebrow{ border-bottom-color:rgba(255,255,255,.28); }
 </style>
 </head>
 <body>

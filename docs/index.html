@@ -5,6 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Better SGY — a readable gradebook for Schoology</title>
 <meta name="description" content="Better SGY is a free Chrome extension that redesigns Schoology so your grades are actually readable. It runs on your own logged-in session, and your grades stay in your browser.">
+
+<!-- Favicon: inline SVG data-URI, matches the brand mark -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20x='1.5'%20y='1.5'%20width='29'%20height='29'%20rx='8'%20fill='%232f5d3a'/%3E%3Cpath%20d='M9%2021.5%2013%2014l3.5%204.5L20%2011l4%2010.5'%20stroke='%23fff'%20stroke-width='2.2'%20stroke-linecap='round'%20stroke-linejoin='round'%20fill='none'/%3E%3Ccircle%20cx='24'%20cy='11'%20r='2.2'%20fill='%23fff'/%3E%3C/svg%3E">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Better SGY">
+<meta property="og:title" content="Better SGY — a readable gradebook for Schoology">
+<meta property="og:description" content="A free Chrome extension that redesigns Schoology so your grades are actually readable. Runs on your own logged-in session; your grades stay in your browser.">
+<meta property="og:image" content="./og.svg">
+<meta property="og:image:alt" content="Better SGY — a readable gradebook for Schoology">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Better SGY — a readable gradebook for Schoology">
+<meta name="twitter:description" content="A free Chrome extension that redesigns Schoology so your grades are actually readable. Your grades stay in your browser.">
+<meta name="twitter:image" content="./og.svg">
+<meta name="twitter:image:alt" content="Better SGY — a readable gradebook for Schoology">
 <style>
   /* ---------- Reset & tokens ---------- */
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -68,6 +86,28 @@
   a{color:inherit;text-decoration:none}
   img,svg{display:block;max-width:100%}
   ::selection{background:var(--accent);color:#fff}
+
+  /* ---------- Accessibility: skip link + focus ---------- */
+  .skip-link{
+    position:absolute;left:12px;top:-60px;z-index:200;
+    background:var(--accent);color:#fff;padding:.65rem 1rem;border-radius:10px;
+    font-size:.92rem;font-weight:600;box-shadow:var(--shadow-md);
+    transition:top .2s ease;
+  }
+  .skip-link:focus{top:12px}
+  /* visible focus for keyboard users only */
+  a:focus-visible,button:focus-visible,select:focus-visible,
+  [tabindex]:focus-visible,.btn:focus-visible{
+    outline:3px solid var(--accent);outline-offset:2px;border-radius:6px;
+  }
+  html[data-theme="dark"] a:focus-visible,
+  html[data-theme="dark"] button:focus-visible,
+  html[data-theme="dark"] select:focus-visible,
+  html[data-theme="dark"] .btn:focus-visible{outline-color:var(--accent-ink)}
+  .visually-hidden{
+    position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;
+    overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;
+  }
 
   .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;position:relative;z-index:1}
 
@@ -247,6 +287,70 @@
   .pv-forge .pv-pill{background:#e2802f;border-radius:6px}
   .pv-forge .blob{position:absolute;width:90px;height:90px;border-radius:50%;background:radial-gradient(circle at 30% 30%, #ffcf86, #e2802f);right:-20px;top:-20px;opacity:.5}
 
+  /* ---------- Browse gallery ---------- */
+  .browse{background:linear-gradient(180deg, transparent, color-mix(in srgb,var(--accent-soft) 30%, transparent), transparent)}
+  .gallery{margin-top:2.6rem;border:1px solid var(--line);border-radius:var(--radius-lg);background:var(--bg-raised);overflow:hidden;box-shadow:var(--shadow-sm)}
+  .gallery-controls{
+    display:flex;flex-wrap:wrap;gap:1.4rem 2rem;align-items:flex-end;justify-content:space-between;
+    padding:1.2rem 1.4rem;border-bottom:1px solid var(--line);
+    background:color-mix(in srgb,var(--bg) 55%, var(--bg-raised));
+  }
+  .ctrl-group{display:flex;flex-direction:column;gap:.55rem;min-width:0}
+  .ctrl-label{font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);font-weight:600}
+  .seg{display:inline-flex;flex-wrap:wrap;gap:.3rem;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:.25rem}
+  .seg button{
+    font-family:var(--sans);font-size:.86rem;font-weight:560;color:var(--ink-soft);
+    background:transparent;border:none;border-radius:999px;padding:.42rem .9rem;cursor:pointer;
+    transition:background .18s ease, color .18s ease;white-space:nowrap;
+  }
+  .seg button:hover{color:var(--ink)}
+  .seg button[aria-pressed="true"]{background:var(--accent);color:#fff;box-shadow:var(--shadow-sm)}
+  .gallery-open{display:flex;flex-direction:column;gap:.4rem;align-items:flex-start}
+  .gallery-open .openlink{
+    font-size:.85rem;font-weight:600;color:var(--accent-ink);display:inline-flex;align-items:center;gap:.4rem;
+    border:1px solid var(--line-strong);border-radius:999px;padding:.42rem .85rem;background:var(--bg);transition:border-color .2s,gap .2s;
+  }
+  .gallery-open .openlink:hover{border-color:var(--accent);gap:.6rem}
+  .gallery-open .openlink svg{width:14px;height:14px}
+  .gallery-stage{position:relative;background:var(--bg);min-height:520px;display:grid}
+  @media (max-width:600px){.gallery-stage{min-height:560px}}
+  .gallery-stage .frame-meta{
+    font-family:var(--mono);font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);
+    padding:.55rem 1.4rem;border-bottom:1px solid var(--line);background:var(--bg-raised);
+    display:flex;align-items:center;gap:.5rem;
+  }
+  .gallery-stage .frame-meta .dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+  .frame-wrap{position:relative;width:100%;height:560px}
+  @media (max-width:600px){.frame-wrap{height:600px}}
+  .gallery iframe{width:100%;height:100%;border:0;display:block;background:var(--bg)}
+  /* placeholder shown until an iframe is loaded */
+  .frame-ph{
+    position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;
+    text-align:center;padding:2rem;color:var(--ink-soft);
+  }
+  .frame-ph .spin{
+    width:34px;height:34px;border-radius:50%;border:3px solid var(--line-strong);border-top-color:var(--accent);
+    animation:spin 1s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .frame-ph .ph-btn{margin-top:.3rem}
+  .frame-ph .ph-hint{font-size:.85rem;color:var(--ink-faint);max-width:36ch}
+
+  /* ---------- Changelog ---------- */
+  .log{margin-top:2.6rem;position:relative;border-left:2px solid var(--line-strong);margin-left:8px;padding-left:0}
+  .log-item{position:relative;padding:0 0 1.9rem 2rem}
+  .log-item:last-child{padding-bottom:0}
+  .log-item::before{
+    content:"";position:absolute;left:-7px;top:5px;width:12px;height:12px;border-radius:50%;
+    background:var(--bg);border:2px solid var(--accent);
+  }
+  .log-item.now::before{background:var(--accent)}
+  .log-head{display:flex;align-items:baseline;gap:.7rem;flex-wrap:wrap}
+  .log-ver{font-family:var(--mono);font-size:.78rem;font-weight:600;color:var(--accent-ink);background:var(--accent-soft);padding:.1rem .5rem;border-radius:6px}
+  .log-when{font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint)}
+  .log-item h3{font-family:var(--sans);font-size:1.04rem;font-weight:600;letter-spacing:-.01em;margin:.45rem 0 .3rem}
+  .log-item p{color:var(--ink-soft);font-size:.93rem}
+
   /* ---------- Features ---------- */
   .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;margin-top:2.6rem}
   @media (max-width:880px){.feat-grid{grid-template-columns:repeat(2,1fr)}}
@@ -312,10 +416,14 @@
     *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
     .reveal{opacity:1;transform:none}
     .device{transform:none}
+    .frame-ph .spin{border-top-color:var(--line-strong)}
+    .skip-link{transition:none}
   }
 </style>
 </head>
 <body>
+
+<a class="skip-link" href="#main">Skip to content</a>
 
 <!-- ============ HEADER ============ -->
 <header class="site" id="top">
@@ -328,9 +436,10 @@
       </svg>
       Better SGY
     </a>
-    <nav class="nav-links" id="navlinks">
+    <nav class="nav-links" id="navlinks" aria-label="Primary">
       <a class="lnk" href="#story">Story</a>
       <a class="lnk" href="#editions">Editions</a>
+      <a class="lnk" href="#browse">Browse</a>
       <a class="lnk" href="#features">Features</a>
       <a class="lnk" href="#download">Download</a>
     </nav>
@@ -346,12 +455,14 @@
   </div>
 </header>
 
+<main id="main">
+
 <!-- ============ HERO ============ -->
-<section class="hero">
+<section class="hero" aria-labelledby="hero-h1">
   <div class="wrap hero-grid">
     <div class="hero-copy">
       <span class="eyebrow">Free Chrome extension for Schoology</span>
-      <h1>Your grades, <em>finally</em> readable.</h1>
+      <h1 id="hero-h1">Your grades, <em>finally</em> readable.</h1>
       <p class="lede">Better SGY lays a clean dashboard over the Schoology you already use. Same grades, far less clutter, and a layout that tells you where you stand without the squinting.</p>
       <div class="hero-cta">
         <a href="#download" class="btn btn-primary">
@@ -367,7 +478,7 @@
     </div>
 
     <div class="hero-visual">
-      <div class="device">
+      <div class="device" role="img" aria-label="Illustration of the Better SGY dashboard showing a term grade average of 91.4 percent and four sample courses with their grades.">
         <div class="device-bar">
           <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
           <span class="url">app.schoology.com</span>
@@ -398,11 +509,11 @@
 </section>
 
 <!-- ============ STORY ============ -->
-<section class="story" id="story">
+<section class="story" id="story" aria-labelledby="story-h2">
   <div class="wrap">
     <div class="sec-head reveal">
       <span class="eyebrow">How it came together</span>
-      <h2>A small project that got a little out of hand.</h2>
+      <h2 id="story-h2">A small project that got a little out of hand.</h2>
       <p>Better SGY started as a personal fix for a daily annoyance and grew into something worth sharing. Here is the honest version of how it got here.</p>
     </div>
 
@@ -447,11 +558,11 @@
 </section>
 
 <!-- ============ EDITIONS ============ -->
-<section id="editions">
+<section id="editions" aria-labelledby="editions-h2">
   <div class="wrap">
     <div class="sec-head reveal">
       <span class="eyebrow">Four editions</span>
-      <h2>One gradebook, four personalities.</h2>
+      <h2 id="editions-h2">One gradebook, four personalities.</h2>
       <p>Same data underneath, four distinct takes on top. Each link opens a live, clickable prototype in a new tab. Try a couple and keep the one that fits how you think.</p>
     </div>
 
@@ -528,17 +639,111 @@
       <a href="./mockup-portable-apple.html" target="_blank" rel="noopener">Apple</a> &middot;
       <a href="./mockup-portable-halo.html" target="_blank" rel="noopener">Halo</a> &middot;
       <a href="./mockup-portable-slate.html" target="_blank" rel="noopener">Slate</a> &middot;
-      <a href="./mockup-portable-forge.html" target="_blank" rel="noopener">Friendly</a>
+      <a href="./mockup-portable-forge.html" target="_blank" rel="noopener">Friendly</a> &middot;
+      <a href="./mockup-portable.html" target="_blank" rel="noopener">Adaptive</a>
     </p>
   </div>
 </section>
 
+<!-- ============ BROWSE GALLERY ============ -->
+<section id="browse" class="browse" aria-labelledby="browse-h2">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">Browse everything</span>
+      <h2 id="browse-h2">See the whole thing, right here.</h2>
+      <p>Pick an edition and a form, and it loads live below. Nothing opens in a new tab unless you ask it to. Frames load only when you reach this section, so the page stays quick.</p>
+    </div>
+
+    <div class="gallery reveal">
+      <div class="gallery-controls">
+        <div class="ctrl-group">
+          <span class="ctrl-label" id="lbl-edition">Edition</span>
+          <div class="seg" role="group" aria-labelledby="lbl-edition" id="seg-edition">
+            <button type="button" data-edition="apple" aria-pressed="true">Apple</button>
+            <button type="button" data-edition="halo" aria-pressed="false">Halo</button>
+            <button type="button" data-edition="slate" aria-pressed="false">Slate</button>
+            <button type="button" data-edition="forge" aria-pressed="false">Friendly</button>
+          </div>
+        </div>
+
+        <div class="ctrl-group">
+          <span class="ctrl-label" id="lbl-form">Form</span>
+          <div class="seg" role="group" aria-labelledby="lbl-form" id="seg-form">
+            <button type="button" data-form="overview" aria-pressed="true">Overview</button>
+            <button type="button" data-form="app" aria-pressed="false">Full app</button>
+            <button type="button" data-form="portable" aria-pressed="false">Portable widget</button>
+          </div>
+        </div>
+
+        <div class="gallery-open">
+          <span class="ctrl-label">Prefer a tab?</span>
+          <a class="openlink" id="galleryOpen" href="./mockup-overview-apple.html" target="_blank" rel="noopener">
+            Open in new tab
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="gallery-stage">
+        <p class="frame-meta" aria-live="polite"><span class="dot" aria-hidden="true"></span><span id="frameMeta">Apple · Overview</span></p>
+        <div class="frame-wrap" id="frameWrap">
+          <div class="frame-ph" id="framePh">
+            <div class="spin" aria-hidden="true"></div>
+            <p class="ph-hint">Loading the live preview. If it does not appear, use the button below.</p>
+            <a class="btn btn-ghost ph-btn" id="phOpen" href="./mockup-overview-apple.html" target="_blank" rel="noopener">Open this view in a new tab</a>
+          </div>
+          <!-- iframe is injected here on demand -->
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CHANGELOG ============ -->
+<section id="changelog" aria-labelledby="changelog-h2">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">What's new</span>
+      <h2 id="changelog-h2">A short, honest history.</h2>
+      <p>No roadmap theater. This is what actually shipped, in the order it shipped.</p>
+    </div>
+
+    <ol class="log reveal" aria-label="Release history, newest first">
+      <li class="log-item now">
+        <div class="log-head"><span class="log-ver">v1.2</span><span class="log-when">Recent</span></div>
+        <h3>Search, shortcuts, and themes</h3>
+        <p>Added a quick search across courses and assignments, keyboard shortcuts for the views people open most, and a light/dark theme that follows your system setting.</p>
+      </li>
+      <li class="log-item">
+        <div class="log-head"><span class="log-ver">v1.1</span><span class="log-when">Earlier</span></div>
+        <h3>The portable widget</h3>
+        <p>A small grade panel that floats on any page, so you do not have to open Schoology to see where you stand. Each edition got its own version, plus an adaptive one.</p>
+      </li>
+      <li class="log-item">
+        <div class="log-head"><span class="log-ver">v1.0.5</span><span class="log-when">Earlier</span></div>
+        <h3>Arcade games</h3>
+        <p>A few small built-in games for the moments between classes. Not the point of the extension, but they were fun to make and they stayed.</p>
+      </li>
+      <li class="log-item">
+        <div class="log-head"><span class="log-ver">v1.0.2</span><span class="log-when">Earlier</span></div>
+        <h3>Four editions</h3>
+        <p>Rather than guess at one design, four complete looks got built and made fully interactive: Apple, Halo, Slate, and Friendly. You can browse all of them above.</p>
+      </li>
+      <li class="log-item">
+        <div class="log-head"><span class="log-ver">v1.0.0</span><span class="log-when">First release</span></div>
+        <h3>The demo and the real version</h3>
+        <p>The first release shipped two ways in: a demo with sample grades that needs no login, and the real extension that reads your own logged-in Schoology session.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
 <!-- ============ FEATURES ============ -->
-<section id="features">
+<section id="features" aria-labelledby="features-h2">
   <div class="wrap">
     <div class="sec-head reveal">
       <span class="eyebrow">What it actually does</span>
-      <h2>Built around the things you check most.</h2>
+      <h2 id="features-h2">Built around the things you check most.</h2>
       <p>No grand claims. These are the parts that are shipped and working today.</p>
     </div>
 
@@ -578,11 +783,11 @@
 </section>
 
 <!-- ============ DOWNLOAD ============ -->
-<section id="download" class="story">
+<section id="download" class="story" aria-labelledby="download-h2">
   <div class="wrap">
     <div class="sec-head reveal">
       <span class="eyebrow">Get it</span>
-      <h2>Two ways to start.</h2>
+      <h2 id="download-h2">Two ways to start.</h2>
       <p>Have a look with sample data first, or install the real version and see your own grades. Both are free and download from the project's GitHub Releases page.</p>
     </div>
 
@@ -643,6 +848,8 @@
   </div>
 </section>
 
+</main>
+
 <!-- ============ FOOTER ============ -->
 <footer class="site">
   <div class="wrap foot">
@@ -657,13 +864,16 @@
       </div>
       <p>A student project to make checking your grades feel less like a chore. Free, and built to sit quietly on top of the Schoology you already have.</p>
     </div>
-    <div class="links">
+    <nav class="links" aria-label="Footer">
       <a href="#story">Story</a>
       <a href="#editions">Editions</a>
+      <a href="#browse">Browse</a>
+      <a href="#changelog">What's new</a>
       <a href="#features">Features</a>
       <a href="#download">Download</a>
       <a href="https://github.com/saptarshighosh10-oss/better-sgy" target="_blank" rel="noopener">GitHub</a>
-    </div>
+      <a href="./debug.html">Debug</a>
+    </nav>
     <p class="fine">Better SGY is not affiliated with or endorsed by Schoology or PowerSchool. It reads grades through your own logged-in session and keeps gradebook data in your browser. Schoology is a trademark of its respective owner.</p>
   </div>
 </footer>
@@ -724,6 +934,119 @@
       io.observe(el);
     });
   }
+
+  /* ---- Browse gallery: lazy iframe + edition/form picker ---- */
+  (function(){
+    var stage = document.getElementById("frameWrap");
+    if(!stage) return;
+
+    var segEdition = document.getElementById("seg-edition");
+    var segForm    = document.getElementById("seg-form");
+    var phWrap     = document.getElementById("framePh");
+    var phOpen     = document.getElementById("phOpen");
+    var openLink   = document.getElementById("galleryOpen");
+    var metaText   = document.getElementById("frameMeta");
+
+    var EDITION_NAMES = {apple:"Apple", halo:"Halo", slate:"Slate", forge:"Friendly"};
+    var FORM_NAMES    = {overview:"Overview", app:"Full app", portable:"Portable widget"};
+
+    var current = {edition:"apple", form:"overview"};
+    var frame = null;          // the live iframe element
+    var loadedSrc = null;      // src currently loaded
+    var inView = false;        // gallery scrolled into view at least once
+
+    function srcFor(s){
+      // portable + an edition uses the per-edition portable file
+      return "./mockup-" + s.form + "-" + s.edition + ".html";
+    }
+    function label(s){
+      return EDITION_NAMES[s.edition] + " · " + FORM_NAMES[s.form];
+    }
+
+    function updateLinks(){
+      var src = srcFor(current);
+      if(openLink) openLink.href = src;
+      if(phOpen) phOpen.href = src;
+      if(metaText) metaText.textContent = label(current);
+    }
+
+    function ensureFrame(){
+      if(frame) return frame;
+      frame = document.createElement("iframe");
+      frame.setAttribute("loading", "lazy");
+      frame.setAttribute("title", "Live preview");
+      frame.addEventListener("load", function(){
+        if(phWrap) phWrap.style.display = "none";
+      });
+      stage.appendChild(frame);
+      return frame;
+    }
+
+    function loadCurrent(){
+      if(!inView) return;          // stay light until visible
+      var src = srcFor(current);
+      ensureFrame();
+      frame.setAttribute("title", "Live preview: " + label(current));
+      if(loadedSrc !== src){
+        if(phWrap) phWrap.style.display = "";   // show placeholder while loading
+        frame.src = src;
+        loadedSrc = src;
+      }
+    }
+
+    function setPressed(group, attr, value){
+      var btns = group.querySelectorAll("button");
+      for(var i=0;i<btns.length;i++){
+        btns[i].setAttribute("aria-pressed", btns[i].getAttribute(attr) === value ? "true" : "false");
+      }
+    }
+
+    function pick(kind, value){
+      current[kind] = value;
+      if(kind === "edition") setPressed(segEdition, "data-edition", value);
+      else setPressed(segForm, "data-form", value);
+      updateLinks();
+      loadCurrent();
+    }
+
+    // click + keyboard (arrow keys move within a segmented group)
+    function wireGroup(group, kind, attr){
+      group.addEventListener("click", function(e){
+        var b = e.target.closest("button[" + attr + "]");
+        if(b) pick(kind, b.getAttribute(attr));
+      });
+      group.addEventListener("keydown", function(e){
+        if(e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+        var btns = Array.prototype.slice.call(group.querySelectorAll("button"));
+        var idx = btns.indexOf(document.activeElement);
+        if(idx < 0) return;
+        e.preventDefault();
+        var next = e.key === "ArrowRight" ? (idx + 1) % btns.length : (idx - 1 + btns.length) % btns.length;
+        btns[next].focus();
+        pick(kind, btns[next].getAttribute(attr));
+      });
+    }
+    wireGroup(segEdition, "edition", "data-edition");
+    wireGroup(segForm, "form", "data-form");
+
+    updateLinks();
+
+    // lazy: only build/load the iframe once the gallery is near the viewport
+    if(!("IntersectionObserver" in window)){
+      inView = true; loadCurrent();
+    } else {
+      var gio = new IntersectionObserver(function(entries){
+        entries.forEach(function(en){
+          if(en.isIntersecting){
+            inView = true;
+            loadCurrent();
+            gio.disconnect();
+          }
+        });
+      }, {rootMargin:"200px 0px"});
+      gio.observe(stage);
+    }
+  })();
 })();
 </script>
 </body>

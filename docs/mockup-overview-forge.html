@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Better SGY — Overview · the friendly one</title>
+<style>
+  /* ============================================================
+     "A friend who has too much to say."
+     Warm cream paper · rounded type · speech bubbles · margin notes.
+     The grades are the facts; the friend is the voice all over them.
+     ============================================================ */
+  :root{
+    --paper:   #fdf4e6;   /* warm cream */
+    --paper-2: #f7ead6;
+    --card:    #fffdf9;
+    --ink:     #3a2f25;   /* warm cocoa */
+    --ink-2:   #8a7a66;   /* warm gray */
+    --ink-3:   #b6a690;
+    --line:    #ece0cd;
+    --coral:   #ff6f61;
+    --peach:   #ffb454;
+    --sun:     #ffcf4d;
+    --sage:    #4fb286;   /* good / up */
+    --sky:     #5aa9e6;
+    --grape:   #9b87f2;
+    --rose:    #ef6a52;   /* gentle alert */
+    --bubble:  #fff4dd;
+    --font: "SF Pro Rounded","ui-rounded","Hiragino Maru Gothic ProN",
+            "Segoe UI Variable","Nunito",system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:var(--font);background:var(--paper);color:var(--ink);
+    line-height:1.5;-webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(circle at 12% 8%,rgba(255,180,84,.10),transparent 38%),
+                     radial-gradient(circle at 90% 0%,rgba(155,135,242,.10),transparent 36%);
+    padding:34px 20px 70px;
+  }
+  .wrap{max-width:780px;margin:0 auto}
+
+  /* highlighter underline */
+  .hl{background:linear-gradient(transparent 62%,rgba(255,207,77,.55) 62%);padding:0 1px}
+  .wave{text-decoration:underline wavy var(--peach);text-underline-offset:3px;text-decoration-thickness:1.5px}
+
+  /* ---------- GREETING ---------- */
+  .hello{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+  .ava{width:46px;height:46px;border-radius:50%;flex:none;
+       background:radial-gradient(circle at 35% 30%,#ffd98a,#ff9d5c);
+       box-shadow:0 4px 0 rgba(214,140,70,.25);display:grid;place-items:center;font-size:22px}
+  .hello h1{font-size:26px;font-weight:800;letter-spacing:-.01em}
+  .hello .when{font-size:14px;color:var(--ink-2);font-weight:600;margin-top:1px}
+
+  /* ---------- HERO BUBBLE ---------- */
+  .hero{display:flex;gap:18px;align-items:flex-start;margin-top:22px;flex-wrap:wrap}
+  .score{background:var(--card);border:1.5px solid var(--line);border-radius:26px;
+         padding:20px 26px 18px;box-shadow:0 10px 24px -14px rgba(120,80,30,.45);
+         position:relative;flex:none}
+  .score .big{font-size:62px;font-weight:800;line-height:1;letter-spacing:-.03em}
+  .score .big .pct{font-size:26px;color:var(--ink-3)}
+  .score .cap{font-size:13px;color:var(--ink-2);font-weight:700;margin-top:6px}
+  .score .tag{position:absolute;top:-12px;right:-10px;background:var(--sage);color:#fff;
+        font-size:12px;font-weight:800;padding:4px 12px;border-radius:20px;
+        box-shadow:0 5px 12px -3px rgba(79,178,134,.6);transform:rotate(4deg)}
+
+  .bubble{position:relative;background:var(--bubble);border:1.5px solid var(--line);
+        border-radius:22px;padding:15px 18px;font-size:16px;font-weight:600;max-width:380px;
+        box-shadow:0 8px 20px -14px rgba(120,80,30,.5)}
+  .bubble:before{content:"";position:absolute;left:-9px;top:24px;width:18px;height:18px;
+        background:var(--bubble);border-left:1.5px solid var(--line);border-bottom:1.5px solid var(--line);
+        transform:rotate(45deg)}
+  .bubble.small{font-size:14px;font-weight:600;padding:11px 15px;margin-top:9px;max-width:340px;color:var(--ink-2)}
+  .bubble.small:before{top:18px}
+
+  /* ---------- QUICK GIST CHIPS ---------- */
+  .gist{margin-top:26px;display:flex;flex-wrap:wrap;gap:11px}
+  .chip{background:var(--card);border:1.5px solid var(--line);border-radius:18px;
+        padding:11px 15px;display:flex;align-items:center;gap:11px;box-shadow:0 6px 16px -14px rgba(120,80,30,.5)}
+  .chip .ic{width:34px;height:34px;border-radius:12px;flex:none;display:grid;place-items:center;font-size:17px}
+  .chip .ic.a{background:#eafaf2} .chip .ic.b{background:#fff1d6}
+  .chip .ic.c{background:#ffe6e0} .chip .ic.d{background:#ece7ff}
+  .chip .n{font-size:18px;font-weight:800;line-height:1}
+  .chip .l{font-size:12px;color:var(--ink-2);font-weight:600}
+
+  /* ---------- SECTION LABEL ---------- */
+  .sechd{margin:38px 0 4px;display:flex;align-items:baseline;gap:10px}
+  .sechd h2{font-size:21px;font-weight:800;letter-spacing:-.01em}
+  .sechd .sub{font-size:13px;color:var(--ink-2);font-weight:600}
+  .intro{font-size:14px;color:var(--ink-2);font-weight:600;margin-bottom:16px}
+
+  /* ---------- COURSE CARDS ---------- */
+  .course{background:var(--card);border:1.5px solid var(--line);border-radius:22px;
+        padding:16px 18px;margin-bottom:14px;box-shadow:0 8px 20px -16px rgba(120,80,30,.5);
+        position:relative;overflow:hidden}
+  .course:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--dot,var(--peach))}
+  .crow{display:flex;align-items:center;gap:14px}
+  .emoji{width:42px;height:42px;border-radius:14px;flex:none;display:grid;place-items:center;font-size:21px;
+        background:var(--soft,#fff1d6)}
+  .cmeta{flex:1;min-width:0}
+  .cmeta .nm{font-size:17px;font-weight:800;letter-spacing:-.01em}
+  .cmeta .tc{font-size:13px;color:var(--ink-2);font-weight:600}
+  .grade{display:flex;flex-direction:column;align-items:flex-end;flex:none}
+  .grade .g{font-size:24px;font-weight:800;line-height:1;letter-spacing:-.02em}
+  .grade .g .pct{font-size:13px;color:var(--ink-3);font-weight:700}
+  .grade .lt{font-size:12px;font-weight:800;color:var(--ink-2);margin-top:3px}
+  .spark{flex:none;margin-left:2px}
+
+  /* the friend's comment under each course */
+  .say{margin-top:12px;display:flex;gap:9px;align-items:flex-start}
+  .say .q{flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:13px;
+        background:var(--soft,#fff1d6)}
+  .say p{font-size:14.5px;font-weight:600;color:var(--ink);line-height:1.45}
+  .say p em{font-style:normal;color:var(--ink-2);font-weight:600}
+  .say .add{display:block;margin-top:5px;font-size:13.5px;color:var(--ink-2);font-weight:600}
+  .miss{color:var(--rose);font-weight:800}
+  .up{color:var(--sage);font-weight:800}
+
+  /* ---------- OUTRO ---------- */
+  .outro{margin-top:30px;background:var(--paper-2);border:1.5px dashed #e3d2b6;border-radius:22px;
+        padding:18px 20px;display:flex;gap:13px;align-items:center}
+  .outro .ic{font-size:26px}
+  .outro p{font-size:15px;font-weight:700;color:var(--ink)}
+  .outro p span{color:var(--ink-2);font-weight:600}
+
+  @media(max-width:560px){
+    .hero{flex-direction:column}
+    .bubble{max-width:100%}
+    .grade .g{font-size:21px}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+
+    <!-- ===== GREETING ===== -->
+    <div class="hello">
+      <div class="ava">🙂</div>
+      <div>
+        <h1>Hey, here's where things are at</h1>
+        <div class="when">2025–2026 · Freshman year · Semester 2</div>
+      </div>
+    </div>
+
+    <!-- ===== HERO ===== -->
+    <div class="hero">
+      <div class="score">
+        <span class="tag">on track ✶</span>
+        <div class="big">96.2<span class="pct">%</span></div>
+        <div class="cap">average across 6 classes</div>
+      </div>
+      <div>
+        <div class="bubble">
+          <span class="hl">96.2%</span> across all six classes. that's a really strong spot to be in.
+        </div>
+        <div class="bubble small">
+          couple little things i want to point out, but nothing to stress about.
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== QUICK GIST ===== -->
+    <div class="gist">
+      <div class="chip"><div class="ic a">🎓</div><div><div class="n">3.94</div><div class="l">GPA estimate · weighted</div></div></div>
+      <div class="chip"><div class="ic b">📌</div><div><div class="n">2</div><div class="l">due today, very doable</div></div></div>
+      <div class="chip"><div class="ic c">👀</div><div><div class="n">2</div><div class="l">missing, worth a look</div></div></div>
+      <div class="chip"><div class="ic d">🏆</div><div><div class="n">PE 9</div><div class="l">your best, 99.1%</div></div></div>
+    </div>
+
+    <!-- ===== COURSES ===== -->
+    <div class="sechd"><h2>Your classes</h2><span class="sub">all 6 of them</span></div>
+    <p class="intro">quick notes on each:</p>
+
+    <!-- Algebra -->
+    <div class="course" style="--dot:#5aa9e6;--soft:#e3f0fb">
+      <div class="crow">
+        <div class="emoji">📐</div>
+        <div class="cmeta"><div class="nm">Algebra 2 / Trig</div><div class="tc">Mr. Stubbs</div></div>
+        <svg class="spark" width="58" height="26" viewBox="0 0 58 26" fill="none" aria-hidden="true">
+          <polyline points="2,20 12,18 22,15 32,13 42,9 52,5" stroke="#4fb286" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="52" cy="5" r="2.6" fill="#4fb286"/></svg>
+        <div class="grade"><div class="g">97.4<span class="pct">%</span></div><div class="lt">A</div></div>
+      </div>
+      <div class="say"><div class="q">💬</div><p>
+        keeps <span class="up">ticking up</span> every week 📈 nice.
+        <span class="add">nothing missing here either, so no notes.</span>
+      </p></div>
+    </div>
+
+    <!-- Biology -->
+    <div class="course" style="--dot:#4fb286;--soft:#e6f7ef">
+      <div class="crow">
+        <div class="emoji">🧬</div>
+        <div class="cmeta"><div class="nm">Biology</div><div class="tc">Ms. Carrington</div></div>
+        <svg class="spark" width="58" height="26" viewBox="0 0 58 26" fill="none" aria-hidden="true">
+          <polyline points="2,12 12,13 22,11 32,12 42,11 52,12" stroke="#b6a690" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="52" cy="12" r="2.6" fill="#b6a690"/></svg>
+        <div class="grade"><div class="g">96.7<span class="pct">%</span></div><div class="lt">A</div></div>
+      </div>
+      <div class="say"><div class="q">💬</div><p>
+        steady A. one thing though: there's <span class="miss">1 missing assignment</span> in here 👀
+        <span class="add">it's barely touching your grade, but might as well clear it.</span>
+      </p></div>
+    </div>
+
+    <!-- French -->
+    <div class="course" style="--dot:#ffb454;--soft:#fff1d6">
+      <div class="crow">
+        <div class="emoji">🥐</div>
+        <div class="cmeta"><div class="nm">French 1</div><div class="tc">Mme. Laurent</div></div>
+        <svg class="spark" width="58" height="26" viewBox="0 0 58 26" fill="none" aria-hidden="true">
+          <polyline points="2,19 12,16 22,16 32,12 42,10 52,7" stroke="#4fb286" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="52" cy="7" r="2.6" fill="#4fb286"/></svg>
+        <div class="grade"><div class="g">96.5<span class="pct">%</span></div><div class="lt">A</div></div>
+      </div>
+      <div class="say"><div class="q">💬</div><p>
+        <span class="up">going up</span>, and your French is getting there 🇫🇷
+        <span class="add">all caught up, nothing missing.</span>
+      </p></div>
+    </div>
+
+    <!-- Drama -->
+    <div class="course" style="--dot:#9b87f2;--soft:#ece7ff">
+      <div class="crow">
+        <div class="emoji">🎭</div>
+        <div class="cmeta"><div class="nm">Drama</div><div class="tc">Mr. Ellison</div></div>
+        <svg class="spark" width="58" height="26" viewBox="0 0 58 26" fill="none" aria-hidden="true">
+          <polyline points="2,6 12,8 22,11 32,13 42,16 52,19" stroke="#ef6a52" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="52" cy="19" r="2.6" fill="#ef6a52"/></svg>
+        <div class="grade"><div class="g">90.3<span class="pct">%</span></div><div class="lt">A−</div></div>
+      </div>
+      <div class="say"><div class="q">💬</div><p>
+        <span class="wave">this is the other one.</span> it's slipped a bit lately and there's a
+        <span class="miss">missing assignment</span> too.
+        <span class="add">still an A−, so you're fine. one assignment and a decent week and it's back up. just keep an eye on it.</span>
+      </p></div>
+    </div>
+
+    <!-- Literature -->
+    <div class="course" style="--dot:#ef6a9b;--soft:#ffe4ef">
+      <div class="crow">
+        <div class="emoji">📚</div>
+        <div class="cmeta"><div class="nm">Literature</div><div class="tc">Ms. Howe</div></div>
+        <svg class="spark" width="58" height="26" viewBox="0 0 58 26" fill="none" aria-hidden="true">
+          <polyline points="2,19 12,19 22,15 32,15 42,11 52,9" stroke="#4fb286" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="52" cy="9" r="2.6" fill="#4fb286"/></svg>
+        <div class="grade"><div class="g">94.1<span class="pct">%</span></div><div class="lt">A</div></div>
+      </div>
+      <div class="say"><div class="q">💬</div><p>
+        slowly going up 📚 and nothing missing.
+        <span class="add">zero notes on this one. all good.</span>
+      </p></div>
+    </div>
+
+    <!-- PE -->
+    <div class="course" style="--dot:#4fb286;--soft:#e6f7ef">
+      <div class="crow">
+        <div class="emoji">🏃</div>
+        <div class="cmeta"><div class="nm">PE 9</div><div class="tc">Coach Bryant</div></div>
+        <svg class="spark" width="58" height="26" viewBox="0 0 58 26" fill="none" aria-hidden="true">
+          <polyline points="2,7 12,6 22,7 32,5 42,5 52,4" stroke="#4fb286" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="52" cy="4" r="2.6" fill="#4fb286"/></svg>
+        <div class="grade"><div class="g">99.1<span class="pct">%</span></div><div class="lt">A</div></div>
+      </div>
+      <div class="say"><div class="q">🏆</div><p>
+        <span class="hl">99.1%</span> this is your highest one 🏆
+        <span class="add">don't change a thing.</span>
+      </p></div>
+    </div>
+
+    <!-- ===== OUTRO ===== -->
+    <div class="outro">
+      <div class="ic">🧃</div>
+      <p>that's all of them. <span>clear those 2 missing things when you get a chance and you're set. go grab a snack.</span></p>
+    </div>
+
+  </div>
+</body>
+</html>

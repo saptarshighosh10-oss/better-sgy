@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Better SGY · QA / Launcher Hub</title>
+<style>
+  :root{
+    --bg:#0f1115;
+    --panel:#171a21;
+    --panel-2:#1d212b;
+    --line:#2a2f3a;
+    --line-2:#363c49;
+    --ink:#e6e9ef;
+    --ink-dim:#9aa3b2;
+    --ink-faint:#6b7280;
+    --accent:#5b9dff;
+    --accent-ink:#0b1220;
+    --good:#43d17a;
+    --warn:#f0b429;
+    --danger:#ff5d5d;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+    --sans:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    --radius:10px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font:14px/1.5 var(--sans);
+    -webkit-font-smoothing:antialiased;
+    padding:28px 22px 60px;
+  }
+  a{color:inherit}
+  .wrap{max-width:1040px;margin:0 auto}
+
+  header.top{
+    display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    padding-bottom:18px;border-bottom:1px solid var(--line);margin-bottom:24px;
+  }
+  .logo{
+    width:34px;height:34px;border-radius:8px;flex:0 0 auto;
+    background:linear-gradient(135deg,#5b9dff,#9b6bff);
+    display:grid;place-items:center;
+  }
+  .logo svg{width:20px;height:20px}
+  .title h1{font-size:16px;margin:0;letter-spacing:.2px}
+  .title p{margin:2px 0 0;color:var(--ink-dim);font-size:12px}
+  .badge{
+    margin-left:auto;font:11px/1 var(--mono);color:var(--ink-dim);
+    border:1px solid var(--line);border-radius:999px;padding:6px 10px;
+  }
+
+  section{margin:0 0 26px}
+  .sec-head{display:flex;align-items:baseline;gap:10px;margin:0 0 12px}
+  .sec-head h2{font-size:13px;margin:0;text-transform:uppercase;letter-spacing:.8px;color:var(--ink)}
+  .sec-head .hint{font-size:12px;color:var(--ink-faint)}
+
+  .card{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px;
+  }
+
+  /* matrix */
+  table.matrix{border-collapse:separate;border-spacing:0;width:100%}
+  table.matrix th,table.matrix td{padding:0;text-align:left}
+  table.matrix thead th{
+    font:11px/1 var(--mono);color:var(--ink-dim);text-transform:uppercase;letter-spacing:.6px;
+    padding:0 8px 10px;
+  }
+  table.matrix tbody th{
+    width:120px;padding:8px 12px 8px 0;vertical-align:middle;
+  }
+  .ed-name{display:flex;align-items:center;gap:9px;font-weight:600}
+  .dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto;border:1px solid rgba(255,255,255,.15)}
+  .dot.apple{background:#0a84ff}
+  .dot.halo{background:#10b6a8}
+  .dot.slate{background:#8a93a6}
+  .dot.forge{background:#ff7a45}
+  .ed-sub{font:10px/1 var(--mono);color:var(--ink-faint);font-weight:400;margin-top:2px}
+  table.matrix td{padding:5px}
+
+  .cell{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    width:100%;text-decoration:none;
+    background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
+    padding:11px 12px;color:var(--ink);transition:border-color .12s,background .12s,transform .04s;
+  }
+  .cell:hover{border-color:var(--accent);background:#222838}
+  .cell:active{transform:translateY(1px)}
+  .cell .lbl{font-size:13px}
+  .cell .arrow{color:var(--ink-faint);font-size:13px}
+  .cell:hover .arrow{color:var(--accent)}
+
+  /* controls */
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  label.fld{display:flex;flex-direction:column;gap:5px;font:11px/1 var(--mono);color:var(--ink-dim);text-transform:uppercase;letter-spacing:.5px}
+  select,button,input{font:14px/1 var(--sans)}
+  select{
+    background:var(--panel-2);color:var(--ink);border:1px solid var(--line-2);
+    border-radius:8px;padding:10px 12px;min-width:160px;cursor:pointer;
+  }
+  select:focus,button:focus{outline:2px solid var(--accent);outline-offset:1px}
+  button{
+    background:var(--panel-2);color:var(--ink);border:1px solid var(--line-2);
+    border-radius:8px;padding:10px 16px;cursor:pointer;transition:border-color .12s,background .12s;
+  }
+  button:hover{border-color:var(--accent);background:#222838}
+  button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+  button.primary:hover{background:#74adff}
+  button.danger{border-color:#5a2b2b;color:var(--danger)}
+  button.danger:hover{background:#2a1718;border-color:var(--danger)}
+
+  .adaptive-grid{display:flex;gap:10px;flex-wrap:wrap}
+  .adaptive-grid .cell{width:auto;flex:1 1 180px;min-width:160px}
+
+  /* state */
+  .state-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:720px){.state-grid{grid-template-columns:1fr}}
+  .kv{font:12px/1.7 var(--mono)}
+  .kv .k{color:var(--ink-faint)}
+  .kv .v{color:var(--ink)}
+  .pill{
+    display:inline-block;font:11px/1 var(--mono);padding:5px 9px;border-radius:999px;
+    border:1px solid var(--line-2);color:var(--ink);
+  }
+  .keys-list{
+    margin:8px 0 0;padding:0;list-style:none;max-height:200px;overflow:auto;
+    border:1px solid var(--line);border-radius:8px;
+  }
+  .keys-list li{
+    display:flex;justify-content:space-between;gap:10px;
+    font:11px/1.4 var(--mono);padding:7px 10px;border-bottom:1px solid var(--line);
+  }
+  .keys-list li:last-child{border-bottom:0}
+  .keys-list .kname{color:var(--accent)}
+  .keys-list .kval{color:var(--ink-dim);max-width:50%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .empty{color:var(--ink-faint);font-style:italic;padding:10px;font-size:12px}
+
+  .note{
+    font-size:12px;color:var(--ink-dim);background:var(--panel-2);
+    border:1px solid var(--line);border-left:3px solid var(--accent);
+    border-radius:6px;padding:10px 12px;margin-top:12px;
+  }
+  .note code{font:11px/1 var(--mono);background:#0c0e13;padding:2px 5px;border-radius:4px;color:var(--ink)}
+
+  /* legend */
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink-dim)}
+  .legend .item{display:flex;align-items:center;gap:7px}
+  footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);
+    font:11px/1.6 var(--mono);color:var(--ink-faint)}
+  .toast{
+    position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);
+    background:#222838;border:1px solid var(--accent);color:var(--ink);
+    padding:11px 18px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;
+    transition:opacity .18s,transform .18s;z-index:50;box-shadow:0 8px 30px rgba(0,0,0,.4);
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 6h16M4 12h16M4 18h10"/>
+      </svg>
+    </div>
+    <div class="title">
+      <h1>Better SGY · QA / Launcher Hub</h1>
+      <p>Local testing console for the four-edition mockups</p>
+    </div>
+    <span class="badge">debug.html</span>
+  </header>
+
+  <!-- 1. MATRIX -->
+  <section id="matrix">
+    <div class="sec-head">
+      <h2>Mockups</h2>
+      <span class="hint">opens each prototype in a new tab</span>
+    </div>
+    <div class="card">
+      <table class="matrix">
+        <thead>
+          <tr>
+            <th>Edition</th>
+            <th>Overview</th>
+            <th>Full app</th>
+            <th>Portable</th>
+          </tr>
+        </thead>
+        <tbody id="matrixBody"><!-- rows injected --></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 2. JUMP TO SCREEN -->
+  <section id="jump">
+    <div class="sec-head">
+      <h2>Jump to screen</h2>
+      <span class="hint">deep-links the full app via <code style="font-family:var(--mono)">?screen=</code></span>
+    </div>
+    <div class="card">
+      <div class="row">
+        <label class="fld">Edition
+          <select id="jumpEdition"></select>
+        </label>
+        <label class="fld">Screen
+          <select id="jumpScreen"></select>
+        </label>
+        <button class="primary" id="jumpGo" style="align-self:flex-end">Open ↗</button>
+        <span id="jumpUrl" class="pill" style="align-self:flex-end;color:var(--ink-dim)"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. ADAPTIVE WIDGET -->
+  <section id="adaptive">
+    <div class="sec-head">
+      <h2>Adaptive widget</h2>
+      <span class="hint"><code style="font-family:var(--mono)">mockup-portable.html</code> · themed by <code style="font-family:var(--mono)">?mode=</code> · <code style="font-family:var(--mono)">?open=1</code></span>
+    </div>
+    <div class="card">
+      <div class="adaptive-grid" id="adaptiveGrid"><!-- injected --></div>
+      <div class="note">
+        The "Saved edition" button omits <code>?mode=</code> so the widget reads
+        <code>bsgy-edition</code> from localStorage to theme itself.
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. STATE -->
+  <section id="state">
+    <div class="sec-head">
+      <h2>State &amp; storage</h2>
+      <span class="hint">inspect / reset Better SGY localStorage</span>
+    </div>
+    <div class="card">
+      <div class="state-grid">
+        <div>
+          <div class="kv">
+            <span class="k">Saved edition</span> →
+            <span class="v" id="savedEdition">—</span>
+          </div>
+          <div class="kv" style="margin-top:4px">
+            <span class="k">bsgy-* keys present</span> →
+            <span class="v" id="keyCount">0</span>
+          </div>
+          <div class="row" style="margin-top:14px">
+            <button class="danger" id="resetBtn">Reset all Better SGY storage</button>
+            <button id="refreshBtn">Refresh view</button>
+          </div>
+          <div class="note">
+            <strong>Light / dark:</strong> theme is not controlled here — set it inside each
+            app's <code>Settings</code> screen. Each app persists its own preference.
+          </div>
+        </div>
+        <div>
+          <div class="kv"><span class="k">// localStorage keys starting with</span> <span class="v">bsgy</span></div>
+          <ul class="keys-list" id="keysList"></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. LEGEND -->
+  <section id="legend">
+    <div class="sec-head"><h2>Legend</h2></div>
+    <div class="card">
+      <div class="legend">
+        <span class="item"><span class="dot apple"></span> apple</span>
+        <span class="item"><span class="dot halo"></span> halo</span>
+        <span class="item"><span class="dot slate"></span> slate</span>
+        <span class="item"><span class="dot forge"></span> forge (Friendly)</span>
+      </div>
+      <div class="note" style="border-left-color:var(--warn)">
+        These are <strong>local, self-contained HTML prototypes</strong> — no server, no build, no
+        network. All data is mock data; all state lives in your browser's localStorage under the
+        <code>bsgy</code> namespace. Links open sibling files in <code>docs/</code>.
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Better SGY mockups · editions: apple · halo · slate · forge &nbsp;|&nbsp; screens: overview, grades, assignments, calendar, announcements, materials, games, settings
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var EDITIONS = [
+    {id:"apple", name:"Apple"},
+    {id:"halo",  name:"Halo"},
+    {id:"slate", name:"Slate"},
+    {id:"forge", name:"Forge", sub:"Friendly"}
+  ];
+  var SCREENS = ["overview","grades","assignments","calendar","announcements","materials","games","settings"];
+
+  var url = {
+    overview: function(id){ return "./mockup-overview-" + id + ".html"; },
+    app:      function(id){ return "./mockup-app-" + id + ".html"; },
+    appScreen:function(id, screen){ return "./mockup-app-" + id + ".html?screen=" + screen; },
+    portable: function(id){ return "./mockup-portable-" + id + ".html"; },
+    adaptive: function(id){ return id ? "./mockup-portable.html?mode=" + id + "&open=1" : "./mockup-portable.html?open=1"; }
+  };
+
+  function el(tag, attrs, kids){
+    var n = document.createElement(tag);
+    if(attrs) for(var k in attrs){
+      if(k === "class") n.className = attrs[k];
+      else if(k === "text") n.textContent = attrs[k];
+      else n.setAttribute(k, attrs[k]);
+    }
+    (kids||[]).forEach(function(c){ n.appendChild(c); });
+    return n;
+  }
+  function cellLink(href, label){
+    var a = el("a", {class:"cell", href:href, target:"_blank", rel:"noopener"});
+    a.appendChild(el("span", {class:"lbl", text:label}));
+    a.appendChild(el("span", {class:"arrow", text:"↗"}));
+    return a;
+  }
+
+  /* ---- 1. matrix ---- */
+  var body = document.getElementById("matrixBody");
+  EDITIONS.forEach(function(ed){
+    var tr = el("tr");
+    var th = el("th");
+    var name = el("div", {class:"ed-name"});
+    name.appendChild(el("span", {class:"dot " + ed.id}));
+    var col = el("div");
+    col.appendChild(el("span", {text:ed.name}));
+    if(ed.sub) col.appendChild(el("div", {class:"ed-sub", text:ed.sub}));
+    name.appendChild(col);
+    th.appendChild(name);
+    tr.appendChild(th);
+
+    [url.overview(ed.id), url.app(ed.id), url.portable(ed.id)].forEach(function(href, i){
+      var td = el("td");
+      var labels = ["Overview","Full app","Portable"];
+      td.appendChild(cellLink(href, labels[i]));
+      tr.appendChild(td);
+    });
+    body.appendChild(tr);
+  });
+
+  /* ---- 2. jump to screen ---- */
+  var jE = document.getElementById("jumpEdition");
+  var jS = document.getElementById("jumpScreen");
+  EDITIONS.forEach(function(ed){
+    jE.appendChild(el("option", {value:ed.id, text:ed.name + (ed.sub ? " ("+ed.sub+")" : "")}));
+  });
+  SCREENS.forEach(function(s){
+    jS.appendChild(el("option", {value:s, text:s.charAt(0).toUpperCase()+s.slice(1)}));
+  });
+  jS.value = "grades";
+  var jumpUrl = document.getElementById("jumpUrl");
+  function syncJumpUrl(){ jumpUrl.textContent = url.appScreen(jE.value, jS.value); }
+  jE.addEventListener("change", syncJumpUrl);
+  jS.addEventListener("change", syncJumpUrl);
+  document.getElementById("jumpGo").addEventListener("click", function(){
+    window.open(url.appScreen(jE.value, jS.value), "_blank", "noopener");
+  });
+  syncJumpUrl();
+
+  /* ---- 3. adaptive widget ---- */
+  var ag = document.getElementById("adaptiveGrid");
+  EDITIONS.forEach(function(ed){
+    var a = cellLink(url.adaptive(ed.id), ed.name);
+    a.querySelector(".lbl").insertBefore(
+      el("span", {class:"dot " + ed.id, style:"display:inline-block;margin-right:7px;vertical-align:middle"}),
+      a.querySelector(".lbl").firstChild
+    );
+    ag.appendChild(a);
+  });
+  // saved-edition variant
+  var saved = cellLink(url.adaptive(null), "Saved edition");
+  saved.style.borderStyle = "dashed";
+  ag.appendChild(saved);
+
+  /* ---- 4. state & storage ---- */
+  function bsgyKeys(){
+    var out = [];
+    for(var i = 0; i < localStorage.length; i++){
+      var k = localStorage.key(i);
+      if(k && k.indexOf("bsgy") === 0) out.push(k);
+    }
+    return out.sort();
+  }
+  function renderState(){
+    var ed = localStorage.getItem("bsgy-edition");
+    var se = document.getElementById("savedEdition");
+    if(ed){
+      se.innerHTML = "";
+      se.appendChild(el("span", {class:"dot " + ed, style:"display:inline-block;margin-right:6px;vertical-align:middle"}));
+      se.appendChild(document.createTextNode(ed));
+    } else {
+      se.textContent = "(none set)";
+    }
+    var keys = bsgyKeys();
+    document.getElementById("keyCount").textContent = String(keys.length);
+    var ul = document.getElementById("keysList");
+    ul.innerHTML = "";
+    if(!keys.length){
+      ul.appendChild(el("li", {}, [el("span", {class:"empty", text:"No bsgy-* keys in localStorage yet."})]));
+      return;
+    }
+    keys.forEach(function(k){
+      var v = localStorage.getItem(k);
+      var li = el("li");
+      li.appendChild(el("span", {class:"kname", text:k}));
+      li.appendChild(el("span", {class:"kval", title:v, text:(v === null ? "" : v)}));
+      ul.appendChild(li);
+    });
+  }
+  function toast(msg){
+    var t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function(){ t.classList.remove("show"); }, 2200);
+  }
+  document.getElementById("resetBtn").addEventListener("click", function(){
+    var keys = bsgyKeys();
+    if(!keys.length){ toast("Nothing to clear — no bsgy-* keys."); return; }
+    if(!confirm("Clear " + keys.length + " Better SGY key" + (keys.length===1?"":"s") +
+        " (everything starting with \"bsgy\", including bsgy-edition)?\n\nThis cannot be undone.")) return;
+    keys.forEach(function(k){ localStorage.removeItem(k); });
+    renderState();
+    toast("Cleared " + keys.length + " key" + (keys.length===1?"":"s") + ".");
+  });
+  document.getElementById("refreshBtn").addEventListener("click", function(){
+    renderState(); toast("Refreshed.");
+  });
+  // keep in sync if another tab/app changes storage
+  window.addEventListener("storage", renderState);
+  window.addEventListener("focus", renderState);
+
+  renderState();
+})();
+</script>
+</body>
+</html>

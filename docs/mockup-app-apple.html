@@ -624,57 +624,85 @@
     padding:18px;display:flex;flex-direction:column;align-items:center;gap:14px;
   }
 
-  /* Climb (2048) */
-  .climb-grid{
+  /* Slide (15-puzzle) */
+  .slide-grid{
     position:relative;background:var(--track);border-radius:16px;
-    width:100%;max-width:360px;aspect-ratio:1/1;padding:10px;
+    width:100%;max-width:360px;aspect-ratio:1/1;padding:8px;
     touch-action:none;
   }
-  .climb-cells{position:absolute;inset:10px;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);gap:10px;}
-  .climb-cell{background:rgba(120,120,128,0.16);border-radius:11px;}
-  .climb-tiles{position:absolute;inset:10px;}
-  .ctile{
-    position:absolute;border-radius:11px;display:flex;align-items:center;justify-content:center;
-    font-weight:700;letter-spacing:-0.02em;color:#fff;
-    transition:left .12s ease,top .12s ease,transform .12s ease;
-    will-change:left,top;
+  .stile{
+    position:absolute;border-radius:12px;display:flex;align-items:center;justify-content:center;
+    font-weight:600;letter-spacing:-0.02em;color:#fff;cursor:pointer;
+    background:linear-gradient(150deg,var(--blue),#5b6cff);
+    box-shadow:0 1px 2px rgba(0,0,0,.12);
+    transition:left .14s cubic-bezier(.2,.7,.2,1),top .14s cubic-bezier(.2,.7,.2,1);
+    will-change:left,top;font-size:min(7vw,28px);
+    appearance:none;border:none;font-family:inherit;
   }
-  .ctile.pop{animation:ctpop .16s ease;}
-  .ctile.spawn{animation:ctspawn .16s ease;}
-  @keyframes ctpop{0%{transform:scale(1);}50%{transform:scale(1.12);}100%{transform:scale(1);}}
-  @keyframes ctspawn{0%{transform:scale(0);}100%{transform:scale(1);}}
+  .stile.done{background:linear-gradient(150deg,var(--green),#30d158);}
 
-  /* Streak (snake) */
-  .streak-board{
-    background:var(--track);border-radius:16px;width:100%;max-width:360px;aspect-ratio:1/1;
-    display:block;touch-action:none;
+  /* Aim (reaction) */
+  .aim-board{
+    position:relative;background:var(--track);border-radius:16px;
+    width:100%;max-width:420px;aspect-ratio:1/1;overflow:hidden;cursor:crosshair;
+    touch-action:none;
   }
-  .dpad{display:grid;grid-template-columns:repeat(3,46px);grid-template-rows:repeat(3,46px);gap:8px;justify-content:center;}
-  .dbtn{
-    appearance:none;border:none;background:var(--paper);border:1px solid var(--line);cursor:pointer;
-    border-radius:13px;display:flex;align-items:center;justify-content:center;color:var(--ink);
-    transition:background .12s ease,transform .1s ease;
+  .aim-dot{
+    position:absolute;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #5b9bff, var(--blue));
+    box-shadow:0 2px 10px rgba(0,113,227,.45);
+    transform:translate(-50%,-50%) scale(0);
+    transition:transform .12s cubic-bezier(.2,.7,.2,1);
   }
-  .dbtn:active{transform:scale(.92);background:var(--tile-hover);}
-  .dbtn.up{grid-column:2;grid-row:1;}
-  .dbtn.left{grid-column:1;grid-row:2;}
-  .dbtn.right{grid-column:3;grid-row:2;}
-  .dbtn.down{grid-column:2;grid-row:3;}
+  .aim-dot.in{transform:translate(-50%,-50%) scale(1);}
+  .aim-flash{position:absolute;inset:0;background:rgba(255,69,58,.16);opacity:0;pointer-events:none;}
+  .aim-flash.show{animation:aimflash .28s ease;}
+  @keyframes aimflash{0%{opacity:1;}100%{opacity:0;}}
 
-  /* Recall (memory) */
-  .recall-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;width:100%;max-width:360px;}
-  .mcard{
-    aspect-ratio:3/4;position:relative;cursor:pointer;
-    background:none;border:none;padding:0;font-family:inherit;
-    perspective:600px;
+  /* Flow (simon) */
+  .flow-grid{
+    display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);
+    gap:14px;width:100%;max-width:340px;aspect-ratio:1/1;
   }
-  .mcard .inner{position:absolute;inset:0;transition:transform .32s cubic-bezier(.2,.7,.2,1);transform-style:preserve-3d;}
-  .mcard.flip .inner,.mcard.matched .inner{transform:rotateY(180deg);}
-  .mface{position:absolute;inset:0;border-radius:14px;display:flex;align-items:center;justify-content:center;backface-visibility:hidden;-webkit-backface-visibility:hidden;}
-  .mface.back{background:linear-gradient(150deg,var(--blue),#5b6cff);color:#fff;}
-  .mface.front{background:var(--paper);border:1px solid var(--line);transform:rotateY(180deg);font-size:30px;}
-  .mcard.matched .mface.front{background:rgba(52,199,89,.14);border-color:rgba(52,199,89,.4);}
-  .mcard:disabled{cursor:default;}
+  .fpad{
+    appearance:none;border:none;font-family:inherit;cursor:pointer;border-radius:18px;
+    opacity:.42;transition:opacity .14s ease,transform .1s ease,box-shadow .14s ease;
+  }
+  .fpad:active{transform:scale(.985);}
+  .fpad.lit{opacity:1;}
+  .fpad.p0{background:#0071e3;}
+  .fpad.p1{background:#34c759;}
+  .fpad.p2{background:#ff9f0a;}
+  .fpad.p3{background:#bf5af2;}
+  .fpad.p0.lit{box-shadow:0 0 28px rgba(0,113,227,.7);}
+  .fpad.p1.lit{box-shadow:0 0 28px rgba(52,199,89,.7);}
+  .fpad.p2.lit{box-shadow:0 0 28px rgba(255,159,10,.7);}
+  .fpad.p3.lit{box-shadow:0 0 28px rgba(191,90,242,.7);}
+
+  /* Word search */
+  .ws-wrap{display:flex;flex-direction:column;gap:14px;width:100%;max-width:420px;align-items:center;}
+  .ws-grid{
+    display:grid;grid-template-columns:repeat(10,1fr);gap:3px;
+    width:100%;max-width:360px;aspect-ratio:1/1;background:var(--track);
+    border-radius:14px;padding:6px;touch-action:manipulation;
+  }
+  .ws-cell{
+    appearance:none;border:none;font-family:inherit;cursor:pointer;
+    background:var(--paper);border-radius:6px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:min(3.2vw,15px);font-weight:600;color:var(--ink);letter-spacing:-0.01em;
+    transition:background .1s ease,color .1s ease;
+  }
+  .ws-cell:hover{background:var(--tile-hover);}
+  .ws-cell.sel{background:var(--blue);color:#fff;}
+  .ws-cell.found{background:rgba(0,113,227,.16);color:var(--blue);}
+  .ws-cell.found.sel{background:var(--blue);color:#fff;}
+  .ws-words{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;}
+  .ws-word{
+    font-size:13px;font-weight:600;letter-spacing:-0.01em;color:var(--ink2);
+    padding:5px 12px;border-radius:980px;background:var(--tile);transition:all .15s ease;
+  }
+  .ws-word.hit{color:var(--blue);background:rgba(0,113,227,.12);text-decoration:line-through;}
 
   .gmsg{font-size:14px;color:var(--ink2);letter-spacing:-0.012em;text-align:center;min-height:20px;}
 
@@ -1003,7 +1031,7 @@
         <div class="arcade-wrap">
           <div class="pagehead">
             <h1>Arcade</h1>
-            <p class="sub">Three quick games. Best scores save automatically.</p>
+            <p class="sub">Four quick games. Best scores save automatically.</p>
           </div>
 
           <!-- home -->
@@ -1657,7 +1685,7 @@ function renderSettings(){
    never collide with the main app state.
 ============================================================ */
 const Arcade = (function(){
-  const HS_KEY = "bsgy_apple_arcade_v1";
+  const HS_KEY = "bsgy-apple-arcade";
   function loadHS(){ try{ return JSON.parse(localStorage.getItem(HS_KEY) || "{}"); }catch(e){ return {}; } }
   function saveHS(o){ try{ localStorage.setItem(HS_KEY, JSON.stringify(o)); }catch(e){} }
   let HS = loadHS();
@@ -1665,13 +1693,20 @@ const Arcade = (function(){
   function setBest(id, val){ HS[id] = val; saveHS(HS); }
 
   const GAMES = [
-    {id:"climb",  name:"Climb",  desc:"Merge grades to reach A+",     icon:"📈", grad:"linear-gradient(150deg,#0071e3,#5b6cff)",
-      bestLabel:"Best", fmtBest:v=> v==null?"—":String(v)},
-    {id:"streak", name:"Streak", desc:"Eat tokens, don't crash",      icon:"🟢", grad:"linear-gradient(150deg,#34c759,#30d158)",
-      bestLabel:"Best", fmtBest:v=> v==null?"—":String(v)},
-    {id:"recall", name:"Recall", desc:"Match every pair from memory", icon:"🃏", grad:"linear-gradient(150deg,#bf5af2,#5b6cff)",
+    {id:"slide",  name:"Slide",  desc:"Order the tiles, one through fifteen", grad:"linear-gradient(150deg,#0071e3,#5b6cff)",
+      icon:`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1.4"/><rect x="14" y="4" width="6" height="6" rx="1.4"/><rect x="4" y="14" width="6" height="6" rx="1.4"/></svg>`,
       bestLabel:"Fewest", fmtBest:v=> v==null?"—":v+" moves"},
+    {id:"aim",    name:"Aim",    desc:"Hit every target before time runs out", grad:"linear-gradient(150deg,#ff453a,#ff9f0a)",
+      icon:`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke-linecap="round"/></svg>`,
+      bestLabel:"Best", fmtBest:v=> v==null?"—":String(v)},
+    {id:"flow",   name:"Flow",   desc:"Watch the sequence, then repeat it", grad:"linear-gradient(150deg,#34c759,#30d158)",
+      icon:`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg>`,
+      bestLabel:"Level", fmtBest:v=> v==null?"—":String(v)},
+    {id:"word",   name:"Word Search", desc:"Find six subjects in the grid", grad:"linear-gradient(150deg,#bf5af2,#5b6cff)",
+      icon:`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>`,
+      bestLabel:"Fastest", fmtBest:v=> v==null?"—":fmtClock(v)},
   ];
+  function fmtClock(ms){ const s=Math.floor(ms/1000); return Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); }
   const gameById = id => GAMES.find(g=>g.id===id);
 
   let active = null;     // {id, destroy()}
@@ -1681,7 +1716,7 @@ const Arcade = (function(){
   function renderHome(){
     homeEl().innerHTML = GAMES.map(g=>`
       <button class="gamecard" data-game="${g.id}">
-        <span class="gicon" style="background:${g.grad};">${g.icon}</span>
+        <span class="gicon" style="background:${g.grad};">${g.icon}</span><!-- icon is trusted inline svg -->
         <span class="ginfo">
           <span class="gname">${esc(g.name)}</span>
           <span class="gdesc">${esc(g.desc)}</span>
@@ -1695,9 +1730,10 @@ const Arcade = (function(){
     exit();
     homeEl().style.display = "none";
     viewEl().style.display = "block";
-    if(id==="climb")  active = Climb(viewEl());
-    else if(id==="streak") active = Streak(viewEl());
-    else if(id==="recall") active = Recall(viewEl());
+    if(id==="slide")  active = Slide(viewEl());
+    else if(id==="aim")  active = Aim(viewEl());
+    else if(id==="flow") active = Flow(viewEl());
+    else if(id==="word") active = Word(viewEl());
   }
   // return to the arcade home (also called when leaving the Games tab)
   function exit(){
@@ -1746,392 +1782,401 @@ const Arcade = (function(){
   }
 
   /* ---------------------------------------------------------
-     GAME 1 — CLIMB (2048 variant)
+     GAME 1 — SLIDE (15-puzzle)
   --------------------------------------------------------- */
-  function Climb(host){
-    const SIZE = 4;
-    // value -> {label, bg, font scale}
-    const FACES = {2:"D",4:"C−",8:"C",16:"C+",32:"B−",64:"B",128:"B+",256:"A−",512:"A",1024:"A+",2048:"🏆"};
-    const COLORS = {
-      2:"#a1a1a6",4:"#8e8e93",8:"#ff9f0a",16:"#ff9500",32:"#ff7a00",64:"#ff6a00",
-      128:"#5b6cff",256:"#4b5cf0",512:"#34c759",1024:"#28b14c",2048:"#0071e3"
-    };
-    let grid, score, best=getBest("climb"), won=false, dead=false;
-    let tileSeq = 0, tiles = {};   // id -> {id,v,r,c,el,merged}
-
+  function Slide(host){
+    const N = 4, GAP = 8;
+    let best = getBest("slide");
     const ui = shell(host, {
-      pods:[{id:"score",label:"Score",init:"0"},{id:"best",label:"Best",init:String(best||0)}],
+      pods:[{id:"moves",label:"Moves",init:"0"},{id:"best",label:"Fewest",init:best!=null?String(best):"—"}],
       stageHTML:`
-        <div class="gmsg" data-msg>Slide tiles together. Reach A+.</div>
-        <div class="climb-grid" data-grid tabindex="0">
-          <div class="climb-cells">${Array.from({length:16}).map(()=>'<div class="climb-cell"></div>').join("")}</div>
-          <div class="climb-tiles" data-tiles></div>
-        </div>
-        <button class="btn ghost sm" data-restart>Restart</button>`
+        <div class="gmsg" data-msg>Slide tiles into order. Arrow keys or tap.</div>
+        <div class="slide-grid" data-grid tabindex="0"></div>
+        <button class="btn ghost sm" data-restart>Shuffle</button>`
     });
     const gridEl = host.querySelector("[data-grid]");
-    const tilesEl = host.querySelector("[data-tiles]");
+    // board: array of 16, value 0 = gap. index = r*N + c. tiles keyed by value.
+    let board, moves, tiles, solved;
 
-    function emptyCells(){
-      const out=[];
-      for(let r=0;r<SIZE;r++) for(let c=0;c<SIZE;c++) if(grid[r][c]==null) out.push([r,c]);
-      return out;
+    function place(el, idx){
+      const r = Math.floor(idx/N), c = idx%N;
+      el.style.width  = `calc((100% - ${GAP*(N-1)}px)/${N})`;
+      el.style.height = el.style.width;
+      el.style.left = `calc(${c} * ((100% - ${GAP*(N-1)}px)/${N} + ${GAP}px))`;
+      el.style.top  = `calc(${r} * ((100% - ${GAP*(N-1)}px)/${N} + ${GAP}px))`;
     }
-    function addTile(spawn){
-      const cells = emptyCells(); if(!cells.length) return;
-      const [r,c] = cells[Math.floor(Math.random()*cells.length)];
-      const v = Math.random()<0.9 ? 2 : 4;
-      const id = ++tileSeq;
-      const t = {id,v,r,c,el:document.createElement("div")};
-      t.el.className = "ctile" + (spawn?" spawn":"");
-      tiles[id]=t; grid[r][c]=id;
-      tilesEl.appendChild(t.el);
-      paint(t);
+    function isSolved(b){ for(let i=0;i<15;i++) if(b[i]!==i+1) return false; return b[15]===0; }
+    function solvable(b){
+      const arr = b.filter(v=>v!==0);
+      let inv=0;
+      for(let i=0;i<arr.length;i++) for(let j=i+1;j<arr.length;j++) if(arr[i]>arr[j]) inv++;
+      const gapRowFromBottom = N - Math.floor(b.indexOf(0)/N);
+      // 4-wide: solvable when (blank on even row from bottom) == (inversions odd)
+      return (gapRowFromBottom%2===0) ? (inv%2===1) : (inv%2===0);
     }
-    function paint(t){
-      const gap=10;
-      t.el.style.width = `calc((100% - ${gap*(SIZE-1)}px)/${SIZE})`;
-      t.el.style.height = t.el.style.width;
-      // precise placement: position = idx * (cellSize + gap)
-      t.el.style.left = `calc(${t.c} * ((100% - ${gap*(SIZE-1)}px)/${SIZE} + ${gap}px))`;
-      t.el.style.top  = `calc(${t.r} * ((100% - ${gap*(SIZE-1)}px)/${SIZE} + ${gap}px))`;
-      const lab = FACES[t.v] || t.v;
-      t.el.textContent = lab;
-      t.el.style.background = COLORS[t.v] || "#0071e3";
-      t.el.style.fontSize = t.v>=2048 ? "30px" : (String(lab).length>1 ? "min(7vw,30px)" : "min(8vw,34px)");
+    function shuffle(){
+      let b;
+      do{
+        b = Array.from({length:16},(_,i)=>(i+1)%16); // 1..15,0
+        for(let i=b.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [b[i],b[j]]=[b[j],b[i]]; }
+      } while(!solvable(b) || isSolved(b));
+      return b;
+    }
+    function build(){
+      gridEl.innerHTML="";
+      tiles={};
+      for(let i=0;i<16;i++){
+        const v = board[i];
+        if(v===0) continue;
+        const el = document.createElement("button");
+        el.className = "stile";
+        el.textContent = v;
+        el.addEventListener("click", ()=> tapTile(v));
+        gridEl.appendChild(el);
+        tiles[v]=el;
+        place(el, i);
+      }
+    }
+    function repaint(){
+      for(let i=0;i<16;i++){ const v=board[i]; if(v!==0) place(tiles[v], i); }
     }
     function reset(){
-      grid = Array.from({length:SIZE},()=>Array(SIZE).fill(null));
-      tiles={}; tileSeq=0; score=0; won=false; dead=false;
-      tilesEl.innerHTML="";
-      ui.hideOverlay();
-      ui.pod("score","0");
-      host.querySelector("[data-msg]").textContent = "Slide tiles together. Reach A+.";
-      addTile(true); addTile(true);
+      board = shuffle(); moves=0; solved=false;
+      ui.pod("moves","0"); ui.hideOverlay();
+      host.querySelector("[data-msg]").textContent="Slide tiles into order. Arrow keys or tap.";
+      build();
     }
-
-    // build sequence of line indices for a direction, then compact+merge
-    function move(dir){
-      if(dead) return;
-      let moved=false, gained=0;
-      const lines = [];
-      for(let i=0;i<SIZE;i++){
-        const line=[];
-        for(let j=0;j<SIZE;j++){
-          const [r,c] = dir==="left"?[i,j]:dir==="right"?[i,SIZE-1-j]:dir==="up"?[j,i]:[SIZE-1-j,i];
-          line.push([r,c]);
-        }
-        lines.push(line);
+    function gapIdx(){ return board.indexOf(0); }
+    function tapTile(v){
+      if(solved) return;
+      const ti = board.indexOf(v), gi = gapIdx();
+      const tr=Math.floor(ti/N), tc=ti%N, gr=Math.floor(gi/N), gc=gi%N;
+      if((tr===gr && Math.abs(tc-gc)===1) || (tc===gc && Math.abs(tr-gr)===1)){
+        board[gi]=v; board[ti]=0;
+        moves++; ui.pod("moves",String(moves));
+        place(tiles[v], gi);
+        checkWin();
       }
-      // clear merged flags
-      for(const id in tiles) tiles[id].merged=false;
-
-      lines.forEach(line=>{
-        // gather tile ids in travel order
-        let ids = line.map(([r,c])=>grid[r][c]).filter(x=>x!=null);
-        const newIds=[];
-        for(let k=0;k<ids.length;k++){
-          if(k+1<ids.length && tiles[ids[k]].v===tiles[ids[k+1]].v){
-            // merge ids[k+1] into ids[k]
-            const keep = tiles[ids[k]], gone = tiles[ids[k+1]];
-            keep.v *= 2; keep.merged=true; gained += keep.v;
-            newIds.push(keep.id);
-            // remove gone tile after it slides
-            gone._removeTo = keep;
-            k++;
-          } else {
-            newIds.push(ids[k]);
-          }
-        }
-        // place newIds along the line
-        // first clear the grid for this line
-        line.forEach(([r,c])=> grid[r][c]=null);
-        newIds.forEach((id,pos)=>{
-          const [r,c] = line[pos];
-          if(tiles[id].r!==r || tiles[id].c!==c) moved=true;
-          tiles[id].r=r; tiles[id].c=c; grid[r][c]=id;
-        });
-      });
-
-      // handle removals (merged-away tiles): slide them to target then delete
-      let removedMoved=false;
-      for(const id in tiles){
-        const t = tiles[id];
-        if(t._removeTo){
-          removedMoved=true;
-          t.r = t._removeTo.r; t.c = t._removeTo.c;
-          paint(t);
-          const el=t.el; delete tiles[id];
-          setTimeout(()=>{ el.remove(); }, 120);
-        }
-      }
-      if(removedMoved) moved=true;
-
-      if(!moved){ return; }
-
-      // repaint survivors
-      for(const id in tiles){ paint(tiles[id]); if(tiles[id].merged){ tiles[id].el.classList.remove("pop"); void tiles[id].el.offsetWidth; tiles[id].el.classList.add("pop"); } }
-
-      score += gained;
-      ui.pod("score", String(score));
-      if(score > (best||0)){ best=score; setBest("climb",best); ui.pod("best", String(best)); }
-
-      setTimeout(()=>{
-        addTile(true);
-        // win check
-        if(!won && Object.values(tiles).some(t=>t.v>=2048)){
-          won=true;
-          ui.overlay("A+ reached 🏆","Top of the class. Keep going or start fresh.",[
-            {label:"Keep playing", ghost:true, onClick:()=> ui.hideOverlay()},
-            {label:"New game", onClick:()=> reset()},
-          ]);
-        } else if(!hasMoves()){
-          dead=true;
-          ui.overlay("No moves left","Board's full. Score "+score+".",[
-            {label:"Try again", onClick:()=> reset()},
-          ]);
-        }
-      }, 120);
     }
-    function hasMoves(){
-      if(emptyCells().length) return true;
-      for(let r=0;r<SIZE;r++) for(let c=0;c<SIZE;c++){
-        const v=tiles[grid[r][c]].v;
-        if(c+1<SIZE && tiles[grid[r][c+1]].v===v) return true;
-        if(r+1<SIZE && tiles[grid[r+1][c]].v===v) return true;
-      }
-      return false;
+    // arrow keys: slide the tile that would move INTO the gap from that direction
+    function slide(dir){
+      if(solved) return;
+      const gi = gapIdx(), gr=Math.floor(gi/N), gc=gi%N;
+      let ti=-1;
+      if(dir==="up"    && gr<N-1) ti=(gr+1)*N+gc;   // tile below moves up
+      if(dir==="down"  && gr>0)   ti=(gr-1)*N+gc;   // tile above moves down
+      if(dir==="left"  && gc<N-1) ti=gr*N+(gc+1);   // tile to right moves left
+      if(dir==="right" && gc>0)   ti=gr*N+(gc-1);   // tile to left moves right
+      if(ti>=0) tapTile(board[ti]);
     }
-
+    function checkWin(){
+      if(isSolved(board)){
+        solved=true;
+        Object.values(tiles).forEach(el=> el.classList.add("done"));
+        const isBest = best==null || moves<best;
+        if(isBest){ best=moves; setBest("slide",best); ui.pod("best",String(best)); }
+        ui.overlay("Solved","Ordered in "+moves+" moves"+(isBest?" · new best":""),[
+          {label:"Shuffle", onClick:()=> reset()},
+        ]);
+      }
+    }
     function onKey(e){
-      const map={ArrowLeft:"left",ArrowRight:"right",ArrowUp:"up",ArrowDown:"down",a:"left",d:"right",w:"up",s:"down",A:"left",D:"right",W:"up",S:"down"};
-      const dir = map[e.key];
-      if(dir){ e.preventDefault(); move(dir); }
+      const map={ArrowUp:"up",ArrowDown:"down",ArrowLeft:"left",ArrowRight:"right",
+                 w:"up",s:"down",a:"left",d:"right",W:"up",S:"down",A:"left",D:"right"};
+      const dir=map[e.key];
+      if(dir){ e.preventDefault(); slide(dir); }
     }
     document.addEventListener("keydown", onKey);
-
-    // touch swipe
-    let sx=0,sy=0,touching=false;
-    function ts(e){ const t=e.touches[0]; sx=t.clientX; sy=t.clientY; touching=true; }
-    function te(e){
-      if(!touching) return; touching=false;
+    // swipe
+    let sx=0,sy=0,tc=false;
+    gridEl.addEventListener("touchstart", e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;tc=true;}, {passive:true});
+    gridEl.addEventListener("touchend", e=>{
+      if(!tc)return; tc=false;
       const t=e.changedTouches[0], dx=t.clientX-sx, dy=t.clientY-sy;
-      if(Math.abs(dx)<24 && Math.abs(dy)<24) return;
-      if(Math.abs(dx)>Math.abs(dy)) move(dx>0?"right":"left");
-      else move(dy>0?"down":"up");
-    }
-    gridEl.addEventListener("touchstart", ts, {passive:true});
-    gridEl.addEventListener("touchend", te, {passive:true});
-
-    host.querySelector("[data-restart]").addEventListener("click", reset);
-    reset();
-    gridEl.focus();
-
-    return { destroy(){ document.removeEventListener("keydown", onKey); } };
-  }
-
-  /* ---------------------------------------------------------
-     GAME 2 — STREAK (snake)
-  --------------------------------------------------------- */
-  function Streak(host){
-    const CELLS = 17;           // grid cells per side
-    const ui = shell(host, {
-      pods:[{id:"score",label:"Score",init:"0"},{id:"best",label:"Best",init:String(getBest("streak")||0)}],
-      stageHTML:`
-        <div class="gmsg" data-msg>Arrow keys, WASD, or the pad.</div>
-        <canvas class="streak-board" data-canvas width="360" height="360" tabindex="0"></canvas>
-        <div class="dpad">
-          <button class="dbtn up" data-dir="up" aria-label="Up"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 19V6M6 11l6-6 6 6" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-          <button class="dbtn left" data-dir="left" aria-label="Left"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 12H6M11 6l-6 6 6 6" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-          <button class="dbtn right" data-dir="right" aria-label="Right"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 12h13M13 6l6 6-6 6" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-          <button class="dbtn down" data-dir="down" aria-label="Down"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v13M6 13l6 6 6-6" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-        </div>
-        <button class="btn ghost sm" data-restart>Restart</button>`
-    });
-    const cv = host.querySelector("[data-canvas]");
-    const ctx = cv.getContext("2d");
-    let best = getBest("streak")||0;
-
-    let snake, dir, nextDir, food, score, dead, started;
-    let raf=null, lastStep=0, stepMs;
-
-    function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
-
-    function reset(){
-      snake=[{x:8,y:8},{x:7,y:8},{x:6,y:8}];
-      dir={x:1,y:0}; nextDir=dir;
-      score=0; dead=false; started=false; stepMs=140;
-      placeFood();
-      ui.pod("score","0");
-      ui.hideOverlay();
-      host.querySelector("[data-msg]").textContent="Arrow keys, WASD, or the pad.";
-      draw();
-    }
-    function placeFood(){
-      do{ food={x:Math.floor(Math.random()*CELLS), y:Math.floor(Math.random()*CELLS)}; }
-      while(snake.some(s=>s.x===food.x && s.y===food.y));
-    }
-    function setDir(nx,ny){
-      if(dead) return;
-      // no 180° reversal
-      if(nx===-dir.x && ny===-dir.y) return;
-      nextDir={x:nx,y:ny};
-      started=true;
-      host.querySelector("[data-msg]").textContent="";
-    }
-    function step(){
-      dir=nextDir;
-      const head={x:snake[0].x+dir.x, y:snake[0].y+dir.y};
-      if(head.x<0||head.y<0||head.x>=CELLS||head.y>=CELLS || snake.some(s=>s.x===head.x&&s.y===head.y)){
-        gameOver(); return;
-      }
-      snake.unshift(head);
-      if(head.x===food.x && head.y===food.y){
-        score+=1; ui.pod("score",String(score));
-        if(score>best){ best=score; setBest("streak",best); ui.pod("best",String(best)); }
-        stepMs = Math.max(70, 140 - score*2);
-        placeFood();
-      } else {
-        snake.pop();
-      }
-      draw();
-    }
-    function gameOver(){
-      dead=true;
-      ui.overlay("Run ended","You scored "+score+".",[
-        {label:"Play again", onClick:()=> reset()},
-      ]);
-    }
-    function draw(){
-      const W=cv.width, cell=W/CELLS;
-      ctx.clearRect(0,0,W,W);
-      // food
-      ctx.fillStyle = css("--blue") || "#0071e3";
-      roundRect(food.x*cell+cell*0.18, food.y*cell+cell*0.18, cell*0.64, cell*0.64, cell*0.3);
-      ctx.fill();
-      // snake
-      const head = css("--green") || "#34c759";
-      snake.forEach((s,i)=>{
-        ctx.fillStyle = i===0 ? head : shade(head, i);
-        roundRect(s.x*cell+1.5, s.y*cell+1.5, cell-3, cell-3, cell*0.28);
-        ctx.fill();
-      });
-    }
-    function shade(hex,i){
-      // fade body tiles slightly using opacity overlay
-      return hex; // keep solid; green reads cleanly on the track
-    }
-    function roundRect(x,y,w,h,r){
-      ctx.beginPath();
-      ctx.moveTo(x+r,y);
-      ctx.arcTo(x+w,y,x+w,y+h,r);
-      ctx.arcTo(x+w,y+h,x,y+h,r);
-      ctx.arcTo(x,y+h,x,y,r);
-      ctx.arcTo(x,y,x+w,y,r);
-      ctx.closePath();
-    }
-    function loop(ts){
-      raf=requestAnimationFrame(loop);
-      if(dead || !started) { lastStep=ts; return; }
-      if(ts-lastStep >= stepMs){ lastStep=ts; step(); }
-    }
-
-    function onKey(e){
-      const k=e.key;
-      const m={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],
-               w:[0,-1],s:[0,1],a:[-1,0],d:[1,0],W:[0,-1],S:[0,1],A:[-1,0],D:[1,0]};
-      if(m[k]){ e.preventDefault(); setDir(m[k][0],m[k][1]); }
-    }
-    document.addEventListener("keydown", onKey);
-    host.querySelectorAll("[data-dir]").forEach(b=> b.addEventListener("click", ()=>{
-      const d=b.dataset.dir;
-      setDir(d==="left"?-1:d==="right"?1:0, d==="up"?-1:d==="down"?1:0);
-    }));
-    // swipe on canvas
-    let sx=0,sy=0,tch=false;
-    cv.addEventListener("touchstart", e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;tch=true;}, {passive:true});
-    cv.addEventListener("touchend", e=>{
-      if(!tch)return; tch=false;
-      const t=e.changedTouches[0], dx=t.clientX-sx, dy=t.clientY-sy;
-      if(Math.abs(dx)<20&&Math.abs(dy)<20)return;
-      if(Math.abs(dx)>Math.abs(dy)) setDir(dx>0?1:-1,0); else setDir(0,dy>0?1:-1);
+      if(Math.abs(dx)<22&&Math.abs(dy)<22)return;
+      if(Math.abs(dx)>Math.abs(dy)) slide(dx>0?"right":"left"); else slide(dy>0?"down":"up");
     }, {passive:true});
 
     host.querySelector("[data-restart]").addEventListener("click", reset);
     reset();
-    cv.focus();
-    raf=requestAnimationFrame(loop);
-
-    return { destroy(){ document.removeEventListener("keydown", onKey); if(raf) cancelAnimationFrame(raf); } };
+    gridEl.focus();
+    return { destroy(){ document.removeEventListener("keydown", onKey); } };
   }
 
   /* ---------------------------------------------------------
-     GAME 3 — RECALL (memory match)
+     GAME 2 — AIM (precision / reaction)
   --------------------------------------------------------- */
-  function Recall(host){
-    const EMOJI = ["📐","🧬","🥐","🎭","📚","🏃","✏️","🎒"];
-    let best=getBest("recall");
+  function Aim(host){
+    const DURATION = 30; // seconds
+    let best = getBest("aim")||0;
     const ui = shell(host, {
-      pods:[{id:"moves",label:"Moves",init:"0"},{id:"time",label:"Time",init:"0:00"},{id:"best",label:"Fewest",init:best!=null?String(best):"—"}],
+      pods:[{id:"score",label:"Score",init:"0"},{id:"time",label:"Time",init:"30"},{id:"best",label:"Best",init:String(best)}],
       stageHTML:`
-        <div class="gmsg" data-msg>Flip two cards. Find all eight pairs.</div>
-        <div class="recall-grid" data-board></div>
-        <button class="btn ghost sm" data-restart>Shuffle</button>`
+        <div class="gmsg" data-msg>Hit the dot. Thirty seconds.</div>
+        <div class="aim-board" data-board>
+          <div class="aim-flash" data-flash></div>
+          <div class="aim-dot" data-dot></div>
+        </div>
+        <button class="btn ghost sm" data-restart>Restart</button>`
     });
-    const board = host.querySelector("[data-board]");
-    let deck, first, lock, moves, matched, t0, timer, running;
+    const boardEl = host.querySelector("[data-board]");
+    const dotEl = host.querySelector("[data-dot]");
+    const flashEl = host.querySelector("[data-flash]");
+    let score, running, timeLeft, hits, totalRT, lastSpawn, timer, dotSize, ended;
 
-    function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
-    function fmt(ms){ const s=Math.floor(ms/1000); return Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); }
-
+    function spawn(){
+      const r = boardEl.getBoundingClientRect();
+      dotSize = Math.max(34, Math.min(58, r.width*0.13));
+      dotEl.style.width = dotSize+"px"; dotEl.style.height = dotSize+"px";
+      const pad = dotSize/2 + 4;
+      const x = pad + Math.random()*(r.width - pad*2);
+      const y = pad + Math.random()*(r.height - pad*2);
+      dotEl.style.left = x+"px"; dotEl.style.top = y+"px";
+      dotEl.classList.remove("in"); void dotEl.offsetWidth; dotEl.classList.add("in");
+      lastSpawn = performance.now();
+    }
     function reset(){
-      deck = shuffle(EMOJI.concat(EMOJI).map((e,i)=>({e, id:i})));
-      first=null; lock=false; moves=0; matched=0; running=false;
-      clearInterval(timer); t0=null;
-      ui.pod("moves","0"); ui.pod("time","0:00");
+      score=0; hits=0; totalRT=0; running=false; ended=false; timeLeft=DURATION;
+      clearInterval(timer);
+      ui.pod("score","0"); ui.pod("time",String(DURATION));
       ui.hideOverlay();
-      host.querySelector("[data-msg]").textContent="Flip two cards. Find all eight pairs.";
-      board.innerHTML = deck.map((c,i)=>`
-        <button class="mcard" data-i="${i}">
-          <span class="inner">
-            <span class="mface back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 7.5L12 4l8 3.5v9L12 20l-8-3.5v-9z" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg></span>
-            <span class="mface front">${c.e}</span>
-          </span>
-        </button>`).join("");
-      board.querySelectorAll(".mcard").forEach(b=> b.addEventListener("click", ()=> flip(+b.dataset.i, b)));
+      dotEl.classList.remove("in");
+      host.querySelector("[data-msg]").textContent="Hit the dot. Thirty seconds.";
+    }
+    function start(){
+      if(running||ended) return;
+      running=true;
+      host.querySelector("[data-msg]").textContent="";
+      spawn();
+      timer = setInterval(()=>{
+        timeLeft--; ui.pod("time", String(Math.max(0,timeLeft)));
+        if(timeLeft<=0) end();
+      }, 1000);
+    }
+    function end(){
+      running=false; ended=true; clearInterval(timer);
+      dotEl.classList.remove("in");
+      const avg = hits? Math.round(totalRT/hits) : 0;
+      const isBest = score>best;
+      if(isBest){ best=score; setBest("aim",best); ui.pod("best",String(best)); }
+      ui.overlay("Time", "Score "+score+(hits?(" · "+avg+" ms avg"):"")+(isBest?" · new best":""),[
+        {label:"Play again", onClick:()=> reset()},
+      ]);
+    }
+    dotEl.addEventListener("pointerdown", e=>{
+      e.stopPropagation();
+      if(ended) return;
+      if(!running){ start(); return; }
+      totalRT += performance.now()-lastSpawn; hits++;
+      score++; ui.pod("score",String(score));
+      spawn();
+    });
+    boardEl.addEventListener("pointerdown", ()=>{
+      if(ended) return;
+      if(!running){ start(); return; }
+      score = Math.max(0, score-1); ui.pod("score",String(score)); // miss penalty
+      flashEl.classList.remove("show"); void flashEl.offsetWidth; flashEl.classList.add("show");
+    });
+
+    host.querySelector("[data-restart]").addEventListener("click", reset);
+    reset();
+    return { destroy(){ clearInterval(timer); } };
+  }
+
+  /* ---------------------------------------------------------
+     GAME 3 — FLOW (Simon memory)
+  --------------------------------------------------------- */
+  function Flow(host){
+    let best = getBest("flow")||0;
+    const ui = shell(host, {
+      pods:[{id:"level",label:"Level",init:"0"},{id:"best",label:"Best",init:String(best)}],
+      stageHTML:`
+        <div class="gmsg" data-msg>Press Start, watch, then repeat.</div>
+        <div class="flow-grid" data-grid>
+          <button class="fpad p0" data-pad="0" aria-label="Pad 1"></button>
+          <button class="fpad p1" data-pad="1" aria-label="Pad 2"></button>
+          <button class="fpad p2" data-pad="2" aria-label="Pad 3"></button>
+          <button class="fpad p3" data-pad="3" aria-label="Pad 4"></button>
+        </div>
+        <button class="btn sm" data-start>Start</button>`
+    });
+    const pads = Array.from(host.querySelectorAll("[data-pad]"));
+    let seq, input, level, locking, dead, timeouts=[];
+
+    function later(fn,ms){ const t=setTimeout(fn,ms); timeouts.push(t); return t; }
+    function clearTimers(){ timeouts.forEach(clearTimeout); timeouts=[]; }
+    function lit(i){
+      pads[i].classList.add("lit");
+      later(()=> pads[i].classList.remove("lit"), 320);
+    }
+    function reset(){
+      clearTimers();
+      seq=[]; input=[]; level=0; locking=false; dead=false;
+      ui.pod("level","0"); ui.hideOverlay();
+      pads.forEach(p=>p.classList.remove("lit"));
+      host.querySelector("[data-msg]").textContent="Press Start, watch, then repeat.";
+    }
+    function nextRound(){
+      input=[];
+      seq.push(Math.floor(Math.random()*4));
+      level=seq.length; ui.pod("level",String(level));
+      playSeq();
+    }
+    function playSeq(){
+      locking=true;
+      host.querySelector("[data-msg]").textContent="Watch";
+      let i=0;
+      const tick=()=>{
+        if(i>=seq.length){ locking=false; host.querySelector("[data-msg]").textContent="Your turn"; return; }
+        lit(seq[i]); i++;
+        later(tick, 560);
+      };
+      later(tick, 520);
+    }
+    function press(i){
+      if(locking||dead||seq.length===0) return;
+      lit(i);
+      input.push(i);
+      const k=input.length-1;
+      if(input[k]!==seq[k]){ fail(); return; }
+      if(input.length===seq.length){
+        locking=true;
+        later(nextRound, 620);
+      }
+    }
+    function fail(){
+      dead=true; locking=true;
+      const reached = Math.max(0, level-1); // levels fully completed before the miss
+      const isBest = reached>best;
+      if(isBest){ best=reached; setBest("flow",best); ui.pod("best",String(best)); }
+      ui.overlay("Missed","You cleared level "+reached+(isBest&&reached>0?" · new best":""),[
+        {label:"Play again", onClick:()=> { reset(); later(nextRound,400); }},
+      ]);
+    }
+    pads.forEach((p,i)=> p.addEventListener("click", ()=> press(i)));
+    host.querySelector("[data-start]").addEventListener("click", ()=>{
+      reset(); later(nextRound, 350);
+    });
+    reset();
+    return { destroy(){ clearTimers(); } };
+  }
+
+  /* ---------------------------------------------------------
+     GAME 4 — WORD SEARCH
+  --------------------------------------------------------- */
+  function Word(host){
+    const SIZE = 10;
+    const WORDS = ["BIOLOGY","FRENCH","ALGEBRA","DRAMA","ENZYME","ESSAY"];
+    const ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    let best = getBest("word");
+    const ui = shell(host, {
+      pods:[{id:"found",label:"Found",init:"0 / 6"},{id:"time",label:"Time",init:"0:00"},{id:"best",label:"Fastest",init:best!=null?fmtClock(best):"—"}],
+      stageHTML:`
+        <div class="gmsg" data-msg>Tap the first and last letter of a word.</div>
+        <div class="ws-wrap">
+          <div class="ws-grid" data-grid></div>
+          <div class="ws-words" data-words></div>
+        </div>
+        <button class="btn ghost sm" data-restart>New puzzle</button>`
+    });
+    const gridEl = host.querySelector("[data-grid]");
+    const wordsEl = host.querySelector("[data-words]");
+    let board, placed, foundSet, first, t0, timer, running, cells;
+
+    function rint(n){ return Math.floor(Math.random()*n); }
+    function genGrid(){
+      // returns {board, placements:[{word, cells:[idx...]}]} or null on failure
+      const b = Array.from({length:SIZE*SIZE}, ()=>null);
+      const placements=[];
+      const dirs=[[0,1],[1,0]]; // horizontal, vertical
+      for(const word of WORDS){
+        let ok=false;
+        for(let attempt=0; attempt<200 && !ok; attempt++){
+          const [dr,dc]=dirs[rint(dirs.length)];
+          const len=word.length;
+          const maxR = dr? SIZE-len : SIZE-1;
+          const maxC = dc? SIZE-len : SIZE-1;
+          const r0=rint(maxR+1), c0=rint(maxC+1);
+          let fits=true; const idxs=[];
+          for(let i=0;i<len;i++){
+            const r=r0+dr*i, c=c0+dc*i, idx=r*SIZE+c;
+            if(b[idx]!==null && b[idx]!==word[i]){ fits=false; break; }
+            idxs.push(idx);
+          }
+          if(!fits) continue;
+          idxs.forEach((idx,i)=> b[idx]=word[i]);
+          placements.push({word, cells:idxs});
+          ok=true;
+        }
+        if(!ok) return null;
+      }
+      for(let i=0;i<b.length;i++) if(b[i]===null) b[i]=ALPHA[rint(26)];
+      return {board:b, placements};
+    }
+    function reset(){
+      let g=null;
+      for(let i=0;i<40 && !g;i++) g=genGrid();
+      board=g.board; placed=g.placements; foundSet=new Set(); first=null; running=false;
+      clearInterval(timer); t0=null;
+      ui.pod("found","0 / 6"); ui.pod("time","0:00"); ui.hideOverlay();
+      host.querySelector("[data-msg]").textContent="Tap the first and last letter of a word.";
+      gridEl.innerHTML="";
+      cells=[];
+      board.forEach((ch,i)=>{
+        const el=document.createElement("button");
+        el.className="ws-cell"; el.textContent=ch; el.dataset.i=i;
+        el.addEventListener("click", ()=> tap(i));
+        gridEl.appendChild(el); cells.push(el);
+      });
+      wordsEl.innerHTML = WORDS.map(w=>`<span class="ws-word" data-w="${w}">${w}</span>`).join("");
     }
     function startTimer(){
       if(running) return; running=true; t0=Date.now();
-      timer=setInterval(()=> ui.pod("time", fmt(Date.now()-t0)), 250);
+      timer=setInterval(()=> ui.pod("time", fmtClock(Date.now()-t0)), 250);
     }
-    function flip(i, el){
-      if(lock) return;
-      if(el.classList.contains("flip")||el.classList.contains("matched")) return;
+    function lineBetween(a,b){
+      const ar=Math.floor(a/SIZE), ac=a%SIZE, br=Math.floor(b/SIZE), bc=b%SIZE;
+      const dr=br-ar, dc=bc-ac;
+      if(dr!==0 && dc!==0) return null;        // must be straight (no diagonals)
+      const len = Math.max(Math.abs(dr),Math.abs(dc))+1;
+      const sr=Math.sign(dr), sc=Math.sign(dc);
+      const out=[];
+      for(let i=0;i<len;i++) out.push((ar+sr*i)*SIZE + (ac+sc*i));
+      return out;
+    }
+    function tap(i){
+      if(foundSet.size===WORDS.length) return;
       startTimer();
-      el.classList.add("flip");
-      if(first==null){ first={i,el}; return; }
-      if(first.i===i) return;
-      moves++; ui.pod("moves",String(moves));
-      const a=deck[first.i], b=deck[i];
-      if(a.e===b.e){
-        first.el.classList.add("matched"); el.classList.add("matched");
-        first=null; matched+=2;
-        if(matched===deck.length) win();
-      } else {
-        lock=true;
-        const f=first; first=null;
-        setTimeout(()=>{ f.el.classList.remove("flip"); el.classList.remove("flip"); lock=false; }, 700);
+      if(first===null){
+        first=i; cells[i].classList.add("sel");
+        return;
+      }
+      if(first===i){ cells[i].classList.remove("sel"); first=null; return; }
+      const line = lineBetween(first,i);
+      cells[first].classList.remove("sel");
+      const start=first; first=null;
+      if(!line){ return; }
+      const str = line.map(idx=>board[idx]).join("");
+      const rev = str.split("").reverse().join("");
+      const match = WORDS.find(w=> (w===str||w===rev) && !foundSet.has(w));
+      if(match){
+        foundSet.add(match);
+        line.forEach(idx=> cells[idx].classList.add("found"));
+        const chip = wordsEl.querySelector(`[data-w="${match}"]`);
+        if(chip) chip.classList.add("hit");
+        ui.pod("found", foundSet.size+" / "+WORDS.length);
+        if(foundSet.size===WORDS.length) win();
       }
     }
     function win(){
       clearInterval(timer); running=false;
-      const isBest = best==null || moves<best;
-      if(isBest){ best=moves; setBest("recall",best); ui.pod("best",String(best)); }
-      ui.overlay("All matched","Done in "+moves+" moves · "+fmt(Date.now()-t0)+(isBest?" · new best":""),[
-        {label:"Shuffle", onClick:()=> reset()},
+      const ms = Date.now()-t0;
+      const isBest = best==null || ms<best;
+      if(isBest){ best=ms; setBest("word",best); ui.pod("best",fmtClock(best)); }
+      ui.overlay("All found","Cleared in "+fmtClock(ms)+(isBest?" · new best":""),[
+        {label:"New puzzle", onClick:()=> reset()},
       ]);
     }
-
     host.querySelector("[data-restart]").addEventListener("click", reset);
     reset();
     return { destroy(){ clearInterval(timer); } };

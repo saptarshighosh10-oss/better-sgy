@@ -720,14 +720,14 @@
      ============================================================ */
   .arcade{
     border-top:var(--rule);
-    display:grid; grid-template-columns:repeat(3,1fr); gap:0;
+    display:grid; grid-template-columns:repeat(2,1fr); gap:0;
   }
   .gcard{
     border-right:var(--hairline); border-bottom:var(--rule);
     padding:22px 20px 24px; display:flex; flex-direction:column;
     cursor:pointer; transition:background .12s ease;
   }
-  .gcard:last-child{ border-right:none; }
+  .gcard:nth-child(2n){ border-right:none; }
   .gcard:hover{ background:var(--ink-08); }
   .gcard:focus-visible{ outline:2px solid var(--ink); outline-offset:-2px; }
   .gcard__top{
@@ -794,95 +794,129 @@
     font-family:var(--serif); font-style:italic; font-size:12px; color:var(--ink-45);
   }
 
-  /* CLIMB — 2048 grid */
-  .climb{
-    border:var(--rule); background:var(--ink-08);
-    display:grid; grid-template-columns:repeat(4,1fr); gap:0; aspect-ratio:1/1;
+  /* ---- shared game furniture ---- */
+  .gtype{
+    font-family:var(--sans); font-size:11px; font-weight:700; line-height:2.1;
+    letter-spacing:.04em;
   }
-  .climb__cell{
+  .gpill{
+    display:inline-block; font-family:var(--sans); font-size:9px; font-weight:700;
+    letter-spacing:.18em; text-transform:uppercase; color:var(--ink-60);
+    border:var(--hairline); padding:4px 9px 3px;
+  }
+
+  /* TYPING TEST — quote + input */
+  .type-quote{
+    border:var(--rule); background:var(--paper); padding:20px 22px;
+    font-family:var(--serif); font-size:clamp(17px,3.2vw,21px); line-height:1.7;
+    letter-spacing:.005em;
+  }
+  .type-quote .tch{ position:relative; white-space:pre-wrap; }
+  .type-quote .tch.done{ color:var(--ink); }
+  .type-quote .tch.bad{ color:var(--ink); background:var(--ink); -webkit-text-fill-color:var(--paper); text-decoration:line-through; }
+  .type-quote .tch.pend{ color:var(--ink-30); }
+  .type-quote .tch.cur{ box-shadow:inset 0 -2px 0 var(--ink); }
+  .type-cite{
+    font-family:var(--sans); font-size:10px; font-weight:700; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--ink-45); text-align:right;
+    border-top:var(--hairline); margin-top:14px; padding-top:10px;
+  }
+  .type-field{
+    width:100%; box-sizing:border-box; margin-top:16px; resize:none;
+    border:var(--rule); background:var(--paper); color:var(--ink);
+    font-family:var(--serif); font-size:16px; line-height:1.6; padding:13px 15px;
+    min-height:84px;
+  }
+  .type-field:focus{ outline:2px solid var(--ink); outline-offset:-2px; }
+
+  /* ANAGRAM — scrambled letters */
+  .ana-rack{
+    display:flex; flex-wrap:wrap; gap:8px; justify-content:center;
+    border:var(--rule); background:var(--ink-08); padding:20px 16px;
+  }
+  .ana-tile{
+    width:46px; height:56px; border:1px solid var(--ink); background:var(--paper);
+    color:var(--ink); font-family:var(--serif); font-weight:700;
+    font-size:clamp(22px,5vw,28px); line-height:1; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; transition:background .1s;
+  }
+  .ana-tile:hover{ background:var(--ink-08); }
+  .ana-tile:disabled{ opacity:.28; cursor:default; background:var(--ink-08); }
+  .ana-slots{
+    display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:14px;
+    min-height:56px;
+  }
+  .ana-slot{
+    width:46px; height:56px; border:1px dashed var(--ink-30); background:var(--paper);
+    font-family:var(--serif); font-weight:700; font-size:clamp(22px,5vw,28px); line-height:1;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .ana-slot.full{ border:1px solid var(--ink); }
+  .ana-slot.right{ background:var(--ink); color:var(--paper); }
+  .ana-slot.wrong{ box-shadow:inset 0 0 0 2px var(--ink); }
+  .ana-hint{
+    text-align:center; margin-top:16px; font-family:var(--serif); font-style:italic;
+    font-size:13px; color:var(--ink-80); min-height:1.4em;
+  }
+  .ana-actions{ display:flex; gap:8px; justify-content:center; margin-top:16px; flex-wrap:wrap; }
+
+  /* TIC-TAC-TOE — ruled board */
+  .ttt{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:0;
+    border:var(--rule); background:var(--paper); aspect-ratio:1/1;
+  }
+  .ttt__cell{
     position:relative; border-right:var(--hairline); border-bottom:var(--hairline);
-    display:flex; align-items:center; justify-content:center;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    font-family:var(--serif); font-weight:700; font-size:clamp(40px,13vw,72px);
+    line-height:1; color:var(--ink); background:none; transition:background .1s;
   }
-  .climb__cell:nth-child(4n){ border-right:none; }
-  .climb__cell:nth-child(n+13){ border-bottom:none; }
-  .climb__tile{
-    position:absolute; inset:5px; border:1px solid var(--ink);
-    display:flex; align-items:center; justify-content:center; flex-direction:column;
-    font-family:var(--serif); font-weight:700; letter-spacing:-.02em;
-    background:var(--paper); color:var(--ink);
-    animation:tilePop .12s ease;
+  .ttt__cell:nth-child(3n){ border-right:none; }
+  .ttt__cell:nth-child(n+7){ border-bottom:none; }
+  .ttt__cell:hover:not(.taken){ background:var(--ink-08); }
+  .ttt__cell.taken{ cursor:default; }
+  .ttt__cell .mk{ animation:tilePop .14s ease; }
+  .ttt__cell.o .mk{ font-style:italic; }
+  .ttt__cell.win{ background:var(--ink); color:var(--paper); }
+  @keyframes tilePop{ 0%{ transform:scale(.6); opacity:.3; } 100%{ transform:scale(1); opacity:1; } }
+  .ttt-tally{
+    display:grid; grid-template-columns:repeat(3,1fr); border-top:var(--hairline);
+    margin-top:16px;
   }
-  .climb__tile .t-let{ font-size:clamp(20px,5.5vw,30px); line-height:1; }
-  .climb__tile .t-num{
-    font-family:var(--sans); font-size:8px; font-weight:700; letter-spacing:.12em;
-    color:var(--ink-45); margin-top:3px;
+  .ttt-tally div{ padding:11px 4px 12px; text-align:center; border-right:var(--hairline); }
+  .ttt-tally div:last-child{ border-right:none; }
+  .ttt-tally .tl{
+    display:block; font-family:var(--sans); font-size:9px; font-weight:700;
+    letter-spacing:.18em; text-transform:uppercase; color:var(--ink-60); margin-bottom:4px;
   }
-  /* tonal grays + border weight distinguish ranks (no color) */
-  .climb__tile.r1{ background:var(--paper); }
-  .climb__tile.r2{ background:rgba(0,0,0,.06); }
-  .climb__tile.r3{ background:rgba(0,0,0,.12); }
-  .climb__tile.r4{ background:rgba(0,0,0,.20); border-width:1.5px; }
-  .climb__tile.r5{ background:rgba(0,0,0,.30); border-width:1.5px; }
-  .climb__tile.r6{ background:rgba(0,0,0,.45); color:var(--paper); border-width:2px; }
-  .climb__tile.r6 .t-num{ color:rgba(255,255,255,.6); }
-  .climb__tile.r7{ background:rgba(0,0,0,.62); color:var(--paper); border-width:2px; }
-  .climb__tile.r7 .t-num{ color:rgba(255,255,255,.6); }
-  .climb__tile.r8{ background:rgba(0,0,0,.78); color:var(--paper); border-width:2.5px; }
-  .climb__tile.r8 .t-num{ color:rgba(255,255,255,.65); }
-  .climb__tile.r9{ background:var(--ink); color:var(--paper); border-width:2.5px; }
-  .climb__tile.r9 .t-num{ color:rgba(255,255,255,.65); }
-  .climb__tile.r10{ background:var(--ink); color:var(--paper); border-width:3px; }
-  .climb__tile.r10 .t-num{ color:rgba(255,255,255,.7); }
-  .climb__tile.r11{ background:var(--ink); color:var(--paper); border:3px double var(--paper); box-shadow:inset 0 0 0 2px var(--ink); }
-  @keyframes tilePop{ 0%{ transform:scale(.7); opacity:.4; } 100%{ transform:scale(1); opacity:1; } }
+  .ttt-tally .tv{
+    font-family:var(--serif); font-weight:700; font-size:24px; line-height:1;
+    font-variant-numeric:tabular-nums;
+  }
 
-  /* STREAK — snake canvas */
-  .streak-wrap{ border:var(--rule); background:var(--paper); }
-  .streak-wrap canvas{ display:block; width:100%; height:auto; image-rendering:pixelated; }
-  .dpad{
-    display:grid; grid-template-columns:repeat(3,1fr); gap:6px;
-    max-width:200px; margin:16px auto 0;
+  /* WORD SEARCH — letter grid */
+  .ws-wrap{ border:var(--rule); background:var(--paper); }
+  .ws{ display:grid; grid-template-columns:repeat(10,1fr); gap:0; }
+  .ws__c{
+    aspect-ratio:1/1; border-right:var(--hairline); border-bottom:var(--hairline);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    font-family:var(--sans); font-weight:700; font-size:clamp(11px,2.8vw,15px);
+    color:var(--ink); background:var(--paper); -webkit-user-select:none; user-select:none;
+    text-transform:uppercase;
   }
-  .dpad button{
-    font-family:var(--serif); font-weight:700; font-size:18px; line-height:1;
-    border:1px solid var(--ink); background:var(--paper); color:var(--ink);
-    padding:11px 0; cursor:pointer;
+  .ws__c:nth-child(10n){ border-right:none; }
+  .ws .ws__c:nth-last-child(-n+10){ border-bottom:none; }
+  .ws__c.sel{ background:var(--ink-15); }
+  .ws__c.aim{ box-shadow:inset 0 0 0 2px var(--ink); }
+  .ws__c.found{ background:var(--ink); color:var(--paper); }
+  .ws-list{
+    display:flex; flex-wrap:wrap; gap:7px; justify-content:center; margin-top:16px;
   }
-  .dpad button:active{ background:var(--ink); color:var(--paper); }
-  .dpad .d-up{ grid-column:2; }
-  .dpad .d-left{ grid-column:1; grid-row:2; }
-  .dpad .d-down{ grid-column:2; grid-row:2; }
-  .dpad .d-right{ grid-column:3; grid-row:2; }
-
-  /* RECALL — memory grid */
-  .recall{
-    display:grid; grid-template-columns:repeat(4,1fr); gap:8px; aspect-ratio:1/1;
+  .ws-word{
+    font-family:var(--sans); font-size:10px; font-weight:700; letter-spacing:.14em;
+    text-transform:uppercase; border:var(--hairline); padding:6px 10px 5px; color:var(--ink);
   }
-  .rcard{
-    position:relative; border:1px solid var(--ink); background:var(--paper);
-    cursor:pointer; perspective:600px;
-  }
-  .rcard__inner{
-    position:absolute; inset:0; transition:transform .32s ease;
-    transform-style:preserve-3d;
-  }
-  .rcard.flipped .rcard__inner,
-  .rcard.matched .rcard__inner{ transform:rotateY(180deg); }
-  .rcard__face{
-    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-    -webkit-backface-visibility:hidden; backface-visibility:hidden;
-  }
-  .rcard__back{
-    background:var(--ink); color:var(--paper);
-    font-family:var(--serif); font-style:italic; font-weight:700;
-    font-size:clamp(18px,5vw,26px);
-  }
-  .rcard__front{
-    background:var(--paper); transform:rotateY(180deg);
-    font-size:clamp(22px,7vw,34px); filter:grayscale(1) contrast(1.1);
-  }
-  .rcard.matched{ opacity:.45; }
-  .rcard.matched .rcard__front{ outline:2px solid var(--ink); outline-offset:-3px; }
+  .ws-word.struck{ background:var(--ink); color:var(--paper); text-decoration:line-through; opacity:.7; }
 
   /* win/lose overlay */
   .goverlay{
@@ -912,24 +946,8 @@
     .gcard{ border-right:none; }
   }
 
-  /* CLIMB tiles inverted for the dark (white-on-black) theme */
-  body.theme-wob .climb__tile.r1{ background:var(--paper); color:var(--ink); }
-  body.theme-wob .climb__tile.r2{ background:rgba(255,255,255,.07); color:var(--ink); }
-  body.theme-wob .climb__tile.r3{ background:rgba(255,255,255,.14); color:var(--ink); }
-  body.theme-wob .climb__tile.r4{ background:rgba(255,255,255,.22); color:var(--ink); }
-  body.theme-wob .climb__tile.r5{ background:rgba(255,255,255,.34); color:var(--ink); }
-  body.theme-wob .climb__tile.r6{ background:rgba(255,255,255,.48); color:var(--paper); }
-  body.theme-wob .climb__tile.r6 .t-num{ color:rgba(0,0,0,.6); }
-  body.theme-wob .climb__tile.r7{ background:rgba(255,255,255,.64); color:var(--paper); }
-  body.theme-wob .climb__tile.r7 .t-num{ color:rgba(0,0,0,.6); }
-  body.theme-wob .climb__tile.r8{ background:rgba(255,255,255,.80); color:var(--paper); }
-  body.theme-wob .climb__tile.r8 .t-num{ color:rgba(0,0,0,.65); }
-  body.theme-wob .climb__tile.r9,
-  body.theme-wob .climb__tile.r10{ background:var(--ink); color:var(--paper); }
-  body.theme-wob .climb__tile.r9 .t-num,
-  body.theme-wob .climb__tile.r10 .t-num{ color:rgba(0,0,0,.7); }
-  body.theme-wob .climb__tile.r11{ background:var(--ink); color:var(--paper); border:3px double var(--paper); box-shadow:inset 0 0 0 2px var(--ink); }
-  /* the static card diagrams use hard #000/#fff strokes — invert for dark */
+  /* ANAGRAM rack tonal fill inverts cleanly via vars; word-search grays as well.
+     Only the static card diagrams use hard #000/#fff strokes — invert for dark. */
   body.theme-wob .gcard__diag svg [stroke="#000"]{ stroke:#fff; }
   body.theme-wob .gcard__diag svg [fill="#000"]{ fill:#fff; }
   body.theme-wob .gcard__diag svg [fill="#fff"]{ fill:#000; }
@@ -1456,76 +1474,96 @@
     <div class="standfirst">
       <div class="standfirst__head">
         <span class="label standfirst__kicker">The Arcade</span>
-        <h2>Three <em>diversions</em>.</h2>
+        <h2>Four <em>diversions</em>.</h2>
       </div>
-      <p class="standfirst__intro">Three diversions for the idle minute. Printed in black, played in white. Keyboard or touch; the score is kept.</p>
+      <p class="standfirst__intro">A page of word games for the idle minute, set in type and played in earnest. Keyboard or touch throughout; the record is kept against you.</p>
     </div>
 
     <!-- Arcade home: ruled game cards -->
     <div class="arcade" id="arcade-home">
-      <div class="gcard" data-game="climb" role="button" tabindex="0">
-        <div class="gcard__top"><span class="gcard__no">No. I</span><span class="gcard__best" data-best="climb">Best —</span></div>
+      <div class="gcard" data-game="typing" role="button" tabindex="0">
+        <div class="gcard__top"><span class="gcard__no">No. I</span><span class="gcard__best" data-best="typing">Best —</span></div>
         <div class="gcard__diag" aria-hidden="true">
           <svg viewBox="0 0 120 84" preserveAspectRatio="xMidYMid meet">
             <rect x="2" y="2" width="116" height="80" fill="none" stroke="#000" stroke-width="1.4"/>
-            <line x1="31" y1="2" x2="31" y2="82" stroke="#000" stroke-width=".7" opacity=".4"/>
-            <line x1="60" y1="2" x2="60" y2="82" stroke="#000" stroke-width=".7" opacity=".4"/>
-            <line x1="89" y1="2" x2="89" y2="82" stroke="#000" stroke-width=".7" opacity=".4"/>
-            <line x1="2" y1="22" x2="118" y2="22" stroke="#000" stroke-width=".7" opacity=".4"/>
-            <line x1="2" y1="42" x2="118" y2="42" stroke="#000" stroke-width=".7" opacity=".4"/>
-            <line x1="2" y1="62" x2="118" y2="62" stroke="#000" stroke-width=".7" opacity=".4"/>
-            <rect x="62" y="44" width="25" height="16" fill="#000"/>
-            <text x="74.5" y="56" fill="#fff" font-family="Georgia,serif" font-size="9" font-weight="700" text-anchor="middle">A</text>
-            <rect x="33" y="24" width="25" height="16" fill="none" stroke="#000" stroke-width="1"/>
-            <text x="45.5" y="36" fill="#000" font-family="Georgia,serif" font-size="9" font-weight="700" text-anchor="middle">C</text>
+            <line x1="2" y1="26" x2="118" y2="26" stroke="#000" stroke-width=".7" opacity=".4"/>
+            <line x1="2" y1="46" x2="118" y2="46" stroke="#000" stroke-width=".7" opacity=".4"/>
+            <line x1="12" y1="16" x2="92" y2="16" stroke="#000" stroke-width="2.4"/>
+            <line x1="12" y1="36" x2="68" y2="36" stroke="#000" stroke-width="2.4"/>
+            <rect x="70" y="30" width="2.4" height="12" fill="#000"/>
+            <line x1="12" y1="56" x2="48" y2="56" stroke="#000" stroke-width="2.4" opacity=".35"/>
+            <rect x="12" y="68" width="96" height="8" fill="none" stroke="#000" stroke-width="1"/>
           </svg>
         </div>
-        <h3 class="gcard__name">Climb</h3>
-        <p class="gcard__desc">Merge like grades up the ladder — D to A+. Slide the board; watch the letters rise.</p>
+        <h3 class="gcard__name">Typing Test</h3>
+        <p class="gcard__desc">Set a passage line for line. Speed and accuracy are read off as you go; the words per minute are recorded.</p>
         <span class="gcard__cta">Play →</span>
       </div>
 
-      <div class="gcard" data-game="streak" role="button" tabindex="0">
-        <div class="gcard__top"><span class="gcard__no">No. II</span><span class="gcard__best" data-best="streak">Best —</span></div>
-        <div class="gcard__diag" aria-hidden="true">
-          <svg viewBox="0 0 120 84" preserveAspectRatio="xMidYMid meet">
-            <rect x="2" y="2" width="116" height="80" fill="none" stroke="#000" stroke-width="1.4"/>
-            <g stroke="#000" stroke-width=".5" opacity=".3">
-              <line x1="22" y1="2" x2="22" y2="82"/><line x1="42" y1="2" x2="42" y2="82"/>
-              <line x1="62" y1="2" x2="62" y2="82"/><line x1="82" y1="2" x2="82" y2="82"/>
-              <line x1="98" y1="2" x2="98" y2="82"/>
-              <line x1="2" y1="22" x2="118" y2="22"/><line x1="2" y1="42" x2="118" y2="42"/>
-              <line x1="2" y1="62" x2="118" y2="62"/>
-            </g>
-            <rect x="22" y="42" width="20" height="20" fill="#000"/>
-            <rect x="42" y="42" width="20" height="20" fill="#000"/>
-            <rect x="62" y="42" width="20" height="20" fill="#000"/>
-            <rect x="62" y="22" width="20" height="20" fill="#000"/>
-            <circle cx="92" cy="32" r="6" fill="none" stroke="#000" stroke-width="1.6"/>
-          </svg>
-        </div>
-        <h3 class="gcard__name">Streak</h3>
-        <p class="gcard__desc">Build the run. Take each token, lengthen the line, and don't cross your own record.</p>
-        <span class="gcard__cta">Play →</span>
-      </div>
-
-      <div class="gcard" data-game="recall" role="button" tabindex="0">
-        <div class="gcard__top"><span class="gcard__no">No. III</span><span class="gcard__best" data-best="recall">Best —</span></div>
+      <div class="gcard" data-game="anagram" role="button" tabindex="0">
+        <div class="gcard__top"><span class="gcard__no">No. II</span><span class="gcard__best" data-best="anagram">Best —</span></div>
         <div class="gcard__diag" aria-hidden="true">
           <svg viewBox="0 0 120 84" preserveAspectRatio="xMidYMid meet">
             <rect x="2" y="2" width="116" height="80" fill="none" stroke="#000" stroke-width="1.4"/>
             <g fill="none" stroke="#000" stroke-width="1">
-              <rect x="10" y="12" width="22" height="26"/><rect x="38" y="12" width="22" height="26"/>
-              <rect x="66" y="12" width="22" height="26"/><rect x="94" y="12" width="16" height="26"/>
-              <rect x="10" y="44" width="22" height="26"/><rect x="38" y="44" width="22" height="26"/>
+              <rect x="14" y="16" width="20" height="24"/><rect x="40" y="16" width="20" height="24"/>
+              <rect x="66" y="16" width="20" height="24"/>
             </g>
-            <rect x="66" y="44" width="22" height="26" fill="#000"/>
-            <text x="77" y="62" fill="#fff" font-size="13" text-anchor="middle">📐</text>
-            <rect x="94" y="44" width="16" height="26" fill="#000"/>
+            <text x="24" y="34" fill="#000" font-family="Georgia,serif" font-size="14" font-weight="700" text-anchor="middle">Y</text>
+            <text x="50" y="34" fill="#000" font-family="Georgia,serif" font-size="14" font-weight="700" text-anchor="middle">S</text>
+            <text x="76" y="34" fill="#000" font-family="Georgia,serif" font-size="14" font-weight="700" text-anchor="middle">A</text>
+            <g stroke="#000" stroke-width="1" stroke-dasharray="2 2">
+              <rect x="40" y="52" width="20" height="24"/><rect x="66" y="52" width="20" height="24"/><rect x="92" y="52" width="16" height="24"/>
+            </g>
           </svg>
         </div>
-        <h3 class="gcard__name">Recall</h3>
-        <p class="gcard__desc">Eight pairs, face down. Turn two at a time and remember. Fewest moves wins the page.</p>
+        <h3 class="gcard__name">Anagram</h3>
+        <p class="gcard__desc">A scrambled word from the term's vocabulary. Order the letters; a hint names the field. Solve in a run.</p>
+        <span class="gcard__cta">Play →</span>
+      </div>
+
+      <div class="gcard" data-game="ttt" role="button" tabindex="0">
+        <div class="gcard__top"><span class="gcard__no">No. III</span><span class="gcard__best" data-best="ttt">Best —</span></div>
+        <div class="gcard__diag" aria-hidden="true">
+          <svg viewBox="0 0 120 84" preserveAspectRatio="xMidYMid meet">
+            <rect x="2" y="2" width="116" height="80" fill="none" stroke="#000" stroke-width="1.4"/>
+            <g stroke="#000" stroke-width="1">
+              <line x1="41" y1="8" x2="41" y2="76"/><line x1="79" y1="8" x2="79" y2="76"/>
+              <line x1="8" y1="29" x2="112" y2="29"/><line x1="8" y1="55" x2="112" y2="55"/>
+            </g>
+            <g stroke="#000" stroke-width="2" fill="none">
+              <line x1="14" y1="11" x2="30" y2="25"/><line x1="30" y1="11" x2="14" y2="25"/>
+              <circle cx="60" cy="42" r="8"/>
+              <line x1="89" y1="59" x2="103" y2="73"/><line x1="103" y1="59" x2="89" y2="73"/>
+            </g>
+          </svg>
+        </div>
+        <h3 class="gcard__name">Tic-Tac-Toe</h3>
+        <p class="gcard__desc">You take the cross against a CPU that does not blunder. A draw is the honest result; a win is earned.</p>
+        <span class="gcard__cta">Play →</span>
+      </div>
+
+      <div class="gcard" data-game="search" role="button" tabindex="0">
+        <div class="gcard__top"><span class="gcard__no">No. IV</span><span class="gcard__best" data-best="search">Best —</span></div>
+        <div class="gcard__diag" aria-hidden="true">
+          <svg viewBox="0 0 120 84" preserveAspectRatio="xMidYMid meet">
+            <rect x="2" y="2" width="116" height="80" fill="none" stroke="#000" stroke-width="1.4"/>
+            <g stroke="#000" stroke-width=".5" opacity=".3">
+              <line x1="24" y1="2" x2="24" y2="82"/><line x1="46" y1="2" x2="46" y2="82"/>
+              <line x1="68" y1="2" x2="68" y2="82"/><line x1="90" y1="2" x2="90" y2="82"/>
+              <line x1="2" y1="22" x2="118" y2="22"/><line x1="2" y1="42" x2="118" y2="42"/>
+              <line x1="2" y1="62" x2="118" y2="62"/>
+            </g>
+            <rect x="24" y="22" width="44" height="20" fill="#000"/>
+            <text x="13" y="16" fill="#000" font-family="Helvetica,sans-serif" font-size="9" font-weight="700">E</text>
+            <text x="35" y="16" fill="#000" font-family="Helvetica,sans-serif" font-size="9" font-weight="700">S</text>
+            <text x="57" y="16" fill="#000" font-family="Helvetica,sans-serif" font-size="9" font-weight="700">A</text>
+            <text x="35" y="37" fill="#fff" font-family="Helvetica,sans-serif" font-size="9" font-weight="700">E</text>
+            <text x="57" y="37" fill="#fff" font-family="Helvetica,sans-serif" font-size="9" font-weight="700">S</text>
+          </svg>
+        </div>
+        <h3 class="gcard__name">Word Search</h3>
+        <p class="gcard__desc">Six course words hidden in a field of ten by ten. Drag from first letter to last; the clock is running.</p>
         <span class="gcard__cta">Play →</span>
       </div>
     </div>
@@ -1599,7 +1637,7 @@
         <div class="toggle" data-toggle="nav-calendar"><div><div class="toggle__name">Calendar</div><div class="toggle__desc">Deadlines on a month grid.</div></div><span class="switch switch--on">On</span></div>
         <div class="toggle" data-toggle="nav-announcements"><div><div class="toggle__name">Bulletins</div><div class="toggle__desc">Faculty notices, newest first.</div></div><span class="switch switch--on">On</span></div>
         <div class="toggle" data-toggle="nav-materials"><div><div class="toggle__name">Materials</div><div class="toggle__desc">Files, links, and submissions.</div></div><span class="switch switch--on">On</span></div>
-        <div class="toggle" data-toggle="nav-arcade"><div><div class="toggle__name">Games</div><div class="toggle__desc">Three diversions for the idle minute.</div></div><span class="switch switch--on">On</span></div>
+        <div class="toggle" data-toggle="nav-arcade"><div><div class="toggle__name">Games</div><div class="toggle__desc">Four word games for the idle minute.</div></div><span class="switch switch--on">On</span></div>
         <div class="toggle" data-toggle="compact"><div><div class="toggle__name">Compact density</div><div class="toggle__desc">Tighten the rules and rows.</div></div><span class="switch switch--off">Off</span></div>
       </div>
     </div>
@@ -1853,7 +1891,7 @@
     filed:{},                        /* docket titles moved to Done */
     revisions:{},                    /* material id -> revision count */
     comments:{},                     /* material id -> [comments] */
-    arcadeBest:{ climb:0, streak:0, recall:0 }, /* recall best = fewest moves */
+    arcadeBest:{ typing:0, anagram:0, ttt:'', search:0 }, /* typing=WPM, anagram=streak, ttt=W-D-L, search=fastest sec */
     settings:{ compact:false, notify:true, themeWob:false, contrast:false, appearance:'light',
                nav:{ overview:true, grades:true, assignments:true, calendar:true, announcements:true, materials:true, arcade:true } }
   };
@@ -2610,19 +2648,27 @@
      ARCADE — three diversions, strictly B&W. Vanilla JS.
      ============================================================ */
   var ARCADE = (function(){
-    var GAME_NAMES = { climb:'Climb', streak:'Streak', recall:'Recall' };
+    var GAME_NAMES = { typing:'Typing Test', anagram:'Anagram', ttt:'Tic-Tac-Toe', search:'Word Search' };
     var active=null;            /* current game name or null */
     var teardown=null;          /* function to stop the running game */
     var keyHandler=null;        /* document keydown handler while playing */
 
-    function bestVal(g){ return state.arcadeBest[g]||0; }
+    function bestVal(g){ return state.arcadeBest[g]; }
     function setBest(g,v){ state.arcadeBest[g]=v; save(); refreshHomeBests(); }
 
+    function fmtSec(s){ return Math.floor(s/60)+':'+('0'+(s%60)).slice(-2); }
+
+    function bestLabel(g){
+      var b=bestVal(g);
+      if(g==='typing') return b ? ('Best '+b+' wpm') : 'Best —';
+      if(g==='anagram') return b ? ('Best run '+b) : 'Best —';
+      if(g==='search') return b ? ('Best '+fmtSec(b)) : 'Best —';
+      if(g==='ttt') return b ? ('Record '+b) : 'Record 0–0–0';
+      return 'Best —';
+    }
     function refreshHomeBests(){
       $$('#arcade-home [data-best]').forEach(function(node){
-        var g=node.getAttribute('data-best'); var b=bestVal(g);
-        if(g==='recall'){ node.textContent = b ? ('Best '+b+' moves') : 'Best —'; }
-        else { node.textContent = b ? ('Best '+b) : 'Best —'; }
+        node.textContent = bestLabel(node.getAttribute('data-best'));
       });
     }
 
@@ -2635,6 +2681,7 @@
     }
     function hideOverlay(){ $('#stage-overlay').hidden=true; }
     function setScore(v){ $('#stage-score').textContent=v; }
+    function setScoreLabel(t){ $$('.gscore__label')[0].textContent=t; }
     function setMeta(label,v){ $('#stage-meta-label').textContent=label; $('#stage-meta').textContent=v; }
     function setHint(t){ $('#stage-hint').textContent=t; }
 
@@ -2651,10 +2698,12 @@
       $('#arcade-home').hidden=true;
       $('#arcade-stage').hidden=false;
       $('#stage-title').textContent=GAME_NAMES[name];
+      setScoreLabel('Score');
       hideOverlay();
-      if(name==='climb') startClimb();
-      else if(name==='streak') startStreak();
-      else if(name==='recall') startRecall();
+      if(name==='typing') startTyping();
+      else if(name==='anagram') startAnagram();
+      else if(name==='ttt') startTicTacToe();
+      else if(name==='search') startSearch();
     }
     function backToHome(){
       stopActive();
@@ -2664,294 +2713,455 @@
     }
     function restartActive(){ if(active) openGame(active); }
 
-    /* swipe helper: returns dir 'up'/'down'/'left'/'right' or null */
-    function attachSwipe(node, onDir){
-      var sx=0, sy=0, tracking=false;
-      function down(e){ var p=e.touches?e.touches[0]:e; sx=p.clientX; sy=p.clientY; tracking=true; }
-      function up(e){
-        if(!tracking) return; tracking=false;
-        var p=e.changedTouches?e.changedTouches[0]:e;
-        var dx=p.clientX-sx, dy=p.clientY-sy;
-        if(Math.abs(dx)<24 && Math.abs(dy)<24) return;
-        if(Math.abs(dx)>Math.abs(dy)) onDir(dx>0?'right':'left');
-        else onDir(dy>0?'down':'up');
-      }
-      node.addEventListener('touchstart', down, {passive:true});
-      node.addEventListener('touchend', up, {passive:true});
-      return function(){ node.removeEventListener('touchstart',down); node.removeEventListener('touchend',up); };
-    }
-
     /* ========================================================
-       GAME 1 — CLIMB (2048 variant, grades)
+       GAME 1 — TYPING TEST
        ======================================================== */
-    var CLIMB_LADDER = [ /* value(power) -> letter */
-      '', 'D','C−','C','C+','B−','B','B+','A−','A','A+','★'
+    var QUOTES = [
+      { t:'It was the best of times, it was the worst of times.', a:'Dickens, A Tale of Two Cities' },
+      { t:'All happy families are alike; each unhappy family is unhappy in its own way.', a:'Tolstoy, Anna Karenina' },
+      { t:'Call me Ishmael. Some years ago, never mind how long precisely.', a:'Melville, Moby-Dick' },
+      { t:'It is a truth universally acknowledged that a single man in possession of a good fortune must be in want of a wife.', a:'Austen, Pride and Prejudice' },
+      { t:'So we beat on, boats against the current, borne back ceaselessly into the past.', a:'Fitzgerald, The Great Gatsby' }
     ];
-    /* rank index 1..11 maps to css class r1..r11; value 2^rank */
-    function startClimb(){
+    function startTyping(){
+      var q = QUOTES[Math.floor(Math.random()*QUOTES.length)];
+      var target = q.t;
       var board=$('#stage-board');
-      board.innerHTML='<div class="climb" id="climb-grid"></div>';
-      var grid=$('#climb-grid');
-      var cells=[];
-      for(var i=0;i<16;i++){ var c=el('div','climb__cell'); grid.appendChild(c); cells.push(c); }
-      setMeta('Best', bestVal('climb'));
-      setHint('Arrows or W A S D · swipe on touch · merge to A+');
+      var spans = target.split('').map(function(ch,i){
+        return '<span class="tch pend" data-i="'+i+'">'+esc(ch)+'</span>';
+      }).join('');
+      board.innerHTML =
+        '<div class="type-quote" id="type-quote">'+spans+
+          '<div class="type-cite">— '+esc(q.a)+'</div></div>'+
+        '<textarea class="type-field" id="type-field" rows="3" autocomplete="off" '+
+          'autocorrect="off" autocapitalize="off" spellcheck="false" '+
+          'placeholder="Begin typing the passage above…"></textarea>';
+      setScoreLabel('WPM');
+      setScore(0);
+      setMeta('Accuracy', '100%');
+      setHint('Type the passage exactly. The clock starts on the first keystroke. Best is the highest words-per-minute.');
 
-      var data=[], score=0, won=false, dead=false;
-      function blank(){ var a=[]; for(var i=0;i<16;i++)a.push(0); return a; }
-      function spawn(){
-        var empty=[]; data.forEach(function(v,i){ if(!v)empty.push(i); });
-        if(!empty.length) return;
-        var idx=empty[Math.floor(Math.random()*empty.length)];
-        data[idx]= Math.random()<0.9 ? 1 : 2; /* rank 1 (D=2) usually, sometimes rank2 (C-=4) */
-      }
-      function draw(){
-        setScore(score);
-        for(var i=0;i<16;i++){
-          cells[i].innerHTML='';
-          var r=data[i];
-          if(r){
-            var t=el('div','climb__tile r'+Math.min(r,11));
-            t.innerHTML='<span class="t-let">'+esc(CLIMB_LADDER[r]||'★')+'</span><span class="t-num">'+(Math.pow(2,r))+'</span>';
-            cells[i].appendChild(t);
-          }
-        }
-      }
-      /* slide a single line of 4 ranks toward index 0; returns {line,gained,moved} */
-      function slide(line){
-        var arr=line.filter(function(v){return v;});
-        var gained=0, out=[];
-        for(var i=0;i<arr.length;i++){
-          if(i+1<arr.length && arr[i]===arr[i+1]){
-            var nr=arr[i]+1; out.push(nr); gained+=Math.pow(2,nr);
-            if(nr>=11) won=true;
-            i++;
-          } else out.push(arr[i]);
-        }
-        while(out.length<4) out.push(0);
-        var moved=false;
-        for(var j=0;j<4;j++){ if(out[j]!==line[j]){ moved=true; break; } }
-        return { line:out, gained:gained, moved:moved };
-      }
-      function move(dir){
-        if(dead||won) return;
-        var moved=false, gained=0;
-        function getLine(idx){ return idx.map(function(i){return data[i];}); }
-        function setLine(idx,vals){ idx.forEach(function(i,k){ data[i]=vals[k]; }); }
-        for(var k=0;k<4;k++){
-          var idx;
-          if(dir==='left')  idx=[k*4,k*4+1,k*4+2,k*4+3];
-          else if(dir==='right') idx=[k*4+3,k*4+2,k*4+1,k*4];
-          else if(dir==='up')   idx=[k,k+4,k+8,k+12];
-          else idx=[k+12,k+8,k+4,k]; /* down */
-          var res=slide(getLine(idx));
-          if(res.moved) moved=true;
-          gained+=res.gained;
-          setLine(idx, res.line);
-        }
-        if(moved){
-          score+=gained; spawn(); draw();
-          var b=bestVal('climb'); if(score>b){ setBest('climb',score); setMeta('Best',score); }
-          if(won){ finishWin(); return; }
-          if(noMoves()){ dead=true; finishLose(); }
-        }
-      }
-      function noMoves(){
-        for(var i=0;i<16;i++) if(!data[i]) return false;
-        for(var r=0;r<4;r++) for(var c=0;c<4;c++){
-          var v=data[r*4+c];
-          if(c<3 && v===data[r*4+c+1]) return false;
-          if(r<3 && v===data[(r+1)*4+c]) return false;
-        }
-        return true;
-      }
-      function finishWin(){
-        showOverlay('The Summit','A+ reached.','You merged your way to the top of the ladder. Score '+score+'. Keep climbing or start anew.');
-        /* allow continue: clicking play again restarts; but let board stay playable past win */
-        won=false; /* permit further play */
-      }
-      function finishLose(){
-        showOverlay('No Moves','The board is full.','Nothing left to merge. Final score '+score+'. Best stands at '+bestVal('climb')+'.');
-      }
+      var field=$('#type-field');
+      var chars=$$('#type-quote .tch');
+      var started=0, done=false;
 
-      data=blank(); spawn(); spawn(); draw();
-
-      keyHandler=function(e){
-        var k=e.key.toLowerCase(), dir=null;
-        if(k==='arrowleft'||k==='a') dir='left';
-        else if(k==='arrowright'||k==='d') dir='right';
-        else if(k==='arrowup'||k==='w') dir='up';
-        else if(k==='arrowdown'||k==='s') dir='down';
-        if(dir){ e.preventDefault(); move(dir); }
-      };
-      document.addEventListener('keydown', keyHandler);
-      var detach=attachSwipe(board, move);
-      teardown=function(){ detach(); };
+      function render(typed){
+        var correct=0;
+        for(var i=0;i<chars.length;i++){
+          var c=chars[i]; c.className='tch';
+          if(i<typed.length){
+            if(typed[i]===target[i]){ c.classList.add('done'); correct++; }
+            else c.classList.add('bad');
+          } else if(i===typed.length){ c.classList.add('cur'); }
+          else c.classList.add('pend');
+        }
+        return correct;
+      }
+      function update(){
+        var typed=field.value;
+        if(!started && typed.length){ started=Date.now(); }
+        var correct=render(typed);
+        var acc = typed.length ? Math.round(correct/typed.length*100) : 100;
+        setMeta('Accuracy', acc+'%');
+        var mins = started ? (Date.now()-started)/60000 : 0;
+        var wpm = mins>0 ? Math.round((typed.length/5)/mins) : 0;
+        setScore(wpm);
+        if(typed.length>=target.length){ finish(typed, wpm); }
+      }
+      function finish(typed, liveWpm){
+        if(done) return; done=true;
+        field.readOnly=true;
+        var mins=(Date.now()-started)/60000;
+        var correct=0; for(var i=0;i<target.length;i++){ if(typed[i]===target[i]) correct++; }
+        var acc=Math.round(correct/target.length*100);
+        /* accuracy-weighted final wpm */
+        var raw = Math.round((target.length/5)/Math.max(mins,1/600));
+        var wpm = Math.max(0, Math.round(raw * (acc/100)));
+        setScore(wpm); setMeta('Accuracy', acc+'%');
+        var prev=bestVal('typing')||0;
+        var isBest = wpm>prev;
+        if(isBest) setBest('typing', wpm);
+        showOverlay('The Result', wpm+' words a minute',
+          'Accuracy of '+acc+'% over '+target.length+' characters.'+
+          (isBest?' A new personal best.':' Best holds at '+prev+' wpm.'));
+      }
+      function onInput(){ if(!done) update(); }
+      field.addEventListener('input', onInput);
+      setTimeout(function(){ try{ field.focus(); }catch(e){} }, 30);
+      render('');
+      teardown=function(){ field.removeEventListener('input', onInput); };
     }
 
     /* ========================================================
-       GAME 2 — STREAK (snake)
+       GAME 2 — ANAGRAM
        ======================================================== */
-    function startStreak(){
-      var N=15, CELL=24, SIZE=N*CELL;
+    var ANA_WORDS = [
+      { w:'ESSAY',    c:'A piece of literary composition.' },
+      { w:'ENZYME',   c:'A protein that speeds a reaction.' },
+      { w:'ALGEBRA',  c:'The branch of mathematics of symbols.' },
+      { w:'BIOLOGY',  c:'The study of living organisms.' },
+      { w:'FRENCH',   c:'A Romance language and a course.' },
+      { w:'DRAMA',    c:'A work for the stage.' },
+      { w:'NARRATOR', c:'The voice that tells the story.' },
+      { w:'MITOSIS',  c:'The division of a cell into two.' }
+    ];
+    function startAnagram(){
       var board=$('#stage-board');
       board.innerHTML=
-        '<div class="streak-wrap"><canvas id="streak-cv" width="'+SIZE+'" height="'+SIZE+'"></canvas></div>'+
-        '<div class="dpad">'+
-          '<button class="d-up" data-d="up" type="button">▲</button>'+
-          '<button class="d-left" data-d="left" type="button">◀</button>'+
-          '<button class="d-down" data-d="down" type="button">▼</button>'+
-          '<button class="d-right" data-d="right" type="button">▶</button>'+
+        '<div class="ana-slots" id="ana-slots"></div>'+
+        '<div class="ana-rack" id="ana-rack"></div>'+
+        '<p class="ana-hint" id="ana-hint">&nbsp;</p>'+
+        '<div class="ana-actions">'+
+          '<button class="gbtn gbtn--ghost" id="ana-hint-btn" type="button">Hint</button>'+
+          '<button class="gbtn gbtn--ghost" id="ana-clear" type="button">Clear</button>'+
+          '<button class="gbtn" id="ana-next" type="button" hidden>Next →</button>'+
         '</div>';
-      var cv=$('#streak-cv'), ctx=cv.getContext('2d');
-      setMeta('Best', bestVal('streak'));
-      setHint('Arrows or W A S D · d-pad on touch · don’t hit a wall or yourself');
+      setScoreLabel('Streak');
+      setScore(0);
+      setMeta('Best', bestVal('anagram')||0);
+      setHint('Type a letter, or click the tiles, to spell the word. Backspace removes the last. A hint names the field.');
 
-      var snake=[{x:7,y:7},{x:6,y:7},{x:5,y:7}];
-      var dir={x:1,y:0}, nextDir={x:1,y:0};
-      var food=placeFood();
-      var score=0, dead=false, baseStep=140, step=baseStep, acc=0, last=0, raf=0;
+      var streak=0, used, current, placed, solved;
+      var slotsEl=$('#ana-slots'), rackEl=$('#ana-rack'), hintEl=$('#ana-hint');
+      var nextBtn=$('#ana-next');
 
-      function placeFood(){
-        var f;
-        do{ f={x:Math.floor(Math.random()*N), y:Math.floor(Math.random()*N)}; }
-        while(snake.some(function(s){return s.x===f.x&&s.y===f.y;}));
-        return f;
+      function scramble(w){
+        var a=w.split(''); var s;
+        do {
+          for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
+          s=a.join('');
+        } while(s===w && w.length>1);
+        return a;
       }
-      function paper(){ return getComputedStyle(document.body).getPropertyValue('--paper')||'#fff'; }
-      function ink(){ return getComputedStyle(document.body).getPropertyValue('--ink')||'#000'; }
-      function draw(){
-        var P=paper().trim()||'#fff', I=ink().trim()||'#000';
-        ctx.fillStyle=P; ctx.fillRect(0,0,SIZE,SIZE);
-        /* ruled grid */
-        ctx.strokeStyle=I; ctx.globalAlpha=0.12; ctx.lineWidth=1;
-        for(var i=1;i<N;i++){
-          ctx.beginPath(); ctx.moveTo(i*CELL+.5,0); ctx.lineTo(i*CELL+.5,SIZE); ctx.stroke();
-          ctx.beginPath(); ctx.moveTo(0,i*CELL+.5); ctx.lineTo(SIZE,i*CELL+.5); ctx.stroke();
-        }
-        ctx.globalAlpha=1;
-        /* food: open marker */
-        ctx.strokeStyle=I; ctx.lineWidth=2;
-        ctx.beginPath();
-        ctx.arc(food.x*CELL+CELL/2, food.y*CELL+CELL/2, CELL/2-5, 0, Math.PI*2);
-        ctx.stroke();
-        /* snake: solid black */
-        ctx.fillStyle=I;
-        snake.forEach(function(s,i){
-          ctx.fillRect(s.x*CELL+2, s.y*CELL+2, CELL-4, CELL-4);
+      function newWord(){
+        current = ANA_WORDS[Math.floor(Math.random()*ANA_WORDS.length)];
+        var letters = scramble(current.w);
+        placed=[]; solved=false; used=[];
+        hintEl.innerHTML='&nbsp;';
+        nextBtn.hidden=true;
+        /* rack */
+        rackEl.innerHTML='';
+        letters.forEach(function(ch,i){
+          var b=el('button','ana-tile'); b.type='button'; b.textContent=ch;
+          b.setAttribute('data-ri', i); rackEl.appendChild(b);
+          used.push(false);
         });
+        renderSlots();
       }
-      function tick(){
-        dir=nextDir;
-        var head={x:snake[0].x+dir.x, y:snake[0].y+dir.y};
-        if(head.x<0||head.y<0||head.x>=N||head.y>=N){ return over(); }
-        if(snake.some(function(s){return s.x===head.x&&s.y===head.y;})){ return over(); }
-        snake.unshift(head);
-        if(head.x===food.x&&head.y===food.y){
-          score++; setScore(score);
-          var b=bestVal('streak'); if(score>b){ setBest('streak',score); setMeta('Best',score); }
-          food=placeFood();
-          step=Math.max(60, baseStep - score*4); /* gentle speed ramp */
-        } else snake.pop();
-        draw();
+      function renderSlots(){
+        slotsEl.innerHTML='';
+        for(var i=0;i<current.w.length;i++){
+          var s=el('div','ana-slot');
+          if(placed[i]!=null){ s.classList.add('full'); s.textContent=placed[i].ch; }
+          if(solved) s.classList.add('right');
+          slotsEl.appendChild(s);
+        }
       }
-      function over(){
-        dead=true; cancelAnimationFrame(raf);
-        showOverlay('Broken','The streak ended.','You reached '+score+'. Best run holds at '+bestVal('streak')+'. Start another.');
+      function place(ri, ch){
+        if(solved) return;
+        var pos=placed.length;
+        if(pos>=current.w.length) return;
+        placed.push({ ri:ri, ch:ch });
+        if(ri!=null){ used[ri]=true; rackEl.children[ri].disabled=true; }
+        renderSlots();
+        if(placed.length===current.w.length) check();
       }
-      function loop(ts){
-        if(dead) return;
-        if(!last) last=ts;
-        acc += ts-last; last=ts;
-        while(acc>=step){ acc-=step; if(dead)break; tick(); }
-        raf=requestAnimationFrame(loop);
+      function removeLast(){
+        if(solved || !placed.length) return;
+        var last=placed.pop();
+        if(last.ri!=null){ used[last.ri]=false; rackEl.children[last.ri].disabled=false; }
+        slotsEl.querySelectorAll('.ana-slot').forEach(function(s){ s.classList.remove('wrong'); });
+        renderSlots();
       }
-      function setDir(d){
-        var nd = d==='up'?{x:0,y:-1}:d==='down'?{x:0,y:1}:d==='left'?{x:-1,y:0}:{x:1,y:0};
-        if(nd.x===-dir.x && nd.y===-dir.y) return; /* no reverse */
-        nextDir=nd;
+      function clearAll(){ while(placed.length) removeLast(); }
+      function check(){
+        var guess=placed.map(function(p){return p.ch;}).join('');
+        if(guess===current.w){
+          solved=true; streak++; setScore(streak);
+          var prev=bestVal('anagram')||0;
+          if(streak>prev){ setBest('anagram', streak); setMeta('Best', streak); }
+          renderSlots();
+          hintEl.textContent='Correct — '+current.w+'.';
+          nextBtn.hidden=false;
+          try{ nextBtn.focus(); }catch(e){}
+        } else {
+          slotsEl.querySelectorAll('.ana-slot').forEach(function(s){ s.classList.add('wrong'); });
+          setTimeout(function(){
+            if(streak>0){ /* streak ends on a wrong word */
+              hintEl.textContent='Not quite. The run ends at '+streak+'. The tiles reset.';
+            } else {
+              hintEl.textContent='Not quite — try the order again.';
+            }
+            streak=0; setScore(0);
+            clearAll();
+          }, 650);
+        }
       }
-      setScore(0); draw(); raf=requestAnimationFrame(loop);
+      function clickTile(ri){
+        if(used[ri]) return;
+        place(ri, rackEl.children[ri].textContent);
+      }
+      function typeLetter(ch){
+        ch=ch.toUpperCase();
+        for(var i=0;i<rackEl.children.length;i++){
+          if(!used[i] && rackEl.children[i].textContent===ch){ place(i, ch); return; }
+        }
+      }
+
+      function onRack(e){ var b=e.target.closest('[data-ri]'); if(b) clickTile(+b.getAttribute('data-ri')); }
+      function onSlots(){ removeLast(); }
+      rackEl.addEventListener('click', onRack);
+      slotsEl.addEventListener('click', onSlots);
+      $('#ana-clear').addEventListener('click', clearAll);
+      $('#ana-hint-btn').addEventListener('click', function(){ hintEl.textContent=current.c; });
+      nextBtn.addEventListener('click', newWord);
 
       keyHandler=function(e){
-        var k=e.key.toLowerCase(), d=null;
-        if(k==='arrowup'||k==='w')d='up';
-        else if(k==='arrowdown'||k==='s')d='down';
-        else if(k==='arrowleft'||k==='a')d='left';
-        else if(k==='arrowright'||k==='d')d='right';
-        if(d){ e.preventDefault(); setDir(d); }
+        if(e.metaKey||e.ctrlKey||e.altKey) return;
+        if(e.key==='Backspace'){ e.preventDefault(); removeLast(); return; }
+        if(e.key==='Enter'){ if(!nextBtn.hidden){ e.preventDefault(); newWord(); } return; }
+        if(/^[a-zA-Z]$/.test(e.key)){ e.preventDefault(); typeLetter(e.key); }
       };
       document.addEventListener('keydown', keyHandler);
-      var pad=$('.dpad'); function padClick(e){ var b=e.target.closest('[data-d]'); if(b) setDir(b.getAttribute('data-d')); }
-      pad.addEventListener('click', padClick);
-      var detach=attachSwipe(board, setDir);
-      teardown=function(){ dead=true; cancelAnimationFrame(raf); pad.removeEventListener('click',padClick); detach(); };
+
+      newWord();
+      teardown=function(){
+        rackEl.removeEventListener('click',onRack);
+        slotsEl.removeEventListener('click',onSlots);
+      };
     }
 
     /* ========================================================
-       GAME 3 — RECALL (memory match)
+       GAME 3 — TIC-TAC-TOE (minimax CPU)
        ======================================================== */
-    var RECALL_FACES = ['📐','🧬','🥐','🎭','📚','🏃','✏️','🎒'];
-    function startRecall(){
+    function startTicTacToe(){
       var board=$('#stage-board');
-      board.innerHTML='<div class="recall" id="recall-grid"></div>';
-      var grid=$('#recall-grid');
-      var deck = RECALL_FACES.concat(RECALL_FACES);
-      for(var i=deck.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=deck[i]; deck[i]=deck[j]; deck[j]=t; }
-      var moves=0, matched=0, lock=false, first=null, startTime=Date.now(), timer=0;
-      setScore(0); /* score = moves */
-      $('#stage-meta-label').textContent='Best';
-      setMeta('Best', bestVal('recall') ? bestVal('recall')+' mv' : '—');
-      setHint('Click two cards · match all eight pairs in the fewest moves');
+      board.innerHTML=
+        '<div class="ttt" id="ttt-grid"></div>'+
+        '<div class="ttt-tally">'+
+          '<div><span class="tl">Won</span><span class="tv" id="ttt-w">0</span></div>'+
+          '<div><span class="tl">Drawn</span><span class="tv" id="ttt-d">0</span></div>'+
+          '<div><span class="tl">Lost</span><span class="tv" id="ttt-l">0</span></div>'+
+        '</div>';
+      setScoreLabel('Round');
+      var rec = parseRec(bestVal('ttt'));
+      setMeta('Record', rec.w+'–'+rec.d+'–'+rec.l);
+      $('#ttt-w').textContent=rec.w; $('#ttt-d').textContent=rec.d; $('#ttt-l').textContent=rec.l;
+      setHint('You are X; the machine is O and plays perfectly. Click a square or press 1–9 (top-left to bottom-right).');
 
-      timer=setInterval(function(){
-        var s=Math.floor((Date.now()-startTime)/1000);
-        setHint('Time '+Math.floor(s/60)+':'+('0'+(s%60)).slice(-2)+' · pairs '+matched+' of 8');
-      },1000);
+      var grid=$('#ttt-grid'), cells=[];
+      for(var i=0;i<9;i++){ var c=el('button','ttt__cell'); c.type='button'; c.setAttribute('data-i',i); grid.appendChild(c); cells.push(c); }
+      var b=['','','','','','','','',''], over=false, round=1, lock=false;
+      setScore(round);
 
-      var cards=[];
-      deck.forEach(function(face,idx){
-        var card=el('div','rcard');
-        card.setAttribute('data-i',idx); card.setAttribute('data-face',face);
-        card.setAttribute('role','button'); card.setAttribute('tabindex','0');
-        card.innerHTML='<div class="rcard__inner">'+
-          '<div class="rcard__face rcard__back">SGY</div>'+
-          '<div class="rcard__face rcard__front">'+face+'</div></div>';
-        grid.appendChild(card); cards.push(card);
-      });
+      var LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+      function winner(s){
+        for(var i=0;i<LINES.length;i++){ var L=LINES[i];
+          if(s[L[0]] && s[L[0]]===s[L[1]] && s[L[1]]===s[L[2]]) return { p:s[L[0]], line:L };
+        }
+        if(s.every(function(v){return v;})) return { p:'draw', line:null };
+        return null;
+      }
+      function draw(winLine){
+        for(var i=0;i<9;i++){
+          var cell=cells[i];
+          cell.className='ttt__cell'+(b[i]?' taken':'')+(b[i]==='O'?' o':'');
+          cell.innerHTML = b[i] ? '<span class="mk">'+b[i]+'</span>' : '';
+          if(winLine && winLine.indexOf(i)>=0) cell.classList.add('win');
+        }
+      }
+      /* minimax — O maximizes */
+      function score(s, depth){
+        var w=winner(s);
+        if(w){ if(w.p==='O') return 10-depth; if(w.p==='X') return depth-10; return 0; }
+        return null;
+      }
+      function minimax(s, turn, depth){
+        var sc=score(s,depth); if(sc!==null) return { score:sc };
+        var best = turn==='O' ? {score:-Infinity} : {score:Infinity};
+        for(var i=0;i<9;i++){
+          if(s[i]) continue;
+          s[i]=turn;
+          var r=minimax(s, turn==='O'?'X':'O', depth+1);
+          s[i]='';
+          if(turn==='O'){ if(r.score>best.score) best={score:r.score, move:i}; }
+          else { if(r.score<best.score) best={score:r.score, move:i}; }
+        }
+        return best;
+      }
+      function cpuMove(){
+        var m=minimax(b.slice(),'O',0).move;
+        if(m==null){ for(var i=0;i<9;i++) if(!b[i]){ m=i; break; } }
+        b[m]='O';
+        finishCheck();
+      }
+      function finishCheck(){
+        var w=winner(b);
+        if(w){
+          over=true; lock=false;
+          draw(w.line);
+          var rec2=parseRec(bestVal('ttt'));
+          var head, sub;
+          if(w.p==='X'){ rec2.w++; head='You win.'; sub='The cross takes it. A rare thing against this machine.'; }
+          else if(w.p==='O'){ rec2.l++; head='You lose.'; sub='The circle closes it out. The machine does not blunder.'; }
+          else { rec2.d++; head='A draw.'; sub='Even play to an even end — the honest result of perfect defence.'; }
+          setBest('ttt', rec2.w+'-'+rec2.d+'-'+rec2.l);
+          setMeta('Record', rec2.w+'–'+rec2.d+'–'+rec2.l);
+          $('#ttt-w').textContent=rec2.w; $('#ttt-d').textContent=rec2.d; $('#ttt-l').textContent=rec2.l;
+          showOverlay('Round '+round, head, sub+' Play again for the next round.');
+        } else { draw(); }
+      }
+      function playX(i){
+        if(over||lock||b[i]) return;
+        b[i]='X'; draw();
+        if(winner(b)){ finishCheck(); return; }
+        lock=true;
+        setTimeout(function(){ if(!over){ cpuMove(); lock=false; } }, 280);
+      }
 
-      function flip(card){
-        if(lock || card.classList.contains('flipped') || card.classList.contains('matched')) return;
-        card.classList.add('flipped');
-        if(!first){ first=card; return; }
-        moves++; setScore(moves);
-        var second=card;
-        if(first.getAttribute('data-face')===second.getAttribute('data-face')){
-          first.classList.add('matched'); second.classList.add('matched');
-          first=null; matched++;
-          if(matched===8) win();
-        } else {
-          lock=true; var a=first, b=second; first=null;
-          setTimeout(function(){ a.classList.remove('flipped'); b.classList.remove('flipped'); lock=false; }, 700);
+      function onClick(e){ var cell=e.target.closest('[data-i]'); if(cell) playX(+cell.getAttribute('data-i')); }
+      grid.addEventListener('click', onClick);
+      keyHandler=function(e){
+        if(/^[1-9]$/.test(e.key)){ e.preventDefault(); playX(+e.key-1); }
+      };
+      document.addEventListener('keydown', keyHandler);
+
+      draw();
+      teardown=function(){ grid.removeEventListener('click', onClick); };
+    }
+    /* shared parse for the tic-tac-toe record string "W-D-L" */
+    function parseRec(s){
+      s=s||''; var p=String(s).split('-');
+      return { w:+p[0]||0, d:+p[1]||0, l:+p[2]||0 };
+    }
+
+    /* ========================================================
+       GAME 4 — WORD SEARCH
+       ======================================================== */
+    var WS_WORDS = ['BIOLOGY','FRENCH','ALGEBRA','DRAMA','ENZYME','ESSAY'];
+    var WS_N = 10, WS_ALPHA='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    function startSearch(){
+      var board=$('#stage-board');
+      board.innerHTML=
+        '<div class="ws-wrap"><div class="ws" id="ws-grid"></div></div>'+
+        '<div class="ws-list" id="ws-list"></div>';
+      setScoreLabel('Found');
+      setScore('0 / 6');
+      setMeta('Best', bestVal('search') ? fmtSec(bestVal('search')) : '—');
+
+      var grid=$('#ws-grid'), listEl=$('#ws-list');
+      var cellsArr, placedWords, found, startTime, timer, aimStart=null;
+
+      function idx(r,c){ return r*WS_N+c; }
+      function build(){
+        var g=[]; for(var i=0;i<WS_N*WS_N;i++) g.push('');
+        placedWords=[];
+        var dirs=[[0,1],[1,0]]; /* horizontal, vertical */
+        WS_WORDS.slice().sort(function(){return Math.random()-0.5;}).forEach(function(w){
+          var ok=false, tries=0, cellsList;
+          while(!ok && tries<300){
+            tries++;
+            var d=dirs[Math.floor(Math.random()*dirs.length)];
+            var maxR = d[0]? WS_N-w.length : WS_N-1;
+            var maxC = d[1]? WS_N-w.length : WS_N-1;
+            var r=Math.floor(Math.random()*(maxR+1));
+            var c=Math.floor(Math.random()*(maxC+1));
+            var fits=true; cellsList=[];
+            for(var k=0;k<w.length;k++){
+              var rr=r+d[0]*k, cc=c+d[1]*k, cur=g[idx(rr,cc)];
+              if(cur && cur!==w[k]){ fits=false; break; }
+              cellsList.push(idx(rr,cc));
+            }
+            if(fits){
+              for(var k2=0;k2<w.length;k2++){ g[cellsList[k2]]=w[k2]; }
+              placedWords.push({ word:w, cells:cellsList });
+              ok=true;
+            }
+          }
+        });
+        for(var i=0;i<g.length;i++){ if(!g[i]) g[i]=WS_ALPHA[Math.floor(Math.random()*26)]; }
+        return g;
+      }
+
+      function renderGrid(g){
+        grid.innerHTML=''; cellsArr=[];
+        g.forEach(function(ch,i){
+          var c=el('div','ws__c'); c.textContent=ch; c.setAttribute('data-i',i);
+          var r=Math.floor(i/WS_N), col=i%WS_N;
+          c.setAttribute('data-r',r); c.setAttribute('data-c',col);
+          grid.appendChild(c); cellsArr.push(c);
+        });
+      }
+      function renderList(){
+        listEl.innerHTML='';
+        WS_WORDS.forEach(function(w){
+          var s=el('span','ws-word'+(found.indexOf(w)>=0?' struck':''));
+          s.textContent=w; listEl.appendChild(s);
+        });
+      }
+      function lineCells(a,b){
+        var ar=+cellsArr[a].getAttribute('data-r'), ac=+cellsArr[a].getAttribute('data-c');
+        var br=+cellsArr[b].getAttribute('data-r'), bc=+cellsArr[b].getAttribute('data-c');
+        if(ar!==br && ac!==bc) return null; /* must be straight H or V */
+        var cells=[]; var dr=Math.sign(br-ar), dc=Math.sign(bc-ac);
+        var len=Math.max(Math.abs(br-ar),Math.abs(bc-ac))+1;
+        for(var k=0;k<len;k++){ cells.push(idx(ar+dr*k, ac+dc*k)); }
+        return cells;
+      }
+      function wordFromCells(cells){ return cells.map(function(i){return cellsArr[i].textContent;}).join(''); }
+      function clearSel(){ cellsArr.forEach(function(c){ c.classList.remove('sel','aim'); }); }
+
+      function pick(i){
+        if(aimStart==null){
+          aimStart=i; clearSel(); cellsArr[i].classList.add('aim');
+          return;
+        }
+        var cells=lineCells(aimStart, i);
+        var prevStart=aimStart; aimStart=null; clearSel();
+        if(!cells){ return; }
+        var w=wordFromCells(cells), wr=w.split('').reverse().join('');
+        var hit=null;
+        WS_WORDS.forEach(function(target){
+          if(found.indexOf(target)>=0) return;
+          if(w===target || wr===target) hit=target;
+        });
+        if(hit){
+          cells.forEach(function(ci){ cellsArr[ci].classList.add('found'); });
+          found.push(hit); renderList();
+          setScore(found.length+' / 6');
+          if(found.length===WS_WORDS.length) win();
         }
       }
       function win(){
         clearInterval(timer);
-        var s=Math.floor((Date.now()-startTime)/1000);
-        var prev=bestVal('recall');
-        var isBest = !prev || moves<prev;
-        if(isBest){ setBest('recall', moves); setMeta('Best', moves+' mv'); }
-        showOverlay('Cleared',
-          'All eight pairs.',
-          'Done in '+moves+' moves and '+Math.floor(s/60)+':'+('0'+(s%60)).slice(-2)+'.'+
-          (isBest?' A new personal best.':' Best holds at '+prev+' moves.'));
+        var secs=Math.floor((Date.now()-startTime)/1000);
+        var prev=bestVal('search')||0;
+        var isBest = !prev || secs<prev;
+        if(isBest) setBest('search', secs);
+        setMeta('Best', fmtSec(isBest?secs:prev));
+        showOverlay('Cleared', 'All six words.',
+          'Found in '+fmtSec(secs)+'.'+(isBest?' A new fastest time.':' Best holds at '+fmtSec(prev)+'.'));
       }
 
-      function onClick(e){ var c=e.target.closest('.rcard'); if(c) flip(c); }
-      function onKey(e){ if(e.key==='Enter'||e.key===' '){ var c=e.target.closest('.rcard'); if(c){ e.preventDefault(); flip(c); } } }
+      function onClick(e){ var c=e.target.closest('[data-i]'); if(c) pick(+c.getAttribute('data-i')); }
       grid.addEventListener('click', onClick);
-      grid.addEventListener('keydown', onKey);
-      teardown=function(){ clearInterval(timer); grid.removeEventListener('click',onClick); grid.removeEventListener('keydown',onKey); };
+      keyHandler=function(e){ if(e.key==='Escape'){ aimStart=null; clearSel(); } };
+      document.addEventListener('keydown', keyHandler);
+
+      function newPuzzle(){
+        found=[]; aimStart=null;
+        var g=build(); renderGrid(g); renderList();
+        setScore('0 / 6');
+        startTime=Date.now();
+        clearInterval(timer);
+        timer=setInterval(function(){
+          var s=Math.floor((Date.now()-startTime)/1000);
+          setHint('Time '+fmtSec(s)+' · select the first then the last letter of a word · Esc cancels a pick.');
+        },1000);
+        setHint('Select the first then the last letter of a hidden word. Words run across or down. Esc cancels a pick.');
+      }
+      newPuzzle();
+      teardown=function(){ clearInterval(timer); grid.removeEventListener('click', onClick); };
     }
 
     /* ---- wiring ---- */

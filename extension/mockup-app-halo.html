@@ -881,79 +881,106 @@
   .game-over .got.win { color: var(--signal-up); }
   .game-over .gosub { font-size: 13px; color: var(--ink-3); font-weight: 450; font-variant-numeric: tabular-nums; }
 
-  /* ---- Climb (2048) ---- */
-  .climb-grid {
-    position: relative; margin: 0 auto; padding: 10px;
-    --cell: 78px; --gap: 10px;
-    width: calc(var(--cell) * 4 + var(--gap) * 5);
-    height: calc(var(--cell) * 4 + var(--gap) * 5);
+  /* ---- Minesweeper ---- */
+  .mine-grid {
+    display: grid; grid-template-columns: repeat(9, 1fr);
+    gap: 3px; padding: 12px; margin: 0 auto; max-width: 396px;
+    touch-action: manipulation;
   }
-  .climb-bg { position: absolute; inset: 10px; display: grid;
-    grid-template-columns: repeat(4, var(--cell)); grid-template-rows: repeat(4, var(--cell));
-    gap: var(--gap); }
-  .climb-bg div { background: var(--paper-3); border-radius: 9px; }
-  .climb-tiles { position: absolute; inset: 10px; }
-  .climb-tile {
-    position: absolute; width: var(--cell); height: var(--cell);
-    border-radius: 9px; display: grid; place-items: center;
-    font-weight: 600; font-size: 19px; letter-spacing: -0.02em;
-    font-variant-numeric: tabular-nums;
-    transition: transform 110ms ease;
-    will-change: transform;
+  .mine-cell {
+    appearance: none; cursor: pointer; font-family: inherit; padding: 0;
+    aspect-ratio: 1; display: grid; place-items: center;
+    font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums;
+    border: 1px solid var(--hair-strong); border-radius: 6px;
+    background: var(--paper-3); color: var(--ink);
+    transition: background 90ms ease, color 90ms ease, border-color 90ms ease;
+    user-select: none; -webkit-user-select: none;
   }
-  .climb-tile.pop { animation: climbPop 140ms ease; }
-  .climb-tile.new { animation: climbNew 150ms ease; }
-  @keyframes climbPop { 0%{transform:scale(1)} 50%{transform:scale(1.08)} 100%{transform:scale(1)} }
-  @keyframes climbNew { 0%{opacity:0;transform:scale(0.5)} 100%{opacity:1;transform:scale(1)} }
+  .mine-cell:hover:not(.open) { background: var(--paper); }
+  .mine-cell.open { background: var(--paper); border-color: var(--hair); cursor: default; }
+  .mine-cell.flag { color: var(--ink-2); }
+  .mine-cell.hit { background: var(--signal-miss); color: var(--paper); border-color: var(--signal-miss); }
+  .mine-cell.mine { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .mine-cell.n1 { color: hsl(50 5% 56%); } .mine-cell.n2 { color: hsl(50 5% 48%); }
+  .mine-cell.n3 { color: hsl(50 5% 40%); } .mine-cell.n4 { color: hsl(50 5% 32%); }
+  .mine-cell.n5,.mine-cell.n6,.mine-cell.n7,.mine-cell.n8 { color: var(--ink); }
+  html[data-theme="dark"] .mine-cell.n1 { color: hsl(50 5% 56%); }
+  html[data-theme="dark"] .mine-cell.n2 { color: hsl(50 5% 64%); }
+  html[data-theme="dark"] .mine-cell.n3 { color: hsl(50 5% 72%); }
+  html[data-theme="dark"] .mine-cell.n4,
+  html[data-theme="dark"] .mine-cell.n5,
+  html[data-theme="dark"] .mine-cell.n6,
+  html[data-theme="dark"] .mine-cell.n7,
+  html[data-theme="dark"] .mine-cell.n8 { color: var(--ink); }
 
-  /* ---- Streak (snake) + Recall (memory): boards use canvas/grid below ---- */
-  .streak-wrap { padding: 12px; }
-  .streak-wrap canvas { display: block; width: 100%; height: auto; border-radius: 9px; background: var(--paper); border: 1px solid var(--hair); }
-  .dpad { display: none; margin-top: 14px; }
-  .dpad .dpad-grid { display: grid; grid-template-columns: repeat(3, 46px); grid-template-rows: repeat(3, 46px); gap: 6px; margin: 0 auto; justify-content: center; }
-  .dpad button {
-    appearance: none; cursor: pointer; font-family: inherit; color: var(--ink-2);
-    background: var(--paper); border: 1px solid var(--hair-strong); border-radius: var(--radius-sm);
-    display: grid; place-items: center;
-  }
-  .dpad button:active { background: var(--paper-3); }
-  .dpad button svg { width: 18px; height: 18px; }
-  .dpad .du { grid-area: 1 / 2; } .dpad .dl { grid-area: 2 / 1; }
-  .dpad .dr { grid-area: 2 / 3; } .dpad .dd { grid-area: 3 / 2; }
-  @media (hover: none) and (pointer: coarse) { .dpad { display: block; } }
-
-  .recall-grid {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 14px;
-  }
-  .recall-card {
+  /* generic toolbar row for flag-toggle / regen buttons */
+  .game-tools { display: flex; justify-content: center; gap: 8px; margin-top: 14px; }
+  .gtool {
     appearance: none; cursor: pointer; font-family: inherit;
-    aspect-ratio: 3 / 4; border-radius: 10px; position: relative;
-    background: transparent; border: none; padding: 0;
-    perspective: 600px;
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12.5px; font-weight: 500; color: var(--ink-2);
+    background: var(--paper); border: 1px solid var(--hair-strong);
+    border-radius: var(--radius-sm); padding: 7px 12px;
+    transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
   }
-  .recall-inner {
-    position: absolute; inset: 0; transition: transform 280ms cubic-bezier(.2,.7,.3,1);
-    transform-style: preserve-3d;
+  .gtool:hover { background: var(--paper-2); }
+  .gtool.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .gtool svg { width: 14px; height: 14px; }
+
+  /* ---- Lights Out ---- */
+  .lights-grid {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    gap: 8px; padding: 16px; margin: 0 auto; max-width: 400px;
   }
-  .recall-card.flip .recall-inner, .recall-card.matched .recall-inner { transform: rotateY(180deg); }
-  .recall-face {
-    position: absolute; inset: 0; border-radius: 10px;
-    display: grid; place-items: center; backface-visibility: hidden;
-    border: 1px solid var(--hair-strong);
+  .light-cell {
+    appearance: none; cursor: pointer; font-family: inherit; padding: 0;
+    aspect-ratio: 1; border-radius: 9px;
+    border: 1px solid var(--hair-strong); background: var(--paper);
+    transition: background 130ms ease, border-color 130ms ease, transform 90ms ease;
   }
-  .recall-back { background: var(--paper-3); color: var(--ink-4); }
-  .recall-back svg { width: 20px; height: 20px; opacity: 0.5; }
-  .recall-front {
-    background: var(--paper); transform: rotateY(180deg);
-    font-size: 26px; line-height: 1;
+  .light-cell:hover { transform: translateY(-1px); }
+  .light-cell.on { background: var(--ink); border-color: var(--ink); }
+
+  /* ---- Dodge (canvas) ---- */
+  .dodge-wrap { padding: 12px; }
+  .dodge-wrap canvas {
+    display: block; width: 100%; height: auto; border-radius: 9px;
+    background: var(--paper); border: 1px solid var(--hair);
+    touch-action: none;
   }
-  .recall-card.matched .recall-front { border-color: var(--ink); }
-  .recall-card.matched { opacity: 0.62; }
+
+  /* ---- Word Search ---- */
+  .ws-layout { padding: 14px; }
+  .ws-grid {
+    display: grid; grid-template-columns: repeat(10, 1fr);
+    gap: 2px; margin: 0 auto; max-width: 380px;
+    user-select: none; -webkit-user-select: none;
+  }
+  .ws-cell {
+    appearance: none; cursor: pointer; font-family: inherit; padding: 0;
+    aspect-ratio: 1; display: grid; place-items: center;
+    font-size: 13px; font-weight: 600; letter-spacing: 0.01em;
+    text-transform: uppercase; color: var(--ink-2);
+    border: 1px solid transparent; border-radius: 5px;
+    background: var(--paper-3);
+    transition: background 100ms ease, color 100ms ease, border-color 100ms ease;
+  }
+  .ws-cell:hover { background: var(--paper); }
+  .ws-cell.sel { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .ws-cell.found { background: var(--signal-up-soft); color: var(--signal-up); border-color: var(--signal-up); }
+  .ws-words {
+    display: flex; flex-wrap: wrap; gap: 8px 14px; justify-content: center;
+    margin-top: 16px;
+  }
+  .ws-word {
+    font-size: 12.5px; font-weight: 500; color: var(--ink-2);
+    letter-spacing: 0.02em;
+  }
+  .ws-word.done { color: var(--ink-4); text-decoration: line-through; }
 
   @media (max-width: 480px) {
-    .climb-grid { --cell: 64px; --gap: 8px; }
-    .climb-tile { font-size: 16px; }
-    .recall-front { font-size: 22px; }
+    .mine-cell { font-size: 13px; }
+    .ws-cell { font-size: 11px; }
   }
 
   /* ---------- mobile ---------- */
@@ -2189,14 +2216,16 @@
     // ============================================================
     (function games() {
       var GAMES = [
-        { id: "climb",  name: "Climb",  desc: "Merge grades up to A+",        best: "climbBest",  bestLabel: "Best" },
-        { id: "streak", name: "Streak", desc: "Grow without crossing yourself", best: "streakBest", bestLabel: "Best" },
-        { id: "recall", name: "Recall", desc: "Match the pairs",               best: "recallBest", bestLabel: "Fewest" }
+        { id: "mines",  name: "Minesweeper", desc: "Clear the field, 10 mines", best: "mines",  bestLabel: "Best", fmt: "time" },
+        { id: "lights", name: "Lights Out",  desc: "Turn every cell off",        best: "lights", bestLabel: "Fewest", fmt: "num" },
+        { id: "dodge",  name: "Dodge",       desc: "Avoid the falling bars",      best: "dodge",  bestLabel: "Best", fmt: "time" },
+        { id: "words",  name: "Word Search", desc: "Find six hidden words",       best: "words",  bestLabel: "Best", fmt: "time" }
       ];
       var GIC = {
-        climb:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l5-7 4 4 7-9"/><path d="M20 8h-4M20 8v4"/></svg>',
-        streak: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h6v5h5v5"/><circle cx="18" cy="6" r="1.4" fill="currentColor" stroke="none"/></svg>',
-        recall: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="7" height="16" rx="1.5"/><rect x="14" y="4" width="7" height="16" rx="1.5"/></svg>'
+        mines:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg>',
+        lights: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="3" y="14" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
+        dodge:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v6M14 5v5M18 3v7"/><circle cx="11" cy="19" r="2.4"/></svg>',
+        words:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6"/><path d="M20 20l-5.6-5.6"/></svg>'
       };
 
       var home = $("#arcadeHome"), stage = $("#gameStage");
@@ -2205,20 +2234,37 @@
       var active = null;       // current game id
       var teardown = null;     // current game's cleanup fn
 
-      function bestOf(key) { return load(key, 0); }
-      function setBest(key, v) { save(key, v); }
+      // single localStorage object for all four best scores
+      var ARCADE_KEY = "bsgy-halo-arcade";
+      function arcadeAll() {
+        try { var v = localStorage.getItem(ARCADE_KEY); return v ? JSON.parse(v) : {}; }
+        catch (e) { return {}; }
+      }
+      function bestOf(key) { var a = arcadeAll(); return a[key] != null ? a[key] : 0; }
+      function setBest(key, v) {
+        var a = arcadeAll(); a[key] = v;
+        try { localStorage.setItem(ARCADE_KEY, JSON.stringify(a)); } catch (e) {}
+      }
+      function fmtTime(ms) {
+        var s = Math.floor(ms / 1000);
+        return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2);
+      }
+      function bestText(g) {
+        var b = bestOf(g.best);
+        if (!b) return "—";
+        if (g.fmt === "time") return g.bestLabel + " " + fmtTime(b);
+        return g.bestLabel + " " + b;
+      }
 
       function renderHome() {
         var html = "";
         GAMES.forEach(function (g) {
-          var b = bestOf(g.best);
-          var bestTxt = b ? g.bestLabel + " " + b : "—";
           html +=
             '<button class="game-card" data-game="' + g.id + '">' +
               '<span class="gc-ic">' + GIC[g.id] + '</span>' +
               '<span><span class="gc-name">' + g.name + '</span>' +
               '<span class="gc-desc" style="display:block;">' + g.desc + '</span></span>' +
-              '<span class="gc-best">' + bestTxt + '</span>' +
+              '<span class="gc-best">' + bestText(g) + '</span>' +
             '</button>';
         });
         $("#gameCards").innerHTML = html;
@@ -2241,9 +2287,10 @@
         scoresEl.innerHTML = "";
         var g = null; GAMES.forEach(function (x) { if (x.id === id) g = x; });
         titleEl.textContent = g.name;
-        if (id === "climb") teardown = startClimb();
-        else if (id === "streak") teardown = startStreak();
-        else if (id === "recall") teardown = startRecall();
+        if (id === "mines") teardown = startMines();
+        else if (id === "lights") teardown = startLights();
+        else if (id === "dodge") teardown = startDodge();
+        else if (id === "words") teardown = startWords();
       }
 
       $("#gameCards").addEventListener("click", function (e) {
@@ -2275,496 +2322,562 @@
       }
 
       // =========================================================
-      // GAME 1 — CLIMB (2048 variant, grades as tiles)
+      // GAME 1 — MINESWEEPER (9x9, 10 mines)
       // =========================================================
-      function startClimb() {
-        var GRADE = { 2:"D", 4:"C−", 8:"C", 16:"C+", 32:"B−", 64:"B", 128:"B+", 256:"A−", 512:"A", 1024:"A+", 2048:"TOP" };
-        var WIN = 1024; // reaching A+ wins
+      function startMines() {
+        var N = 9, MINES = 10;
         scoreboard([
-          { id: "clScore", label: "Score", val: 0 },
-          { id: "clBest",  label: "Best",  val: bestOf("climbBest") }
+          { id: "mnFlags", label: "Mines", val: MINES },
+          { id: "mnTime",  label: "Time",  val: "0:00" },
+          { id: "mnBest",  label: "Best",  val: bestOf("mines") ? fmtTime(bestOf("mines")) : "—" }
         ]);
-        hintEl.textContent = "Arrows / WASD / swipe · merge to A+";
+        hintEl.textContent = "Reveal cells · right-click or flag mode to mark mines";
 
-        var wrap = el("div", "climb-grid");
-        var bg = el("div", "climb-bg"); for (var i = 0; i < 16; i++) bg.appendChild(el("div"));
-        var tilesLayer = el("div", "climb-tiles");
-        wrap.appendChild(bg); wrap.appendChild(tilesLayer);
-        board.appendChild(wrap);
+        var grid = el("div", "mine-grid");
+        board.appendChild(grid);
+        var tools = el("div", "game-tools");
+        tools.innerHTML = '<button class="gtool" id="mnFlagBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 22V3M5 3h11l-2 4 2 4H5"/></svg>Flag mode</button>';
+        board.appendChild(tools);
         var ov = overlay(board);
 
-        var grid = [];        // 4x4 of {v, id, el} or null
-        var nextId = 1;
-        var score = 0, won = false, dead = false;
+        var cells, mines, adj, revealed, flags, dead, won, started, t0, timer, flagMode;
 
-        function cellPx(r, c) {
-          // computed from CSS custom props
-          var cs = getComputedStyle(wrap);
-          var cell = parseFloat(cs.getPropertyValue("--cell"));
-          var gap = parseFloat(cs.getPropertyValue("--gap"));
-          return { x: c * (cell + gap), y: r * (cell + gap), cell: cell };
-        }
-        function tone(v) {
-          // grayscale ramp: low = light, high = dark; win tile = accent (ink)
-          var steps = [2,4,8,16,32,64,128,256,512,1024,2048];
-          var idx = steps.indexOf(v); if (idx < 0) idx = 0;
-          var t = idx / (steps.length - 1);
-          var dark = document.documentElement.getAttribute("data-theme") === "dark";
-          if (v >= WIN) {
-            return dark
-              ? { bg: "var(--ink)", fg: "var(--paper)", bd: "var(--ink)" }
-              : { bg: "var(--ink)", fg: "var(--paper)", bd: "var(--ink)" };
-          }
-          // interpolate lightness on a warm-gray
-          var L = dark ? (22 + t * 46) : (94 - t * 60);   // background lightness %
-          var fgDark = L > 55;
-          return {
-            bg: "hsl(50 6% " + L.toFixed(0) + "%)",
-            fg: fgDark ? "var(--ink)" : "var(--paper)",
-            bd: "var(--hair)"
-          };
-        }
-        function place(t) {
-          var p = cellPx(t.r, t.c);
-          t.el.style.transform = "translate(" + p.x + "px," + p.y + "px)";
-        }
-        function paint(t) {
-          var col = tone(t.v);
-          t.el.style.background = col.bg;
-          t.el.style.color = col.fg;
-          t.el.style.borderColor = col.bd;
-          t.el.style.border = "1px solid " + col.bd;
-          t.el.textContent = GRADE[t.v] || t.v;
-          t.el.style.fontSize = (t.v >= 128 ? 16 : 19) + "px";
-        }
-        function makeTile(r, c, v, isNew) {
-          var d = el("div", "climb-tile" + (isNew ? " new" : ""));
-          var t = { r: r, c: c, v: v, id: nextId++, el: d };
-          tilesLayer.appendChild(d);
-          place(t); paint(t);
-          return t;
-        }
-        function emptyCells() {
+        function idx(r, c) { return r * N + c; }
+        function inB(r, c) { return r >= 0 && c >= 0 && r < N && c < N; }
+        function neighbors(r, c) {
           var out = [];
-          for (var r = 0; r < 4; r++) for (var c = 0; c < 4; c++) if (!grid[r][c]) out.push([r, c]);
+          for (var dr = -1; dr <= 1; dr++) for (var dc = -1; dc <= 1; dc++) {
+            if (dr === 0 && dc === 0) continue;
+            if (inB(r + dr, c + dc)) out.push([r + dr, c + dc]);
+          }
           return out;
         }
-        function spawn() {
-          var cells = emptyCells(); if (!cells.length) return;
-          var pick = cells[Math.floor(Math.random() * cells.length)];
-          var v = Math.random() < 0.9 ? 2 : 4;
-          var t = makeTile(pick[0], pick[1], v, true);
-          grid[pick[0]][pick[1]] = t;
-        }
+        function tick() { if (started && !dead && !won) $("#mnTime").textContent = fmtTime(Date.now() - t0); }
+
         function reset() {
-          tilesLayer.innerHTML = "";
-          grid = [[null,null,null,null],[null,null,null,null],[null,null,null,null],[null,null,null,null]];
-          score = 0; won = false; dead = false; nextId = 1;
+          if (timer) { clearInterval(timer); timer = null; }
+          mines = {}; adj = []; revealed = {}; flags = {};
+          dead = false; won = false; started = false; flagMode = false;
+          $("#mnFlagBtn").classList.remove("on");
+          $("#mnFlags").textContent = MINES;
+          $("#mnTime").textContent = "0:00";
+          $("#mnBest").textContent = bestOf("mines") ? fmtTime(bestOf("mines")) : "—";
           ov.classList.remove("show");
-          updateScore();
-          spawn(); spawn();
-        }
-        function updateScore() {
-          $("#clScore").textContent = score;
-          $("#clBest").textContent = bestOf("climbBest");
+          // place mines
+          var pool = [];
+          for (var i = 0; i < N * N; i++) pool.push(i);
+          for (var m = 0; m < MINES; m++) {
+            var j = Math.floor(Math.random() * pool.length);
+            mines[pool[j]] = true; pool.splice(j, 1);
+          }
+          // counts
+          for (var r = 0; r < N; r++) for (var c = 0; c < N; c++) {
+            if (mines[idx(r, c)]) { adj[idx(r, c)] = -1; continue; }
+            var n = 0;
+            neighbors(r, c).forEach(function (p) { if (mines[idx(p[0], p[1])]) n++; });
+            adj[idx(r, c)] = n;
+          }
+          // render
+          var html = "";
+          for (var k = 0; k < N * N; k++) html += '<button class="mine-cell" data-k="' + k + '"></button>';
+          grid.innerHTML = html;
+          cells = $$(".mine-cell", grid);
         }
 
-        function move(dir) {
-          if (dead || won) return;
-          // dir: 0 left,1 right,2 up,3 down
-          var moved = false;
-          var merged = {}; // id -> true (already merged this move)
-          function lineCells(idx) {
-            var cells = [];
-            for (var k = 0; k < 4; k++) {
-              if (dir === 0) cells.push([idx, k]);
-              else if (dir === 1) cells.push([idx, 3 - k]);
-              else if (dir === 2) cells.push([k, idx]);
-              else cells.push([3 - k, idx]);
-            }
-            return cells;
-          }
-          for (var idx = 0; idx < 4; idx++) {
-            var cells = lineCells(idx);
-            var target = 0; // index in cells of next slot to fill
-            for (var s = 0; s < 4; s++) {
-              var pos = cells[s], t = grid[pos[0]][pos[1]];
-              if (!t) continue;
-              // try merge with tile at target-1
-              var tp = cells[target - 1];
-              var into = tp ? grid[tp[0]][tp[1]] : null;
-              if (into && into.v === t.v && !merged[into.id]) {
-                // merge t into "into"
-                into.v *= 2;
-                merged[into.id] = true;
-                score += into.v;
-                grid[pos[0]][pos[1]] = null;
-                t.r = tp[0]; t.c = tp[1]; place(t);
-                // remove t after slide
-                (function (deadTile, survivor) {
-                  setTimeout(function () {
-                    if (deadTile.el.parentNode) deadTile.el.parentNode.removeChild(deadTile.el);
-                    paint(survivor);
-                    survivor.el.classList.remove("pop"); void survivor.el.offsetWidth; survivor.el.classList.add("pop");
-                  }, 110);
-                })(t, into);
-                moved = true;
-                if (into.v >= WIN) won = true;
-              } else {
-                var dst = cells[target];
-                if (dst[0] !== pos[0] || dst[1] !== pos[1]) {
-                  grid[dst[0]][dst[1]] = t; grid[pos[0]][pos[1]] = null;
-                  t.r = dst[0]; t.c = dst[1]; place(t);
-                  moved = true;
-                }
-                target++;
-              }
+        function flagsLeft() {
+          var f = 0; for (var k in flags) if (flags[k]) f++;
+          return MINES - f;
+        }
+        function toggleFlag(k) {
+          if (dead || won || revealed[k]) return;
+          flags[k] = !flags[k];
+          var c = cells[k];
+          if (flags[k]) { c.classList.add("flag"); c.textContent = "⚑"; }
+          else { c.classList.remove("flag"); c.textContent = ""; }
+          $("#mnFlags").textContent = flagsLeft();
+        }
+        function reveal(k) {
+          if (dead || won || revealed[k] || flags[k]) return;
+          if (!started) { started = true; t0 = Date.now(); timer = setInterval(tick, 250); }
+          if (mines[k]) { lose(k); return; }
+          // flood fill
+          var stack = [k];
+          while (stack.length) {
+            var cur = stack.pop();
+            if (revealed[cur]) continue;
+            revealed[cur] = true;
+            var cell = cells[cur];
+            cell.classList.add("open");
+            cell.classList.remove("flag"); flags[cur] = false;
+            var n = adj[cur];
+            if (n > 0) { cell.textContent = n; cell.classList.add("n" + n); }
+            else {
+              var rr = Math.floor(cur / N), cc = cur % N;
+              neighbors(rr, cc).forEach(function (p) {
+                var nk = idx(p[0], p[1]);
+                if (!revealed[nk] && !mines[nk]) stack.push(nk);
+              });
             }
           }
-          if (moved) {
-            score = score; updateScore();
-            setTimeout(function () {
-              spawn();
-              if (won) finish(true);
-              else if (!canMove()) finish(false);
-            }, 120);
+          $("#mnFlags").textContent = flagsLeft();
+          checkWin();
+        }
+        function checkWin() {
+          var rev = 0; for (var key in revealed) if (revealed[key]) rev++;
+          if (rev === N * N - MINES) winGame();
+        }
+        function revealAllMines(hitK) {
+          for (var k = 0; k < N * N; k++) {
+            if (mines[k]) {
+              cells[k].classList.remove("flag");
+              cells[k].textContent = "●";
+              cells[k].classList.add(k === hitK ? "hit" : "mine");
+            }
           }
         }
-        function canMove() {
-          if (emptyCells().length) return true;
-          for (var r = 0; r < 4; r++) for (var c = 0; c < 4; c++) {
-            var v = grid[r][c].v;
-            if (c < 3 && grid[r][c + 1].v === v) return true;
-            if (r < 3 && grid[r + 1][c].v === v) return true;
-          }
-          return false;
+        function lose(hitK) {
+          dead = true;
+          if (timer) { clearInterval(timer); timer = null; }
+          revealAllMines(hitK);
+          $("#ovTitle").textContent = "Hit a mine";
+          $("#ovTitle").className = "got";
+          $("#ovSub").textContent = "Reveal every safe cell to win";
+          ov.classList.add("show");
         }
-        function finish(isWin) {
-          if (isWin) won = true; else dead = true;
-          var b = bestOf("climbBest");
-          if (score > b) { setBest("climbBest", score); b = score; }
-          updateScore();
-          $("#ovTitle").textContent = isWin ? "Reached A+" : "No moves";
-          $("#ovTitle").className = "got" + (isWin ? " win" : "");
-          $("#ovSub").textContent = "Score " + score + " · best " + b;
+        function winGame() {
+          won = true;
+          if (timer) { clearInterval(timer); timer = null; }
+          var ms = Date.now() - t0;
+          var b = bestOf("mines");
+          var record = !b || ms < b;
+          if (record) setBest("mines", ms);
+          $("#mnBest").textContent = fmtTime(bestOf("mines"));
+          $("#ovTitle").textContent = "Field cleared";
+          $("#ovTitle").className = "got win";
+          $("#ovSub").textContent = fmtTime(ms) + (record ? " · best" : "");
           ov.classList.add("show");
         }
 
+        function onClick(e) {
+          var c = e.target.closest(".mine-cell"); if (!c) return;
+          var k = +c.getAttribute("data-k");
+          if (flagMode) toggleFlag(k); else reveal(k);
+        }
+        function onContext(e) {
+          var c = e.target.closest(".mine-cell"); if (!c) return;
+          e.preventDefault();
+          toggleFlag(+c.getAttribute("data-k"));
+        }
+        function onFlagBtn() {
+          flagMode = !flagMode;
+          $("#mnFlagBtn").classList.toggle("on", flagMode);
+        }
+        grid.addEventListener("click", onClick);
+        grid.addEventListener("contextmenu", onContext);
+        $("#mnFlagBtn").addEventListener("click", onFlagBtn);
         ov.querySelector("#ovAgain").addEventListener("click", reset);
-
-        // input
-        function onKey(e) {
-          if (!gamesScreenOn() || active !== "climb") return;
-          var k = e.key.toLowerCase();
-          var dir = null;
-          if (k === "arrowleft" || k === "a") dir = 0;
-          else if (k === "arrowright" || k === "d") dir = 1;
-          else if (k === "arrowup" || k === "w") dir = 2;
-          else if (k === "arrowdown" || k === "s") dir = 3;
-          if (dir !== null) { e.preventDefault(); move(dir); }
-        }
-        document.addEventListener("keydown", onKey);
-
-        // swipe
-        var sx = 0, sy = 0, sActive = false;
-        function ts(e) { var t = e.touches[0]; sx = t.clientX; sy = t.clientY; sActive = true; }
-        function te(e) {
-          if (!sActive) return; sActive = false;
-          var t = e.changedTouches[0];
-          var dx = t.clientX - sx, dy = t.clientY - sy;
-          if (Math.abs(dx) < 24 && Math.abs(dy) < 24) return;
-          if (Math.abs(dx) > Math.abs(dy)) move(dx > 0 ? 1 : 0);
-          else move(dy > 0 ? 3 : 2);
-        }
-        wrap.addEventListener("touchstart", ts, { passive: true });
-        wrap.addEventListener("touchend", te, { passive: true });
 
         reset();
         return function () {
-          document.removeEventListener("keydown", onKey);
-          wrap.removeEventListener("touchstart", ts);
-          wrap.removeEventListener("touchend", te);
+          if (timer) { clearInterval(timer); timer = null; }
+          grid.removeEventListener("click", onClick);
+          grid.removeEventListener("contextmenu", onContext);
         };
       }
 
       // =========================================================
-      // GAME 2 — STREAK (Snake)
+      // GAME 2 — LIGHTS OUT (5x5)
       // =========================================================
-      function startStreak() {
+      function startLights() {
+        var N = 5;
         scoreboard([
-          { id: "stScore", label: "Score", val: 0 },
-          { id: "stBest",  label: "Best",  val: bestOf("streakBest") }
+          { id: "loMoves", label: "Moves",  val: 0 },
+          { id: "loBest",  label: "Fewest", val: bestOf("lights") || "—" }
         ]);
-        hintEl.textContent = "Arrows / WASD / dpad · don't cross yourself";
+        hintEl.textContent = "Click a cell to toggle it and its neighbors · turn all off";
 
-        var N = 16; // grid cells per side
-        var wrap = el("div", "streak-wrap");
+        var grid = el("div", "lights-grid");
+        board.appendChild(grid);
+        var ov = overlay(board);
+
+        var state, moves;
+
+        function idx(r, c) { return r * N + c; }
+        function render() {
+          for (var k = 0; k < N * N; k++) grid.children[k].classList.toggle("on", !!state[k]);
+        }
+        function toggle(k) {
+          var r = Math.floor(k / N), c = k % N;
+          var hits = [[r, c], [r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]];
+          hits.forEach(function (p) {
+            if (p[0] >= 0 && p[1] >= 0 && p[0] < N && p[1] < N) state[idx(p[0], p[1])] = state[idx(p[0], p[1])] ? 0 : 1;
+          });
+        }
+        function reset() {
+          ov.classList.remove("show");
+          moves = 0;
+          $("#loMoves").textContent = 0;
+          $("#loBest").textContent = bestOf("lights") || "—";
+          state = [];
+          for (var k = 0; k < N * N; k++) state[k] = 0;
+          // build a guaranteed-solvable lit pattern by applying random clicks
+          var clicks = 6 + Math.floor(Math.random() * 8);
+          for (var i = 0; i < clicks; i++) toggle(Math.floor(Math.random() * N * N));
+          // avoid an already-solved board
+          if (state.every(function (v) { return !v; })) toggle(Math.floor(Math.random() * N * N));
+          if (grid.children.length === 0) {
+            var html = "";
+            for (var j = 0; j < N * N; j++) html += '<button class="light-cell" data-k="' + j + '"></button>';
+            grid.innerHTML = html;
+          }
+          render();
+        }
+        function press(k) {
+          if (ov.classList.contains("show")) return;
+          toggle(k); render();
+          moves++; $("#loMoves").textContent = moves;
+          if (state.every(function (v) { return !v; })) win();
+        }
+        function win() {
+          var b = bestOf("lights");
+          var record = !b || moves < b;
+          if (record) setBest("lights", moves);
+          $("#loBest").textContent = bestOf("lights");
+          $("#ovTitle").textContent = "All off";
+          $("#ovTitle").className = "got win";
+          $("#ovSub").textContent = moves + " moves" + (record ? " · fewest" : "");
+          ov.classList.add("show");
+        }
+        function onClick(e) {
+          var c = e.target.closest(".light-cell"); if (!c) return;
+          press(+c.getAttribute("data-k"));
+        }
+        function onKey(e) {
+          if (!gamesScreenOn() || active !== "lights") return;
+          if (e.key === "r" || e.key === "R") { e.preventDefault(); reset(); }
+        }
+        grid.addEventListener("click", onClick);
+        document.addEventListener("keydown", onKey);
+        ov.querySelector("#ovAgain").addEventListener("click", reset);
+
+        reset();
+        return function () {
+          grid.removeEventListener("click", onClick);
+          document.removeEventListener("keydown", onKey);
+        };
+      }
+
+      // =========================================================
+      // GAME 3 — DODGE (avoid falling bars)
+      // =========================================================
+      function startDodge() {
+        scoreboard([
+          { id: "dgTime", label: "Time", val: "0:00" },
+          { id: "dgBest", label: "Best", val: bestOf("dodge") ? fmtTime(bestOf("dodge")) : "—" }
+        ]);
+        hintEl.textContent = "Arrows / A-D / drag · survive the falling bars";
+
+        var wrap = el("div", "dodge-wrap");
         var cv = document.createElement("canvas");
         wrap.appendChild(cv);
         board.appendChild(wrap);
-
-        // dpad (touch)
-        var dpad = el("div", "dpad");
-        dpad.innerHTML =
-          '<div class="dpad-grid">' +
-          '<button class="du" data-d="up" aria-label="Up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>' +
-          '<button class="dl" data-d="left" aria-label="Left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>' +
-          '<button class="dr" data-d="right" aria-label="Right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>' +
-          '<button class="dd" data-d="down" aria-label="Down"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg></button>' +
-          '</div>';
-        wrap.appendChild(dpad);
-
         var ov = overlay(board);
 
         var ctx = cv.getContext("2d");
         var DPR = window.devicePixelRatio || 1;
-        var pxSize = 0, cell = 0;
+        var W = 0, H = 0;
         function size() {
-          var w = wrap.clientWidth - 24; // padding
-          if (w < 120) w = 280;
-          pxSize = w;
-          cell = Math.floor(pxSize / N);
-          pxSize = cell * N;
-          cv.width = pxSize * DPR; cv.height = pxSize * DPR;
-          cv.style.width = pxSize + "px"; cv.style.height = pxSize + "px";
+          var w = wrap.clientWidth - 24;
+          if (w < 120) w = 300;
+          W = w; H = Math.round(w * 1.15);
+          cv.width = W * DPR; cv.height = H * DPR;
+          cv.style.width = W + "px"; cv.style.height = H + "px";
           ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
         }
 
-        var snake, dir, nextDir, food, score, dead, speed, accTime, last, raf;
+        var px, pw, ph, bars, dead, t0, last, raf, spawnT, spawnGap, fallSpeed, left, right, hitFlash;
 
         function reset() {
           size();
-          snake = [{ x: 7, y: 8 }, { x: 6, y: 8 }, { x: 5, y: 8 }];
-          dir = { x: 1, y: 0 }; nextDir = dir;
-          score = 0; dead = false; speed = 150; accTime = 0; last = 0;
-          placeFood();
+          pw = Math.max(28, W * 0.10); ph = 12;
+          px = W / 2 - pw / 2;
+          bars = []; dead = false;
+          t0 = 0; last = 0; spawnT = 0; spawnGap = 900; fallSpeed = 0.16;
+          left = false; right = false; hitFlash = 0;
           ov.classList.remove("show");
-          $("#stScore").textContent = 0;
-          $("#stBest").textContent = bestOf("streakBest");
+          $("#dgTime").textContent = "0:00";
+          $("#dgBest").textContent = bestOf("dodge") ? fmtTime(bestOf("dodge")) : "—";
           draw();
         }
-        function placeFood() {
-          do {
-            food = { x: Math.floor(Math.random() * N), y: Math.floor(Math.random() * N) };
-          } while (snake.some(function (s) { return s.x === food.x && s.y === food.y; }));
+        function spawnBar() {
+          var bw = (0.18 + Math.random() * 0.32) * W;
+          var bx = Math.random() * (W - bw);
+          bars.push({ x: bx, y: -16, w: bw, h: 14 });
         }
-        function cssv(name, fb) { return cssVar(name, fb); }
         function draw() {
-          ctx.clearRect(0, 0, pxSize, pxSize);
-          // food = accent (ink)
-          ctx.fillStyle = cssv("--ink", "#14140f");
-          var fpad = Math.max(2, cell * 0.18);
-          roundRect(food.x * cell + fpad, food.y * cell + fpad, cell - fpad * 2, cell - fpad * 2, 3);
-          ctx.fill();
-          // snake = ink, slightly lighter for body
-          snake.forEach(function (s, i) {
-            ctx.fillStyle = i === 0 ? cssv("--ink", "#14140f") : cssv("--ink-3", "#6c6c64");
-            var p = 1.5;
-            roundRect(s.x * cell + p, s.y * cell + p, cell - p * 2, cell - p * 2, 3);
-            ctx.fill();
-          });
+          ctx.clearRect(0, 0, W, H);
+          // bars = ink
+          ctx.fillStyle = cssVar("--ink", "#14140f");
+          bars.forEach(function (b) { ctx.fillRect(b.x, b.y, b.w, b.h); });
+          // player marker = ink, flashes red on hit
+          ctx.fillStyle = hitFlash > 0 ? cssVar("--signal-miss", "#c0392b") : cssVar("--ink", "#14140f");
+          ctx.fillRect(px, H - ph - 8, pw, ph);
         }
-        function roundRect(x, y, w, h, r) {
-          ctx.beginPath();
-          ctx.moveTo(x + r, y);
-          ctx.arcTo(x + w, y, x + w, y + h, r);
-          ctx.arcTo(x + w, y + h, x, y + h, r);
-          ctx.arcTo(x, y + h, x, y, r);
-          ctx.arcTo(x, y, x + w, y, r);
-          ctx.closePath();
-        }
-        function step() {
-          dir = nextDir;
-          var head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
-          if (head.x < 0 || head.y < 0 || head.x >= N || head.y >= N) return finish();
-          if (snake.some(function (s) { return s.x === head.x && s.y === head.y; })) return finish();
-          snake.unshift(head);
-          if (head.x === food.x && head.y === food.y) {
-            score++;
-            $("#stScore").textContent = score;
-            if (speed > 70) speed -= 4; // slight ramp
-            placeFood();
-          } else {
-            snake.pop();
+        function step(dt) {
+          if (dead) return;
+          var elapsed = t0 ? (last - t0) : 0;
+          // difficulty ramp
+          spawnGap = Math.max(360, 900 - elapsed * 0.04);
+          fallSpeed = 0.16 + elapsed * 0.00004;
+          // move player
+          var pv = W * 0.012 * (dt / 16);
+          if (left) px -= pv; if (right) px += pv;
+          if (px < 0) px = 0; if (px > W - pw) px = W - pw;
+          // move bars
+          spawnT += dt;
+          if (spawnT >= spawnGap) { spawnT = 0; spawnBar(); }
+          var py = H - ph - 8;
+          for (var i = bars.length - 1; i >= 0; i--) {
+            var b = bars[i];
+            b.y += fallSpeed * dt;
+            if (b.y > H) { bars.splice(i, 1); continue; }
+            if (b.y + b.h >= py && b.y <= py + ph && px < b.x + b.w && px + pw > b.x) {
+              hitFlash = 1; lose(); return;
+            }
           }
-          draw();
-        }
-        function finish() {
-          dead = true;
-          var b = bestOf("streakBest");
-          if (score > b) { setBest("streakBest", score); b = score; }
-          $("#stBest").textContent = b;
-          $("#ovTitle").textContent = "Crossed the line";
-          $("#ovTitle").className = "got";
-          $("#ovSub").textContent = "Score " + score + " · best " + b;
-          ov.classList.add("show");
+          $("#dgTime").textContent = fmtTime(elapsed);
         }
         function loop(t) {
           raf = requestAnimationFrame(loop);
-          if (dead) return;
-          if (!last) last = t;
-          accTime += t - last; last = t;
-          if (accTime >= speed) { accTime = 0; step(); }
+          if (!t0) { t0 = t; last = t; }
+          var dt = t - last; last = t;
+          if (dt > 60) dt = 60;
+          step(dt);
+          draw();
+        }
+        function lose() {
+          dead = true;
+          draw();
+          var ms = last - t0;
+          var b = bestOf("dodge");
+          var record = ms > b;
+          if (record) setBest("dodge", ms);
+          $("#dgBest").textContent = fmtTime(bestOf("dodge"));
+          $("#ovTitle").textContent = "Hit";
+          $("#ovTitle").className = "got";
+          $("#ovSub").textContent = "Survived " + fmtTime(ms) + (record ? " · best" : "");
+          ov.classList.add("show");
         }
 
-        function turn(nx, ny) {
-          if (dead) return;
-          if (nx === -dir.x && ny === -dir.y) return; // no reverse
-          nextDir = { x: nx, y: ny };
-        }
-        function onKey(e) {
-          if (!gamesScreenOn() || active !== "streak") return;
+        function onKeyDown(e) {
+          if (!gamesScreenOn() || active !== "dodge") return;
           var k = e.key.toLowerCase();
-          if (k === "arrowleft" || k === "a") { e.preventDefault(); turn(-1, 0); }
-          else if (k === "arrowright" || k === "d") { e.preventDefault(); turn(1, 0); }
-          else if (k === "arrowup" || k === "w") { e.preventDefault(); turn(0, -1); }
-          else if (k === "arrowdown" || k === "s") { e.preventDefault(); turn(0, 1); }
+          if (k === "arrowleft" || k === "a") { e.preventDefault(); left = true; }
+          else if (k === "arrowright" || k === "d") { e.preventDefault(); right = true; }
         }
-        document.addEventListener("keydown", onKey);
-
-        function onDpad(e) {
-          var b = e.target.closest("button"); if (!b) return;
-          var d = b.getAttribute("data-d");
-          if (d === "left") turn(-1, 0); else if (d === "right") turn(1, 0);
-          else if (d === "up") turn(0, -1); else if (d === "down") turn(0, 1);
+        function onKeyUp(e) {
+          var k = e.key.toLowerCase();
+          if (k === "arrowleft" || k === "a") left = false;
+          else if (k === "arrowright" || k === "d") right = false;
         }
-        dpad.addEventListener("click", onDpad);
+        document.addEventListener("keydown", onKeyDown);
+        document.addEventListener("keyup", onKeyUp);
 
-        // swipe on canvas
-        var sx = 0, sy = 0, sOn = false;
-        function ts(e) { var t = e.touches[0]; sx = t.clientX; sy = t.clientY; sOn = true; }
-        function tm(e) {
-          if (!sOn) return; var t = e.touches[0];
-          var dx = t.clientX - sx, dy = t.clientY - sy;
-          if (Math.abs(dx) < 22 && Math.abs(dy) < 22) return;
-          sOn = false;
-          if (Math.abs(dx) > Math.abs(dy)) turn(dx > 0 ? 1 : -1, 0);
-          else turn(0, dy > 0 ? 1 : -1);
+        // drag / touch
+        function moveTo(clientX) {
+          var rect = cv.getBoundingClientRect();
+          px = (clientX - rect.left) - pw / 2;
+          if (px < 0) px = 0; if (px > W - pw) px = W - pw;
         }
-        cv.addEventListener("touchstart", ts, { passive: true });
-        cv.addEventListener("touchmove", tm, { passive: true });
+        var dragging = false;
+        function pd(e) { dragging = true; moveTo((e.touches ? e.touches[0] : e).clientX); }
+        function pm(e) { if (dragging) { e.preventDefault(); moveTo((e.touches ? e.touches[0] : e).clientX); } }
+        function pu() { dragging = false; }
+        cv.addEventListener("mousedown", pd);
+        cv.addEventListener("mousemove", pm);
+        document.addEventListener("mouseup", pu);
+        cv.addEventListener("touchstart", pd, { passive: true });
+        cv.addEventListener("touchmove", pm, { passive: false });
+        cv.addEventListener("touchend", pu);
 
-        ov.querySelector("#ovAgain").addEventListener("click", reset);
-        var onResize = function () { var sn = snake; size(); snake = sn; draw(); };
+        var onResize = function () { var keep = px / (W || 1); size(); px = keep * (W - pw); draw(); };
         window.addEventListener("resize", onResize);
+        ov.querySelector("#ovAgain").addEventListener("click", reset);
 
         reset();
         raf = requestAnimationFrame(loop);
 
         return function () {
           cancelAnimationFrame(raf);
-          document.removeEventListener("keydown", onKey);
+          document.removeEventListener("keydown", onKeyDown);
+          document.removeEventListener("keyup", onKeyUp);
+          document.removeEventListener("mouseup", pu);
           window.removeEventListener("resize", onResize);
         };
       }
 
       // =========================================================
-      // GAME 3 — RECALL (memory match)
+      // GAME 4 — WORD SEARCH (10x10, 6 words)
       // =========================================================
-      function startRecall() {
-        var SYM = ["📐","🧬","🥐","🎭","📚","🏃","✏️","🎒"];
+      function startWords() {
+        var N = 10;
+        var WORDS = ["BIOLOGY", "FRENCH", "ALGEBRA", "DRAMA", "ENZYME", "ESSAY"];
+        var ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         scoreboard([
-          { id: "rcMoves", label: "Moves", val: 0 },
-          { id: "rcTime",  label: "Time",  val: "0:00" },
-          { id: "rcBest",  label: "Fewest", val: bestOf("recallBest") || "—" }
+          { id: "wsFound", label: "Found", val: "0/6" },
+          { id: "wsTime",  label: "Time",  val: "0:00" },
+          { id: "wsBest",  label: "Best",  val: bestOf("words") ? fmtTime(bestOf("words")) : "—" }
         ]);
-        hintEl.textContent = "Flip two · match all 8 pairs";
+        hintEl.textContent = "Click first then last letter of a word";
 
-        var gridEl = el("div", "recall-grid");
-        board.appendChild(gridEl);
+        var layout = el("div", "ws-layout");
+        var grid = el("div", "ws-grid");
+        var wordsBar = el("div", "ws-words");
+        layout.appendChild(grid); layout.appendChild(wordsBar);
+        board.appendChild(layout);
+        var tools = el("div", "game-tools");
+        tools.innerHTML = '<button class="gtool" id="wsNew">New puzzle</button>';
+        board.appendChild(tools);
         var ov = overlay(board);
 
-        var deck, flipped, matched, moves, lock, t0, timer, started;
-        var BACK = '<div class="recall-face recall-back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.4"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/></svg></div>';
+        var letters, placed, foundCount, anchor, started, t0, timer, foundCells;
 
-        function shuffle(a) {
-          for (var i = a.length - 1; i > 0; i--) {
-            var j = Math.floor(Math.random() * (i + 1));
-            var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+        function idx(r, c) { return r * N + c; }
+        function tick() { if (started) $("#wsTime").textContent = fmtTime(Date.now() - t0); }
+
+        function tryPlace(word) {
+          // dir: 0 horizontal, 1 vertical
+          for (var attempt = 0; attempt < 80; attempt++) {
+            var dir = Math.random() < 0.5 ? 0 : 1;
+            var len = word.length;
+            var r, c, dr, dc;
+            if (dir === 0) { r = Math.floor(Math.random() * N); c = Math.floor(Math.random() * (N - len + 1)); dr = 0; dc = 1; }
+            else { c = Math.floor(Math.random() * N); r = Math.floor(Math.random() * (N - len + 1)); dr = 1; dc = 0; }
+            var ok = true;
+            for (var i = 0; i < len; i++) {
+              var k = idx(r + dr * i, c + dc * i);
+              if (letters[k] && letters[k] !== word[i]) { ok = false; break; }
+            }
+            if (!ok) continue;
+            var coords = [];
+            for (var j = 0; j < len; j++) {
+              var kk = idx(r + dr * j, c + dc * j);
+              letters[kk] = word[j]; coords.push(kk);
+            }
+            return coords;
           }
-          return a;
+          return null;
         }
-        function fmt(ms) {
-          var s = Math.floor(ms / 1000);
-          return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2);
+        function generate() {
+          letters = []; placed = {};
+          for (var k = 0; k < N * N; k++) letters[k] = "";
+          var ok = true;
+          WORDS.forEach(function (w) {
+            var coords = tryPlace(w);
+            if (!coords) ok = false; else placed[w] = coords;
+          });
+          if (!ok) return generate(); // retry whole board on rare failure
+          for (var f = 0; f < N * N; f++) if (!letters[f]) letters[f] = ALPHA[Math.floor(Math.random() * 26)];
         }
-        function tick() {
-          if (!started) return;
-          $("#rcTime").textContent = fmt(Date.now() - t0);
+        function render() {
+          var html = "";
+          for (var k = 0; k < N * N; k++) html += '<button class="ws-cell" data-k="' + k + '">' + letters[k] + '</button>';
+          grid.innerHTML = html;
+          var wh = "";
+          WORDS.forEach(function (w) {
+            wh += '<span class="ws-word" data-w="' + w + '">' + w + '</span>';
+          });
+          wordsBar.innerHTML = wh;
         }
         function reset() {
           if (timer) { clearInterval(timer); timer = null; }
-          deck = shuffle(SYM.concat(SYM).map(function (s, i) { return { sym: s, key: s, idx: i }; }));
-          flipped = []; matched = 0; moves = 0; lock = false; started = false;
-          $("#rcMoves").textContent = 0;
-          $("#rcTime").textContent = "0:00";
-          $("#rcBest").textContent = bestOf("recallBest") || "—";
+          generate(); render();
+          foundCount = 0; anchor = null; started = false; foundCells = {};
+          $("#wsFound").textContent = "0/6";
+          $("#wsTime").textContent = "0:00";
+          $("#wsBest").textContent = bestOf("words") ? fmtTime(bestOf("words")) : "—";
           ov.classList.remove("show");
-          var html = "";
-          deck.forEach(function (card, i) {
-            html +=
-              '<button class="recall-card" data-i="' + i + '">' +
-                '<div class="recall-inner">' +
-                  BACK +
-                  '<div class="recall-face recall-front">' + card.sym + '</div>' +
-                '</div>' +
-              '</button>';
-          });
-          gridEl.innerHTML = html;
         }
-        function flip(i) {
-          if (lock) return;
-          var btn = gridEl.querySelector('.recall-card[data-i="' + i + '"]');
-          if (!btn || btn.classList.contains("flip") || btn.classList.contains("matched")) return;
+        function lineBetween(a, b) {
+          var ar = Math.floor(a / N), ac = a % N, br = Math.floor(b / N), bc = b % N;
+          var dr = br - ar, dc = bc - ac;
+          // must be straight horizontal or vertical
+          if (dr !== 0 && dc !== 0) return null;
+          var len = Math.max(Math.abs(dr), Math.abs(dc)) + 1;
+          var sr = dr === 0 ? 0 : (dr > 0 ? 1 : -1);
+          var sc = dc === 0 ? 0 : (dc > 0 ? 1 : -1);
+          var cells = [];
+          for (var i = 0; i < len; i++) cells.push(idx(ar + sr * i, ac + sc * i));
+          return cells;
+        }
+        function wordFromCells(cells) {
+          var s = ""; cells.forEach(function (k) { s += letters[k]; });
+          return s;
+        }
+        function clearAnchor() {
+          if (anchor != null) {
+            var c = grid.querySelector('.ws-cell[data-k="' + anchor + '"]');
+            if (c && !c.classList.contains("found")) c.classList.remove("sel");
+          }
+          anchor = null;
+        }
+        function pick(k) {
           if (!started) { started = true; t0 = Date.now(); timer = setInterval(tick, 250); }
-          btn.classList.add("flip");
-          flipped.push(i);
-          if (flipped.length === 2) {
-            moves++; $("#rcMoves").textContent = moves;
-            lock = true;
-            var a = deck[flipped[0]], b = deck[flipped[1]];
-            if (a.key === b.key) {
-              setTimeout(function () {
-                flipped.forEach(function (k) {
-                  var el2 = gridEl.querySelector('.recall-card[data-i="' + k + '"]');
-                  el2.classList.add("matched");
-                });
-                flipped = []; lock = false; matched++;
-                if (matched === SYM.length) win();
-              }, 320);
-            } else {
-              setTimeout(function () {
-                flipped.forEach(function (k) {
-                  var el2 = gridEl.querySelector('.recall-card[data-i="' + k + '"]');
-                  el2.classList.remove("flip");
-                });
-                flipped = []; lock = false;
-              }, 720);
-            }
+          if (anchor == null) {
+            anchor = k;
+            grid.querySelector('.ws-cell[data-k="' + k + '"]').classList.add("sel");
+            return;
+          }
+          if (k === anchor) { clearAnchor(); return; }
+          var cells = lineBetween(anchor, k);
+          var startK = anchor;
+          clearAnchor();
+          if (!cells) return;
+          var w = wordFromCells(cells), wr = w.split("").reverse().join("");
+          var match = null;
+          WORDS.forEach(function (word) {
+            if (foundCells[word]) return;
+            if (word === w || word === wr) match = word;
+          });
+          if (match) {
+            foundCells[match] = true; foundCount++;
+            cells.forEach(function (cc) {
+              var ce = grid.querySelector('.ws-cell[data-k="' + cc + '"]');
+              ce.classList.remove("sel"); ce.classList.add("found");
+            });
+            var wlabel = wordsBar.querySelector('.ws-word[data-w="' + match + '"]');
+            if (wlabel) wlabel.classList.add("done");
+            $("#wsFound").textContent = foundCount + "/6";
+            if (foundCount === WORDS.length) win();
           }
         }
         function win() {
-          started = false;
           if (timer) { clearInterval(timer); timer = null; }
-          var b = bestOf("recallBest");
-          if (!b || moves < b) { setBest("recallBest", moves); b = moves; }
-          $("#rcBest").textContent = b;
-          $("#ovTitle").textContent = "All matched";
+          started = false;
+          var ms = Date.now() - t0;
+          var b = bestOf("words");
+          var record = !b || ms < b;
+          if (record) setBest("words", ms);
+          $("#wsBest").textContent = fmtTime(bestOf("words"));
+          $("#ovTitle").textContent = "All six found";
           $("#ovTitle").className = "got win";
-          $("#ovSub").textContent = moves + " moves · " + fmt(Date.now() - t0);
+          $("#ovSub").textContent = fmtTime(ms) + (record ? " · best" : "");
           ov.classList.add("show");
         }
         function onClick(e) {
-          var c = e.target.closest(".recall-card"); if (!c) return;
-          flip(+c.getAttribute("data-i"));
+          var c = e.target.closest(".ws-cell"); if (!c) return;
+          if (c.classList.contains("found") && anchor == null) return;
+          pick(+c.getAttribute("data-k"));
         }
-        gridEl.addEventListener("click", onClick);
+        function onNew() { reset(); }
+        grid.addEventListener("click", onClick);
+        $("#wsNew").addEventListener("click", onNew);
         ov.querySelector("#ovAgain").addEventListener("click", reset);
 
         reset();
         return function () {
           if (timer) { clearInterval(timer); timer = null; }
-          gridEl.removeEventListener("click", onClick);
+          grid.removeEventListener("click", onClick);
         };
       }
 

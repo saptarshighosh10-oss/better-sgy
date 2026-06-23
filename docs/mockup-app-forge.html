@@ -498,47 +498,43 @@
   .gscore .sv{font-size:18px;font-weight:800;letter-spacing:-.02em;line-height:1}
   .gboardwrap{position:relative;display:flex;justify-content:center}
 
-  /* climb (2048) */
-  .climb{position:relative;background:var(--paper-2);border:1.5px solid var(--line);border-radius:20px;
-        padding:10px;touch-action:none;user-select:none;width:100%;max-width:380px}
-  .climb .crow{display:flex;gap:10px;margin-bottom:10px}
-  .climb .crow:last-child{margin-bottom:0}
-  .climb .cell{flex:1;aspect-ratio:1/1;border-radius:14px;background:rgba(120,80,30,.07);
-        display:grid;place-items:center;font-size:clamp(14px,4.6vw,21px);font-weight:800;color:#fff;
-        position:relative;overflow:hidden}
-  html[data-theme="dark"] .climb .cell{background:rgba(255,240,210,.06)}
-  .climb .cell.t0{background:rgba(120,80,30,.07);color:transparent}
-  html[data-theme="dark"] .climb .cell.t0{background:rgba(255,240,210,.06)}
-  .climb .cell.pop{animation:cpop .18s cubic-bezier(.2,.8,.2,1)}
-  @keyframes cpop{0%{transform:scale(.6)}70%{transform:scale(1.08)}100%{transform:scale(1)}}
-  .climb .cell .sub{font-size:.5em;font-weight:800;opacity:.85;margin-top:-2px}
-
-  /* streak (snake) */
-  .streakwrap{display:flex;flex-direction:column;align-items:center;gap:14px;width:100%}
+  /* shared canvas + dpad (flap / bounce) */
   canvas.gcanvas{background:var(--paper-2);border:1.5px solid var(--line);border-radius:18px;
-        touch-action:none;max-width:100%;height:auto;display:block}
-  .dpad{display:grid;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(3,52px);gap:6px}
-  .dpad button{border:1.5px solid var(--line);background:var(--card);border-radius:14px;font-size:18px;
-        font-weight:800;color:var(--ink);cursor:pointer;font-family:inherit;display:grid;place-items:center;
-        box-shadow:0 5px 14px -16px rgba(120,80,30,.5);transition:transform .1s,background .1s;user-select:none}
-  .dpad button:active{transform:scale(.92);background:var(--paper-2)}
-  .dpad .du{grid-column:2;grid-row:1}.dpad .dl{grid-column:1;grid-row:2}
-  .dpad .dr{grid-column:3;grid-row:2}.dpad .dn{grid-column:2;grid-row:3}
+        touch-action:none;max-width:100%;height:auto;display:block;cursor:pointer}
+  .gboardwrap canvas.gcanvas{user-select:none}
 
-  /* recall (memory) */
-  .recall{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;width:100%;max-width:380px;
-        perspective:700px}
-  .mcard{aspect-ratio:1/1;cursor:pointer;position:relative;transform-style:preserve-3d;
-        transition:transform .34s cubic-bezier(.2,.85,.3,1.2)}
-  .mcard.flip{transform:rotateY(180deg)}
-  .mcard.done{cursor:default}
-  .mcard .mface{position:absolute;inset:0;border-radius:14px;display:grid;place-items:center;
-        backface-visibility:hidden;-webkit-backface-visibility:hidden;font-size:clamp(20px,7vw,30px);
-        border:1.5px solid var(--line);box-shadow:0 6px 16px -16px rgba(120,80,30,.5)}
-  .mcard .mback{background:radial-gradient(circle at 35% 30%,#ffd98a,#ff9d5c);color:#fff;font-size:18px;font-weight:800}
-  .mcard .mfront{background:var(--card);transform:rotateY(180deg)}
-  .mcard.done .mfront{background:var(--soft,#eafaf2);border-color:var(--sage);animation:mdone .4s ease}
-  @keyframes mdone{0%{transform:rotateY(180deg) scale(1)}40%{transform:rotateY(180deg) scale(1.12)}100%{transform:rotateY(180deg) scale(1)}}
+  /* whack — 3x3 grid of holes */
+  .whackwrap{display:flex;flex-direction:column;align-items:center;gap:14px;width:100%}
+  .whackgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:360px;
+        background:var(--paper-2);border:1.5px solid var(--line);border-radius:20px;padding:14px;
+        touch-action:manipulation;user-select:none}
+  .hole{aspect-ratio:1/1;border-radius:50%;background:radial-gradient(circle at 50% 120%,rgba(120,80,30,.22),rgba(120,80,30,.08));
+        position:relative;overflow:hidden;cursor:pointer;border:1.5px solid var(--line)}
+  html[data-theme="dark"] .hole{background:radial-gradient(circle at 50% 120%,rgba(0,0,0,.4),rgba(255,240,210,.05))}
+  .hole .mole{position:absolute;left:8%;right:8%;bottom:-100%;top:auto;height:84%;border-radius:50% 50% 42% 42%;
+        background:var(--soft,#fff1d6);border:1.5px solid var(--line);display:grid;place-items:center;
+        font-size:clamp(20px,8vw,34px);transition:bottom .12s cubic-bezier(.2,.8,.2,1);box-shadow:0 6px 14px -8px rgba(120,80,30,.5)}
+  .hole.up .mole{bottom:6%}
+  .hole.bonk .mole{animation:bonk .26s ease}
+  @keyframes bonk{0%{transform:scale(1)}40%{transform:scale(.78) rotate(-6deg)}100%{transform:scale(1)}}
+  .whacktime{width:100%;max-width:360px;height:9px;border-radius:6px;background:var(--paper-2);overflow:hidden;border:1.5px solid var(--line)}
+  .whacktime i{display:block;height:100%;background:var(--dot,var(--peach));width:100%;border-radius:6px;transition:width .25s linear}
+
+  /* wordsearch */
+  .wsbox{width:100%;max-width:420px}
+  .wsgrid{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;background:var(--paper-2);
+        border:1.5px solid var(--line);border-radius:18px;padding:10px;touch-action:none;user-select:none}
+  .wscell{aspect-ratio:1/1;border-radius:9px;background:var(--card);border:1.5px solid var(--line);
+        display:grid;place-items:center;font-size:clamp(11px,3vw,16px);font-weight:800;color:var(--ink);
+        cursor:pointer;transition:background .12s,color .12s,transform .1s}
+  .wscell.pick{background:var(--peach);color:#fff;border-color:var(--peach);transform:scale(.94)}
+  .wscell.aim{background:var(--sun);color:var(--ink);border-color:var(--sun)}
+  .wscell.found{background:var(--soft,#eafaf2);color:var(--dot,var(--sage));border-color:var(--dot,var(--sage))}
+  .wslist{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .wsword{font-size:12.5px;font-weight:800;padding:5px 12px;border-radius:14px;background:var(--paper-2);
+        color:var(--ink-2);border:1.5px solid var(--line)}
+  .wsword.got{background:var(--soft,#eafaf2);color:var(--dot,var(--sage));border-color:var(--dot,var(--sage));
+        text-decoration:line-through;text-decoration-thickness:2px}
 
   /* win/lose overlay */
   .govl{position:absolute;inset:0;z-index:5;display:none;align-items:center;justify-content:center;
@@ -868,8 +864,8 @@ function renderNav(){
 function go(screen){
   // leaving the arcade: stop any running game loop + key listener
   if(state.screen==='games' && screen!=='games'){
-    if(typeof stopStreak==='function') stopStreak();
-    if(arcade && arcade._key){ document.removeEventListener('keydown', arcade._key); arcade._key=null; }
+    if(typeof stopArcadeLoops==='function') stopArcadeLoops();
+    if(typeof detachArcadeKey==='function') detachArcadeKey();
     arcade.active = null;
   }
   state.screen = screen; save();
@@ -1436,29 +1432,30 @@ function wireMaterials(){
 
 /* ============================================================
    6.5 · GAMES / ARCADE
-   three little games. high score per game in localStorage.
+   four little games. high score per game in localStorage (bsgy-forge-arcade).
+   flap · whack · bounce · word search.
    ============================================================ */
-const GS = 'bsgy-friendly-arcade';
-let arcade = { best:{climb:0, streak:0, recall:0}, active:null };
+const GS = 'bsgy-forge-arcade';
+let arcade = { best:{flap:0, whack:0, bounce:0, words:0}, active:null };
 try{ const a = JSON.parse(localStorage.getItem(GS)); if(a) arcade = {...arcade, best:{...arcade.best, ...(a.best||{})}}; }catch(e){}
 function arcSave(){ try{ localStorage.setItem(GS, JSON.stringify({best:arcade.best})); }catch(e){} }
 function setBest(game, v){ if(v > (arcade.best[game]||0)){ arcade.best[game]=v; arcSave(); return true; } return false; }
-// recall best = fewest moves (lower better). store as-is; 0 means "none yet"
-function setBestLow(game, v){ const cur = arcade.best[game]||0; if(cur===0 || v < cur){ arcade.best[game]=v; arcSave(); return true; } return false; }
 
 const GAMES_META = [
-  {id:'climb',  emoji:'🧗', accent:'#5aa9e6', soft:'#e3f0fb', nm:'climb',
-   d:'2048 but the tiles are grades. merge your way up to an A+.'},
-  {id:'streak', emoji:'🐍', accent:'#4fb286', soft:'#e6f7ef', nm:'streak',
-   d:'snake. eat the apples, keep the streak going, don\'t bite yourself.'},
-  {id:'recall', emoji:'🧠', accent:'#9b87f2', soft:'#ece7ff', nm:'recall',
-   d:'memory match. flip the school supplies, find the pairs, fewest moves wins.'},
+  {id:'flap',   emoji:'🐦', accent:'#5aa9e6', soft:'#e3f0fb', nm:'flap',
+   d:'tap to flap. slip through the gaps. one wrong move and you\'re on the ground.'},
+  {id:'whack',  emoji:'🐹', accent:'#ffb454', soft:'#fff1d6', nm:'whack',
+   d:'they keep popping up. 30 seconds. tap them before they duck back down.'},
+  {id:'bounce', emoji:'🧱', accent:'#ef6a9b', soft:'#ffe4ef', nm:'bounce',
+   d:'paddle, ball, bricks. clear the whole wall. you get three tries.'},
+  {id:'words',  emoji:'🔤', accent:'#9b87f2', soft:'#ece7ff', nm:'word search',
+   d:'six words hiding in the letters. drag from first to last. find them all.'},
 ];
 function bestLabel(g){
   const b = arcade.best[g]||0;
-  if(g==='recall') return b ? b+' moves' : '—';
   return b ? String(b) : '—';
 }
+function stopArcadeLoops(){ stopFlap(); stopBounce(); stopWhack(); }
 function viewGames(){
   if(arcade.active){ return viewGameStage(arcade.active); }
   const cards = GAMES_META.map(g => `
@@ -1470,25 +1467,26 @@ function viewGames(){
     </div>`).join('');
   return `
     <div class="pagehd"><h1>Games</h1><span class="when">a little break</span></div>
-    <p class="lead">three little games for when you're avoiding homework. high scores save.</p>
+    <p class="lead">four little games for when you're avoiding homework. high scores save.</p>
     <div class="arcade"><div class="gcards">${cards}</div>
     <div class="bubble tail small" style="margin-top:18px;max-width:430px">come back to the work whenever. it's not going anywhere 🙂</div></div>`;
 }
 function viewGameStage(g){
   const meta = GAMES_META.find(x=>x.id===g);
-  const inner = {climb:climbStageHTML, streak:streakStageHTML, recall:recallStageHTML}[g]();
+  const inner = {flap:flapStageHTML, whack:whackStageHTML, bounce:bounceStageHTML, words:wordsStageHTML}[g]();
   return `<div class="pagehd"><h1>${meta.nm}</h1><span class="when">${esc(meta.d)}</span></div>
     <div class="arcade gstage" style="--dot:${meta.accent};--soft:${meta.soft}">${inner}</div>`;
 }
 function detachArcadeKey(){
   if(arcade && arcade._key){ document.removeEventListener('keydown', arcade._key); arcade._key=null; }
+  if(arcade && arcade._keyUp){ document.removeEventListener('keyup', arcade._keyUp); arcade._keyUp=null; }
 }
 function wireGames(){
-  detachArcadeKey(); stopStreak();
-  if(arcade.active){ ({climb:wireClimb, streak:wireStreak, recall:wireRecall}[arcade.active])(); return; }
+  detachArcadeKey(); stopArcadeLoops();
+  if(arcade.active){ ({flap:wireFlap, whack:wireWhack, bounce:wireBounce, words:wireWords}[arcade.active])(); return; }
   $$('#main .gcard').forEach(el => el.onclick = () => { arcade.active = el.dataset.game; renderScreen(); });
 }
-function exitGame(){ stopStreak(); detachArcadeKey(); arcade.active = null; renderScreen(); }
+function exitGame(){ stopArcadeLoops(); detachArcadeKey(); arcade.active = null; renderScreen(); }
 function gbarHTML(scores){
   const s = scores.map(([l,v,id]) => `<div class="gscore"><div class="sl">${l}</div><div class="sv" id="${id}">${v}</div></div>`).join('');
   return `<div class="gbar">
@@ -1521,309 +1519,449 @@ function showOverlay(emoji, title, sub, restartFn){
 }
 function hideOverlay(){ const o=$('#govl'); if(o) o.classList.remove('show'); }
 
-/* ---------- GAME 1 · CLIMB (2048 variant) ---------- */
-const CLIMB_GRADES = {2:'D',4:'C−',8:'C',16:'C+',32:'B−',64:'B',128:'B+',256:'A−',512:'A',1024:'A+',2048:'🏆'};
-const CLIMB_COLORS = {0:'',2:'#cdb79a',4:'#c2a888',8:'#e0a36b',16:'#e08e5a',32:'#df7a55',
-  64:'#df6650',128:'#e6b04a',256:'#7fbf8a',512:'#5aa9e6',1024:'#9b87f2',2048:'#ef6a9b'};
-let climb = null;
-function climbStageHTML(){
-  let rows='';
-  for(let r=0;r<4;r++){ rows+='<div class="crow">'; for(let c=0;c<4;c++) rows+=`<div class="cell t0" data-r="${r}" data-c="${c}"></div>`; rows+='</div>'; }
-  return gbarHTML([['score','0','climbScore'],['best',String(arcade.best.climb||0),'climbBest']]) +
-    `<div class="gboardwrap"><div class="climb" id="climbBoard" tabindex="0">${rows}${overlayHTML()}</div></div>
-     <div class="bubble tail small" style="margin-top:14px;max-width:430px">arrows / wasd / swipe. merge matching grades. get to A+ to win.</div>`;
-}
-function climbNew(){
-  climb = {grid:Array.from({length:4},()=>[0,0,0,0]), score:0, over:false, won:false, kept:false};
-  climbAdd(); climbAdd(); climbDraw();
-}
-function climbAdd(){
-  const empty=[];
-  for(let r=0;r<4;r++)for(let c=0;c<4;c++) if(climb.grid[r][c]===0) empty.push([r,c]);
-  if(!empty.length) return;
-  const [r,c]=empty[Math.floor(Math.random()*empty.length)];
-  climb.grid[r][c]=Math.random()<0.9?2:4;
-  climb._spawn=r+'-'+c;
-}
-function climbDraw(){
-  $$('#climbBoard .cell').forEach(cell => {
-    const v = climb.grid[+cell.dataset.r][+cell.dataset.c];
-    const key = cell.dataset.r+'-'+cell.dataset.c;
-    cell.className = 'cell' + (v===0?' t0':'');
-    if(v===0){ cell.innerHTML=''; cell.style.background=''; cell.style.color=''; return; }
-    cell.style.background = CLIMB_COLORS[v] || '#3a2f25';
-    cell.style.color = '#fff';
-    const label = CLIMB_GRADES[v] || v;
-    cell.innerHTML = v===2048 ? `<span style="font-size:1.2em">${label}</span>` : label;
-    if(key===climb._spawn || climb._merged && climb._merged.has(key)) cell.classList.add('pop');
-  });
-  const sc = $('#climbScore'); if(sc) sc.textContent = climb.score;
-  const bs = $('#climbBest'); if(bs) bs.textContent = arcade.best.climb||0;
-}
-function climbSlide(line){
-  // line: array of 4 -> compacted+merged toward index 0
-  const nums = line.filter(x=>x!==0);
-  const out=[]; let gained=0; const mergedAt=[];
-  for(let i=0;i<nums.length;i++){
-    if(i+1<nums.length && nums[i]===nums[i+1]){ const m=nums[i]*2; out.push(m); gained+=m; mergedAt.push(out.length-1); i++; }
-    else out.push(nums[i]);
-  }
-  while(out.length<4) out.push(0);
-  return {out, gained, mergedAt};
-}
-function climbMove(dir){
-  if(!climb || climb.over) return;
-  const before = JSON.stringify(climb.grid);
-  let gained=0; const merged=new Set();
-  const g = climb.grid;
-  const get=(i,j)=>{ // i = line index, j = pos within line, mapped per direction
-    if(dir==='left') return [i,j];
-    if(dir==='right') return [i,3-j];
-    if(dir==='up') return [j,i];
-    return [3-j,i]; // down
-  };
-  for(let i=0;i<4;i++){
-    const line=[]; for(let j=0;j<4;j++){ const [r,c]=get(i,j); line.push(g[r][c]); }
-    const {out,gained:gn,mergedAt}=climbSlide(line);
-    gained+=gn;
-    for(let j=0;j<4;j++){ const [r,c]=get(i,j); g[r][c]=out[j]; if(mergedAt.includes(j)) merged.add(r+'-'+c); }
-  }
-  if(JSON.stringify(g)===before) return; // no movement
-  climb.score += gained;
-  climb._merged = merged;
-  climbAdd();
-  climbDraw();
-  setBest('climb', climb.score);
-  // win at 1024 -> A+ (2048 tile). brief asks win at A+.
-  if(!climb.won && !climb.kept){
-    for(let r=0;r<4;r++)for(let c=0;c<4;c++) if(g[r][c]>=1024){ climb.won=true; }
-    if(climb.won){
-      showOverlayKeep('🎉','there it is. A+ 🎉','score '+climb.score+'. keep going or call it.', climbNew);
-      return;
-    }
-  }
-  if(climbStuck()){ climb.over=true; setBest('climb',climb.score);
-    showOverlay('😅','no moves left','you hit '+climb.score+'. not bad. go again?', climbNew); }
-}
-function showOverlayKeep(emoji,title,sub,restartFn){
-  const o=$('#govl'); if(!o) return;
-  $('#govle').textContent=emoji; $('#govlt').textContent=title; $('#govls').textContent=sub;
-  $('#govl .gbb').innerHTML = `<button class="btn primary" id="govlkeep">keep playing</button>
-    <button class="btn ghost" id="govlplay">new game</button>
-    <button class="btn ghost" id="govlback">arcade</button>`;
-  o.classList.add('show');
-  $('#govlkeep').onclick = () => { climb.kept=true; hideOverlay(); $('#climbBoard').focus(); };
-  $('#govlplay').onclick = restartFn;
-  $('#govlback').onclick = exitGame;
-}
-function climbStuck(){
-  const g=climb.grid;
-  for(let r=0;r<4;r++)for(let c=0;c<4;c++){
-    if(g[r][c]===0) return false;
-    if(c<3 && g[r][c]===g[r][c+1]) return false;
-    if(r<3 && g[r][c]===g[r+1][c]) return false;
-  }
-  return true;
-}
-function wireClimb(){
-  // reset overlay button set in case it was replaced
-  wireGbar(climbNew);
-  climbNew();
-  const board = $('#climbBoard');
-  board.focus();
-  board.addEventListener('keydown', e => {
-    const k=e.key.toLowerCase();
-    const map={arrowleft:'left',a:'left',arrowright:'right',d:'right',arrowup:'up',w:'up',arrowdown:'down',s:'down'};
-    if(map[k]){ e.preventDefault(); climbMove(map[k]); }
-  });
-  // also catch keys when overlay not focused
-  arcade._key = e => {
-    if(arcade.active!=='climb') return;
-    if($('#govl') && $('#govl').classList.contains('show')) return;
-    const k=e.key.toLowerCase();
-    const map={arrowleft:'left',arrowright:'right',arrowup:'up',arrowdown:'down'};
-    if(map[k] && document.activeElement!==board){ e.preventDefault(); climbMove(map[k]); }
-  };
-  document.addEventListener('keydown', arcade._key);
-  // swipe
-  let sx=0,sy=0,sw=false;
-  board.addEventListener('pointerdown', e => { sx=e.clientX; sy=e.clientY; sw=true; });
-  board.addEventListener('pointerup', e => {
-    if(!sw) return; sw=false;
-    const dx=e.clientX-sx, dy=e.clientY-sy;
-    if(Math.abs(dx)<24 && Math.abs(dy)<24) return;
-    if(Math.abs(dx)>Math.abs(dy)) climbMove(dx>0?'right':'left');
-    else climbMove(dy>0?'down':'up');
-  });
-}
-
-/* ---------- GAME 2 · STREAK (snake) ---------- */
-let streak = null;
-function streakStageHTML(){
-  return gbarHTML([['score','0','streakScore'],['best',String(arcade.best.streak||0),'streakBest']]) +
-    `<div class="streakwrap"><div class="gboardwrap">
-      <canvas class="gcanvas" id="streakCanvas" width="380" height="380"></canvas>${overlayHTML()}</div>
-      <div class="dpad">
-        <button class="du" data-dir="up">▲</button>
-        <button class="dl" data-dir="left">◀</button>
-        <button class="dr" data-dir="right">▶</button>
-        <button class="dn" data-dir="down">▼</button>
-      </div></div>
-     <div class="bubble tail small" style="margin-top:14px;max-width:430px">arrows / wasd / dpad. eat 🍎, don't hit the walls or yourself.</div>`;
-}
-function streakNew(){
-  stopStreak();
-  const N=16;
-  streak = {N, cell:380/N, snake:[{x:8,y:8},{x:7,y:8},{x:6,y:8}], dir:{x:1,y:0}, next:{x:1,y:0},
-    food:null, score:0, over:false, step:0, speed:7, raf:0, last:0};
-  streakFood(); streakDraw();
-  hideOverlay();
-  streak.last = performance.now();
-  streak.raf = requestAnimationFrame(streakLoop);
-}
-function stopStreak(){ if(streak && streak.raf){ cancelAnimationFrame(streak.raf); streak.raf=0; } }
-function streakFood(){
-  const N=streak.N; let p;
-  do{ p={x:Math.floor(Math.random()*N), y:Math.floor(Math.random()*N)}; }
-  while(streak.snake.some(s=>s.x===p.x&&s.y===p.y));
-  streak.food=p;
-}
-function streakLoop(t){
-  if(!streak || streak.over) return;
-  const interval = 1000/streak.speed;
-  if(t - streak.last >= interval){ streak.last = t; streakTick(); }
-  streak.raf = requestAnimationFrame(streakLoop);
-}
-function streakTick(){
-  const s=streak;
-  s.dir = s.next;
-  const head={x:s.snake[0].x+s.dir.x, y:s.snake[0].y+s.dir.y};
-  if(head.x<0||head.y<0||head.x>=s.N||head.y>=s.N || s.snake.some(seg=>seg.x===head.x&&seg.y===head.y)){
-    s.over=true; stopStreak(); setBest('streak', s.score);
-    showOverlay('🐍','ran out of room','streak of '+s.score+'. one more?', streakNew);
-    return;
-  }
-  s.snake.unshift(head);
-  if(head.x===s.food.x && head.y===s.food.y){
-    s.score++; const sc=$('#streakScore'); if(sc) sc.textContent=s.score;
-    if(setBest('streak',s.score)){ const bs=$('#streakBest'); if(bs) bs.textContent=s.score; }
-    if(s.score%4===0 && s.speed<16) s.speed+=0.7;
-    streakFood();
-  } else { s.snake.pop(); }
-  streakDraw();
-}
-function streakDraw(){
-  const cv=$('#streakCanvas'); if(!cv) return;
-  const ctx=cv.getContext('2d'); const s=streak; const u=s.cell;
-  const css = getComputedStyle(document.documentElement);
-  ctx.clearRect(0,0,cv.width,cv.height);
-  // food
-  ctx.font = (u*0.8)+'px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText('🍎', s.food.x*u+u/2, s.food.y*u+u/2+1);
-  // snake
-  const accent = (css.getPropertyValue('--sage')||'#4fb286').trim();
-  s.snake.forEach((seg,i) => {
-    ctx.fillStyle = i===0 ? accent : 'rgba(79,178,134,'+(0.85-Math.min(i,8)*0.06)+')';
-    roundRect(ctx, seg.x*u+2, seg.y*u+2, u-4, u-4, 6); ctx.fill();
-  });
-}
-function roundRect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y);
+function roundRect(ctx,x,y,w,h,r){ r=Math.min(r,w/2,h/2); ctx.beginPath(); ctx.moveTo(x+r,y);
   ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
   ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
-function streakSetDir(d){
-  if(!streak||streak.over) return;
-  const opp = {up:{x:0,y:1},down:{x:0,y:-1},left:{x:1,y:0},right:{x:-1,y:0}};
-  const nd = {up:{x:0,y:-1},down:{x:0,y:1},left:{x:-1,y:0},right:{x:1,y:0}}[d];
-  if(!nd) return;
-  // no 180s
-  if(streak.dir.x===opp[d].x && streak.dir.y===opp[d].y) return;
-  streak.next = nd;
-}
-function wireStreak(){
-  wireGbar(streakNew);
-  streakNew();
-  $$('#main .dpad button').forEach(b => b.onclick = () => streakSetDir(b.dataset.dir));
-  arcade._key = e => {
-    if(arcade.active!=='streak') return;
-    const map={arrowup:'up',w:'up',arrowdown:'down',s:'down',arrowleft:'left',a:'left',arrowright:'right',d:'right'};
-    const d=map[e.key.toLowerCase()];
-    if(d){ e.preventDefault(); streakSetDir(d); }
-  };
-  document.addEventListener('keydown', arcade._key);
-  // swipe on canvas
-  const cv=$('#streakCanvas'); let sx=0,sy=0,sw=false;
-  cv.addEventListener('pointerdown', e=>{ sx=e.clientX; sy=e.clientY; sw=true; });
-  cv.addEventListener('pointerup', e=>{
-    if(!sw) return; sw=false; const dx=e.clientX-sx, dy=e.clientY-sy;
-    if(Math.abs(dx)<20&&Math.abs(dy)<20) return;
-    if(Math.abs(dx)>Math.abs(dy)) streakSetDir(dx>0?'right':'left');
-    else streakSetDir(dy>0?'down':'up');
-  });
-}
-
-/* ---------- GAME 3 · RECALL (memory match) ---------- */
-const RECALL_FACES = ['📐','🧬','🥐','🎭','📚','🏃','✏️','🎒'];
-let recall = null;
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
-function recallStageHTML(){
-  return gbarHTML([['moves','0','recallMoves'],['matched','0/8','recallMatched'],['best',bestLabel('recall'),'recallBest']]) +
-    `<div class="gboardwrap"><div class="recall" id="recallBoard"></div>${overlayHTML()}</div>
-     <div class="bubble tail small" style="margin-top:14px;max-width:430px">flip two cards. matches stay up. fewest moves wins. click or tap.</div>`;
+function cssVar(name,fallback){ const v=getComputedStyle(document.documentElement).getPropertyValue(name).trim(); return v||fallback; }
+
+/* ---------- GAME 1 · FLAP (flappy) ---------- */
+let flap = null;
+function flapStageHTML(){
+  return gbarHTML([['score','0','flapScore'],['best',String(arcade.best.flap||0),'flapBest']]) +
+    `<div class="gboardwrap"><canvas class="gcanvas" id="flapCanvas" width="360" height="460" tabindex="0"></canvas>${overlayHTML()}</div>
+     <div class="bubble tail small" style="margin-top:14px;max-width:430px">tap, click, or space to flap. slip through the gaps. each one is +1.</div>`;
 }
-function recallNew(){
-  const deck = shuffle([...RECALL_FACES, ...RECALL_FACES]).map((f,i)=>({face:f, id:i, flipped:false, done:false}));
-  recall = {deck, first:null, lock:false, moves:0, matched:0, start:Date.now()};
-  recallDraw();
-  hideOverlay();
+function flapNew(){
+  stopFlap();
+  flap = {W:360, H:460, y:200, vy:0, grav:0.42, lift:-7, pipes:[], gap:140, pw:56,
+    x:84, r:15, score:0, over:false, started:false, raf:0, frame:0};
+  flapSpawn(); flapDraw(); hideOverlay();
+  const sc=$('#flapScore'); if(sc) sc.textContent='0';
+  flap.raf = requestAnimationFrame(flapLoop);
 }
-function recallDraw(){
-  const board=$('#recallBoard'); if(!board) return;
-  board.innerHTML = recall.deck.map((card,i) => `
-    <div class="mcard ${card.flipped||card.done?'flip':''} ${card.done?'done':''}" data-i="${i}">
-      <div class="mface mback">?</div>
-      <div class="mface mfront">${card.face}</div>
-    </div>`).join('');
-  $$('#recallBoard .mcard').forEach(el => el.onclick = () => recallFlip(+el.dataset.i));
-  $('#recallMoves').textContent = recall.moves;
-  $('#recallMatched').textContent = recall.matched+'/8';
-  $('#recallBest').textContent = bestLabel('recall');
+function stopFlap(){ if(flap && flap.raf){ cancelAnimationFrame(flap.raf); flap.raf=0; } }
+function flapSpawn(){
+  const margin=46;
+  const top = margin + Math.random()*(flap.H - flap.gap - margin*2);
+  flap.pipes.push({x:flap.W+10, top, scored:false});
 }
-function recallFlip(i){
-  if(recall.lock) return;
-  const card=recall.deck[i];
-  if(card.flipped||card.done) return;
-  card.flipped=true; recallUpdateCard(i);
-  if(recall.first===null){ recall.first=i; return; }
-  // second card
-  recall.moves++; $('#recallMoves').textContent=recall.moves;
-  const a=recall.deck[recall.first], b=card;
-  if(a.face===b.face){
-    a.done=b.done=true; recall.matched++;
-    $('#recallMatched').textContent=recall.matched+'/8';
-    recall.first=null;
-    setTimeout(()=>{ recallUpdateCard(recall.deck.indexOf(a)); recallUpdateCard(i); }, 60);
-    if(recall.matched===8){
-      const secs=Math.round((Date.now()-recall.start)/1000);
-      const isBest=setBestLow('recall', recall.moves);
-      $('#recallBest').textContent=bestLabel('recall');
-      const line = isBest ? 'new best. that\'s your sharpest run yet 🧠' : 'all matched. nice memory.';
-      showOverlay('🎉','cleared it', recall.moves+' moves · '+secs+'s. '+line, recallNew);
+function flapFlapUp(){
+  if(!flap||flap.over) return;
+  flap.started=true; flap.vy=flap.lift;
+}
+function flapLoop(){
+  if(!flap||flap.over) return;
+  flap.frame++;
+  if(flap.started){
+    flap.vy += flap.grav; flap.y += flap.vy;
+    // move pipes
+    flap.pipes.forEach(p => p.x -= 2.3);
+    if(flap.pipes.length && flap.pipes[flap.pipes.length-1].x < flap.W - 168) flapSpawn();
+    flap.pipes = flap.pipes.filter(p => p.x + flap.pw > -4);
+    // score + collide
+    for(const p of flap.pipes){
+      if(!p.scored && p.x + flap.pw < flap.x - flap.r){
+        p.scored=true; flap.score++;
+        const sc=$('#flapScore'); if(sc) sc.textContent=flap.score;
+        if(setBest('flap',flap.score)){ const bs=$('#flapBest'); if(bs) bs.textContent=flap.score; }
+      }
+      const inX = flap.x + flap.r > p.x && flap.x - flap.r < p.x + flap.pw;
+      if(inX && (flap.y - flap.r < p.top || flap.y + flap.r > p.top + flap.gap)) return flapEnd();
     }
-  } else {
-    recall.lock=true;
-    const fi=recall.first; recall.first=null;
-    setTimeout(()=>{ a.flipped=false; b.flipped=false; recallUpdateCard(fi); recallUpdateCard(i); recall.lock=false; }, 720);
+    if(flap.y + flap.r > flap.H - 18 || flap.y - flap.r < 0) return flapEnd();
+  }
+  flapDraw();
+  flap.raf = requestAnimationFrame(flapLoop);
+}
+function flapEnd(){
+  flap.over=true; stopFlap(); setBest('flap',flap.score); flapDraw();
+  showOverlay('🐦', flap.score>0?'down you go':'oof, right away',
+    'you cleared '+flap.score+'. '+(flap.score>=5?'solid run. again?':'shake it off, go again.'), flapNew);
+}
+function flapDraw(){
+  const cv=$('#flapCanvas'); if(!cv) return;
+  const ctx=cv.getContext('2d'); const f=flap;
+  const paper=cssVar('--paper-2','#f7ead6'), pipe=cssVar('--sage','#4fb286'),
+        line=cssVar('--line','#ece0cd'), ink=cssVar('--ink','#3a2f25'), peach=cssVar('--peach','#ffb454');
+  ctx.clearRect(0,0,f.W,f.H);
+  ctx.fillStyle=paper; ctx.fillRect(0,0,f.W,f.H);
+  // pipes
+  f.pipes.forEach(p => {
+    ctx.fillStyle=pipe;
+    roundRect(ctx, p.x, 0, f.pw, p.top, 10); ctx.fill();
+    roundRect(ctx, p.x, p.top+f.gap, f.pw, f.H-(p.top+f.gap)-12, 10); ctx.fill();
+  });
+  // ground
+  ctx.fillStyle=line; ctx.fillRect(0,f.H-12,f.W,12);
+  // bird
+  ctx.save();
+  ctx.translate(f.x, f.y);
+  ctx.rotate(Math.max(-0.4, Math.min(0.7, f.vy*0.05)));
+  ctx.fillStyle=peach;
+  ctx.beginPath(); ctx.arc(0,0,f.r,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(5,-4,4.2,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle=ink; ctx.beginPath(); ctx.arc(6.5,-4,2,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#ff6f61'; ctx.beginPath(); ctx.moveTo(f.r-2,2); ctx.lineTo(f.r+7,4); ctx.lineTo(f.r-2,7); ctx.closePath(); ctx.fill();
+  ctx.restore();
+  if(!f.started){
+    ctx.fillStyle=ink; ctx.font='700 15px '+cssVar('--font','sans-serif'); ctx.textAlign='center';
+    ctx.fillText('tap to start', f.W/2, 40);
   }
 }
-function recallUpdateCard(i){
-  const el=$(`#recallBoard .mcard[data-i="${i}"]`); if(!el) return;
-  const card=recall.deck[i];
-  el.classList.toggle('flip', card.flipped||card.done);
-  el.classList.toggle('done', card.done);
+function wireFlap(){
+  wireGbar(flapNew);
+  flapNew();
+  const cv=$('#flapCanvas'); cv.focus();
+  const tap = e => { e.preventDefault();
+    if($('#govl') && $('#govl').classList.contains('show')) return;
+    flapFlapUp(); };
+  cv.addEventListener('pointerdown', tap);
+  arcade._key = e => {
+    if(arcade.active!=='flap') return;
+    if($('#govl') && $('#govl').classList.contains('show')) return;
+    if(e.key===' '||e.key==='ArrowUp'||e.key==='w'||e.key==='Spacebar'){ e.preventDefault(); flapFlapUp(); }
+  };
+  document.addEventListener('keydown', arcade._key);
 }
-function wireRecall(){
-  wireGbar(recallNew);
-  recallNew();
+
+/* ---------- GAME 2 · WHACK (whack-a-mole) ---------- */
+const WHACK_FACES = ['🐹','📚'];
+let whack = null;
+function whackStageHTML(){
+  let holes='';
+  for(let i=0;i<9;i++) holes+=`<div class="hole" data-h="${i}"><div class="mole"></div></div>`;
+  return gbarHTML([['score','0','whackScore'],['time','30','whackTime'],['best',String(arcade.best.whack||0),'whackBest']]) +
+    `<div class="whackwrap">
+      <div class="whacktime"><i id="whackBar"></i></div>
+      <div class="gboardwrap" style="width:100%;display:block">
+        <div class="whackgrid" id="whackGrid">${holes}</div>
+        ${overlayHTML()}
+      </div>
+     </div>
+     <div class="bubble tail small" style="margin-top:14px;max-width:430px">30 seconds. tap them while they're up. they don't wait around.</div>`;
+}
+function whackNew(){
+  stopWhack();
+  whack = {score:0, time:30, active:-1, over:false, popTimer:0, tickTimer:0, hideTimer:0};
+  $$('#main .hole').forEach(h => h.classList.remove('up','bonk'));
+  const sc=$('#whackScore'); if(sc) sc.textContent='0';
+  const tm=$('#whackTime'); if(tm) tm.textContent='30';
+  const bar=$('#whackBar'); if(bar) bar.style.width='100%';
+  hideOverlay();
+  whackPop();
+  whack.tickTimer = setInterval(whackTick, 1000);
+}
+function stopWhack(){
+  if(!whack) return;
+  if(whack.popTimer) clearTimeout(whack.popTimer);
+  if(whack.hideTimer) clearTimeout(whack.hideTimer);
+  if(whack.tickTimer) clearInterval(whack.tickTimer);
+  whack.popTimer=whack.hideTimer=whack.tickTimer=0;
+}
+function whackTick(){
+  if(!whack||whack.over) return;
+  whack.time--;
+  const tm=$('#whackTime'); if(tm) tm.textContent=whack.time;
+  const bar=$('#whackBar'); if(bar) bar.style.width=(whack.time/30*100)+'%';
+  if(whack.time<=0) whackEnd();
+}
+function whackPop(){
+  if(!whack||whack.over) return;
+  // pick a new hole different from current
+  let i; do{ i=Math.floor(Math.random()*9); } while(i===whack.active);
+  whack.active=i;
+  const hole=$(`#main .hole[data-h="${i}"]`);
+  if(hole){
+    const mole=hole.querySelector('.mole');
+    mole.textContent = WHACK_FACES[Math.floor(Math.random()*WHACK_FACES.length)];
+    hole.classList.add('up'); hole.classList.remove('bonk');
+  }
+  const upFor = 700 + Math.random()*600;
+  whack.hideTimer = setTimeout(()=>{
+    if(!whack||whack.over) return;
+    if(hole) hole.classList.remove('up');
+    whack.active=-1;
+    whack.popTimer = setTimeout(whackPop, 200+Math.random()*350);
+  }, upFor);
+}
+function whackHit(i){
+  if(!whack||whack.over) return;
+  const hole=$(`#main .hole[data-h="${i}"]`);
+  if(i===whack.active && hole && hole.classList.contains('up')){
+    whack.score++;
+    const sc=$('#whackScore'); if(sc) sc.textContent=whack.score;
+    if(setBest('whack',whack.score)){ const bs=$('#whackBest'); if(bs) bs.textContent=whack.score; }
+    hole.classList.add('bonk');
+    setTimeout(()=>{ if(hole) hole.classList.remove('up'); }, 90);
+    whack.active=-1;
+    if(whack.hideTimer) clearTimeout(whack.hideTimer);
+    whack.popTimer = setTimeout(whackPop, 180+Math.random()*280);
+  }
+}
+function whackEnd(){
+  whack.over=true; stopWhack(); setBest('whack',whack.score);
+  $$('#main .hole').forEach(h=>h.classList.remove('up'));
+  showOverlay('🐹','time', 'you got '+whack.score+'. '+(whack.score>=15?'quick hands. again?':'warm up and go again.'), whackNew);
+}
+function wireWhack(){
+  wireGbar(whackNew);
+  $$('#main .hole').forEach(h => {
+    h.addEventListener('pointerdown', e => { e.preventDefault(); whackHit(+h.dataset.h); });
+  });
+  // keys 1-9 map to grid (numpad layout: 7-8-9 top row reads naturally; use 1-9 row-major)
+  arcade._key = e => {
+    if(arcade.active!=='whack') return;
+    const n=parseInt(e.key,10);
+    if(n>=1&&n<=9){ e.preventDefault(); whackHit(n-1); }
+  };
+  document.addEventListener('keydown', arcade._key);
+  whackNew();
+}
+
+/* ---------- GAME 3 · BOUNCE (breakout) ---------- */
+const BRICK_COLORS = ['#ff6f61','#ffb454','#ffcf4d','#4fb286','#5aa9e6'];
+let bounce = null;
+function bounceStageHTML(){
+  return gbarHTML([['score','0','bounceScore'],['lives','3','bounceLives'],['best',String(arcade.best.bounce||0),'bounceBest']]) +
+    `<div class="gboardwrap"><canvas class="gcanvas" id="bounceCanvas" width="360" height="420" tabindex="0"></canvas>${overlayHTML()}</div>
+     <div class="bubble tail small" style="margin-top:14px;max-width:430px">move with mouse, touch, or ← →. clear every brick. three tries.</div>`;
+}
+function bounceNew(){
+  stopBounce();
+  const W=360,H=420, cols=8, rows=5, pad=8, top=44, bw=(W-pad*2-(cols-1)*6)/cols, bh=18;
+  const bricks=[];
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)
+    bricks.push({x:pad+c*(bw+6), y:top+r*(bh+6), w:bw, h:bh, alive:true, color:BRICK_COLORS[r%BRICK_COLORS.length]});
+  bounce = {W,H,bricks,bw,bh,
+    paddle:{w:74,h:13,x:W/2-37,y:H-26},
+    ball:{x:W/2, y:H-44, r:7, vx:3.1*(Math.random()<.5?-1:1), vy:-3.4},
+    score:0, lives:3, over:false, win:false, launched:false, left:false, right:false, raf:0};
+  bounceDraw(); hideOverlay();
+  const sc=$('#bounceScore'); if(sc) sc.textContent='0';
+  const lv=$('#bounceLives'); if(lv) lv.textContent='3';
+  bounce.raf = requestAnimationFrame(bounceLoop);
+}
+function stopBounce(){ if(bounce && bounce.raf){ cancelAnimationFrame(bounce.raf); bounce.raf=0; } }
+function bounceLoop(){
+  if(!bounce||bounce.over) return;
+  const b=bounce, p=b.paddle, ball=b.ball;
+  // paddle keys
+  if(b.left) p.x-=6; if(b.right) p.x+=6;
+  p.x=Math.max(0,Math.min(b.W-p.w,p.x));
+  if(b.launched){
+    ball.x+=ball.vx; ball.y+=ball.vy;
+    if(ball.x-ball.r<0){ ball.x=ball.r; ball.vx*=-1; }
+    if(ball.x+ball.r>b.W){ ball.x=b.W-ball.r; ball.vx*=-1; }
+    if(ball.y-ball.r<0){ ball.y=ball.r; ball.vy*=-1; }
+    // paddle
+    if(ball.vy>0 && ball.y+ball.r>=p.y && ball.y+ball.r<=p.y+p.h+8 && ball.x>=p.x-ball.r && ball.x<=p.x+p.w+ball.r){
+      ball.vy=-Math.abs(ball.vy);
+      const hit=(ball.x-(p.x+p.w/2))/(p.w/2);
+      ball.vx=hit*4.2; ball.y=p.y-ball.r;
+    }
+    // bricks
+    for(const br of b.bricks){
+      if(!br.alive) continue;
+      if(ball.x+ball.r>br.x && ball.x-ball.r<br.x+br.w && ball.y+ball.r>br.y && ball.y-ball.r<br.y+br.h){
+        br.alive=false; b.score+=10;
+        const sc=$('#bounceScore'); if(sc) sc.textContent=b.score;
+        if(setBest('bounce',b.score)){ const bs=$('#bounceBest'); if(bs) bs.textContent=b.score; }
+        // bounce vertical or horizontal based on overlap
+        const ox=Math.min(ball.x+ball.r-br.x, br.x+br.w-(ball.x-ball.r));
+        const oy=Math.min(ball.y+ball.r-br.y, br.y+br.h-(ball.y-ball.r));
+        if(ox<oy) ball.vx*=-1; else ball.vy*=-1;
+        break;
+      }
+    }
+    if(b.bricks.every(br=>!br.alive)) return bounceWin();
+    if(ball.y-ball.r>b.H) return bounceLoseLife();
+  } else {
+    ball.x=p.x+p.w/2; ball.y=p.y-ball.r-1;
+  }
+  bounceDraw();
+  bounce.raf=requestAnimationFrame(bounceLoop);
+}
+function bounceResetBall(){
+  const b=bounce;
+  b.ball.x=b.paddle.x+b.paddle.w/2; b.ball.y=b.paddle.y-b.ball.r-1;
+  b.ball.vx=3.1*(Math.random()<.5?-1:1); b.ball.vy=-3.4; b.launched=false;
+}
+function bounceLoseLife(){
+  bounce.lives--;
+  const lv=$('#bounceLives'); if(lv) lv.textContent=bounce.lives;
+  if(bounce.lives<=0){
+    bounce.over=true; stopBounce(); setBest('bounce',bounce.score); bounceDraw();
+    showOverlay('🧱','out of tries','cleared '+bounce.score+' worth of bricks. one more wall?', bounceNew);
+    return;
+  }
+  bounceResetBall(); bounceDraw();
+  bounce.raf=requestAnimationFrame(bounceLoop);
+}
+function bounceWin(){
+  bounce.over=true; bounce.win=true; stopBounce(); setBest('bounce',bounce.score); bounceDraw();
+  showOverlay('🎉','wall cleared','full clear at '+bounce.score+'. nice. go again?', bounceNew);
+}
+function bounceDraw(){
+  const cv=$('#bounceCanvas'); if(!cv) return;
+  const ctx=cv.getContext('2d'); const b=bounce;
+  const paper=cssVar('--paper-2','#f7ead6'), ink=cssVar('--ink','#3a2f25'), peach=cssVar('--peach','#ffb454');
+  ctx.clearRect(0,0,b.W,b.H);
+  ctx.fillStyle=paper; ctx.fillRect(0,0,b.W,b.H);
+  b.bricks.forEach(br => { if(!br.alive) return; ctx.fillStyle=br.color; roundRect(ctx,br.x,br.y,br.w,br.h,5); ctx.fill(); });
+  ctx.fillStyle=ink; roundRect(ctx,b.paddle.x,b.paddle.y,b.paddle.w,b.paddle.h,7); ctx.fill();
+  ctx.fillStyle=peach; ctx.beginPath(); ctx.arc(b.ball.x,b.ball.y,b.ball.r,0,Math.PI*2); ctx.fill();
+  if(!b.launched){
+    ctx.fillStyle=ink; ctx.font='700 14px '+cssVar('--font','sans-serif'); ctx.textAlign='center';
+    ctx.fillText('tap / space to launch', b.W/2, b.H-44-18);
+  }
+}
+function bounceLaunch(){ if(bounce && !bounce.launched && !bounce.over) bounce.launched=true; }
+function bouncePaddleTo(clientX, cv){
+  if(!bounce) return;
+  const rect=cv.getBoundingClientRect();
+  const sx=bounce.W/rect.width;
+  let px=(clientX-rect.left)*sx - bounce.paddle.w/2;
+  bounce.paddle.x=Math.max(0,Math.min(bounce.W-bounce.paddle.w,px));
+}
+function wireBounce(){
+  wireGbar(bounceNew);
+  bounceNew();
+  const cv=$('#bounceCanvas'); cv.focus();
+  cv.addEventListener('pointermove', e => bouncePaddleTo(e.clientX, cv));
+  cv.addEventListener('pointerdown', e => {
+    if($('#govl') && $('#govl').classList.contains('show')) return;
+    bouncePaddleTo(e.clientX, cv); bounceLaunch();
+  });
+  arcade._key = e => {
+    if(arcade.active!=='bounce') return;
+    if(e.key==='ArrowLeft'||e.key==='a'){ bounce.left=true; e.preventDefault(); }
+    if(e.key==='ArrowRight'||e.key==='d'){ bounce.right=true; e.preventDefault(); }
+    if(e.key===' '||e.key==='ArrowUp'){ if($('#govl')&&$('#govl').classList.contains('show'))return; bounceLaunch(); e.preventDefault(); }
+  };
+  arcade._keyUp = e => {
+    if(arcade.active!=='bounce'||!bounce) return;
+    if(e.key==='ArrowLeft'||e.key==='a') bounce.left=false;
+    if(e.key==='ArrowRight'||e.key==='d') bounce.right=false;
+  };
+  document.addEventListener('keydown', arcade._key);
+  document.addEventListener('keyup', arcade._keyUp);
+}
+
+/* ---------- GAME 4 · WORD SEARCH ---------- */
+const WS_WORDS = ['BIOLOGY','FRENCH','ALGEBRA','DRAMA','ENZYME','ESSAY'];
+const WS_N = 10;
+let words = null;
+function wordsStageHTML(){
+  return gbarHTML([['found','0/6','wordsFound'],['time','0s','wordsTime'],['best',String(arcade.best.words||0),'wordsBest']]) +
+    `<div class="wsbox">
+      <div class="gboardwrap" style="display:block;width:100%">
+        <div class="wsgrid" id="wsGrid"></div>
+        ${overlayHTML()}
+      </div>
+      <div class="wslist" id="wsList"></div>
+     </div>
+     <div class="bubble tail small" style="margin-top:14px;max-width:430px">tap the first letter, then the last. straight lines only. ↻ for a new puzzle.</div>`;
+}
+function wsBuild(){
+  const N=WS_N;
+  const grid=Array.from({length:N},()=>Array(N).fill(''));
+  const placed=[]; // {word, cells:[[r,c]...]}
+  const dirs=[[0,1],[1,0],[0,-1],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]];
+  const tryPlace=(w)=>{
+    for(let tries=0;tries<200;tries++){
+      const d=dirs[Math.floor(Math.random()*dirs.length)];
+      const r0=Math.floor(Math.random()*N), c0=Math.floor(Math.random()*N);
+      const cells=[]; let ok=true;
+      for(let i=0;i<w.length;i++){
+        const r=r0+d[0]*i, c=c0+d[1]*i;
+        if(r<0||c<0||r>=N||c>=N){ ok=false; break; }
+        const ex=grid[r][c];
+        if(ex && ex!==w[i]){ ok=false; break; }
+        cells.push([r,c]);
+      }
+      if(!ok) continue;
+      cells.forEach(([r,c],i)=>grid[r][c]=w[i]);
+      return cells;
+    }
+    return null;
+  };
+  // place longest first for better fit
+  const order=[...WS_WORDS].sort((a,b)=>b.length-a.length);
+  for(const w of order){ const cells=tryPlace(w); if(cells) placed.push({word:w,cells}); else return wsBuild(); }
+  const LET='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++) if(!grid[r][c]) grid[r][c]=LET[Math.floor(Math.random()*26)];
+  return {grid, placed};
+}
+function wordsNew(){
+  const {grid,placed}=wsBuild();
+  words = {grid, placed, found:[], pickA:null, start:Date.now(), over:false, raf:0};
+  wordsRender();
+  hideOverlay();
+  const f=$('#wordsFound'); if(f) f.textContent='0/6';
+  if(words.raf) clearInterval(words.raf);
+  words.raf = setInterval(()=>{ const t=$('#wordsTime'); if(t&&!words.over) t.textContent=Math.round((Date.now()-words.start)/1000)+'s'; }, 500);
+}
+function wordsRender(){
+  const g=$('#wsGrid'); if(!g) return;
+  let html='';
+  for(let r=0;r<WS_N;r++)for(let c=0;c<WS_N;c++)
+    html+=`<div class="wscell" data-r="${r}" data-c="${c}">${words.grid[r][c]}</div>`;
+  g.innerHTML=html;
+  $$('#wsGrid .wscell').forEach(el => el.addEventListener('pointerdown', e => { e.preventDefault(); wordsTap(+el.dataset.r,+el.dataset.c); }));
+  wordsPaintFound();
+  // list
+  const list=$('#wsList');
+  list.innerHTML = WS_WORDS.map(w => `<span class="wsword ${words.found.includes(w)?'got':''}">${w}</span>`).join('');
+}
+function wsCellEl(r,c){ return $(`#wsGrid .wscell[data-r="${r}"][data-c="${c}"]`); }
+function wordsClearPick(){ $$('#wsGrid .wscell.pick').forEach(el=>el.classList.remove('pick')); }
+function wordsTap(r,c){
+  if(!words||words.over) return;
+  if(!words.pickA){
+    words.pickA=[r,c]; const el=wsCellEl(r,c); if(el) el.classList.add('pick');
+    return;
+  }
+  const [ar,ac]=words.pickA;
+  if(ar===r && ac===c){ words.pickA=null; wordsClearPick(); return; } // tap same = cancel
+  // must be a straight line (h, v, or diagonal)
+  const dr=r-ar, dc=c-ac;
+  const stepR=Math.sign(dr), stepC=Math.sign(dc);
+  const straight = dr===0 || dc===0 || Math.abs(dr)===Math.abs(dc);
+  words.pickA=null; wordsClearPick();
+  if(!straight) return;
+  const len=Math.max(Math.abs(dr),Math.abs(dc))+1;
+  let str=''; const cells=[];
+  for(let i=0;i<len;i++){ const rr=ar+stepR*i, cc=ac+stepC*i; str+=words.grid[rr][cc]; cells.push([rr,cc]); }
+  const rev=str.split('').reverse().join('');
+  const match = WS_WORDS.find(w => (w===str||w===rev) && !words.found.includes(w));
+  if(match){
+    words.found.push(match);
+    cells.forEach(([rr,cc])=>{ const el=wsCellEl(rr,cc); if(el){ el.classList.add('found'); el.classList.remove('pick'); } });
+    const f=$('#wordsFound'); if(f) f.textContent=words.found.length+'/6';
+    const list=$('#wsList');
+    if(list) list.innerHTML = WS_WORDS.map(w => `<span class="wsword ${words.found.includes(w)?'got':''}">${w}</span>`).join('');
+    if(words.found.length===WS_WORDS.length) wordsWin();
+  }
+}
+function wordsPaintFound(){
+  words.found.forEach(w => {
+    const p=words.placed.find(x=>x.word===w);
+    if(p) p.cells.forEach(([r,c])=>{ const el=wsCellEl(r,c); if(el) el.classList.add('found'); });
+  });
+}
+function wordsWin(){
+  words.over=true;
+  if(words.raf){ clearInterval(words.raf); words.raf=0; }
+  const secs=Math.round((Date.now()-words.start)/1000);
+  // score = found count this round; best tracks most-found (always 6 on a win)
+  setBest('words', WS_WORDS.length);
+  const bs=$('#wordsBest'); if(bs) bs.textContent=arcade.best.words||0;
+  showOverlay('🎉','all six found', 'cleared in '+secs+'s. '+(secs<60?'fast eyes.':'nice. new puzzle?'), wordsNew);
+}
+function wireWords(){
+  wireGbar(wordsNew);
+  wordsNew();
 }
 
 /* ============================================================

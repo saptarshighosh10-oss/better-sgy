@@ -5578,6 +5578,74 @@ void main() {
   .welcome-list .wld{font-size:13.5px;color:var(--ink3);letter-spacing:-0.012em;margin-top:1px;line-height:1.35;}
 
   /* ============================================================
+     GUIDED TUTORIAL — spotlight + coachmark
+  ============================================================ */
+  /* Four dim panels around the target leave a transparent "hole".
+     Pure overlays so we never restyle the real UI underneath. */
+  #tour{position:fixed;inset:0;z-index:500;display:none;}
+  #tour.show{display:block;}
+  .tour-dim{position:fixed;background:rgba(0,0,0,.46);transition:all .26s cubic-bezier(.2,.7,.2,1);}
+  :root[data-theme="dark"] .tour-dim{background:rgba(0,0,0,.62);}
+  .tour-ring{
+    position:fixed;border-radius:14px;pointer-events:none;
+    box-shadow:0 0 0 2px var(--blue),0 0 0 6px rgba(0,113,227,.28);
+    transition:all .26s cubic-bezier(.2,.7,.2,1);
+  }
+  .tour-ring.pulse{animation:tourpulse 1.8s ease-in-out infinite;}
+  @keyframes tourpulse{
+    0%,100%{box-shadow:0 0 0 2px var(--blue),0 0 0 6px rgba(0,113,227,.28);}
+    50%{box-shadow:0 0 0 2px var(--blue),0 0 0 10px rgba(0,113,227,.14);}
+  }
+  .coach{
+    position:fixed;z-index:6;width:min(360px,calc(100vw - 32px));
+    background:var(--paper);border:1px solid var(--line);border-radius:18px;
+    box-shadow:0 24px 70px rgba(0,0,0,.3);padding:20px 22px;
+    transition:top .26s cubic-bezier(.2,.7,.2,1),left .26s cubic-bezier(.2,.7,.2,1);
+  }
+  .coach .ch-arrow{
+    position:absolute;width:14px;height:14px;background:var(--paper);
+    border:1px solid var(--line);transform:rotate(45deg);
+  }
+  .coach .ch-step{
+    font-size:12px;font-weight:600;letter-spacing:0.03em;text-transform:uppercase;color:var(--blue);
+  }
+  .coach .ch-title{margin-top:6px;font-size:20px;font-weight:600;letter-spacing:-0.02em;line-height:1.15;}
+  .coach .ch-body{margin-top:9px;font-size:14.5px;color:var(--ink2);letter-spacing:-0.012em;line-height:1.45;}
+  .coach .ch-body b{color:var(--ink);font-weight:600;}
+  .coach .ch-body .kbd{font-size:12px;}
+  .coach .ch-try{
+    margin-top:13px;padding:11px 14px;border-radius:13px;
+    background:var(--tile);font-size:13.5px;color:var(--ink2);letter-spacing:-0.01em;line-height:1.4;
+    display:flex;align-items:center;gap:9px;transition:background .2s ease,color .2s ease;
+  }
+  .coach .ch-try .ti{
+    width:22px;height:22px;border-radius:50%;flex:0 0 22px;
+    display:inline-flex;align-items:center;justify-content:center;
+    border:1.6px solid var(--ink3);color:var(--ink3);transition:all .2s ease;
+  }
+  .coach .ch-try.done{background:rgba(52,199,89,.13);color:#1f8f3f;}
+  .coach .ch-try.done .ti{background:var(--green);border-color:var(--green);color:#fff;}
+  .coach .ch-acts{margin-top:18px;display:flex;align-items:center;gap:10px;}
+  .coach .ch-dots{display:flex;gap:6px;margin-right:auto;}
+  .coach .ch-dots .d{width:7px;height:7px;border-radius:50%;background:var(--toggle-off);transition:background .2s ease,width .2s ease;}
+  .coach .ch-dots .d.on{background:var(--blue);width:18px;border-radius:980px;}
+  .coach .ch-skip{
+    appearance:none;border:none;background:none;cursor:pointer;font-family:inherit;
+    font-size:13.5px;color:var(--ink3);letter-spacing:-0.012em;padding:6px 4px;
+  }
+  .coach .ch-skip:hover{color:var(--ink2);}
+  /* finish step: a compact cheat-sheet inside the coach card */
+  .cheat{margin-top:14px;display:flex;flex-direction:column;gap:0;}
+  .cheat .cr{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:9px 0;border-top:1px solid var(--hair);}
+  .cheat .cr:first-child{border-top:none;}
+  .cheat .cr .cd{font-size:14px;color:var(--ink);letter-spacing:-0.012em;}
+  .cheat .cr .ck{display:inline-flex;gap:5px;align-items:center;flex:0 0 auto;}
+  @media (prefers-reduced-motion:reduce){
+    .tour-dim,.tour-ring,.coach{transition:none;}
+    .tour-ring.pulse{animation:none;}
+  }
+
+  /* ============================================================
      ARCADE EXTRAS — best scores panel, daily badge
   ============================================================ */
   .bestpanel{
@@ -5898,6 +5966,11 @@ void main() {
           </button>
         </div>
 
+        <div class="blockh">Getting started</div>
+        <div class="surface">
+          <div class="setrow"><div><div class="sl">Take the tour</div><div class="sd">A quick guided walkthrough of search, shortcuts, grades, and games.</div></div><button class="btn ghost sm sr" id="setTour">Start tour</button></div>
+        </div>
+
         <div class="blockh">Connection</div>
         <div class="detected">
           <span class="dot" style="width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px rgba(52,199,89,.18);"></span>
@@ -5974,6 +6047,7 @@ void main() {
     </div>
     <div class="scgrp">
       <div class="scl">Go to screen</div>
+      <div class="scrow"><span class="scd">Take the tour</span><span class="sck"><button class="btn ghost sm" id="helpTour" style="padding:5px 12px;font-size:13px;">Start tour</button></span></div>
       <div class="scrow"><span class="scd">Overview</span><span class="sck"><span class="kbd">g</span><span class="kbd plain">then</span><span class="kbd">o</span></span></div>
       <div class="scrow"><span class="scd">Grades</span><span class="sck"><span class="kbd">g</span><span class="kbd plain">then</span><span class="kbd">g</span></span></div>
       <div class="scrow"><span class="scd">Assignments</span><span class="sck"><span class="kbd">g</span><span class="kbd plain">then</span><span class="kbd">a</span></span></div>
@@ -5993,15 +6067,40 @@ void main() {
       <svg width="44" height="44" viewBox="0 0 24 24" fill="none"><path d="M4 7.5L12 4l8 3.5v9L12 20l-8-3.5v-9z" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/><path d="M12 4v16M4 7.5l8 3.5 8-3.5" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg>
     </div>
     <h3>Welcome to Better SGY</h3>
-    <div class="sh-sub">Better SGY redraws your real Schoology page in place — it doesn't replace Schoology, it gives the same data a calmer view. This is the demo, so the grades are sample data and you can explore without logging in. Switch between the four looks any time in Settings.</div>
+    <div class="sh-sub">Better SGY redraws your real Schoology page in place — it doesn't replace Schoology, it gives the same data a calmer view. This is the demo, so the grades are sample data and you can explore without logging in.</div>
     <div class="welcome-list">
       <div class="wl"><span class="wlic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 13h7V4H4v9zM13 20h7v-9h-7v9zM4 20h7v-4H4v4zM13 9h7V4h-7v5z" stroke-width="1.6" stroke-linejoin="round"/></svg></span><div><div class="wlt">Your dashboard</div><div class="wld">Overview shows your average, what's due today, and every course at a glance.</div></div></div>
       <div class="wl"><span class="wlic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="6" stroke-width="1.7"/><path d="M20 20l-3.5-3.5" stroke-width="1.7" stroke-linecap="round"/></svg></span><div><div class="wlt">Search anything</div><div class="wld">Press ⌘K to jump to a course, assignment, or screen. Press ? for all shortcuts.</div></div></div>
-      <div class="wl"><span class="wlic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3" stroke-width="1.6"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" stroke-width="1.6" stroke-linecap="round"/></svg></span><div><div class="wlt">Change the look</div><div class="wld">Open Settings to switch editions — Apple, Halo, Slate, or Friendly — and choose light or dark.</div></div></div>
+      <div class="wl"><span class="wlic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3" stroke-width="1.6"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" stroke-width="1.6" stroke-linecap="round"/></svg></span><div><div class="wlt">Change the look</div><div class="wld">Switch editions — Apple, Halo, Slate, or Friendly — and light or dark, any time in Settings.</div></div></div>
     </div>
     <div class="welcome-acts">
-      <button class="btn" id="welcomeGotit">Got it</button>
-      <button class="tlink" id="welcomeSettings">Open Settings <span class="chev">&rsaquo;</span></button>
+      <button class="btn" id="welcomeTour">Take the tour</button>
+      <button class="tlink" id="welcomeSkip">Skip for now</button>
+    </div>
+  </div>
+</div>
+
+\x3C!-- ============ GUIDED TUTORIAL ============ -->
+<div id="tour" aria-live="polite">
+  <div class="tour-dim" data-d="t"></div>
+  <div class="tour-dim" data-d="b"></div>
+  <div class="tour-dim" data-d="l"></div>
+  <div class="tour-dim" data-d="r"></div>
+  <div class="tour-ring" id="tourRing"></div>
+  <div class="coach" id="coach" role="dialog" aria-label="Tutorial">
+    <span class="ch-arrow" id="coachArrow"></span>
+    <div class="ch-step" id="coachStep">Step 1 of 7</div>
+    <div class="ch-title" id="coachTitle"></div>
+    <div class="ch-body" id="coachBody"></div>
+    <div class="ch-try" id="coachTry" style="display:none;">
+      <span class="ti" id="coachTryIcon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 12l5 5L20 6" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span id="coachTryText"></span>
+    </div>
+    <div class="ch-acts">
+      <div class="ch-dots" id="coachDots"></div>
+      <button class="ch-skip" id="coachSkip">Skip</button>
+      <button class="btn ghost sm" id="coachBack">Back</button>
+      <button class="btn sm" id="coachNext">Next</button>
     </div>
   </div>
 </div>
@@ -7495,17 +7594,309 @@ $("#shortcutsOverlay").addEventListener("click", e=>{ if(e.target.id==="shortcut
 
 /* ---- First-run welcome ---- */
 const WELCOME_KEY = "bsgy-apple-welcomed";
+function markWelcomed(){ try{ localStorage.setItem(WELCOME_KEY, "1"); }catch(e){} }
 function showWelcomeIfFirstRun(){
   let seen = false;
   try{ seen = localStorage.getItem(WELCOME_KEY)==="1"; }catch(e){}
   if(!seen) $("#welcomeOverlay").classList.add("show");
 }
-function dismissWelcome(){
-  $("#welcomeOverlay").classList.remove("show");
-  try{ localStorage.setItem(WELCOME_KEY, "1"); }catch(e){}
-}
-$("#welcomeGotit").addEventListener("click", dismissWelcome);
-$("#welcomeSettings").addEventListener("click", ()=>{ dismissWelcome(); go("settings"); });
+function dismissWelcome(){ $("#welcomeOverlay").classList.remove("show"); }
+$("#welcomeSkip").addEventListener("click", ()=>{ dismissWelcome(); markWelcomed(); });
+$("#welcomeTour").addEventListener("click", ()=>{ dismissWelcome(); Tour.start(); });
+$("#setTour").addEventListener("click", ()=>{ go("settings"); Tour.start(); });
+$("#helpTour").addEventListener("click", ()=>{ closeShortcuts(); Tour.start(); });
+
+/* ============================================================
+   GUIDED TUTORIAL — coachmark tour
+   Each step points at a real element, dims the rest, and (where it
+   makes sense) waits for the user to actually perform the action.
+============================================================ */
+const Tour = (function(){
+  const PAD = 8;            // spotlight padding around target
+  let i = 0, active = false;
+  let cleanup = null;       // per-step listener teardown
+  let advanced = false;     // guard so an action only auto-advances once
+
+  // Steps describe: where they live (screen), what they point at,
+  // copy, and an optional interactive "try" with a detector.
+  const STEPS = [
+    {
+      screen:"overview",
+      target:()=> $(".brand"),
+      title:"This is the demo",
+      body:'Better SGY draws a calmer view over your real Schoology page. These grades are sample data, so you can explore freely. In the live version it sits on top of your own gradebook. You can switch the whole look — <b>Apple, Halo, Slate, Friendly</b> — in Settings.',
+    },
+    {
+      screen:"overview",
+      target:()=> $("#nav"),
+      place:"right",
+      title:"Get around",
+      body:'Click any tab in the sidebar — or stay on the keyboard. Press <span class="kbd">g</span> then a letter to jump: <b>o</b> overview, <b>g</b> grades, <b>a</b> assignments, <b>c</b> calendar, <b>n</b> announcements, <b>m</b> materials, <b>e</b> games, <b>s</b> settings.',
+      tryText:'Press g then a to jump to Assignments.',
+      arm(advance){
+        let pending=false, t=null;
+        const onKey=(e)=>{
+          if(/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName||"")) return;
+          if(pending){
+            pending=false; clearTimeout(t);
+            if(e.key.toLowerCase()==="a") advance();
+            return;
+          }
+          if(e.key==="g"||e.key==="G"){ pending=true; t=setTimeout(()=>pending=false,900); }
+        };
+        document.addEventListener("keydown", onKey, true);
+        return ()=> document.removeEventListener("keydown", onKey, true);
+      },
+    },
+    {
+      screen:"overview",
+      target:()=> $("#searchBtn"),
+      title:"Search everything",
+      body:'Press <span class="kbd">⌘K</span> (<span class="kbd">Ctrl K</span> on Windows) to open search. Find any course, assignment, post, or screen, then press Enter to jump there.',
+      tryText:'Press ⌘K (Ctrl+K) to open search.',
+      arm(advance){
+        const onKey=(e)=>{
+          if((e.metaKey||e.ctrlKey) && (e.key==="k"||e.key==="K")) advance();
+        };
+        document.addEventListener("keydown", onKey, true);
+        return ()=> document.removeEventListener("keydown", onKey, true);
+      },
+    },
+    {
+      screen:"overview",
+      target:()=> $("#searchBtn"),
+      title:"Every shortcut",
+      body:'Press <span class="kbd">?</span> anytime for the full list of keyboard shortcuts. <span class="kbd">Esc</span> closes any overlay.',
+      tryText:'Press ? to see the shortcuts.',
+      arm(advance){
+        const onKey=(e)=>{
+          if(/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName||"")) return;
+          if(e.key==="?") setTimeout(advance, 240);  // let the sheet open first
+        };
+        document.addEventListener("keydown", onKey, true);
+        return ()=> document.removeEventListener("keydown", onKey, true);
+      },
+    },
+    {
+      screen:"overview",
+      target:()=> $('#ovGallery .card') || $("#ovGallery"),
+      title:"Open a course",
+      body:'Click any course card to open its gradebook — every category, every assignment, and a grade-over-time chart.',
+      tryText:'Click a course to open its grades.',
+      arm(advance){
+        const onClick=()=> advance();
+        const cards = $$('#ovGallery [data-card]');
+        cards.forEach(c=> c.addEventListener("click", onClick, {once:true}));
+        return ()=> cards.forEach(c=> c.removeEventListener("click", onClick));
+      },
+    },
+    {
+      screen:"overview",
+      target:()=> $('#nav .navitem[data-screen="games"]'),
+      place:"right",
+      title:"Take a break",
+      body:'The Games tab has four quick arcade games — <b>Slide</b>, <b>Aim</b>, <b>Flow</b>, and <b>Word Search</b>. Each saves your best score.',
+    },
+    {
+      screen:"overview",
+      target:null,             // centered, no target
+      title:"You're set",
+      body:'That\\'s the tour. The essentials, any time:',
+      cheat:true,
+    },
+  ];
+
+  function setScreen(s){ if(s) go(s); }
+
+  function rect(el){
+    if(!el) return null;
+    const r = el.getBoundingClientRect();
+    return {x:r.left-PAD, y:r.top-PAD, w:r.width+PAD*2, h:r.height+PAD*2};
+  }
+
+  function layout(){
+    const step = STEPS[i];
+    const ring = $("#tourRing");
+    const coach = $("#coach");
+    const arrow = $("#coachArrow");
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const dims = { t:$('.tour-dim[data-d="t"]'), b:$('.tour-dim[data-d="b"]'),
+                   l:$('.tour-dim[data-d="l"]'), r:$('.tour-dim[data-d="r"]') };
+
+    const el = step.target ? step.target() : null;
+    const tr = rect(el);
+
+    if(!tr){
+      // No target: dim everything, center the coach, hide ring.
+      dims.t.style.cssText = \`top:0;left:0;width:\${vw}px;height:\${vh}px;\`;
+      dims.b.style.cssText = dims.l.style.cssText = dims.r.style.cssText = "width:0;height:0;";
+      ring.style.opacity = "0";
+      coach.style.left = Math.round((vw - coach.offsetWidth)/2)+"px";
+      coach.style.top  = Math.round((vh - coach.offsetHeight)/2)+"px";
+      arrow.style.display = "none";
+      return;
+    }
+
+    // clamp target rect to viewport
+    const tx = Math.max(0,tr.x), ty = Math.max(0,tr.y);
+    const tw = Math.min(vw,tr.x+tr.w)-tx, th = Math.min(vh,tr.y+tr.h)-ty;
+
+    ring.style.opacity = "1";
+    ring.style.left = tx+"px"; ring.style.top = ty+"px";
+    ring.style.width = tw+"px"; ring.style.height = th+"px";
+    ring.classList.toggle("pulse", !!step.tryText);
+
+    // four dim panels around the hole
+    dims.t.style.cssText = \`top:0;left:0;width:\${vw}px;height:\${Math.max(0,ty)}px;\`;
+    dims.b.style.cssText = \`top:\${ty+th}px;left:0;width:\${vw}px;height:\${Math.max(0,vh-ty-th)}px;\`;
+    dims.l.style.cssText = \`top:\${ty}px;left:0;width:\${Math.max(0,tx)}px;height:\${th}px;\`;
+    dims.r.style.cssText = \`top:\${ty}px;left:\${tx+tw}px;width:\${Math.max(0,vw-tx-tw)}px;height:\${th}px;\`;
+
+    // place coach: prefer right of target, else below, else above, else left
+    const cw = Math.min(360, vw-32);
+    coach.style.width = cw+"px";
+    const ch = coach.offsetHeight || 200;
+    const gap = 16;
+    let place = step.place || "auto";
+    let left, top, arr={};
+
+    const fitsRight = tx+tw+gap+cw <= vw-12;
+    const fitsBelow = ty+th+gap+ch <= vh-12;
+    const fitsAbove = ty-gap-ch >= 12;
+
+    if(place==="auto") place = fitsRight ? "right" : (fitsBelow ? "bottom" : (fitsAbove ? "top" : "left"));
+
+    if(place==="right" && !fitsRight) place = fitsBelow ? "bottom" : (fitsAbove ? "top" : "left");
+
+    if(place==="right"){
+      left = tx+tw+gap; top = ty + th/2 - ch/2;
+      arr = {edge:"left", at: ()=> ({left:-7, top: clampArrow(ty+th/2 - top, ch)})};
+    } else if(place==="left"){
+      left = tx-gap-cw; top = ty + th/2 - ch/2;
+      arr = {edge:"right", at: ()=> ({left:cw-7, top: clampArrow(ty+th/2 - top, ch)})};
+    } else if(place==="top"){
+      left = tx + tw/2 - cw/2; top = ty-gap-ch;
+      arr = {edge:"bottom", at: ()=> ({top:ch-7, left: clampArrow(tx+tw/2 - left, cw)})};
+    } else { // bottom
+      left = tx + tw/2 - cw/2; top = ty+th+gap;
+      arr = {edge:"top", at: ()=> ({top:-7, left: clampArrow(tx+tw/2 - left, cw)})};
+    }
+
+    // keep on screen
+    left = Math.max(12, Math.min(left, vw-cw-12));
+    top  = Math.max(12, Math.min(top, vh-ch-12));
+    coach.style.left = Math.round(left)+"px";
+    coach.style.top  = Math.round(top)+"px";
+
+    // arrow
+    arrow.style.display = "block";
+    const a = arr.at();
+    arrow.style.left = (a.left)+"px";
+    arrow.style.top = (a.top)+"px";
+    // hide the two borders that face inward so it reads as a pointer
+    const inB = "1px solid var(--line)", noB = "1px solid transparent";
+    arrow.style.borderTop = arrow.style.borderLeft = inB;
+    arrow.style.borderBottom = arrow.style.borderRight = noB;
+  }
+  function clampArrow(v, span){ return Math.max(14, Math.min(v-7, span-28)); }
+
+  function renderStep(){
+    const step = STEPS[i];
+    advanced = false;
+    if(cleanup){ cleanup(); cleanup=null; }
+
+    setScreen(step.screen);
+
+    $("#coachStep").textContent = \`Step \${i+1} of \${STEPS.length}\`;
+    $("#coachTitle").textContent = step.title;
+    $("#coachBody").innerHTML = step.body;
+
+    // cheat sheet on the final step
+    let cheatHtml = "";
+    if(step.cheat){
+      cheatHtml =
+        '<div class="cheat">'+
+          '<div class="cr"><span class="cd">Search everything</span><span class="ck"><span class="kbd">⌘</span><span class="kbd">K</span></span></div>'+
+          '<div class="cr"><span class="cd">Jump to a screen</span><span class="ck"><span class="kbd">g</span><span class="kbd plain">then</span><span class="kbd">key</span></span></div>'+
+          '<div class="cr"><span class="cd">All shortcuts</span><span class="ck"><span class="kbd">?</span></span></div>'+
+        '</div>'+
+        '<div class="ch-body" style="margin-top:12px;">Replay this any time from <b>Settings → Take the tour</b>.</div>';
+    }
+    // inject/clear the cheat sheet block (final step only)
+    const prevCheat = document.getElementById("coachCheat");
+    if(prevCheat) prevCheat.remove();
+    if(cheatHtml) $("#coachBody").insertAdjacentHTML("afterend", \`<span id="coachCheat">\${cheatHtml}</span>\`);
+
+    // interactive "try"
+    const tryEl = $("#coachTry");
+    if(step.tryText){
+      tryEl.style.display = "flex";
+      tryEl.classList.remove("done");
+      $("#coachTryText").textContent = step.tryText;
+    } else {
+      tryEl.style.display = "none";
+    }
+
+    // buttons
+    $("#coachBack").style.visibility = i===0 ? "hidden" : "visible";
+    $("#coachNext").textContent = (i===STEPS.length-1) ? "Done" : "Next";
+    $("#coachSkip").style.display = (i===STEPS.length-1) ? "none" : "block";
+    renderDots();
+
+    // arm detector (after a frame so the target is laid out)
+    requestAnimationFrame(()=>{
+      layout();
+      $("#coachNext").focus({preventScroll:true});
+      if(step.arm){
+        cleanup = step.arm(()=>{
+          if(advanced) return; advanced = true;
+          markTryDone();
+          setTimeout(()=> next(), 520);
+        });
+      }
+    });
+  }
+
+  function markTryDone(){
+    const t = $("#coachTry");
+    if(t && t.style.display!=="none") t.classList.add("done");
+  }
+
+  function renderDots(){
+    $("#coachDots").innerHTML = STEPS.map((_,n)=>\`<span class="d\${n===i?" on":""}"></span>\`).join("");
+  }
+
+  function start(){
+    closeAllOverlays();
+    i = 0; active = true;
+    $("#tour").classList.add("show");
+    renderStep();
+  }
+  function next(){
+    if(i>=STEPS.length-1){ finish(); return; }
+    i++; renderStep();
+  }
+  function back(){ if(i>0){ i--; renderStep(); } }
+  function finish(){
+    end();
+    markWelcomed();
+  }
+  function end(){
+    active = false;
+    if(cleanup){ cleanup(); cleanup=null; }
+    $("#tour").classList.remove("show");
+    const c = document.getElementById("coachCheat"); if(c) c.remove();
+  }
+
+  // wiring
+  $("#coachNext").addEventListener("click", next);
+  $("#coachBack").addEventListener("click", back);
+  $("#coachSkip").addEventListener("click", finish);
+  window.addEventListener("resize", ()=>{ if(active) layout(); });
+  window.addEventListener("scroll", ()=>{ if(active) layout(); }, true);
+
+  return { start, isActive:()=>active, end };
+})();
 
 /* ---- Global keyboard shortcuts ---- */
 let gPending = false, gTimer = null;
@@ -7513,20 +7904,21 @@ const G_MAP = {o:"overview", g:"grades", a:"assign", c:"cal", n:"announce", m:"m
 document.addEventListener("keydown", e=>{
   const inField = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement && document.activeElement.tagName);
 
-  // ⌘K / Ctrl+K — search (works even from a field)
+  // ⌘K / Ctrl+K — search (works even from a field; suppressed during the tour)
   if((e.metaKey||e.ctrlKey) && (e.key==="k"||e.key==="K")){
-    e.preventDefault(); openSearch(); return;
+    e.preventDefault(); if(!Tour.isActive()) openSearch(); return;
   }
-  // Esc — close any overlay
+  // Esc — close any overlay, or skip the tour
   if(e.key==="Escape"){
+    if(Tour.isActive()){ e.preventDefault(); Tour.end(); try{ localStorage.setItem(WELCOME_KEY,"1"); }catch(_){} return; }
     if(anyOverlayOpen()){ e.preventDefault(); closeAllOverlays(); }
     return;
   }
   if(inField) return;          // don't hijack typing
   if(e.metaKey||e.ctrlKey||e.altKey) return;
 
-  // ? — shortcuts help
-  if(e.key==="?"){ e.preventDefault(); openShortcuts(); return; }
+  // ? — shortcuts help (suppressed during the tour; the tour step handles it)
+  if(e.key==="?"){ e.preventDefault(); if(!Tour.isActive()) openShortcuts(); return; }
 
   // g then <letter>
   if(gPending){
@@ -8830,6 +9222,133 @@ showWelcomeIfFirstRun();  // first-run welcome card
   .welcome .wl-x svg { width: 15px; height: 15px; }
 
   /* ============================================================
+     ADDED · GUIDED TUTORIAL (coachmark tour)
+     Calm + monochrome: a dimmed scrim with a transparent spotlight
+     cut out around the target, and a hairline callout that points
+     at it. Color stays signal-only (none used here).
+     ============================================================ */
+  .tour { position: fixed; inset: 0; z-index: 300; display: none; }
+  .tour.show { display: block; }
+  /* scrim built from four panels so the spotlight stays a clean hole */
+  .tour-scrim {
+    position: fixed; background: rgba(20,20,15,0.46);
+    transition: all 220ms cubic-bezier(.4,0,.2,1);
+  }
+  html[data-theme="dark"] .tour-scrim { background: rgba(0,0,0,0.62); }
+  /* ring around the spotlit element */
+  .tour-ring {
+    position: fixed; pointer-events: none; z-index: 301;
+    border: 1px solid var(--hair-strong);
+    border-radius: var(--radius-sm);
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.10);
+    transition: all 220ms cubic-bezier(.4,0,.2,1);
+  }
+  html[data-theme="dark"] .tour-ring { box-shadow: 0 0 0 1px rgba(0,0,0,0.4); }
+
+  .tour-pop {
+    position: fixed; z-index: 302; width: 320px; max-width: calc(100vw - 32px);
+    background: var(--paper); border: 1px solid var(--hair-strong);
+    border-radius: var(--radius); overflow: hidden;
+    box-shadow: 0 24px 70px rgba(0,0,0,0.30);
+    transition: top 220ms cubic-bezier(.4,0,.2,1), left 220ms cubic-bezier(.4,0,.2,1);
+  }
+  .tour-pop .tp-body { padding: 18px 20px 4px; }
+  .tour-pop .tp-eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--ink-4); margin-bottom: 7px;
+  }
+  .tour-pop .tp-title {
+    font-size: 15px; font-weight: 600; color: var(--ink);
+    letter-spacing: -0.012em; line-height: 1.3;
+  }
+  .tour-pop .tp-text {
+    font-size: 13px; color: var(--ink-3); font-weight: 450;
+    line-height: 1.5; margin-top: 6px;
+  }
+  .tour-pop .tp-text kbd { margin: 0 1px; }
+  .tour-pop .tp-ack {
+    font-size: 12px; font-weight: 500; color: var(--signal-up);
+    margin-top: 9px; display: none; align-items: center; gap: 6px;
+  }
+  .tour-pop .tp-ack.show { display: inline-flex; }
+  .tour-pop .tp-ack svg { width: 13px; height: 13px; }
+  .tour-pop .tp-foot {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 20px 16px; margin-top: 12px;
+    border-top: 1px solid var(--hair);
+  }
+  .tour-pop .tp-dots { display: inline-flex; align-items: center; gap: 5px; }
+  .tour-pop .tp-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--ink-4); opacity: 0.4; transition: opacity 130ms ease, width 130ms ease, border-radius 130ms ease;
+  }
+  .tour-pop .tp-dot.on { opacity: 1; width: 14px; border-radius: 999px; background: var(--ink); }
+  .tour-pop .tp-prog {
+    font-size: 11.5px; color: var(--ink-4); font-weight: 450;
+    font-variant-numeric: tabular-nums;
+  }
+  .tour-pop .tp-spacer { flex: 1; }
+  .tour-pop .tp-btn {
+    appearance: none; cursor: pointer; font-family: inherit;
+    font-size: 12.5px; font-weight: 500; color: var(--ink-2);
+    background: var(--paper); border: 1px solid var(--hair-strong);
+    border-radius: var(--radius-sm); padding: 6px 12px;
+    transition: background 130ms ease, border-color 130ms ease;
+  }
+  .tour-pop .tp-btn:hover { background: var(--paper-2); }
+  .tour-pop .tp-btn.solid { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .tour-pop .tp-btn.solid:hover { background: #000; }
+  html[data-theme="dark"] .tour-pop .tp-btn.solid:hover { background: var(--ink); opacity: 0.9; }
+  .tour-pop .tp-skip {
+    appearance: none; cursor: pointer; font-family: inherit;
+    background: none; border: none; padding: 0;
+    font-size: 12px; font-weight: 450; color: var(--ink-4);
+    transition: color 130ms ease;
+  }
+  .tour-pop .tp-skip:hover { color: var(--ink-2); }
+  /* little arrow connecting the callout to its target */
+  .tour-pop .tp-arrow {
+    position: absolute; width: 11px; height: 11px;
+    background: var(--paper); border: 1px solid var(--hair-strong);
+    transform: rotate(45deg); display: none;
+  }
+  .tour-pop[data-arrow="up"]    .tp-arrow { display: block; top: -6px;  border-right: none; border-bottom: none; }
+  .tour-pop[data-arrow="down"]  .tp-arrow { display: block; bottom: -6px; border-left: none;  border-top: none; }
+  .tour-pop[data-arrow="left"]  .tp-arrow { display: block; left: -6px;  border-right: none; border-top: none; }
+  .tour-pop[data-arrow="right"] .tp-arrow { display: block; right: -6px; border-left: none;  border-bottom: none; }
+  /* centered intro/finish card (no target) */
+  .tour-pop.center { width: 380px; }
+  .tour-pop.center .tp-arrow { display: none !important; }
+  /* compact cheat-sheet for the finish step */
+  .tour-cheats {
+    margin-top: 12px; border: 1px solid var(--hair); border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+  .tour-cheats .tc-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    padding: 7px 12px; border-bottom: 1px solid var(--hair);
+  }
+  .tour-cheats .tc-row:last-child { border-bottom: none; }
+  .tour-cheats .tc-l { font-size: 12.5px; color: var(--ink-2); font-weight: 450; }
+  .tour-cheats .tc-k { display: inline-flex; align-items: center; gap: 4px; flex: none; }
+  @media (max-width: 560px) {
+    .tour-pop, .tour-pop.center { width: calc(100vw - 32px); }
+  }
+
+  /* settings: link-style action row (Take the tour / reset) */
+  .set-action {
+    appearance: none; cursor: pointer; font-family: inherit; text-align: left;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    width: 100%; padding: 13px 16px; background: var(--paper);
+    border: none; transition: background 130ms ease;
+  }
+  .set-action:hover { background: var(--paper-2); }
+  .set-action .sa-l { font-size: 13.5px; font-weight: 500; color: var(--ink); }
+  .set-action .sa-d { font-size: 12px; color: var(--ink-4); font-weight: 450; margin-top: 2px; }
+  .set-action .sa-go { color: var(--ink-4); display: inline-flex; }
+  .set-action .sa-go svg { width: 16px; height: 16px; }
+
+  /* ============================================================
      ADDED · EMPTY STATES
      ============================================================ */
   .empty {
@@ -9211,6 +9730,17 @@ showWelcomeIfFirstRun();  // first-run welcome card
           </div>
 
           <div class="set-block">
+            <p class="sb-title">Tutorial</p>
+            <p class="sb-desc">A short guided tour of shortcuts and features.</p>
+            <div class="panel">
+              <button class="set-action" id="tourStart">
+                <span><span class="sa-l">Take the tour</span><span class="sa-d">Step through the demo. Replayable anytime.</span></span>
+                <span class="sa-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="set-block">
             <p class="sb-title">Connection</p>
             <div class="detect-row">
               <span class="ddot"></span>
@@ -9329,7 +9859,7 @@ showWelcomeIfFirstRun();  // first-run welcome card
     <div class="help-card">
       <div class="help-head">
         <h2>Keyboard shortcuts</h2>
-        <span class="hclose">Esc to close</span>
+        <button class="tp-skip" id="helpTour" type="button" style="cursor:pointer;">Take the tour</button>
       </div>
       <div class="help-body">
         <div class="help-row"><span class="hl">Search</span><span class="hk"><kbd id="helpSearchKey">⌘K</kbd></span></div>
@@ -9344,6 +9874,34 @@ showWelcomeIfFirstRun();  // first-run welcome card
         <div class="help-row"><span class="hl">Settings</span><span class="hk"><kbd>g</kbd><kbd>s</kbd></span></div>
         <div class="help-row"><span class="hl">This help</span><span class="hk"><kbd>?</kbd></span></div>
         <div class="help-row"><span class="hl">Close overlays</span><span class="hk"><kbd>Esc</kbd></span></div>
+      </div>
+    </div>
+  </div>
+
+  \x3C!-- ============================================================
+       ADDED · GUIDED TUTORIAL (coachmark tour)
+       ============================================================ -->
+  <div class="tour" id="tour" role="dialog" aria-modal="true" aria-label="Guided tutorial">
+    <div class="tour-scrim" data-s="top"></div>
+    <div class="tour-scrim" data-s="bottom"></div>
+    <div class="tour-scrim" data-s="left"></div>
+    <div class="tour-scrim" data-s="right"></div>
+    <div class="tour-ring" id="tourRing"></div>
+    <div class="tour-pop" id="tourPop">
+      <span class="tp-arrow"></span>
+      <div class="tp-body">
+        <div class="tp-eyebrow" id="tourEyebrow">Tutorial</div>
+        <div class="tp-title" id="tourTitle"></div>
+        <div class="tp-text" id="tourText"></div>
+        <div class="tp-ack" id="tourAck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 6"/></svg><span id="tourAckText"></span></div>
+        <div id="tourExtra"></div>
+      </div>
+      <div class="tp-foot">
+        <span class="tp-dots" id="tourDots"></span>
+        <span class="tp-spacer"></span>
+        <button class="tp-skip" id="tourSkip" type="button">Skip</button>
+        <button class="tp-btn" id="tourBack" type="button">Back</button>
+        <button class="tp-btn solid" id="tourNext" type="button">Next</button>
       </div>
     </div>
   </div>
@@ -11138,6 +11696,7 @@ showWelcomeIfFirstRun();  // first-run welcome card
       cmdkSel = 0;
       renderCmdk();
       setTimeout(function () { cmdkInput.focus(); }, 0);
+      if (typeof window.__haloTourSawSearch === "function") window.__haloTourSawSearch();
     }
     function closeSearch() { searchOvl.classList.remove("show"); }
     function runCmdk(i) {
@@ -11186,9 +11745,14 @@ showWelcomeIfFirstRun();  // first-run welcome card
         if (searchOvl.classList.contains("show")) closeSearch(); else openSearch();
         return;
       }
-      // Esc closes overlays
+      // Esc closes overlays / skips the tour
       if (e.key === "Escape") {
         if (searchOvl.classList.contains("show")) { closeSearch(); return; }
+        if (typeof tourActiveNow === "function" && tourActiveNow()) {
+          // if a help overlay was opened by the tour, close it too
+          if (helpOvl.classList.contains("show")) closeHelp();
+          endTour(true); return;
+        }
         if (helpOvl.classList.contains("show")) { closeHelp(); return; }
       }
       // don't intercept plain keys while typing or while search overlay is open
@@ -11213,36 +11777,259 @@ showWelcomeIfFirstRun();  // first-run welcome card
     });
 
     // ============================================================
-    // ADDED · FIRST-RUN WELCOME
+    // ADDED · GUIDED TUTORIAL (coachmark tour)
+    // Replaces the simple first-run welcome with a step-through tour
+    // that points at real UI, lets the user try shortcuts, and can be
+    // replayed from Settings or the ? help overlay.
     // ============================================================
     var WELCOME_KEY = "bsgy-halo-welcomed";
-    (function welcome() {
+    var MOD = (navigator.platform || "").toLowerCase().indexOf("mac") >= 0 ? "⌘K" : "Ctrl+K";
+
+    // each step: title/text, a target selector (or null for centered),
+    // the screen it lives on, where the callout sits, and optional hooks.
+    var TOUR_STEPS = [
+      {
+        target: null, screen: "overview", center: true,
+        eyebrow: "Welcome",
+        title: "Better SGY, drawn over Schoology.",
+        text: "This is the demo, filled with sample grades — in the live extension these are drawn over your real Schoology page. There are four looks (Apple, Halo, Slate, Friendly); switch them in Settings. Let’s take a quick tour."
+      },
+      {
+        target: "#nav", screen: "overview", side: "right",
+        eyebrow: "Navigation",
+        title: "Move between screens.",
+        text: "Click any tab here — or press <kbd>g</kbd> then a letter: <kbd>o</kbd> overview, <kbd>g</kbd> grades, <kbd>a</kbd> assignments, <kbd>c</kbd> calendar, <kbd>n</kbd> announcements, <kbd>m</kbd> materials, <kbd>e</kbd> games, <kbd>s</kbd> settings."
+      },
+      {
+        target: "#searchCue", screen: "overview", side: "right",
+        eyebrow: "Search",
+        title: "Find anything fast.",
+        text: "Press <kbd>" + MOD + "</kbd> to search courses, assignments, announcements and screens. Try it now.",
+        ack: "Search opened — nice.",
+        wantKey: "search"
+      },
+      {
+        target: null, screen: "overview", center: true,
+        eyebrow: "Shortcuts",
+        title: "The full list is one key away.",
+        text: "Press <kbd>?</kbd> any time for the keyboard shortcuts overlay. We’ll open it for you.",
+        showHelp: true
+      },
+      {
+        target: '.nav-item[data-screen="grades"]', screen: "overview", side: "right",
+        eyebrow: "Grades",
+        title: "Open a course gradebook.",
+        text: "On the Grades screen, pick a course to see its categories, recent work, and a grade-over-time chart."
+      },
+      {
+        target: '.nav-item[data-screen="games"]', screen: "overview", side: "right",
+        eyebrow: "Games",
+        title: "A quiet break.",
+        text: "This edition includes four small games: Minesweeper, Lights Out, Dodge, and Word Search. Best scores are kept on this device."
+      },
+      {
+        target: null, screen: "overview", center: true, finish: true,
+        eyebrow: "Done",
+        title: "That’s the tour.",
+        text: "A quick cheat-sheet to keep:"
+      }
+    ];
+
+    var tourEl = $("#tour"), tourPop = $("#tourPop"), tourRing = $("#tourRing");
+    var tourTitle = $("#tourTitle"), tourText = $("#tourText"), tourEyebrow = $("#tourEyebrow");
+    var tourDots = $("#tourDots"), tourBack = $("#tourBack"), tourNext = $("#tourNext"), tourSkip = $("#tourSkip");
+    var tourAck = $("#tourAck"), tourAckText = $("#tourAckText"), tourExtra = $("#tourExtra");
+    var tourScrims = $$(".tour-scrim", tourEl);
+    var tourIdx = -1, tourActive = false, tourAcked = false;
+
+    function tourActiveNow() { return tourActive; }
+
+    function markWelcomed() { try { localStorage.setItem(WELCOME_KEY, "1"); } catch (e) {} }
+
+    function startTour(fromReplay) {
+      // close other overlays so the tour owns the screen
+      closeSearch(); closeHelp();
+      tourActive = true;
+      tourEl.classList.add("show");
+      tourIdx = 0;
+      showTourStep();
+    }
+    function endTour(complete) {
+      tourActive = false;
+      tourEl.classList.remove("show");
+      if (complete) markWelcomed();
+    }
+
+    function layoutScrim(rect) {
+      // four panels surrounding the spotlight rect; if no rect, full cover
+      var vw = window.innerWidth, vh = window.innerHeight;
+      var t = tourScrims[0], b = tourScrims[1], l = tourScrims[2], r = tourScrims[3];
+      if (!rect) {
+        t.style.cssText = "top:0;left:0;width:100vw;height:100vh;";
+        b.style.cssText = l.style.cssText = r.style.cssText = "width:0;height:0;";
+        return;
+      }
+      var pad = 6;
+      var x = Math.max(0, rect.left - pad), y = Math.max(0, rect.top - pad);
+      var w = Math.min(vw, rect.right + pad) - x, h = Math.min(vh, rect.bottom + pad) - y;
+      t.style.cssText = "top:0;left:0;width:" + vw + "px;height:" + y + "px;";
+      b.style.cssText = "top:" + (y + h) + "px;left:0;width:" + vw + "px;height:" + (vh - y - h) + "px;";
+      l.style.cssText = "top:" + y + "px;left:0;width:" + x + "px;height:" + h + "px;";
+      r.style.cssText = "top:" + y + "px;left:" + (x + w) + "px;width:" + (vw - x - w) + "px;height:" + h + "px;";
+      tourRing.style.cssText = "top:" + y + "px;left:" + x + "px;width:" + w + "px;height:" + h + "px;display:block;";
+    }
+
+    function placePop(rect, side, center) {
+      var vw = window.innerWidth, vh = window.innerHeight;
+      tourPop.classList.toggle("center", !!center);
+      // measure after content + class set
+      var pw = tourPop.offsetWidth, ph = tourPop.offsetHeight, gap = 14, m = 12;
+      var top, left, arrow = null;
+      if (center || !rect) {
+        left = (vw - pw) / 2; top = (vh - ph) / 2;
+        tourRing.style.display = "none";
+      } else {
+        // choose a side that fits
+        var fitsRight = rect.right + gap + pw <= vw - m;
+        var fitsLeft = rect.left - gap - pw >= m;
+        var fitsBelow = rect.bottom + gap + ph <= vh - m;
+        var use = side;
+        if (use === "right" && !fitsRight) use = fitsLeft ? "left" : (fitsBelow ? "down" : "up");
+        if (use === "left" && !fitsLeft) use = fitsRight ? "right" : (fitsBelow ? "down" : "up");
+        if (use === "down" && !fitsBelow) use = "up";
+        if (use === "right") { left = rect.right + gap; top = rect.top + rect.height / 2 - ph / 2; arrow = "left"; }
+        else if (use === "left") { left = rect.left - gap - pw; top = rect.top + rect.height / 2 - ph / 2; arrow = "right"; }
+        else if (use === "down") { top = rect.bottom + gap; left = rect.left + rect.width / 2 - pw / 2; arrow = "up"; }
+        else { top = rect.top - gap - ph; left = rect.left + rect.width / 2 - pw / 2; arrow = "down"; }
+      }
+      // clamp into viewport
+      left = Math.max(m, Math.min(left, vw - pw - m));
+      top = Math.max(m, Math.min(top, vh - ph - m));
+      tourPop.style.left = left + "px";
+      tourPop.style.top = top + "px";
+      if (arrow) {
+        tourPop.setAttribute("data-arrow", arrow);
+        var ar = tourPop.querySelector(".tp-arrow");
+        if (arrow === "left" || arrow === "right") {
+          var cy = rect.top + rect.height / 2 - top; cy = Math.max(12, Math.min(cy, ph - 12));
+          ar.style.top = cy + "px"; ar.style.left = ""; ar.style.bottom = "";
+        } else {
+          var cx = rect.left + rect.width / 2 - left; cx = Math.max(14, Math.min(cx, pw - 14));
+          ar.style.left = cx + "px"; ar.style.top = ""; ar.style.right = "";
+        }
+      } else {
+        tourPop.removeAttribute("data-arrow");
+      }
+    }
+
+    function cheatSheet() {
+      var rows = [
+        ["Search", "<kbd>" + MOD + "</kbd>"],
+        ["Shortcuts help", "<kbd>?</kbd>"],
+        ["Jump to a screen", "<kbd>g</kbd> <kbd>o g a c n m e s</kbd>"],
+        ["Close overlays", "<kbd>Esc</kbd>"]
+      ];
+      var h = '<div class="tour-cheats">';
+      rows.forEach(function (r) {
+        h += '<div class="tc-row"><span class="tc-l">' + r[0] + '</span><span class="tc-k">' + r[1] + '</span></div>';
+      });
+      return h + '</div>';
+    }
+
+    function showTourStep() {
+      var step = TOUR_STEPS[tourIdx];
+      if (!step) { endTour(true); return; }
+      tourAcked = false;
+
+      // make sure the right screen is visible so the target exists
+      if (step.screen) goScreen(step.screen);
+
+      // content
+      tourEyebrow.textContent = step.eyebrow || "Tutorial";
+      tourTitle.textContent = step.title || "";
+      tourText.innerHTML = step.text || "";
+      tourExtra.innerHTML = step.finish ? cheatSheet() : "";
+      tourAck.classList.remove("show");
+      if (step.ack) tourAckText.textContent = step.ack;
+
+      // progress dots
+      var dh = "";
+      for (var i = 0; i < TOUR_STEPS.length; i++) dh += '<span class="tp-dot' + (i === tourIdx ? " on" : "") + '"></span>';
+      tourDots.innerHTML = dh;
+
+      // buttons
+      tourBack.style.visibility = tourIdx === 0 ? "hidden" : "visible";
+      tourNext.textContent = step.finish ? "Done" : (tourIdx === TOUR_STEPS.length - 1 ? "Done" : "Next");
+
+      // optional: show the shortcuts help overlay for the ? step;
+      // close it again on any other step so it never lingers.
+      if (step.showHelp) { searchOvl.classList.remove("show"); helpOvl.classList.add("show"); }
+      else if (helpOvl.classList.contains("show")) { helpOvl.classList.remove("show"); }
+
+      // resolve + position target
+      requestAnimationFrame(function () {
+        var rect = null;
+        if (step.target && !step.center) {
+          var node = $(step.target);
+          if (node) rect = node.getBoundingClientRect();
+        }
+        layoutScrim(rect);
+        placePop(rect, step.side || "right", step.center || !rect);
+      });
+    }
+
+    function tourNextStep() {
+      if (tourIdx >= TOUR_STEPS.length - 1) { endTour(true); return; }
+      tourIdx++; showTourStep();
+    }
+    function tourPrevStep() {
+      if (tourIdx <= 0) return;
+      // closing help if we are leaving the ? step
+      tourIdx--; showTourStep();
+    }
+
+    tourNext.addEventListener("click", tourNextStep);
+    tourBack.addEventListener("click", tourPrevStep);
+    tourSkip.addEventListener("click", function () { endTour(true); });
+
+    // when a step is waiting on a key (⌘K), acknowledge + advance
+    function tourSawSearch() {
+      var step = TOUR_STEPS[tourIdx];
+      if (tourActive && step && step.wantKey === "search" && !tourAcked) {
+        tourAcked = true;
+        tourAck.classList.add("show");
+        setTimeout(function () {
+          // search overlay is open; close it and move on
+          closeSearch();
+          tourNextStep();
+        }, 850);
+      }
+    }
+    window.__haloTourSawSearch = tourSawSearch;
+
+    // reposition on resize while active
+    window.addEventListener("resize", function () {
+      if (!tourActive) return;
+      var step = TOUR_STEPS[tourIdx]; if (!step) return;
+      var rect = null;
+      if (step.target && !step.center) { var n = $(step.target); if (n) rect = n.getBoundingClientRect(); }
+      layoutScrim(rect);
+      placePop(rect, step.side || "right", step.center || !rect);
+    });
+
+    // entry points: Settings + help overlay
+    var tourStartBtn = $("#tourStart");
+    if (tourStartBtn) tourStartBtn.addEventListener("click", function () { startTour(true); });
+    var helpTourBtn = $("#helpTour");
+    if (helpTourBtn) helpTourBtn.addEventListener("click", function () { closeHelp(); startTour(true); });
+
+    // first-run launch
+    (function () {
       var done;
       try { done = localStorage.getItem(WELCOME_KEY) === "1"; } catch (e) { done = false; }
       if (done) return;
-      var slot = $("#welcomeSlot"); if (!slot) return;
-      var card = el("div", "welcome");
-      card.setAttribute("data-export-hide", "");
-      card.innerHTML =
-        '<button class="wl-x" aria-label="Dismiss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>' +
-        '<div class="wl-eyebrow">Welcome</div>' +
-        '<div class="wl-title">Your Schoology, redrawn in place.</div>' +
-        '<div class="wl-body">Better SGY draws this over your real Schoology page. It does not replace Schoology. ' +
-        'This is the demo. The grades are sample data, so you can look around without logging in. ' +
-        'Four looks. Switch in Settings.</div>' +
-        '<div class="wl-actions">' +
-        '<button class="btn solid" data-wl="settings">Open Settings</button>' +
-        '<button class="btn" data-wl="dismiss">Dismiss</button>' +
-        '</div>';
-      slot.appendChild(card);
-      function dismiss() { try { localStorage.setItem(WELCOME_KEY, "1"); } catch (e) {} card.parentNode && card.parentNode.removeChild(card); }
-      card.querySelector(".wl-x").addEventListener("click", dismiss);
-      card.addEventListener("click", function (e) {
-        var b = e.target.closest("[data-wl]"); if (!b) return;
-        var act = b.getAttribute("data-wl");
-        dismiss();
-        if (act === "settings") goScreen("settings");
-      });
+      // let layout settle, then launch
+      setTimeout(function () { startTour(false); }, 350);
     })();
 
     // ============================================================
@@ -12051,6 +12838,87 @@ showWelcomeIfFirstRun();  // first-run welcome card
         cursor:pointer;display:grid;place-items:center;transition:background .12s,transform .12s}
   .welcome .wx:hover{background:var(--card);transform:scale(1.08)}
 
+  /* ============================================================
+     GUIDED TOUR — soft spotlight + warm coachmark callouts
+     ============================================================ */
+  .tourdim{position:fixed;inset:0;z-index:90;display:none;pointer-events:none;
+        background:rgba(58,47,37,.42);backdrop-filter:blur(1.5px);
+        transition:background .2s ease}
+  html[data-theme="dark"] .tourdim{background:rgba(0,0,0,.55)}
+  .tourdim.show{display:block}
+  /* the spotlight: a transparent hole punched over the target via a huge ring shadow */
+  .tourspot{position:fixed;z-index:91;border-radius:18px;pointer-events:none;display:none;
+        box-shadow:0 0 0 9999px rgba(58,47,37,.42),0 0 0 3px rgba(255,180,84,.9);
+        transition:all .26s cubic-bezier(.2,.8,.2,1)}
+  html[data-theme="dark"] .tourspot{box-shadow:0 0 0 9999px rgba(0,0,0,.55),0 0 0 3px rgba(255,180,84,.85)}
+  .tourspot.show{display:block}
+  .tourspot.nopulse{animation:none}
+  @keyframes tourpulse{0%,100%{box-shadow:0 0 0 9999px rgba(58,47,37,.42),0 0 0 3px rgba(255,180,84,.9)}
+        50%{box-shadow:0 0 0 9999px rgba(58,47,37,.42),0 0 0 6px rgba(255,180,84,.55)}}
+  .tourspot.pulse{animation:tourpulse 1.8s ease-in-out infinite}
+  html[data-theme="dark"] .tourspot.pulse{animation:tourpulsed 1.8s ease-in-out infinite}
+  @keyframes tourpulsed{0%,100%{box-shadow:0 0 0 9999px rgba(0,0,0,.55),0 0 0 3px rgba(255,180,84,.85)}
+        50%{box-shadow:0 0 0 9999px rgba(0,0,0,.55),0 0 0 6px rgba(255,180,84,.5)}}
+
+  .coach{position:fixed;z-index:93;width:300px;max-width:calc(100vw - 28px);
+        background:var(--card);border:1.5px solid var(--line);border-radius:22px;
+        padding:16px 18px 15px;box-shadow:0 26px 60px -22px rgba(80,50,15,.7);
+        display:none;animation:coachin .24s cubic-bezier(.2,.9,.25,1)}
+  .coach.show{display:block}
+  @keyframes coachin{from{opacity:0;transform:translateY(6px) scale(.985)}to{opacity:1;transform:none}}
+  .coach .ctop{display:flex;align-items:center;gap:9px;margin-bottom:7px}
+  .coach .ce{font-size:20px;flex:none}
+  .coach .ct{font-size:16px;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+  .coach p{font-size:14px;font-weight:600;color:var(--ink);line-height:1.5}
+  .coach p span{color:var(--ink-2)}
+  .coach .ckbd{display:inline-flex;gap:4px;margin:0 1px;vertical-align:baseline}
+  .coach .ckbd kbd{font:inherit;font-size:11.5px;font-weight:800;background:var(--paper-2);color:var(--ink);
+        border:1.5px solid var(--line);padding:2px 7px;border-radius:8px;line-height:1.3}
+  .coach .cdid{font-size:12.5px;font-weight:800;color:var(--sage);margin-top:8px;display:none}
+  .coach .cdid.show{display:block;animation:fade .2s ease}
+  /* little pointer arrow toward the target */
+  .coach .carrow{position:absolute;width:16px;height:16px;background:var(--card);
+        border:1.5px solid var(--line);transform:rotate(45deg)}
+  .coach.atop .carrow{bottom:-9px;border-top:none;border-left:none}
+  .coach.abot .carrow{top:-9px;border-bottom:none;border-right:none}
+  .coach.aleft .carrow{right:-9px;border-bottom:none;border-left:none}
+  .coach.aright .carrow{left:-9px;border-top:none;border-right:none}
+  .coach.anone .carrow{display:none}
+
+  .coachfoot{display:flex;align-items:center;gap:8px;margin-top:14px}
+  .coachdots{display:flex;gap:6px;flex:1;align-items:center}
+  .coachdots .cd{width:7px;height:7px;border-radius:50%;background:var(--ink-3);opacity:.45;
+        transition:opacity .15s,background .15s,transform .15s}
+  .coachdots .cd.on{background:var(--coral);opacity:1;transform:scale(1.25)}
+  .coachdots .cd.done{background:var(--peach);opacity:.85}
+  .coachbtn{font:inherit;font-size:13px;font-weight:800;padding:8px 14px;border-radius:13px;cursor:pointer;
+        border:1.5px solid transparent;transition:transform .12s,background .12s,filter .12s}
+  .coachbtn:hover{transform:translateY(-1px)}
+  .coachbtn:active{transform:translateY(0)}
+  .coachbtn.prim{background:var(--ink);color:#fff;box-shadow:0 8px 18px -10px rgba(58,47,37,.6)}
+  .coachbtn.ghost{background:var(--paper-2);color:var(--ink-2);border-color:var(--line)}
+  .coachskip{position:absolute;top:13px;right:14px;font:inherit;font-size:11.5px;font-weight:800;
+        color:var(--ink-3);background:none;border:none;cursor:pointer;padding:2px 4px}
+  .coachskip:hover{color:var(--ink-2)}
+
+  /* tour cheat-sheet on the finish step */
+  .tourcheat{margin-top:12px;background:var(--paper-2);border:1.5px dashed #e3d2b6;border-radius:16px;padding:11px 13px}
+  html[data-theme="dark"] .tourcheat{border-color:#5a4a2e}
+  .tourcheat .tcr{display:flex;align-items:center;gap:9px;padding:4px 0;font-size:12.5px;font-weight:700;color:var(--ink)}
+  .tourcheat .tck{display:flex;gap:4px;flex:none;min-width:74px}
+  .tourcheat .tck kbd{font:inherit;font-size:11px;font-weight:800;background:var(--card);color:var(--ink);
+        border:1.5px solid var(--line);padding:2px 7px;border-radius:8px;min-width:22px;text-align:center}
+
+  /* "take the tour" row in settings */
+  .tourrow{display:flex;align-items:center;gap:13px;padding:13px 18px}
+  .tourrow .ti2{font-size:20px}
+  .tourrow .tt2{flex:1}
+  .tourrow .tn2{font-size:14.5px;font-weight:800}
+  .tourrow .td2{font-size:12.5px;font-weight:600;color:var(--ink-2)}
+
+  @media print{.tourdim,.tourspot,.coach{display:none !important}}
+  @media(max-width:560px){.coach{width:calc(100vw - 28px)}}
+
   /* export button on overview */
   .exportbtn{display:inline-flex;align-items:center;gap:8px;padding:9px 15px;border-radius:14px;
         border:1.5px solid var(--line);background:var(--card);font:inherit;font-size:13px;font-weight:800;
@@ -12139,6 +13007,23 @@ showWelcomeIfFirstRun();  // first-run welcome card
         <div class="shrow"><div class="sk"><kbd>?</kbd></div><div class="sd">this list</div></div>
         <div class="shrow"><div class="sk"><kbd>esc</kbd></div><div class="sd">close any of this</div></div>
       </div>
+      <div style="padding:0 16px 18px"><button class="pingbtn" id="shtour" style="width:100%;justify-content:center">🧭 take the tour</button></div>
+    </div>
+  </div>
+
+  \x3C!-- ===== GUIDED TOUR (coachmarks) ===== -->
+  <div class="tourdim" id="tourdim"></div>
+  <div class="tourspot" id="tourspot"></div>
+  <div class="coach" id="coach" role="dialog" aria-label="quick tour" aria-live="polite">
+    <button class="coachskip" id="coachskip" title="skip the tour">skip</button>
+    <div class="ctop"><span class="ce" id="coachemoji">🙂</span><span class="ct" id="coachtitle"></span></div>
+    <p id="coachbody"></p>
+    <div class="cdid" id="coachdid"></div>
+    <div class="carrow" id="coacharrow"></div>
+    <div class="coachfoot">
+      <div class="coachdots" id="coachdots"></div>
+      <button class="coachbtn ghost" id="coachback">back</button>
+      <button class="coachbtn prim" id="coachnext">next</button>
     </div>
   </div>
 
@@ -13669,6 +14554,11 @@ function viewSettings(){
   return \`
     <div class="pagehd"><h1>Settings</h1><span class="when">make it yours</span></div>
     <p class="lead">you're on Friendly mode. obviously the correct choice, but the others are there.</p>
+    <div class="card tourrow">
+      <span class="ti2">🧭</span>
+      <div class="tt2"><div class="tn2">take the tour</div><div class="td2">the quick walkthrough of shortcuts + features. replay it any time.</div></div>
+      <button class="pingbtn" id="taketour">start tour</button>
+    </div>
     <div class="sechd"><h2>UI Style</h2><span class="sub">pick a vibe</span></div>
     <div class="styles">\${styles}</div>
     <div class="sechd"><h2>Your school</h2></div>
@@ -13729,6 +14619,7 @@ function wireSettings(){
     applyTheme();
   });
   $('#testping').onclick = () => firePing();
+  const tt = $('#taketour'); if(tt) tt.onclick = () => startTour();
 }
 
 /* ============================================================
@@ -13819,6 +14710,7 @@ function openSearch(){
   const ovl = $('#searchovl'); ovl.classList.add('show');
   const inp = $('#searchinput'); inp.value=''; renderSearchResults('');
   setTimeout(()=>inp.focus(), 20);
+  tourReact('search');   // if the tour's search step is open, this passes it
 }
 function closeSearch(){ const o=$('#searchovl'); if(o) o.classList.remove('show'); }
 function searchOpen(){ return $('#searchovl') && $('#searchovl').classList.contains('show'); }
@@ -13905,6 +14797,10 @@ function wireGlobalKeys(){
   $('#searchovl').addEventListener('mousedown', e => { if(e.target.id==='searchovl') closeSearch(); });
   $('#shovl').addEventListener('mousedown', e => { if(e.target.id==='shovl') closeShortcuts(); });
 
+  // "take the tour" from the ? help overlay
+  const shtour = $('#shtour');
+  if(shtour) shtour.onclick = () => { closeShortcuts(); startTour(); };
+
   // search input
   const inp = $('#searchinput');
   inp.addEventListener('input', () => renderSearchResults(inp.value));
@@ -13921,6 +14817,7 @@ function wireGlobalKeys(){
       e.preventDefault(); searchOpen() ? closeSearch() : openSearch(); return;
     }
     if(e.key==='Escape'){
+      if(tour.on){ endTour(true); return; }   // esc skips the tour
       if(searchOpen()){ closeSearch(); return; }
       if(shortcutsOpen()){ closeShortcuts(); return; }
     }
@@ -13945,29 +14842,210 @@ function wireGlobalKeys(){
 }
 
 /* ============================================================
-   FIRST-RUN WELCOME — dismissible, once (localStorage)
+   GUIDED TOUR — interactive coachmark walkthrough.
+   launches once on first open (WELCOME_KEY), re-launchable from
+   settings + the ? help overlay. each step spotlights a real UI
+   element, the user can actually try the thing, esc skips.
    ============================================================ */
 const WELCOME_KEY = 'bsgy-forge-welcomed';
-function maybeShowWelcome(){
-  let done = false;
-  try{ done = localStorage.getItem(WELCOME_KEY)==='1'; }catch(e){}
-  if(done) return;
-  if(state.screen!=='overview') return;   // only greet on the home screen
-  const main = $('#main .screen'); if(!main) return;
-  const card = document.createElement('div');
-  card.className = 'welcome';
-  card.innerHTML = \`
-    <button class="wx" id="welcomex" title="dismiss">×</button>
-    <div class="wtop"><span class="we">🙂</span><span class="wt">hey, welcome in</span></div>
-    <p>this is your real schoology, just redrawn on top of it — same grades and classes, friendlier to look at. it doesn't replace schoology, it just lays over it.
-    <span>and this is the demo, so the grades here are made up. poke around all you want, no login needed. four looks total — swap them anytime in settings.</span></p>\`;
-  main.insertBefore(card, main.firstChild);
-  $('#welcomex').onclick = () => {
-    try{ localStorage.setItem(WELCOME_KEY,'1'); }catch(e){}
-    card.style.opacity='0'; card.style.transform='translateY(-6px)';
-    card.style.transition='opacity .2s ease, transform .2s ease';
-    setTimeout(()=>card.remove(), 200);
+const kbMac = () => /Mac|iPhone|iPad/.test(navigator.platform) || /Mac/.test(navigator.userAgent);
+
+// each step: target = css selector (null = centered, no spotlight),
+// side = preferred placement, screen = nav to this first if set,
+// react = how the user "passes" by doing the thing.
+const TOUR_STEPS = [
+  { id:'intro', emoji:'🙂', title:'hey, welcome in',
+    body:()=>\`this is a demo of better sgy. <span>the real one draws over your actual schoology — same grades and classes, just friendlier to look at. these grades are made up, so poke around freely.</span><br><br>you can swap the whole look (apple, halo, slate, friendly) over in settings.\`,
+    target:null, side:'center' },
+  { id:'nav', emoji:'🧭', title:'getting around',
+    body:()=>\`everything lives here. click around, or jump with the keyboard — press <span class="ckbd"><kbd>g</kbd></span> then <span class="ckbd"><kbd>o</kbd></span>/<span class="ckbd"><kbd>g</kbd></span>/<span class="ckbd"><kbd>a</kbd></span>/<span class="ckbd"><kbd>c</kbd></span>/<span class="ckbd"><kbd>n</kbd></span>/<span class="ckbd"><kbd>m</kbd></span>/<span class="ckbd"><kbd>e</kbd></span>/<span class="ckbd"><kbd>s</kbd></span>.\`,
+    target:'#nav', side:'right' },
+  { id:'search', emoji:'🔍', title:'search everything',
+    body:()=>\`press <span class="ckbd"><kbd>\${kbMac()?'⌘':'ctrl'}</kbd><kbd>K</kbd></span> to search classes, assignments, posts — all of it. go ahead, try it.\`,
+    target:'#searchchip', side:'right',
+    did:'nice. that\\'s the one.', react:'search' },
+  { id:'shortcuts', emoji:'⌨️', title:'the full list',
+    body:()=>\`press <span class="ckbd"><kbd>?</kbd></span> any time for every shortcut. here's the list now — have a look, then next.\`,
+    target:null, side:'center', dock:'bottom', onEnter:()=>{ openShortcuts(); $('#shovl').style.zIndex='92'; } },
+  { id:'grades', emoji:'📊', title:'grades + the chart',
+    body:()=>\`tap a class to open its gradebook and a grade-over-time chart. <span>every class has one — handy for spotting a dip early.</span>\`,
+    target:'#nav button[data-screen="grades"]', side:'right' },
+  { id:'games', emoji:'🎮', title:'and a little break',
+    body:()=>\`four small games in here when you're avoiding homework: flap, whack, bounce, and word search. scores save.\`,
+    target:'#nav button[data-screen="games"]', side:'right' },
+  { id:'finish', emoji:'🧃', title:'that\\'s the tour',
+    body:()=>\`you're set. quick cheat-sheet:\`,
+    cheat:true, target:null, side:'center' },
+];
+
+const tour = { on:false, i:0, reactedAt:-1 };
+
+function tourEls(){
+  return {
+    dim:$('#tourdim'), spot:$('#tourspot'), coach:$('#coach'),
+    title:$('#coachtitle'), body:$('#coachbody'), emoji:$('#coachemoji'),
+    did:$('#coachdid'), arrow:$('#coacharrow'), dots:$('#coachdots'),
+    back:$('#coachback'), next:$('#coachnext'), skip:$('#coachskip'),
   };
+}
+
+function startTour(){
+  if(tour.on) return;
+  tour.on = true; tour.i = 0; tour.reactedAt = -1;
+  const e = tourEls();
+  e.dim.classList.add('show');
+  // wire controls once per run
+  e.next.onclick = () => tourNext();
+  e.back.onclick = () => tourBack();
+  e.skip.onclick = () => endTour(true);
+  window.addEventListener('resize', tourReposition);
+  window.addEventListener('scroll', tourReposition, true);
+  showTourStep(0);
+}
+
+function endTour(markDone){
+  if(!tour.on) return;
+  tour.on = false;
+  const e = tourEls();
+  e.dim.classList.remove('show');
+  e.spot.classList.remove('show','pulse');
+  e.coach.classList.remove('show');
+  closeShortcuts(); $('#shovl').style.zIndex='';
+  window.removeEventListener('resize', tourReposition);
+  window.removeEventListener('scroll', tourReposition, true);
+  if(markDone){ try{ localStorage.setItem(WELCOME_KEY,'1'); }catch(e){} }
+}
+
+function tourNext(){
+  if(tour.i >= TOUR_STEPS.length-1){ endTour(true); return; }
+  showTourStep(tour.i+1);
+}
+function tourBack(){ if(tour.i>0) showTourStep(tour.i-1); }
+
+function showTourStep(i){
+  tour.i = i; tour.reactedAt = -1;
+  const step = TOUR_STEPS[i];
+  const e = tourEls();
+  // navigate to the screen this step lives on, if needed
+  if(step.screen && state.screen!==step.screen) go(step.screen);
+  // close any overlay from a previous step (the shortcuts step reopens its own)
+  closeSearch();
+  if(step.id!=='shortcuts'){ closeShortcuts(); $('#shovl').style.zIndex=''; }
+  // build the coach content
+  e.emoji.textContent = step.emoji;
+  e.title.textContent = step.title;
+  let html = step.body();
+  if(step.cheat) html += tourCheatHTML();
+  e.body.innerHTML = html;
+  // "you did it" line
+  e.did.classList.remove('show');
+  if(step.did){ e.did.textContent = step.did; }
+  else e.did.textContent = '';
+  // dots
+  e.dots.innerHTML = TOUR_STEPS.map((_,k) =>
+    \`<span class="cd \${k===i?'on':k<i?'done':''}"></span>\`).join('');
+  // buttons
+  e.back.style.visibility = i===0 ? 'hidden' : 'visible';
+  e.next.textContent = i===TOUR_STEPS.length-1 ? 'done 🙂' : 'next';
+  e.skip.style.display = i===TOUR_STEPS.length-1 ? 'none' : 'block';
+  // step-specific side effects (e.g. open the shortcuts overlay)
+  if(step.onEnter) setTimeout(step.onEnter, 60);
+  // show + position (wait a tick so any screen swap has laid out)
+  e.coach.classList.add('show');
+  requestAnimationFrame(()=>requestAnimationFrame(tourReposition));
+}
+
+function tourCheatHTML(){
+  const k = kbMac()?'⌘':'ctrl';
+  const rows = [
+    [[k,'K'],'search everything'],
+    [['g','o'],'overview'],
+    [['g','g'],'grades'],
+    [['g','e'],'games'],
+    [['?'],'all shortcuts'],
+    [['esc'],'close anything'],
+  ];
+  return \`<div class="tourcheat">\${rows.map(([keys,label]) =>
+    \`<div class="tcr"><span class="tck">\${keys.map(x=>\`<kbd>\${x}</kbd>\`).join('')}</span><span>\${label}</span></div>\`
+  ).join('')}<div class="tcr" style="color:var(--ink-2);font-weight:600;padding-top:7px">replay this any time from settings → take the tour.</div></div>\`;
+}
+
+// place the spotlight over the target + the coach beside it, no overflow
+function tourReposition(){
+  if(!tour.on) return;
+  const step = TOUR_STEPS[tour.i];
+  const e = tourEls();
+  const vw = window.innerWidth, vh = window.innerHeight, pad = 12, gap = 14;
+  const tgt = step.target ? document.querySelector(step.target) : null;
+
+  if(!tgt){
+    // centered, no spotlight
+    e.spot.classList.remove('show','pulse');
+    e.coach.className = 'coach show anone';
+    const cw = e.coach.offsetWidth, ch = e.coach.offsetHeight;
+    e.coach.style.left = Math.round((vw-cw)/2)+'px';
+    const top = step.dock==='bottom' ? (vh-ch-24) : Math.max(pad,(vh-ch)/2);
+    e.coach.style.top  = Math.round(Math.max(pad,top))+'px';
+    return;
+  }
+
+  const r = tgt.getBoundingClientRect();
+  const sp = 8; // spotlight padding around target
+  e.spot.classList.add('show','pulse');
+  e.spot.style.left = Math.max(2,r.left-sp)+'px';
+  e.spot.style.top = Math.max(2,r.top-sp)+'px';
+  e.spot.style.width = Math.min(vw-4,r.width+sp*2)+'px';
+  e.spot.style.height = Math.min(vh-4,r.height+sp*2)+'px';
+
+  // choose a side that fits
+  const cw = 300, ch = e.coach.offsetHeight || 180;
+  let side = step.side || 'right';
+  const fits = {
+    right: r.right+gap+cw <= vw-pad,
+    left:  r.left-gap-cw >= pad,
+    bottom:r.bottom+gap+ch <= vh-pad,
+    top:   r.top-gap-ch >= pad,
+  };
+  if(!fits[side]){
+    side = ['bottom','top','right','left'].find(s=>fits[s]) || 'bottom';
+  }
+
+  let left, top, cls='coach show';
+  if(side==='right'){ left=r.right+gap; top=r.top; cls+=' aleft'; }
+  else if(side==='left'){ left=r.left-gap-cw; top=r.top; cls+=' aright'; }
+  else if(side==='bottom'){ left=r.left; top=r.bottom+gap; cls+=' abot'; }
+  else { left=r.left; top=r.top-gap-ch; cls+=' atop'; }
+
+  // clamp inside viewport
+  left = Math.max(pad, Math.min(left, vw-cw-pad));
+  top  = Math.max(pad, Math.min(top,  vh-ch-pad));
+  e.coach.className = cls;
+  e.coach.style.left = Math.round(left)+'px';
+  e.coach.style.top  = Math.round(top)+'px';
+
+  // position the little arrow toward the target center
+  const arrow = e.arrow;
+  if(side==='left'||side==='right'){
+    let ay = (r.top+r.height/2) - top;
+    ay = Math.max(14, Math.min(ay, ch-14));
+    arrow.style.top = ay+'px'; arrow.style.left='';
+  } else {
+    let ax = (r.left+r.width/2) - left;
+    ax = Math.max(16, Math.min(ax, cw-16));
+    arrow.style.left = ax+'px'; arrow.style.top='';
+  }
+}
+
+// react when the user actually does the thing a step asks for
+function tourReact(kind){
+  if(!tour.on) return;
+  const step = TOUR_STEPS[tour.i];
+  if(step.react!==kind || tour.reactedAt===tour.i) return;
+  tour.reactedAt = tour.i;
+  const e = tourEls();
+  if(step.did){ e.did.classList.add('show'); }
+  // give them a beat to see it worked, then advance
+  setTimeout(()=>{ if(tour.on && tour.i===tour.reactedAt) tourNext(); }, 900);
 }
 
 /* ============================================================
@@ -14064,7 +15142,12 @@ applyTheme();
 renderNav();
 renderScreen();
 wireGlobalKeys();
-maybeShowWelcome();
+// first open → launch the guided tour once
+(function maybeFirstRunTour(){
+  let done = false;
+  try{ done = localStorage.getItem(WELCOME_KEY)==='1'; }catch(e){}
+  if(!done) setTimeout(startTour, 400);
+})();
 <\/script>
 </body>
 </html>
@@ -15265,6 +16348,143 @@ maybeShowWelcome();
   .welcome__foot{ border-top:var(--rule); padding:14px 24px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
   .welcome__sig{ font-family:var(--serif); font-style:italic; font-size:11px; color:var(--ink-45); margin-left:auto; }
 
+  /* — guided tutorial: a reader's guide — */
+  /* The whole layer; dimming is done by the spotlight's huge box-shadow. */
+  .tour{ position:fixed; inset:0; z-index:80; display:none; }
+  .tour--on{ display:block; }
+  /* spotlight: a transparent window cut out of a black/white scrim via box-shadow */
+  .tour__spot{
+    position:absolute; border:2px solid var(--ink);
+    box-shadow:0 0 0 9999px rgba(0,0,0,.55), 0 0 0 2px var(--paper) inset;
+    transition:top .26s cubic-bezier(.4,0,.2,1), left .26s cubic-bezier(.4,0,.2,1),
+               width .26s cubic-bezier(.4,0,.2,1), height .26s cubic-bezier(.4,0,.2,1);
+    pointer-events:none; border-radius:2px;
+  }
+  body.theme-wob .tour__spot{ box-shadow:0 0 0 9999px rgba(0,0,0,.78), 0 0 0 2px var(--paper) inset; }
+  /* when no target (intro / finish), centre everything over a plain scrim */
+  .tour--center .tour__spot{ display:none; }
+  .tour__veil{ position:absolute; inset:0; display:none; background:rgba(0,0,0,.55); }
+  body.theme-wob .tour__veil{ background:rgba(0,0,0,.82); }
+  .tour--center .tour__veil{ display:block; }
+
+  .tour__card{
+    position:absolute; width:min(360px,calc(100vw - 32px));
+    background:var(--paper); border:2px solid var(--ink); box-shadow:8px 8px 0 var(--ink);
+    pointer-events:auto;
+    transition:top .26s cubic-bezier(.4,0,.2,1), left .26s cubic-bezier(.4,0,.2,1);
+  }
+  .tour--center .tour__card{
+    position:static; margin:0 auto; width:min(460px,calc(100vw - 32px));
+    top:auto; left:auto;
+  }
+  .tour--center{ display:flex; align-items:flex-start; justify-content:center;
+    padding:clamp(40px,10vh,120px) 16px 40px; overflow:auto; }
+  /* the little arrow on the callout */
+  .tour__card::before, .tour__card::after{
+    content:""; position:absolute; width:0; height:0; display:none;
+  }
+  .tour--center .tour__card::before, .tour--center .tour__card::after{ display:none; }
+  .tour__card[data-arrow="top"]::before{ display:block; top:-11px; left:var(--ax,28px);
+    border-left:11px solid transparent; border-right:11px solid transparent; border-bottom:11px solid var(--ink); }
+  .tour__card[data-arrow="top"]::after{ display:block; top:-8px; left:calc(var(--ax,28px) + 2px);
+    border-left:9px solid transparent; border-right:9px solid transparent; border-bottom:9px solid var(--paper); }
+  .tour__card[data-arrow="bottom"]::before{ display:block; bottom:-11px; left:var(--ax,28px);
+    border-left:11px solid transparent; border-right:11px solid transparent; border-top:11px solid var(--ink); }
+  .tour__card[data-arrow="bottom"]::after{ display:block; bottom:-8px; left:calc(var(--ax,28px) + 2px);
+    border-left:9px solid transparent; border-right:9px solid transparent; border-top:9px solid var(--paper); }
+  .tour__card[data-arrow="left"]::before{ display:block; left:-11px; top:var(--ay,24px);
+    border-top:11px solid transparent; border-bottom:11px solid transparent; border-right:11px solid var(--ink); }
+  .tour__card[data-arrow="left"]::after{ display:block; left:-8px; top:calc(var(--ay,24px) + 2px);
+    border-top:9px solid transparent; border-bottom:9px solid transparent; border-right:9px solid var(--paper); }
+  .tour__card[data-arrow="right"]::before{ display:block; right:-11px; top:var(--ay,24px);
+    border-top:11px solid transparent; border-bottom:11px solid transparent; border-left:11px solid var(--ink); }
+  .tour__card[data-arrow="right"]::after{ display:block; right:-8px; top:calc(var(--ay,24px) + 2px);
+    border-top:9px solid transparent; border-bottom:9px solid transparent; border-left:9px solid var(--paper); }
+
+  .tour__band{
+    border-bottom:var(--rule); padding:8px 18px;
+    display:flex; justify-content:space-between; align-items:baseline; gap:12px;
+    font-family:var(--sans); font-size:9px; font-weight:700; letter-spacing:.22em;
+    text-transform:uppercase; color:var(--ink-60);
+  }
+  .tour__band .tour__no{ color:var(--ink); }
+  .tour__body{ padding:16px 18px 6px; }
+  .tour__kicker{
+    font-family:var(--sans); font-size:9px; font-weight:700; letter-spacing:.2em;
+    text-transform:uppercase; color:var(--ink-45); margin-bottom:7px;
+  }
+  .tour__head{
+    font-family:var(--serif); font-weight:700; font-size:clamp(19px,3.2vw,24px);
+    line-height:1.04; letter-spacing:-.01em; margin-bottom:10px;
+  }
+  .tour__head em{ font-style:italic; font-weight:400; }
+  .tour__text{
+    font-family:var(--serif); font-size:14px; line-height:1.55; color:var(--ink-80);
+    margin-bottom:10px;
+  }
+  .tour__text:last-child{ margin-bottom:0; }
+  .tour__text .key{
+    font-family:var(--sans); font-size:11px; font-weight:700; letter-spacing:.04em;
+    border:1px solid var(--ink); background:var(--paper); color:var(--ink);
+    padding:1px 6px; white-space:nowrap;
+  }
+  .tour__text .did{
+    display:inline-block; font-family:var(--sans); font-size:9px; font-weight:700;
+    letter-spacing:.16em; text-transform:uppercase; border:1px solid var(--ink);
+    background:var(--ink); color:var(--paper); padding:2px 7px 1px; margin-top:4px;
+  }
+  /* cheat-sheet on the finish step */
+  .tour__sheet{ border-top:var(--hairline); margin-top:4px; }
+  .tour__sheet .tour__srow{
+    display:grid; grid-template-columns:minmax(0,1fr) auto; gap:14px; align-items:center;
+    padding:7px 0; border-bottom:var(--hairline);
+  }
+  .tour__sheet .tour__srow:last-child{ border-bottom:none; }
+  .tour__sheet .tour__swhat{ font-family:var(--serif); font-size:13.5px; }
+  .tour__sheet .tour__skeys{ display:flex; gap:4px; align-items:center; white-space:nowrap; }
+  .tour__sheet .tour__skeys .key{
+    font-family:var(--sans); font-size:10.5px; font-weight:700; letter-spacing:.04em;
+    border:1px solid var(--ink); background:var(--paper); color:var(--ink);
+    padding:2px 7px 1px; min-width:20px; text-align:center; line-height:1.2;
+  }
+  .tour__sheet .tour__skeys .then{ font-family:var(--serif); font-style:italic; font-size:11px; color:var(--ink-45); }
+
+  .tour__foot{
+    border-top:var(--rule); padding:11px 18px; margin-top:8px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .tour__prog{
+    font-family:var(--sans); font-size:9px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink-45); font-variant-numeric:tabular-nums;
+  }
+  .tour__spacer{ flex:1; }
+  .tour__btn{
+    font-family:var(--sans); font-size:10px; font-weight:700; letter-spacing:.14em;
+    text-transform:uppercase; padding:8px 14px 7px; border:1px solid var(--ink);
+    background:var(--paper); color:var(--ink); cursor:pointer;
+  }
+  .tour__btn--solid{ background:var(--ink); color:var(--paper); }
+  .tour__btn:hover{ outline:2px solid var(--ink); outline-offset:1px; }
+  .tour__skip{
+    font-family:var(--sans); font-size:9px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink-45); border:none; background:none; cursor:pointer;
+  }
+  .tour__skip:hover{ color:var(--ink); text-decoration:underline; }
+  /* progress ticks */
+  .tour__ticks{ display:flex; gap:4px; align-items:center; margin-left:6px; }
+  .tour__tick{ width:7px; height:7px; border:1px solid var(--ink); background:var(--paper); }
+  .tour__tick--on{ background:var(--ink); }
+  .tour__tick--done{ background:var(--ink-30); border-color:var(--ink-30); }
+  @media (max-width:560px){
+    .tour__card{ width:calc(100vw - 24px); }
+    .tour__foot{ flex-wrap:wrap; }
+  }
+  @media print{ .tour{ display:none !important; } }
+
+  /* "Take the tour" settings action */
+  .tour-launch{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding-top:14px; }
+  .tour-launch .panel__rev{ margin-left:auto; }
+
   /* ============================================================
      ADDED — arcade: best-scores panel + sound toggle + daily label
      ============================================================ */
@@ -15947,6 +17167,14 @@ maybeShowWelcome();
       </div>
     </div>
 
+    <div class="setblock">
+      <div class="setblock__head"><h3>The Reader's Guide</h3><span class="setblock__note">A short tour of the shortcuts and features.</span></div>
+      <div class="tour-launch">
+        <button class="btn" id="take-tour" type="button" style="cursor:pointer">Take the tour</button>
+        <span class="panel__rev">Replays the seven-step guided walkthrough.</span>
+      </div>
+    </div>
+
     <section class="closing" aria-label="In closing">
       <p class="closing__line">Set in Slate, connected, and accounted for. Change the dress whenever the mood turns.</p>
       <p class="closing__byline">Better SGY · Local settings</p>
@@ -16000,21 +17228,29 @@ maybeShowWelcome();
     <div class="help__row"><span class="help__what">Open search</span><span class="help__keys"><span class="key" id="help-cmdk">⌘K</span></span></div>
     <div class="help__row"><span class="help__what">This help card</span><span class="help__keys"><span class="key">?</span></span></div>
     <div class="help__row"><span class="help__what">Close any overlay</span><span class="help__keys"><span class="key">Esc</span></span></div>
+    <div class="help__grp">The Guide</div>
+    <div class="help__row"><span class="help__what"><button class="tour__skip" id="help-take-tour" type="button" style="padding:0;letter-spacing:.04em;font-size:15px;font-family:var(--serif);text-transform:none;color:var(--ink)">Take the reader's guide tour →</button></span><span class="help__keys"></span></div>
   </div>
 </div>
 
-\x3C!-- ===================== FIRST-RUN WELCOME ===================== -->
-<div class="ov-scrim" id="welcome-scrim" aria-hidden="true">
-  <div class="welcome" role="dialog" aria-modal="true" aria-label="Welcome">
-    <div class="welcome__band"><span>Better SGY</span><span>The Slate Edition · No. 1</span></div>
-    <div class="welcome__body">
-      <h2 class="welcome__head">Your Schoology, set in <em>type</em>.</h2>
-      <p><span class="lead">Welcome to Slate.</span> Better SGY does not replace Schoology; it is laid over your real page and sets the same record in ruled columns, a single ink, nothing that blinks.</p>
-      <p>This is the demo issue, so the grades you see are sample figures — read the whole paper without signing in. To change the dress, open <strong>Settings</strong> and pick another house style: Apple, Halo, Slate, or Friendly.</p>
+\x3C!-- ===================== GUIDED TUTORIAL (a reader's guide) ===================== -->
+<div class="tour" id="tour" aria-hidden="true">
+  <div class="tour__veil"></div>
+  <div class="tour__spot" id="tour-spot"></div>
+  <div class="tour__card" id="tour-card" role="dialog" aria-modal="true" aria-label="Guided tour" aria-live="polite">
+    <div class="tour__band"><span>The Reader's Guide</span><span class="tour__no" id="tour-no">No. 1</span></div>
+    <div class="tour__body">
+      <div class="tour__kicker" id="tour-kicker">Slate Edition</div>
+      <h2 class="tour__head" id="tour-head">—</h2>
+      <div id="tour-text"></div>
     </div>
-    <div class="welcome__foot">
-      <button class="btn" id="welcome-dismiss" type="button" style="cursor:pointer">Begin reading</button>
-      <span class="welcome__sig">Filed for first issue · dismiss to continue</span>
+    <div class="tour__foot">
+      <span class="tour__prog" id="tour-prog">1 / 7</span>
+      <span class="tour__ticks" id="tour-ticks" aria-hidden="true"></span>
+      <span class="tour__spacer"></span>
+      <button class="tour__skip" id="tour-skip" type="button">Skip</button>
+      <button class="tour__btn" id="tour-back" type="button">Back</button>
+      <button class="tour__btn tour__btn--solid" id="tour-next" type="button">Next</button>
     </div>
   </div>
 </div>
@@ -17821,7 +19057,7 @@ maybeShowWelcome();
   $('#help-scrim').addEventListener('mousedown', function(e){ if(e.target===this) helpClose(); });
 
   function anyOverlayOpen(){ return !!$('.ov-scrim--on'); }
-  function closeOverlays(){ palClose(); helpClose(); welcomeClose(); }
+  function closeOverlays(){ palClose(); helpClose(); }
 
   /* global keyboard: g-then-letter, ⌘K, ?, Esc */
   var gPending=false, gTimer=null;
@@ -17832,39 +19068,244 @@ maybeShowWelcome();
   }
   document.addEventListener('keydown', function(e){
     /* ⌘K / Ctrl+K — works even in fields */
-    if((e.metaKey||e.ctrlKey) && (e.key==='k'||e.key==='K')){ e.preventDefault(); palOpen(); return; }
-    /* Esc closes any overlay */
-    if(e.key==='Escape'){ if(anyOverlayOpen()){ e.preventDefault(); closeOverlays(); } return; }
+    if((e.metaKey||e.ctrlKey) && (e.key==='k'||e.key==='K')){ e.preventDefault(); palOpen(); TOUR.note('cmdk'); return; }
+    /* Esc closes any overlay; if the tour is running and no overlay is open, Esc skips it */
+    if(e.key==='Escape'){
+      if(anyOverlayOpen()){ e.preventDefault(); closeOverlays(); return; }
+      if(TOUR.isOn()){ e.preventDefault(); TOUR.skip(); return; }
+      return;
+    }
     if(e.metaKey||e.ctrlKey||e.altKey) return;
     /* don't hijack typing inside fields or while an overlay/game owns the keys */
     if(typingInField(e.target)) return;
     if(anyOverlayOpen()) return;
     /* '?' help */
-    if(e.key==='?'){ e.preventDefault(); helpOpen(); return; }
+    if(e.key==='?'){ e.preventDefault(); helpOpen(); TOUR.note('help'); return; }
     /* 'g' then a letter */
     if(gPending){
       var dest=SCREEN_KEY[e.key.toLowerCase()];
       gPending=false; if(gTimer){ clearTimeout(gTimer); gTimer=null; }
-      if(dest){ e.preventDefault(); showScreen(dest); }
+      if(dest){ e.preventDefault(); showScreen(dest); TOUR.note('nav'); }
       return;
     }
     if(e.key==='g'||e.key==='G'){ gPending=true; gTimer=setTimeout(function(){ gPending=false; }, 1200); }
   });
 
   /* ============================================================
-     ADDED — FIRST-RUN WELCOME
+     ADDED — FIRST-RUN GUIDED TUTORIAL ("The Reader's Guide")
+     A coachmark tour: ruled callout points at the real UI element,
+     a spotlight dims the rest, with Back / Next / Skip + progress.
+     Strictly black & white; survives the inverted dark theme.
      ============================================================ */
   var WELCOME_KEY='bsgy-slate-welcomed';
-  function welcomeClose(){ $('#welcome-scrim').classList.remove('ov-scrim--on'); $('#welcome-scrim').setAttribute('aria-hidden','true'); }
-  function welcomeMaybeShow(){
-    var seen; try{ seen=localStorage.getItem(WELCOME_KEY); }catch(e){ seen='1'; }
-    if(seen) return;
-    $('#welcome-scrim').classList.add('ov-scrim--on');
-    $('#welcome-scrim').setAttribute('aria-hidden','false');
-  }
-  function welcomeDismiss(){ try{ localStorage.setItem(WELCOME_KEY,'1'); }catch(e){} welcomeClose(); }
-  $('#welcome-dismiss').addEventListener('click', welcomeDismiss);
-  $('#welcome-scrim').addEventListener('mousedown', function(e){ if(e.target===this) welcomeDismiss(); });
+  var TOUR = (function(){
+    var root=$('#tour'), card=$('#tour-card'), spot=$('#tour-spot');
+    var elNo=$('#tour-no'), elKick=$('#tour-kicker'), elHead=$('#tour-head'),
+        elText=$('#tour-text'), elProg=$('#tour-prog'), elTicks=$('#tour-ticks'),
+        btnBack=$('#tour-back'), btnNext=$('#tour-next'), btnSkip=$('#tour-skip');
+    var i=0, on=false, repositionRAF=null;
+
+    /* Each step: target selector (or null = centred intro/finish), where the
+       callout sits, the screen it lives on, copy, and optional interactivity. */
+    var STEPS=[
+      { target:null, screen:'overview', kicker:'Slate Edition · The Demo Issue',
+        head:'A reader’s <em>guide</em>.',
+        body:['This is the demo issue: the figures — 96.2% overall, a 3.94 average, six courses — are sample copy. The live edition is laid over your real Schoology and sets the same record.',
+              'The dress is yours to choose. In <span class="key">Settings</span> you may switch the house style — Apple, Halo, Slate, or Friendly. Seven short notes follow; read on, or skip at any time.'] },
+      { target:'#nav', screen:'overview', side:'bottom',
+        kicker:'Getting About', head:'The <em>table of contents</em>.',
+        body:['The nav runs the length of the masthead. Click any section to turn to it — or, for the keyboard reader, press <span class="key">g</span> then a letter: <span class="key">o</span> overview, <span class="key">g</span> grades, <span class="key">a</span> assignments, <span class="key">c</span> calendar, <span class="key">n</span> bulletins, <span class="key">m</span> materials, <span class="key">e</span> games, <span class="key">s</span> settings.',
+              'Try it now, then continue.'],
+        listen:'nav', ackHead:'— noted. Navigation works.' },
+      { target:'#mh-search', screen:'overview', side:'bottom', align:'end',
+        kicker:'The Index', head:'Search <em>everything</em>.',
+        body:['Press <span class="key">⌘K</span> (<span class="key">Ctrl+K</span> on Windows) to open the index. It searches courses, assignments, bulletins, materials, and screens; press <span class="key">↵</span> on a result to turn straight to it.',
+              'Open it now to see.'],
+        listen:'cmdk', ackHead:'— the index is open.' },
+      { target:'#mh-search', screen:'overview', side:'bottom', align:'end',
+        kicker:'The Full Key', head:'Press <em>?</em> for the list.',
+        body:['Every shortcut is set down on one ruled card. Press <span class="key">?</span> to call it up; press <span class="key">Esc</span> to put it away.',
+              'Press <span class="key">?</span> now.'],
+        listen:'help', ackHead:'— the full key is shown.' },
+      { target:'#nav [data-nav="grades"]', screen:'overview', side:'bottom',
+        kicker:'The Ledger', head:'Grades, set in <em>columns</em>.',
+        body:['Turn to <span class="key">Grades</span> and select a course from the rail. Each course opens its own ledger — categories, weights, and a grade-over-term figure plotted in a single ink.'] },
+      { target:'#nav [data-nav="arcade"]', screen:'overview', side:'bottom',
+        kicker:'The Idle Minute', head:'Four <em>games</em>.',
+        body:['Under <span class="key">Games</span> this edition keeps four: a <strong>Typing Test</strong>, an <strong>Anagram</strong> drawn from the term’s vocabulary, <strong>Tic-Tac-Toe</strong> against a CPU that does not blunder, and a <strong>Word Search</strong>. Each keeps a best score, locally.'] },
+      { target:null, screen:'overview', center:true,
+        kicker:'In Closing', head:'You are <em>set</em>.',
+        body:['Keep this card to hand. The whole key sits one keystroke away under <span class="key">?</span>, and this guide can be replayed any time from <strong>Settings → The Reader’s Guide</strong>.'],
+        sheet:[
+          ['Go to a section', [['g'],['then','o g a c n m e s']]],
+          ['Open search', [['⌘K']]],
+          ['Shortcuts help', [['?']]],
+          ['Close any overlay', [['Esc']]]
+        ] },
+    ];
+
+    function isOn(){ return on; }
+
+    function setProgress(){
+      elProg.textContent=(i+1)+' / '+STEPS.length;
+      elTicks.innerHTML='';
+      for(var k=0;k<STEPS.length;k++){
+        var t=el('span','tour__tick'+(k===i?' tour__tick--on':(k<i?' tour__tick--done':'')));
+        elTicks.appendChild(t);
+      }
+    }
+
+    function buildSheet(rows){
+      var wrap=el('div','tour__sheet');
+      rows.forEach(function(r){
+        var row=el('div','tour__srow');
+        row.appendChild(el('span','tour__swhat', esc(r[0])));
+        var keys=el('span','tour__skeys');
+        r[1].forEach(function(grp){
+          if(grp[0]==='then'){ keys.appendChild(el('span','then','then')); keys.appendChild(el('span','key', esc(grp[1]))); }
+          else keys.appendChild(el('span','key', esc(grp[0])));
+        });
+        row.appendChild(keys); wrap.appendChild(row);
+      });
+      return wrap;
+    }
+
+    /* place the callout relative to the spotlight target, clamped on-screen */
+    function position(step){
+      var pad=10, m=12; /* spotlight padding, viewport margin */
+      var vw=window.innerWidth, vh=window.innerHeight;
+      var centered = step.center || !step.target;
+      if(centered){
+        root.classList.add('tour--center');
+        card.removeAttribute('data-arrow');
+        card.style.top=''; card.style.left='';
+        spot.style.display='none';
+        return;
+      }
+      root.classList.remove('tour--center');
+      spot.style.display='block';
+      var tgt=$(step.target);
+      if(!tgt){ /* fall back to centred */ root.classList.add('tour--center'); spot.style.display='none'; card.removeAttribute('data-arrow'); return; }
+      var r=tgt.getBoundingClientRect();
+      /* spotlight rect */
+      var sx=Math.max(2, r.left-pad), sy=Math.max(2, r.top-pad);
+      var sw=Math.min(vw-4, r.width+pad*2), sh=r.height+pad*2;
+      if(sy+sh>vh-2) sh=vh-2-sy;
+      spot.style.left=sx+'px'; spot.style.top=sy+'px';
+      spot.style.width=sw+'px'; spot.style.height=sh+'px';
+
+      /* measure the card */
+      card.style.left='0px'; card.style.top='0px';
+      var cw=card.offsetWidth, ch=card.offsetHeight;
+
+      var side=step.side||'bottom';
+      /* if not enough room below, flip above */
+      if(side==='bottom' && (sy+sh+12+ch > vh-m) && (sy-12-ch > m)) side='top';
+      if(side==='top' && (sy-12-ch < m) && (sy+sh+12+ch < vh-m)) side='bottom';
+
+      var cx, cy, arrow, axis;
+      if(side==='bottom' || side==='top'){
+        /* horizontal align under/over the target */
+        var anchorX = (step.align==='end') ? (sx+sw - cw) : (step.align==='center' ? (sx+sw/2 - cw/2) : sx);
+        cx=Math.max(m, Math.min(anchorX, vw-m-cw));
+        if(side==='bottom'){ cy=sy+sh+12; arrow='top'; } else { cy=sy-12-ch; arrow='bottom'; }
+        /* arrow x relative to card, pointing at target centre */
+        var tcx=sx+sw/2; axis=Math.max(14, Math.min(tcx-cx-11, cw-36));
+        card.style.setProperty('--ax', axis+'px');
+        card.setAttribute('data-arrow', arrow);
+      } else {
+        /* left / right of target */
+        var anchorY=sy;
+        cy=Math.max(m, Math.min(anchorY, vh-m-ch));
+        if(side==='right'){ cx=sx+sw+12; arrow='left'; } else { cx=sx-12-cw; arrow='right'; }
+        cx=Math.max(m, Math.min(cx, vw-m-cw));
+        var tcy=sy+sh/2; var ay=Math.max(14, Math.min(tcy-cy-11, ch-36));
+        card.style.setProperty('--ay', ay+'px');
+        card.setAttribute('data-arrow', arrow);
+      }
+      card.style.left=cx+'px'; card.style.top=cy+'px';
+    }
+
+    function render(){
+      var step=STEPS[i];
+      /* make sure the target's screen is showing */
+      if(step.screen && state.screen!==step.screen) showScreen(step.screen);
+      setProgress();
+      elNo.textContent='No. '+(i+1);
+      elKick.textContent=step.kicker||'';
+      elHead.innerHTML=step.head||'';
+      elText.innerHTML='';
+      (step.body||[]).forEach(function(p){ elText.appendChild(el('p','tour__text', p)); });
+      if(step.sheet) elText.appendChild(buildSheet(step.sheet));
+      /* footer buttons */
+      btnBack.style.visibility = (i===0) ? 'hidden' : 'visible';
+      btnNext.textContent = (i===STEPS.length-1) ? 'Done' : 'Next';
+      btnSkip.style.display = (i===STEPS.length-1) ? 'none' : '';
+      /* place it (after layout settles) */
+      requestAnimationFrame(function(){ position(step); });
+    }
+
+    function go(n){
+      if(n<0) n=0; if(n>STEPS.length-1) n=STEPS.length-1;
+      i=n; render();
+    }
+    function next(){ if(i>=STEPS.length-1){ finish(); } else go(i+1); }
+    function back(){ go(i-1); }
+
+    /* an interactive step heard the key/click it was waiting for */
+    function note(kind){
+      if(!on) return;
+      var step=STEPS[i];
+      if(step.listen && step.listen===kind){
+        /* acknowledge in place, then advance shortly so they see it worked */
+        var p=elText.querySelector('.tour__text:last-child');
+        if(p && !p.querySelector('.did')){
+          var b=el('span','did', esc(step.ackHead||'— done.')); p.appendChild(document.createElement('br')); p.appendChild(b);
+        }
+        setTimeout(function(){ if(on && i<STEPS.length-1){ closeOverlays(); next(); } }, 900);
+      }
+    }
+
+    function open(reset){
+      on=true; root.classList.add('tour--on'); root.setAttribute('aria-hidden','false');
+      go(reset===false ? i : 0);
+      window.addEventListener('resize', onReflow, true);
+      window.addEventListener('scroll', onReflow, true);
+    }
+    function onReflow(){
+      if(!on) return;
+      if(repositionRAF) cancelAnimationFrame(repositionRAF);
+      repositionRAF=requestAnimationFrame(function(){ position(STEPS[i]); });
+    }
+    function shut(){
+      on=false; root.classList.remove('tour--on'); root.setAttribute('aria-hidden','true');
+      window.removeEventListener('resize', onReflow, true);
+      window.removeEventListener('scroll', onReflow, true);
+    }
+    function markSeen(){ try{ localStorage.setItem(WELCOME_KEY,'1'); }catch(e){} }
+    function finish(){ markSeen(); shut(); }
+    function skip(){ markSeen(); shut(); }
+
+    function maybeShowFirstRun(){
+      var seen; try{ seen=localStorage.getItem(WELCOME_KEY); }catch(e){ seen='1'; }
+      if(seen) return;
+      open(true);
+    }
+    function start(){ open(true); }
+
+    /* wiring */
+    btnNext.addEventListener('click', next);
+    btnBack.addEventListener('click', back);
+    btnSkip.addEventListener('click', skip);
+    /* clicking the dim veil on a centred step does nothing destructive; ignore */
+
+    return { isOn:isOn, note:note, skip:skip, finish:finish,
+             start:start, maybeShowFirstRun:maybeShowFirstRun };
+  })();
+
+  /* relaunch entries */
+  var takeTourBtn=$('#take-tour'); if(takeTourBtn) takeTourBtn.addEventListener('click', function(){ TOUR.start(); });
+  var helpTourBtn=$('#help-take-tour'); if(helpTourBtn) helpTourBtn.addEventListener('click', function(){ helpClose(); TOUR.start(); });
 
   /* ============================================================
      ADDED — EXPORT OVERVIEW AS PNG (foreignObject -> canvas -> dataURL)
@@ -17975,8 +19416,8 @@ maybeShowWelcome();
     else ARCADE.openGame(QS.game);
   }
 
-  /* first-run welcome (after the first paint) */
-  welcomeMaybeShow();
+  /* first-run guided tutorial (after the first paint) */
+  TOUR.maybeShowFirstRun();
 })();
 <\/script>
 </body>

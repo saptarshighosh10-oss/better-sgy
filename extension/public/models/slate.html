@@ -1195,6 +1195,143 @@
   .welcome__foot{ border-top:var(--rule); padding:14px 24px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
   .welcome__sig{ font-family:var(--serif); font-style:italic; font-size:11px; color:var(--ink-45); margin-left:auto; }
 
+  /* — guided tutorial: a reader's guide — */
+  /* The whole layer; dimming is done by the spotlight's huge box-shadow. */
+  .tour{ position:fixed; inset:0; z-index:80; display:none; }
+  .tour--on{ display:block; }
+  /* spotlight: a transparent window cut out of a black/white scrim via box-shadow */
+  .tour__spot{
+    position:absolute; border:2px solid var(--ink);
+    box-shadow:0 0 0 9999px rgba(0,0,0,.55), 0 0 0 2px var(--paper) inset;
+    transition:top .26s cubic-bezier(.4,0,.2,1), left .26s cubic-bezier(.4,0,.2,1),
+               width .26s cubic-bezier(.4,0,.2,1), height .26s cubic-bezier(.4,0,.2,1);
+    pointer-events:none; border-radius:2px;
+  }
+  body.theme-wob .tour__spot{ box-shadow:0 0 0 9999px rgba(0,0,0,.78), 0 0 0 2px var(--paper) inset; }
+  /* when no target (intro / finish), centre everything over a plain scrim */
+  .tour--center .tour__spot{ display:none; }
+  .tour__veil{ position:absolute; inset:0; display:none; background:rgba(0,0,0,.55); }
+  body.theme-wob .tour__veil{ background:rgba(0,0,0,.82); }
+  .tour--center .tour__veil{ display:block; }
+
+  .tour__card{
+    position:absolute; width:min(360px,calc(100vw - 32px));
+    background:var(--paper); border:2px solid var(--ink); box-shadow:8px 8px 0 var(--ink);
+    pointer-events:auto;
+    transition:top .26s cubic-bezier(.4,0,.2,1), left .26s cubic-bezier(.4,0,.2,1);
+  }
+  .tour--center .tour__card{
+    position:static; margin:0 auto; width:min(460px,calc(100vw - 32px));
+    top:auto; left:auto;
+  }
+  .tour--center{ display:flex; align-items:flex-start; justify-content:center;
+    padding:clamp(40px,10vh,120px) 16px 40px; overflow:auto; }
+  /* the little arrow on the callout */
+  .tour__card::before, .tour__card::after{
+    content:""; position:absolute; width:0; height:0; display:none;
+  }
+  .tour--center .tour__card::before, .tour--center .tour__card::after{ display:none; }
+  .tour__card[data-arrow="top"]::before{ display:block; top:-11px; left:var(--ax,28px);
+    border-left:11px solid transparent; border-right:11px solid transparent; border-bottom:11px solid var(--ink); }
+  .tour__card[data-arrow="top"]::after{ display:block; top:-8px; left:calc(var(--ax,28px) + 2px);
+    border-left:9px solid transparent; border-right:9px solid transparent; border-bottom:9px solid var(--paper); }
+  .tour__card[data-arrow="bottom"]::before{ display:block; bottom:-11px; left:var(--ax,28px);
+    border-left:11px solid transparent; border-right:11px solid transparent; border-top:11px solid var(--ink); }
+  .tour__card[data-arrow="bottom"]::after{ display:block; bottom:-8px; left:calc(var(--ax,28px) + 2px);
+    border-left:9px solid transparent; border-right:9px solid transparent; border-top:9px solid var(--paper); }
+  .tour__card[data-arrow="left"]::before{ display:block; left:-11px; top:var(--ay,24px);
+    border-top:11px solid transparent; border-bottom:11px solid transparent; border-right:11px solid var(--ink); }
+  .tour__card[data-arrow="left"]::after{ display:block; left:-8px; top:calc(var(--ay,24px) + 2px);
+    border-top:9px solid transparent; border-bottom:9px solid transparent; border-right:9px solid var(--paper); }
+  .tour__card[data-arrow="right"]::before{ display:block; right:-11px; top:var(--ay,24px);
+    border-top:11px solid transparent; border-bottom:11px solid transparent; border-left:11px solid var(--ink); }
+  .tour__card[data-arrow="right"]::after{ display:block; right:-8px; top:calc(var(--ay,24px) + 2px);
+    border-top:9px solid transparent; border-bottom:9px solid transparent; border-left:9px solid var(--paper); }
+
+  .tour__band{
+    border-bottom:var(--rule); padding:8px 18px;
+    display:flex; justify-content:space-between; align-items:baseline; gap:12px;
+    font-family:var(--sans); font-size:9px; font-weight:700; letter-spacing:.22em;
+    text-transform:uppercase; color:var(--ink-60);
+  }
+  .tour__band .tour__no{ color:var(--ink); }
+  .tour__body{ padding:16px 18px 6px; }
+  .tour__kicker{
+    font-family:var(--sans); font-size:9px; font-weight:700; letter-spacing:.2em;
+    text-transform:uppercase; color:var(--ink-45); margin-bottom:7px;
+  }
+  .tour__head{
+    font-family:var(--serif); font-weight:700; font-size:clamp(19px,3.2vw,24px);
+    line-height:1.04; letter-spacing:-.01em; margin-bottom:10px;
+  }
+  .tour__head em{ font-style:italic; font-weight:400; }
+  .tour__text{
+    font-family:var(--serif); font-size:14px; line-height:1.55; color:var(--ink-80);
+    margin-bottom:10px;
+  }
+  .tour__text:last-child{ margin-bottom:0; }
+  .tour__text .key{
+    font-family:var(--sans); font-size:11px; font-weight:700; letter-spacing:.04em;
+    border:1px solid var(--ink); background:var(--paper); color:var(--ink);
+    padding:1px 6px; white-space:nowrap;
+  }
+  .tour__text .did{
+    display:inline-block; font-family:var(--sans); font-size:9px; font-weight:700;
+    letter-spacing:.16em; text-transform:uppercase; border:1px solid var(--ink);
+    background:var(--ink); color:var(--paper); padding:2px 7px 1px; margin-top:4px;
+  }
+  /* cheat-sheet on the finish step */
+  .tour__sheet{ border-top:var(--hairline); margin-top:4px; }
+  .tour__sheet .tour__srow{
+    display:grid; grid-template-columns:minmax(0,1fr) auto; gap:14px; align-items:center;
+    padding:7px 0; border-bottom:var(--hairline);
+  }
+  .tour__sheet .tour__srow:last-child{ border-bottom:none; }
+  .tour__sheet .tour__swhat{ font-family:var(--serif); font-size:13.5px; }
+  .tour__sheet .tour__skeys{ display:flex; gap:4px; align-items:center; white-space:nowrap; }
+  .tour__sheet .tour__skeys .key{
+    font-family:var(--sans); font-size:10.5px; font-weight:700; letter-spacing:.04em;
+    border:1px solid var(--ink); background:var(--paper); color:var(--ink);
+    padding:2px 7px 1px; min-width:20px; text-align:center; line-height:1.2;
+  }
+  .tour__sheet .tour__skeys .then{ font-family:var(--serif); font-style:italic; font-size:11px; color:var(--ink-45); }
+
+  .tour__foot{
+    border-top:var(--rule); padding:11px 18px; margin-top:8px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .tour__prog{
+    font-family:var(--sans); font-size:9px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink-45); font-variant-numeric:tabular-nums;
+  }
+  .tour__spacer{ flex:1; }
+  .tour__btn{
+    font-family:var(--sans); font-size:10px; font-weight:700; letter-spacing:.14em;
+    text-transform:uppercase; padding:8px 14px 7px; border:1px solid var(--ink);
+    background:var(--paper); color:var(--ink); cursor:pointer;
+  }
+  .tour__btn--solid{ background:var(--ink); color:var(--paper); }
+  .tour__btn:hover{ outline:2px solid var(--ink); outline-offset:1px; }
+  .tour__skip{
+    font-family:var(--sans); font-size:9px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink-45); border:none; background:none; cursor:pointer;
+  }
+  .tour__skip:hover{ color:var(--ink); text-decoration:underline; }
+  /* progress ticks */
+  .tour__ticks{ display:flex; gap:4px; align-items:center; margin-left:6px; }
+  .tour__tick{ width:7px; height:7px; border:1px solid var(--ink); background:var(--paper); }
+  .tour__tick--on{ background:var(--ink); }
+  .tour__tick--done{ background:var(--ink-30); border-color:var(--ink-30); }
+  @media (max-width:560px){
+    .tour__card{ width:calc(100vw - 24px); }
+    .tour__foot{ flex-wrap:wrap; }
+  }
+  @media print{ .tour{ display:none !important; } }
+
+  /* "Take the tour" settings action */
+  .tour-launch{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding-top:14px; }
+  .tour-launch .panel__rev{ margin-left:auto; }
+
   /* ============================================================
      ADDED — arcade: best-scores panel + sound toggle + daily label
      ============================================================ */
@@ -1877,6 +2014,14 @@
       </div>
     </div>
 
+    <div class="setblock">
+      <div class="setblock__head"><h3>The Reader's Guide</h3><span class="setblock__note">A short tour of the shortcuts and features.</span></div>
+      <div class="tour-launch">
+        <button class="btn" id="take-tour" type="button" style="cursor:pointer">Take the tour</button>
+        <span class="panel__rev">Replays the seven-step guided walkthrough.</span>
+      </div>
+    </div>
+
     <section class="closing" aria-label="In closing">
       <p class="closing__line">Set in Slate, connected, and accounted for. Change the dress whenever the mood turns.</p>
       <p class="closing__byline">Better SGY · Local settings</p>
@@ -1930,21 +2075,29 @@
     <div class="help__row"><span class="help__what">Open search</span><span class="help__keys"><span class="key" id="help-cmdk">⌘K</span></span></div>
     <div class="help__row"><span class="help__what">This help card</span><span class="help__keys"><span class="key">?</span></span></div>
     <div class="help__row"><span class="help__what">Close any overlay</span><span class="help__keys"><span class="key">Esc</span></span></div>
+    <div class="help__grp">The Guide</div>
+    <div class="help__row"><span class="help__what"><button class="tour__skip" id="help-take-tour" type="button" style="padding:0;letter-spacing:.04em;font-size:15px;font-family:var(--serif);text-transform:none;color:var(--ink)">Take the reader's guide tour →</button></span><span class="help__keys"></span></div>
   </div>
 </div>
 
-<!-- ===================== FIRST-RUN WELCOME ===================== -->
-<div class="ov-scrim" id="welcome-scrim" aria-hidden="true">
-  <div class="welcome" role="dialog" aria-modal="true" aria-label="Welcome">
-    <div class="welcome__band"><span>Better SGY</span><span>The Slate Edition · No. 1</span></div>
-    <div class="welcome__body">
-      <h2 class="welcome__head">Your Schoology, set in <em>type</em>.</h2>
-      <p><span class="lead">Welcome to Slate.</span> Better SGY does not replace Schoology; it is laid over your real page and sets the same record in ruled columns, a single ink, nothing that blinks.</p>
-      <p>This is the demo issue, so the grades you see are sample figures — read the whole paper without signing in. To change the dress, open <strong>Settings</strong> and pick another house style: Apple, Halo, Slate, or Friendly.</p>
+<!-- ===================== GUIDED TUTORIAL (a reader's guide) ===================== -->
+<div class="tour" id="tour" aria-hidden="true">
+  <div class="tour__veil"></div>
+  <div class="tour__spot" id="tour-spot"></div>
+  <div class="tour__card" id="tour-card" role="dialog" aria-modal="true" aria-label="Guided tour" aria-live="polite">
+    <div class="tour__band"><span>The Reader's Guide</span><span class="tour__no" id="tour-no">No. 1</span></div>
+    <div class="tour__body">
+      <div class="tour__kicker" id="tour-kicker">Slate Edition</div>
+      <h2 class="tour__head" id="tour-head">—</h2>
+      <div id="tour-text"></div>
     </div>
-    <div class="welcome__foot">
-      <button class="btn" id="welcome-dismiss" type="button" style="cursor:pointer">Begin reading</button>
-      <span class="welcome__sig">Filed for first issue · dismiss to continue</span>
+    <div class="tour__foot">
+      <span class="tour__prog" id="tour-prog">1 / 7</span>
+      <span class="tour__ticks" id="tour-ticks" aria-hidden="true"></span>
+      <span class="tour__spacer"></span>
+      <button class="tour__skip" id="tour-skip" type="button">Skip</button>
+      <button class="tour__btn" id="tour-back" type="button">Back</button>
+      <button class="tour__btn tour__btn--solid" id="tour-next" type="button">Next</button>
     </div>
   </div>
 </div>
@@ -3751,7 +3904,7 @@
   $('#help-scrim').addEventListener('mousedown', function(e){ if(e.target===this) helpClose(); });
 
   function anyOverlayOpen(){ return !!$('.ov-scrim--on'); }
-  function closeOverlays(){ palClose(); helpClose(); welcomeClose(); }
+  function closeOverlays(){ palClose(); helpClose(); }
 
   /* global keyboard: g-then-letter, ⌘K, ?, Esc */
   var gPending=false, gTimer=null;
@@ -3762,39 +3915,244 @@
   }
   document.addEventListener('keydown', function(e){
     /* ⌘K / Ctrl+K — works even in fields */
-    if((e.metaKey||e.ctrlKey) && (e.key==='k'||e.key==='K')){ e.preventDefault(); palOpen(); return; }
-    /* Esc closes any overlay */
-    if(e.key==='Escape'){ if(anyOverlayOpen()){ e.preventDefault(); closeOverlays(); } return; }
+    if((e.metaKey||e.ctrlKey) && (e.key==='k'||e.key==='K')){ e.preventDefault(); palOpen(); TOUR.note('cmdk'); return; }
+    /* Esc closes any overlay; if the tour is running and no overlay is open, Esc skips it */
+    if(e.key==='Escape'){
+      if(anyOverlayOpen()){ e.preventDefault(); closeOverlays(); return; }
+      if(TOUR.isOn()){ e.preventDefault(); TOUR.skip(); return; }
+      return;
+    }
     if(e.metaKey||e.ctrlKey||e.altKey) return;
     /* don't hijack typing inside fields or while an overlay/game owns the keys */
     if(typingInField(e.target)) return;
     if(anyOverlayOpen()) return;
     /* '?' help */
-    if(e.key==='?'){ e.preventDefault(); helpOpen(); return; }
+    if(e.key==='?'){ e.preventDefault(); helpOpen(); TOUR.note('help'); return; }
     /* 'g' then a letter */
     if(gPending){
       var dest=SCREEN_KEY[e.key.toLowerCase()];
       gPending=false; if(gTimer){ clearTimeout(gTimer); gTimer=null; }
-      if(dest){ e.preventDefault(); showScreen(dest); }
+      if(dest){ e.preventDefault(); showScreen(dest); TOUR.note('nav'); }
       return;
     }
     if(e.key==='g'||e.key==='G'){ gPending=true; gTimer=setTimeout(function(){ gPending=false; }, 1200); }
   });
 
   /* ============================================================
-     ADDED — FIRST-RUN WELCOME
+     ADDED — FIRST-RUN GUIDED TUTORIAL ("The Reader's Guide")
+     A coachmark tour: ruled callout points at the real UI element,
+     a spotlight dims the rest, with Back / Next / Skip + progress.
+     Strictly black & white; survives the inverted dark theme.
      ============================================================ */
   var WELCOME_KEY='bsgy-slate-welcomed';
-  function welcomeClose(){ $('#welcome-scrim').classList.remove('ov-scrim--on'); $('#welcome-scrim').setAttribute('aria-hidden','true'); }
-  function welcomeMaybeShow(){
-    var seen; try{ seen=localStorage.getItem(WELCOME_KEY); }catch(e){ seen='1'; }
-    if(seen) return;
-    $('#welcome-scrim').classList.add('ov-scrim--on');
-    $('#welcome-scrim').setAttribute('aria-hidden','false');
-  }
-  function welcomeDismiss(){ try{ localStorage.setItem(WELCOME_KEY,'1'); }catch(e){} welcomeClose(); }
-  $('#welcome-dismiss').addEventListener('click', welcomeDismiss);
-  $('#welcome-scrim').addEventListener('mousedown', function(e){ if(e.target===this) welcomeDismiss(); });
+  var TOUR = (function(){
+    var root=$('#tour'), card=$('#tour-card'), spot=$('#tour-spot');
+    var elNo=$('#tour-no'), elKick=$('#tour-kicker'), elHead=$('#tour-head'),
+        elText=$('#tour-text'), elProg=$('#tour-prog'), elTicks=$('#tour-ticks'),
+        btnBack=$('#tour-back'), btnNext=$('#tour-next'), btnSkip=$('#tour-skip');
+    var i=0, on=false, repositionRAF=null;
+
+    /* Each step: target selector (or null = centred intro/finish), where the
+       callout sits, the screen it lives on, copy, and optional interactivity. */
+    var STEPS=[
+      { target:null, screen:'overview', kicker:'Slate Edition · The Demo Issue',
+        head:'A reader’s <em>guide</em>.',
+        body:['This is the demo issue: the figures — 96.2% overall, a 3.94 average, six courses — are sample copy. The live edition is laid over your real Schoology and sets the same record.',
+              'The dress is yours to choose. In <span class="key">Settings</span> you may switch the house style — Apple, Halo, Slate, or Friendly. Seven short notes follow; read on, or skip at any time.'] },
+      { target:'#nav', screen:'overview', side:'bottom',
+        kicker:'Getting About', head:'The <em>table of contents</em>.',
+        body:['The nav runs the length of the masthead. Click any section to turn to it — or, for the keyboard reader, press <span class="key">g</span> then a letter: <span class="key">o</span> overview, <span class="key">g</span> grades, <span class="key">a</span> assignments, <span class="key">c</span> calendar, <span class="key">n</span> bulletins, <span class="key">m</span> materials, <span class="key">e</span> games, <span class="key">s</span> settings.',
+              'Try it now, then continue.'],
+        listen:'nav', ackHead:'— noted. Navigation works.' },
+      { target:'#mh-search', screen:'overview', side:'bottom', align:'end',
+        kicker:'The Index', head:'Search <em>everything</em>.',
+        body:['Press <span class="key">⌘K</span> (<span class="key">Ctrl+K</span> on Windows) to open the index. It searches courses, assignments, bulletins, materials, and screens; press <span class="key">↵</span> on a result to turn straight to it.',
+              'Open it now to see.'],
+        listen:'cmdk', ackHead:'— the index is open.' },
+      { target:'#mh-search', screen:'overview', side:'bottom', align:'end',
+        kicker:'The Full Key', head:'Press <em>?</em> for the list.',
+        body:['Every shortcut is set down on one ruled card. Press <span class="key">?</span> to call it up; press <span class="key">Esc</span> to put it away.',
+              'Press <span class="key">?</span> now.'],
+        listen:'help', ackHead:'— the full key is shown.' },
+      { target:'#nav [data-nav="grades"]', screen:'overview', side:'bottom',
+        kicker:'The Ledger', head:'Grades, set in <em>columns</em>.',
+        body:['Turn to <span class="key">Grades</span> and select a course from the rail. Each course opens its own ledger — categories, weights, and a grade-over-term figure plotted in a single ink.'] },
+      { target:'#nav [data-nav="arcade"]', screen:'overview', side:'bottom',
+        kicker:'The Idle Minute', head:'Four <em>games</em>.',
+        body:['Under <span class="key">Games</span> this edition keeps four: a <strong>Typing Test</strong>, an <strong>Anagram</strong> drawn from the term’s vocabulary, <strong>Tic-Tac-Toe</strong> against a CPU that does not blunder, and a <strong>Word Search</strong>. Each keeps a best score, locally.'] },
+      { target:null, screen:'overview', center:true,
+        kicker:'In Closing', head:'You are <em>set</em>.',
+        body:['Keep this card to hand. The whole key sits one keystroke away under <span class="key">?</span>, and this guide can be replayed any time from <strong>Settings → The Reader’s Guide</strong>.'],
+        sheet:[
+          ['Go to a section', [['g'],['then','o g a c n m e s']]],
+          ['Open search', [['⌘K']]],
+          ['Shortcuts help', [['?']]],
+          ['Close any overlay', [['Esc']]]
+        ] },
+    ];
+
+    function isOn(){ return on; }
+
+    function setProgress(){
+      elProg.textContent=(i+1)+' / '+STEPS.length;
+      elTicks.innerHTML='';
+      for(var k=0;k<STEPS.length;k++){
+        var t=el('span','tour__tick'+(k===i?' tour__tick--on':(k<i?' tour__tick--done':'')));
+        elTicks.appendChild(t);
+      }
+    }
+
+    function buildSheet(rows){
+      var wrap=el('div','tour__sheet');
+      rows.forEach(function(r){
+        var row=el('div','tour__srow');
+        row.appendChild(el('span','tour__swhat', esc(r[0])));
+        var keys=el('span','tour__skeys');
+        r[1].forEach(function(grp){
+          if(grp[0]==='then'){ keys.appendChild(el('span','then','then')); keys.appendChild(el('span','key', esc(grp[1]))); }
+          else keys.appendChild(el('span','key', esc(grp[0])));
+        });
+        row.appendChild(keys); wrap.appendChild(row);
+      });
+      return wrap;
+    }
+
+    /* place the callout relative to the spotlight target, clamped on-screen */
+    function position(step){
+      var pad=10, m=12; /* spotlight padding, viewport margin */
+      var vw=window.innerWidth, vh=window.innerHeight;
+      var centered = step.center || !step.target;
+      if(centered){
+        root.classList.add('tour--center');
+        card.removeAttribute('data-arrow');
+        card.style.top=''; card.style.left='';
+        spot.style.display='none';
+        return;
+      }
+      root.classList.remove('tour--center');
+      spot.style.display='block';
+      var tgt=$(step.target);
+      if(!tgt){ /* fall back to centred */ root.classList.add('tour--center'); spot.style.display='none'; card.removeAttribute('data-arrow'); return; }
+      var r=tgt.getBoundingClientRect();
+      /* spotlight rect */
+      var sx=Math.max(2, r.left-pad), sy=Math.max(2, r.top-pad);
+      var sw=Math.min(vw-4, r.width+pad*2), sh=r.height+pad*2;
+      if(sy+sh>vh-2) sh=vh-2-sy;
+      spot.style.left=sx+'px'; spot.style.top=sy+'px';
+      spot.style.width=sw+'px'; spot.style.height=sh+'px';
+
+      /* measure the card */
+      card.style.left='0px'; card.style.top='0px';
+      var cw=card.offsetWidth, ch=card.offsetHeight;
+
+      var side=step.side||'bottom';
+      /* if not enough room below, flip above */
+      if(side==='bottom' && (sy+sh+12+ch > vh-m) && (sy-12-ch > m)) side='top';
+      if(side==='top' && (sy-12-ch < m) && (sy+sh+12+ch < vh-m)) side='bottom';
+
+      var cx, cy, arrow, axis;
+      if(side==='bottom' || side==='top'){
+        /* horizontal align under/over the target */
+        var anchorX = (step.align==='end') ? (sx+sw - cw) : (step.align==='center' ? (sx+sw/2 - cw/2) : sx);
+        cx=Math.max(m, Math.min(anchorX, vw-m-cw));
+        if(side==='bottom'){ cy=sy+sh+12; arrow='top'; } else { cy=sy-12-ch; arrow='bottom'; }
+        /* arrow x relative to card, pointing at target centre */
+        var tcx=sx+sw/2; axis=Math.max(14, Math.min(tcx-cx-11, cw-36));
+        card.style.setProperty('--ax', axis+'px');
+        card.setAttribute('data-arrow', arrow);
+      } else {
+        /* left / right of target */
+        var anchorY=sy;
+        cy=Math.max(m, Math.min(anchorY, vh-m-ch));
+        if(side==='right'){ cx=sx+sw+12; arrow='left'; } else { cx=sx-12-cw; arrow='right'; }
+        cx=Math.max(m, Math.min(cx, vw-m-cw));
+        var tcy=sy+sh/2; var ay=Math.max(14, Math.min(tcy-cy-11, ch-36));
+        card.style.setProperty('--ay', ay+'px');
+        card.setAttribute('data-arrow', arrow);
+      }
+      card.style.left=cx+'px'; card.style.top=cy+'px';
+    }
+
+    function render(){
+      var step=STEPS[i];
+      /* make sure the target's screen is showing */
+      if(step.screen && state.screen!==step.screen) showScreen(step.screen);
+      setProgress();
+      elNo.textContent='No. '+(i+1);
+      elKick.textContent=step.kicker||'';
+      elHead.innerHTML=step.head||'';
+      elText.innerHTML='';
+      (step.body||[]).forEach(function(p){ elText.appendChild(el('p','tour__text', p)); });
+      if(step.sheet) elText.appendChild(buildSheet(step.sheet));
+      /* footer buttons */
+      btnBack.style.visibility = (i===0) ? 'hidden' : 'visible';
+      btnNext.textContent = (i===STEPS.length-1) ? 'Done' : 'Next';
+      btnSkip.style.display = (i===STEPS.length-1) ? 'none' : '';
+      /* place it (after layout settles) */
+      requestAnimationFrame(function(){ position(step); });
+    }
+
+    function go(n){
+      if(n<0) n=0; if(n>STEPS.length-1) n=STEPS.length-1;
+      i=n; render();
+    }
+    function next(){ if(i>=STEPS.length-1){ finish(); } else go(i+1); }
+    function back(){ go(i-1); }
+
+    /* an interactive step heard the key/click it was waiting for */
+    function note(kind){
+      if(!on) return;
+      var step=STEPS[i];
+      if(step.listen && step.listen===kind){
+        /* acknowledge in place, then advance shortly so they see it worked */
+        var p=elText.querySelector('.tour__text:last-child');
+        if(p && !p.querySelector('.did')){
+          var b=el('span','did', esc(step.ackHead||'— done.')); p.appendChild(document.createElement('br')); p.appendChild(b);
+        }
+        setTimeout(function(){ if(on && i<STEPS.length-1){ closeOverlays(); next(); } }, 900);
+      }
+    }
+
+    function open(reset){
+      on=true; root.classList.add('tour--on'); root.setAttribute('aria-hidden','false');
+      go(reset===false ? i : 0);
+      window.addEventListener('resize', onReflow, true);
+      window.addEventListener('scroll', onReflow, true);
+    }
+    function onReflow(){
+      if(!on) return;
+      if(repositionRAF) cancelAnimationFrame(repositionRAF);
+      repositionRAF=requestAnimationFrame(function(){ position(STEPS[i]); });
+    }
+    function shut(){
+      on=false; root.classList.remove('tour--on'); root.setAttribute('aria-hidden','true');
+      window.removeEventListener('resize', onReflow, true);
+      window.removeEventListener('scroll', onReflow, true);
+    }
+    function markSeen(){ try{ localStorage.setItem(WELCOME_KEY,'1'); }catch(e){} }
+    function finish(){ markSeen(); shut(); }
+    function skip(){ markSeen(); shut(); }
+
+    function maybeShowFirstRun(){
+      var seen; try{ seen=localStorage.getItem(WELCOME_KEY); }catch(e){ seen='1'; }
+      if(seen) return;
+      open(true);
+    }
+    function start(){ open(true); }
+
+    /* wiring */
+    btnNext.addEventListener('click', next);
+    btnBack.addEventListener('click', back);
+    btnSkip.addEventListener('click', skip);
+    /* clicking the dim veil on a centred step does nothing destructive; ignore */
+
+    return { isOn:isOn, note:note, skip:skip, finish:finish,
+             start:start, maybeShowFirstRun:maybeShowFirstRun };
+  })();
+
+  /* relaunch entries */
+  var takeTourBtn=$('#take-tour'); if(takeTourBtn) takeTourBtn.addEventListener('click', function(){ TOUR.start(); });
+  var helpTourBtn=$('#help-take-tour'); if(helpTourBtn) helpTourBtn.addEventListener('click', function(){ helpClose(); TOUR.start(); });
 
   /* ============================================================
      ADDED — EXPORT OVERVIEW AS PNG (foreignObject -> canvas -> dataURL)
@@ -3905,8 +4263,8 @@
     else ARCADE.openGame(QS.game);
   }
 
-  /* first-run welcome (after the first paint) */
-  welcomeMaybeShow();
+  /* first-run guided tutorial (after the first paint) */
+  TOUR.maybeShowFirstRun();
 })();
 </script>
 </body>

@@ -670,6 +670,87 @@
         cursor:pointer;display:grid;place-items:center;transition:background .12s,transform .12s}
   .welcome .wx:hover{background:var(--card);transform:scale(1.08)}
 
+  /* ============================================================
+     GUIDED TOUR — soft spotlight + warm coachmark callouts
+     ============================================================ */
+  .tourdim{position:fixed;inset:0;z-index:90;display:none;pointer-events:none;
+        background:rgba(58,47,37,.42);backdrop-filter:blur(1.5px);
+        transition:background .2s ease}
+  html[data-theme="dark"] .tourdim{background:rgba(0,0,0,.55)}
+  .tourdim.show{display:block}
+  /* the spotlight: a transparent hole punched over the target via a huge ring shadow */
+  .tourspot{position:fixed;z-index:91;border-radius:18px;pointer-events:none;display:none;
+        box-shadow:0 0 0 9999px rgba(58,47,37,.42),0 0 0 3px rgba(255,180,84,.9);
+        transition:all .26s cubic-bezier(.2,.8,.2,1)}
+  html[data-theme="dark"] .tourspot{box-shadow:0 0 0 9999px rgba(0,0,0,.55),0 0 0 3px rgba(255,180,84,.85)}
+  .tourspot.show{display:block}
+  .tourspot.nopulse{animation:none}
+  @keyframes tourpulse{0%,100%{box-shadow:0 0 0 9999px rgba(58,47,37,.42),0 0 0 3px rgba(255,180,84,.9)}
+        50%{box-shadow:0 0 0 9999px rgba(58,47,37,.42),0 0 0 6px rgba(255,180,84,.55)}}
+  .tourspot.pulse{animation:tourpulse 1.8s ease-in-out infinite}
+  html[data-theme="dark"] .tourspot.pulse{animation:tourpulsed 1.8s ease-in-out infinite}
+  @keyframes tourpulsed{0%,100%{box-shadow:0 0 0 9999px rgba(0,0,0,.55),0 0 0 3px rgba(255,180,84,.85)}
+        50%{box-shadow:0 0 0 9999px rgba(0,0,0,.55),0 0 0 6px rgba(255,180,84,.5)}}
+
+  .coach{position:fixed;z-index:93;width:300px;max-width:calc(100vw - 28px);
+        background:var(--card);border:1.5px solid var(--line);border-radius:22px;
+        padding:16px 18px 15px;box-shadow:0 26px 60px -22px rgba(80,50,15,.7);
+        display:none;animation:coachin .24s cubic-bezier(.2,.9,.25,1)}
+  .coach.show{display:block}
+  @keyframes coachin{from{opacity:0;transform:translateY(6px) scale(.985)}to{opacity:1;transform:none}}
+  .coach .ctop{display:flex;align-items:center;gap:9px;margin-bottom:7px}
+  .coach .ce{font-size:20px;flex:none}
+  .coach .ct{font-size:16px;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+  .coach p{font-size:14px;font-weight:600;color:var(--ink);line-height:1.5}
+  .coach p span{color:var(--ink-2)}
+  .coach .ckbd{display:inline-flex;gap:4px;margin:0 1px;vertical-align:baseline}
+  .coach .ckbd kbd{font:inherit;font-size:11.5px;font-weight:800;background:var(--paper-2);color:var(--ink);
+        border:1.5px solid var(--line);padding:2px 7px;border-radius:8px;line-height:1.3}
+  .coach .cdid{font-size:12.5px;font-weight:800;color:var(--sage);margin-top:8px;display:none}
+  .coach .cdid.show{display:block;animation:fade .2s ease}
+  /* little pointer arrow toward the target */
+  .coach .carrow{position:absolute;width:16px;height:16px;background:var(--card);
+        border:1.5px solid var(--line);transform:rotate(45deg)}
+  .coach.atop .carrow{bottom:-9px;border-top:none;border-left:none}
+  .coach.abot .carrow{top:-9px;border-bottom:none;border-right:none}
+  .coach.aleft .carrow{right:-9px;border-bottom:none;border-left:none}
+  .coach.aright .carrow{left:-9px;border-top:none;border-right:none}
+  .coach.anone .carrow{display:none}
+
+  .coachfoot{display:flex;align-items:center;gap:8px;margin-top:14px}
+  .coachdots{display:flex;gap:6px;flex:1;align-items:center}
+  .coachdots .cd{width:7px;height:7px;border-radius:50%;background:var(--ink-3);opacity:.45;
+        transition:opacity .15s,background .15s,transform .15s}
+  .coachdots .cd.on{background:var(--coral);opacity:1;transform:scale(1.25)}
+  .coachdots .cd.done{background:var(--peach);opacity:.85}
+  .coachbtn{font:inherit;font-size:13px;font-weight:800;padding:8px 14px;border-radius:13px;cursor:pointer;
+        border:1.5px solid transparent;transition:transform .12s,background .12s,filter .12s}
+  .coachbtn:hover{transform:translateY(-1px)}
+  .coachbtn:active{transform:translateY(0)}
+  .coachbtn.prim{background:var(--ink);color:#fff;box-shadow:0 8px 18px -10px rgba(58,47,37,.6)}
+  .coachbtn.ghost{background:var(--paper-2);color:var(--ink-2);border-color:var(--line)}
+  .coachskip{position:absolute;top:13px;right:14px;font:inherit;font-size:11.5px;font-weight:800;
+        color:var(--ink-3);background:none;border:none;cursor:pointer;padding:2px 4px}
+  .coachskip:hover{color:var(--ink-2)}
+
+  /* tour cheat-sheet on the finish step */
+  .tourcheat{margin-top:12px;background:var(--paper-2);border:1.5px dashed #e3d2b6;border-radius:16px;padding:11px 13px}
+  html[data-theme="dark"] .tourcheat{border-color:#5a4a2e}
+  .tourcheat .tcr{display:flex;align-items:center;gap:9px;padding:4px 0;font-size:12.5px;font-weight:700;color:var(--ink)}
+  .tourcheat .tck{display:flex;gap:4px;flex:none;min-width:74px}
+  .tourcheat .tck kbd{font:inherit;font-size:11px;font-weight:800;background:var(--card);color:var(--ink);
+        border:1.5px solid var(--line);padding:2px 7px;border-radius:8px;min-width:22px;text-align:center}
+
+  /* "take the tour" row in settings */
+  .tourrow{display:flex;align-items:center;gap:13px;padding:13px 18px}
+  .tourrow .ti2{font-size:20px}
+  .tourrow .tt2{flex:1}
+  .tourrow .tn2{font-size:14.5px;font-weight:800}
+  .tourrow .td2{font-size:12.5px;font-weight:600;color:var(--ink-2)}
+
+  @media print{.tourdim,.tourspot,.coach{display:none !important}}
+  @media(max-width:560px){.coach{width:calc(100vw - 28px)}}
+
   /* export button on overview */
   .exportbtn{display:inline-flex;align-items:center;gap:8px;padding:9px 15px;border-radius:14px;
         border:1.5px solid var(--line);background:var(--card);font:inherit;font-size:13px;font-weight:800;
@@ -758,6 +839,23 @@
         <div class="shrow"><div class="sk"><kbd>?</kbd></div><div class="sd">this list</div></div>
         <div class="shrow"><div class="sk"><kbd>esc</kbd></div><div class="sd">close any of this</div></div>
       </div>
+      <div style="padding:0 16px 18px"><button class="pingbtn" id="shtour" style="width:100%;justify-content:center">🧭 take the tour</button></div>
+    </div>
+  </div>
+
+  <!-- ===== GUIDED TOUR (coachmarks) ===== -->
+  <div class="tourdim" id="tourdim"></div>
+  <div class="tourspot" id="tourspot"></div>
+  <div class="coach" id="coach" role="dialog" aria-label="quick tour" aria-live="polite">
+    <button class="coachskip" id="coachskip" title="skip the tour">skip</button>
+    <div class="ctop"><span class="ce" id="coachemoji">🙂</span><span class="ct" id="coachtitle"></span></div>
+    <p id="coachbody"></p>
+    <div class="cdid" id="coachdid"></div>
+    <div class="carrow" id="coacharrow"></div>
+    <div class="coachfoot">
+      <div class="coachdots" id="coachdots"></div>
+      <button class="coachbtn ghost" id="coachback">back</button>
+      <button class="coachbtn prim" id="coachnext">next</button>
     </div>
   </div>
 
@@ -2288,6 +2386,11 @@ function viewSettings(){
   return `
     <div class="pagehd"><h1>Settings</h1><span class="when">make it yours</span></div>
     <p class="lead">you're on Friendly mode. obviously the correct choice, but the others are there.</p>
+    <div class="card tourrow">
+      <span class="ti2">🧭</span>
+      <div class="tt2"><div class="tn2">take the tour</div><div class="td2">the quick walkthrough of shortcuts + features. replay it any time.</div></div>
+      <button class="pingbtn" id="taketour">start tour</button>
+    </div>
     <div class="sechd"><h2>UI Style</h2><span class="sub">pick a vibe</span></div>
     <div class="styles">${styles}</div>
     <div class="sechd"><h2>Your school</h2></div>
@@ -2348,6 +2451,7 @@ function wireSettings(){
     applyTheme();
   });
   $('#testping').onclick = () => firePing();
+  const tt = $('#taketour'); if(tt) tt.onclick = () => startTour();
 }
 
 /* ============================================================
@@ -2438,6 +2542,7 @@ function openSearch(){
   const ovl = $('#searchovl'); ovl.classList.add('show');
   const inp = $('#searchinput'); inp.value=''; renderSearchResults('');
   setTimeout(()=>inp.focus(), 20);
+  tourReact('search');   // if the tour's search step is open, this passes it
 }
 function closeSearch(){ const o=$('#searchovl'); if(o) o.classList.remove('show'); }
 function searchOpen(){ return $('#searchovl') && $('#searchovl').classList.contains('show'); }
@@ -2524,6 +2629,10 @@ function wireGlobalKeys(){
   $('#searchovl').addEventListener('mousedown', e => { if(e.target.id==='searchovl') closeSearch(); });
   $('#shovl').addEventListener('mousedown', e => { if(e.target.id==='shovl') closeShortcuts(); });
 
+  // "take the tour" from the ? help overlay
+  const shtour = $('#shtour');
+  if(shtour) shtour.onclick = () => { closeShortcuts(); startTour(); };
+
   // search input
   const inp = $('#searchinput');
   inp.addEventListener('input', () => renderSearchResults(inp.value));
@@ -2540,6 +2649,7 @@ function wireGlobalKeys(){
       e.preventDefault(); searchOpen() ? closeSearch() : openSearch(); return;
     }
     if(e.key==='Escape'){
+      if(tour.on){ endTour(true); return; }   // esc skips the tour
       if(searchOpen()){ closeSearch(); return; }
       if(shortcutsOpen()){ closeShortcuts(); return; }
     }
@@ -2564,29 +2674,210 @@ function wireGlobalKeys(){
 }
 
 /* ============================================================
-   FIRST-RUN WELCOME — dismissible, once (localStorage)
+   GUIDED TOUR — interactive coachmark walkthrough.
+   launches once on first open (WELCOME_KEY), re-launchable from
+   settings + the ? help overlay. each step spotlights a real UI
+   element, the user can actually try the thing, esc skips.
    ============================================================ */
 const WELCOME_KEY = 'bsgy-forge-welcomed';
-function maybeShowWelcome(){
-  let done = false;
-  try{ done = localStorage.getItem(WELCOME_KEY)==='1'; }catch(e){}
-  if(done) return;
-  if(state.screen!=='overview') return;   // only greet on the home screen
-  const main = $('#main .screen'); if(!main) return;
-  const card = document.createElement('div');
-  card.className = 'welcome';
-  card.innerHTML = `
-    <button class="wx" id="welcomex" title="dismiss">×</button>
-    <div class="wtop"><span class="we">🙂</span><span class="wt">hey, welcome in</span></div>
-    <p>this is your real schoology, just redrawn on top of it — same grades and classes, friendlier to look at. it doesn't replace schoology, it just lays over it.
-    <span>and this is the demo, so the grades here are made up. poke around all you want, no login needed. four looks total — swap them anytime in settings.</span></p>`;
-  main.insertBefore(card, main.firstChild);
-  $('#welcomex').onclick = () => {
-    try{ localStorage.setItem(WELCOME_KEY,'1'); }catch(e){}
-    card.style.opacity='0'; card.style.transform='translateY(-6px)';
-    card.style.transition='opacity .2s ease, transform .2s ease';
-    setTimeout(()=>card.remove(), 200);
+const kbMac = () => /Mac|iPhone|iPad/.test(navigator.platform) || /Mac/.test(navigator.userAgent);
+
+// each step: target = css selector (null = centered, no spotlight),
+// side = preferred placement, screen = nav to this first if set,
+// react = how the user "passes" by doing the thing.
+const TOUR_STEPS = [
+  { id:'intro', emoji:'🙂', title:'hey, welcome in',
+    body:()=>`this is a demo of better sgy. <span>the real one draws over your actual schoology — same grades and classes, just friendlier to look at. these grades are made up, so poke around freely.</span><br><br>you can swap the whole look (apple, halo, slate, friendly) over in settings.`,
+    target:null, side:'center' },
+  { id:'nav', emoji:'🧭', title:'getting around',
+    body:()=>`everything lives here. click around, or jump with the keyboard — press <span class="ckbd"><kbd>g</kbd></span> then <span class="ckbd"><kbd>o</kbd></span>/<span class="ckbd"><kbd>g</kbd></span>/<span class="ckbd"><kbd>a</kbd></span>/<span class="ckbd"><kbd>c</kbd></span>/<span class="ckbd"><kbd>n</kbd></span>/<span class="ckbd"><kbd>m</kbd></span>/<span class="ckbd"><kbd>e</kbd></span>/<span class="ckbd"><kbd>s</kbd></span>.`,
+    target:'#nav', side:'right' },
+  { id:'search', emoji:'🔍', title:'search everything',
+    body:()=>`press <span class="ckbd"><kbd>${kbMac()?'⌘':'ctrl'}</kbd><kbd>K</kbd></span> to search classes, assignments, posts — all of it. go ahead, try it.`,
+    target:'#searchchip', side:'right',
+    did:'nice. that\'s the one.', react:'search' },
+  { id:'shortcuts', emoji:'⌨️', title:'the full list',
+    body:()=>`press <span class="ckbd"><kbd>?</kbd></span> any time for every shortcut. here's the list now — have a look, then next.`,
+    target:null, side:'center', dock:'bottom', onEnter:()=>{ openShortcuts(); $('#shovl').style.zIndex='92'; } },
+  { id:'grades', emoji:'📊', title:'grades + the chart',
+    body:()=>`tap a class to open its gradebook and a grade-over-time chart. <span>every class has one — handy for spotting a dip early.</span>`,
+    target:'#nav button[data-screen="grades"]', side:'right' },
+  { id:'games', emoji:'🎮', title:'and a little break',
+    body:()=>`four small games in here when you're avoiding homework: flap, whack, bounce, and word search. scores save.`,
+    target:'#nav button[data-screen="games"]', side:'right' },
+  { id:'finish', emoji:'🧃', title:'that\'s the tour',
+    body:()=>`you're set. quick cheat-sheet:`,
+    cheat:true, target:null, side:'center' },
+];
+
+const tour = { on:false, i:0, reactedAt:-1 };
+
+function tourEls(){
+  return {
+    dim:$('#tourdim'), spot:$('#tourspot'), coach:$('#coach'),
+    title:$('#coachtitle'), body:$('#coachbody'), emoji:$('#coachemoji'),
+    did:$('#coachdid'), arrow:$('#coacharrow'), dots:$('#coachdots'),
+    back:$('#coachback'), next:$('#coachnext'), skip:$('#coachskip'),
   };
+}
+
+function startTour(){
+  if(tour.on) return;
+  tour.on = true; tour.i = 0; tour.reactedAt = -1;
+  const e = tourEls();
+  e.dim.classList.add('show');
+  // wire controls once per run
+  e.next.onclick = () => tourNext();
+  e.back.onclick = () => tourBack();
+  e.skip.onclick = () => endTour(true);
+  window.addEventListener('resize', tourReposition);
+  window.addEventListener('scroll', tourReposition, true);
+  showTourStep(0);
+}
+
+function endTour(markDone){
+  if(!tour.on) return;
+  tour.on = false;
+  const e = tourEls();
+  e.dim.classList.remove('show');
+  e.spot.classList.remove('show','pulse');
+  e.coach.classList.remove('show');
+  closeShortcuts(); $('#shovl').style.zIndex='';
+  window.removeEventListener('resize', tourReposition);
+  window.removeEventListener('scroll', tourReposition, true);
+  if(markDone){ try{ localStorage.setItem(WELCOME_KEY,'1'); }catch(e){} }
+}
+
+function tourNext(){
+  if(tour.i >= TOUR_STEPS.length-1){ endTour(true); return; }
+  showTourStep(tour.i+1);
+}
+function tourBack(){ if(tour.i>0) showTourStep(tour.i-1); }
+
+function showTourStep(i){
+  tour.i = i; tour.reactedAt = -1;
+  const step = TOUR_STEPS[i];
+  const e = tourEls();
+  // navigate to the screen this step lives on, if needed
+  if(step.screen && state.screen!==step.screen) go(step.screen);
+  // close any overlay from a previous step (the shortcuts step reopens its own)
+  closeSearch();
+  if(step.id!=='shortcuts'){ closeShortcuts(); $('#shovl').style.zIndex=''; }
+  // build the coach content
+  e.emoji.textContent = step.emoji;
+  e.title.textContent = step.title;
+  let html = step.body();
+  if(step.cheat) html += tourCheatHTML();
+  e.body.innerHTML = html;
+  // "you did it" line
+  e.did.classList.remove('show');
+  if(step.did){ e.did.textContent = step.did; }
+  else e.did.textContent = '';
+  // dots
+  e.dots.innerHTML = TOUR_STEPS.map((_,k) =>
+    `<span class="cd ${k===i?'on':k<i?'done':''}"></span>`).join('');
+  // buttons
+  e.back.style.visibility = i===0 ? 'hidden' : 'visible';
+  e.next.textContent = i===TOUR_STEPS.length-1 ? 'done 🙂' : 'next';
+  e.skip.style.display = i===TOUR_STEPS.length-1 ? 'none' : 'block';
+  // step-specific side effects (e.g. open the shortcuts overlay)
+  if(step.onEnter) setTimeout(step.onEnter, 60);
+  // show + position (wait a tick so any screen swap has laid out)
+  e.coach.classList.add('show');
+  requestAnimationFrame(()=>requestAnimationFrame(tourReposition));
+}
+
+function tourCheatHTML(){
+  const k = kbMac()?'⌘':'ctrl';
+  const rows = [
+    [[k,'K'],'search everything'],
+    [['g','o'],'overview'],
+    [['g','g'],'grades'],
+    [['g','e'],'games'],
+    [['?'],'all shortcuts'],
+    [['esc'],'close anything'],
+  ];
+  return `<div class="tourcheat">${rows.map(([keys,label]) =>
+    `<div class="tcr"><span class="tck">${keys.map(x=>`<kbd>${x}</kbd>`).join('')}</span><span>${label}</span></div>`
+  ).join('')}<div class="tcr" style="color:var(--ink-2);font-weight:600;padding-top:7px">replay this any time from settings → take the tour.</div></div>`;
+}
+
+// place the spotlight over the target + the coach beside it, no overflow
+function tourReposition(){
+  if(!tour.on) return;
+  const step = TOUR_STEPS[tour.i];
+  const e = tourEls();
+  const vw = window.innerWidth, vh = window.innerHeight, pad = 12, gap = 14;
+  const tgt = step.target ? document.querySelector(step.target) : null;
+
+  if(!tgt){
+    // centered, no spotlight
+    e.spot.classList.remove('show','pulse');
+    e.coach.className = 'coach show anone';
+    const cw = e.coach.offsetWidth, ch = e.coach.offsetHeight;
+    e.coach.style.left = Math.round((vw-cw)/2)+'px';
+    const top = step.dock==='bottom' ? (vh-ch-24) : Math.max(pad,(vh-ch)/2);
+    e.coach.style.top  = Math.round(Math.max(pad,top))+'px';
+    return;
+  }
+
+  const r = tgt.getBoundingClientRect();
+  const sp = 8; // spotlight padding around target
+  e.spot.classList.add('show','pulse');
+  e.spot.style.left = Math.max(2,r.left-sp)+'px';
+  e.spot.style.top = Math.max(2,r.top-sp)+'px';
+  e.spot.style.width = Math.min(vw-4,r.width+sp*2)+'px';
+  e.spot.style.height = Math.min(vh-4,r.height+sp*2)+'px';
+
+  // choose a side that fits
+  const cw = 300, ch = e.coach.offsetHeight || 180;
+  let side = step.side || 'right';
+  const fits = {
+    right: r.right+gap+cw <= vw-pad,
+    left:  r.left-gap-cw >= pad,
+    bottom:r.bottom+gap+ch <= vh-pad,
+    top:   r.top-gap-ch >= pad,
+  };
+  if(!fits[side]){
+    side = ['bottom','top','right','left'].find(s=>fits[s]) || 'bottom';
+  }
+
+  let left, top, cls='coach show';
+  if(side==='right'){ left=r.right+gap; top=r.top; cls+=' aleft'; }
+  else if(side==='left'){ left=r.left-gap-cw; top=r.top; cls+=' aright'; }
+  else if(side==='bottom'){ left=r.left; top=r.bottom+gap; cls+=' abot'; }
+  else { left=r.left; top=r.top-gap-ch; cls+=' atop'; }
+
+  // clamp inside viewport
+  left = Math.max(pad, Math.min(left, vw-cw-pad));
+  top  = Math.max(pad, Math.min(top,  vh-ch-pad));
+  e.coach.className = cls;
+  e.coach.style.left = Math.round(left)+'px';
+  e.coach.style.top  = Math.round(top)+'px';
+
+  // position the little arrow toward the target center
+  const arrow = e.arrow;
+  if(side==='left'||side==='right'){
+    let ay = (r.top+r.height/2) - top;
+    ay = Math.max(14, Math.min(ay, ch-14));
+    arrow.style.top = ay+'px'; arrow.style.left='';
+  } else {
+    let ax = (r.left+r.width/2) - left;
+    ax = Math.max(16, Math.min(ax, cw-16));
+    arrow.style.left = ax+'px'; arrow.style.top='';
+  }
+}
+
+// react when the user actually does the thing a step asks for
+function tourReact(kind){
+  if(!tour.on) return;
+  const step = TOUR_STEPS[tour.i];
+  if(step.react!==kind || tour.reactedAt===tour.i) return;
+  tour.reactedAt = tour.i;
+  const e = tourEls();
+  if(step.did){ e.did.classList.add('show'); }
+  // give them a beat to see it worked, then advance
+  setTimeout(()=>{ if(tour.on && tour.i===tour.reactedAt) tourNext(); }, 900);
 }
 
 /* ============================================================
@@ -2683,7 +2974,12 @@ applyTheme();
 renderNav();
 renderScreen();
 wireGlobalKeys();
-maybeShowWelcome();
+// first open → launch the guided tour once
+(function maybeFirstRunTour(){
+  let done = false;
+  try{ done = localStorage.getItem(WELCOME_KEY)==='1'; }catch(e){}
+  if(!done) setTimeout(startTour, 400);
+})();
 </script>
 </body>
 </html>

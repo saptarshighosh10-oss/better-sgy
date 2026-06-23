@@ -1131,6 +1131,133 @@
   .welcome .wl-x svg { width: 15px; height: 15px; }
 
   /* ============================================================
+     ADDED · GUIDED TUTORIAL (coachmark tour)
+     Calm + monochrome: a dimmed scrim with a transparent spotlight
+     cut out around the target, and a hairline callout that points
+     at it. Color stays signal-only (none used here).
+     ============================================================ */
+  .tour { position: fixed; inset: 0; z-index: 300; display: none; }
+  .tour.show { display: block; }
+  /* scrim built from four panels so the spotlight stays a clean hole */
+  .tour-scrim {
+    position: fixed; background: rgba(20,20,15,0.46);
+    transition: all 220ms cubic-bezier(.4,0,.2,1);
+  }
+  html[data-theme="dark"] .tour-scrim { background: rgba(0,0,0,0.62); }
+  /* ring around the spotlit element */
+  .tour-ring {
+    position: fixed; pointer-events: none; z-index: 301;
+    border: 1px solid var(--hair-strong);
+    border-radius: var(--radius-sm);
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.10);
+    transition: all 220ms cubic-bezier(.4,0,.2,1);
+  }
+  html[data-theme="dark"] .tour-ring { box-shadow: 0 0 0 1px rgba(0,0,0,0.4); }
+
+  .tour-pop {
+    position: fixed; z-index: 302; width: 320px; max-width: calc(100vw - 32px);
+    background: var(--paper); border: 1px solid var(--hair-strong);
+    border-radius: var(--radius); overflow: hidden;
+    box-shadow: 0 24px 70px rgba(0,0,0,0.30);
+    transition: top 220ms cubic-bezier(.4,0,.2,1), left 220ms cubic-bezier(.4,0,.2,1);
+  }
+  .tour-pop .tp-body { padding: 18px 20px 4px; }
+  .tour-pop .tp-eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--ink-4); margin-bottom: 7px;
+  }
+  .tour-pop .tp-title {
+    font-size: 15px; font-weight: 600; color: var(--ink);
+    letter-spacing: -0.012em; line-height: 1.3;
+  }
+  .tour-pop .tp-text {
+    font-size: 13px; color: var(--ink-3); font-weight: 450;
+    line-height: 1.5; margin-top: 6px;
+  }
+  .tour-pop .tp-text kbd { margin: 0 1px; }
+  .tour-pop .tp-ack {
+    font-size: 12px; font-weight: 500; color: var(--signal-up);
+    margin-top: 9px; display: none; align-items: center; gap: 6px;
+  }
+  .tour-pop .tp-ack.show { display: inline-flex; }
+  .tour-pop .tp-ack svg { width: 13px; height: 13px; }
+  .tour-pop .tp-foot {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 20px 16px; margin-top: 12px;
+    border-top: 1px solid var(--hair);
+  }
+  .tour-pop .tp-dots { display: inline-flex; align-items: center; gap: 5px; }
+  .tour-pop .tp-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--ink-4); opacity: 0.4; transition: opacity 130ms ease, width 130ms ease, border-radius 130ms ease;
+  }
+  .tour-pop .tp-dot.on { opacity: 1; width: 14px; border-radius: 999px; background: var(--ink); }
+  .tour-pop .tp-prog {
+    font-size: 11.5px; color: var(--ink-4); font-weight: 450;
+    font-variant-numeric: tabular-nums;
+  }
+  .tour-pop .tp-spacer { flex: 1; }
+  .tour-pop .tp-btn {
+    appearance: none; cursor: pointer; font-family: inherit;
+    font-size: 12.5px; font-weight: 500; color: var(--ink-2);
+    background: var(--paper); border: 1px solid var(--hair-strong);
+    border-radius: var(--radius-sm); padding: 6px 12px;
+    transition: background 130ms ease, border-color 130ms ease;
+  }
+  .tour-pop .tp-btn:hover { background: var(--paper-2); }
+  .tour-pop .tp-btn.solid { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .tour-pop .tp-btn.solid:hover { background: #000; }
+  html[data-theme="dark"] .tour-pop .tp-btn.solid:hover { background: var(--ink); opacity: 0.9; }
+  .tour-pop .tp-skip {
+    appearance: none; cursor: pointer; font-family: inherit;
+    background: none; border: none; padding: 0;
+    font-size: 12px; font-weight: 450; color: var(--ink-4);
+    transition: color 130ms ease;
+  }
+  .tour-pop .tp-skip:hover { color: var(--ink-2); }
+  /* little arrow connecting the callout to its target */
+  .tour-pop .tp-arrow {
+    position: absolute; width: 11px; height: 11px;
+    background: var(--paper); border: 1px solid var(--hair-strong);
+    transform: rotate(45deg); display: none;
+  }
+  .tour-pop[data-arrow="up"]    .tp-arrow { display: block; top: -6px;  border-right: none; border-bottom: none; }
+  .tour-pop[data-arrow="down"]  .tp-arrow { display: block; bottom: -6px; border-left: none;  border-top: none; }
+  .tour-pop[data-arrow="left"]  .tp-arrow { display: block; left: -6px;  border-right: none; border-top: none; }
+  .tour-pop[data-arrow="right"] .tp-arrow { display: block; right: -6px; border-left: none;  border-bottom: none; }
+  /* centered intro/finish card (no target) */
+  .tour-pop.center { width: 380px; }
+  .tour-pop.center .tp-arrow { display: none !important; }
+  /* compact cheat-sheet for the finish step */
+  .tour-cheats {
+    margin-top: 12px; border: 1px solid var(--hair); border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+  .tour-cheats .tc-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    padding: 7px 12px; border-bottom: 1px solid var(--hair);
+  }
+  .tour-cheats .tc-row:last-child { border-bottom: none; }
+  .tour-cheats .tc-l { font-size: 12.5px; color: var(--ink-2); font-weight: 450; }
+  .tour-cheats .tc-k { display: inline-flex; align-items: center; gap: 4px; flex: none; }
+  @media (max-width: 560px) {
+    .tour-pop, .tour-pop.center { width: calc(100vw - 32px); }
+  }
+
+  /* settings: link-style action row (Take the tour / reset) */
+  .set-action {
+    appearance: none; cursor: pointer; font-family: inherit; text-align: left;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    width: 100%; padding: 13px 16px; background: var(--paper);
+    border: none; transition: background 130ms ease;
+  }
+  .set-action:hover { background: var(--paper-2); }
+  .set-action .sa-l { font-size: 13.5px; font-weight: 500; color: var(--ink); }
+  .set-action .sa-d { font-size: 12px; color: var(--ink-4); font-weight: 450; margin-top: 2px; }
+  .set-action .sa-go { color: var(--ink-4); display: inline-flex; }
+  .set-action .sa-go svg { width: 16px; height: 16px; }
+
+  /* ============================================================
      ADDED · EMPTY STATES
      ============================================================ */
   .empty {
@@ -1512,6 +1639,17 @@
           </div>
 
           <div class="set-block">
+            <p class="sb-title">Tutorial</p>
+            <p class="sb-desc">A short guided tour of shortcuts and features.</p>
+            <div class="panel">
+              <button class="set-action" id="tourStart">
+                <span><span class="sa-l">Take the tour</span><span class="sa-d">Step through the demo. Replayable anytime.</span></span>
+                <span class="sa-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="set-block">
             <p class="sb-title">Connection</p>
             <div class="detect-row">
               <span class="ddot"></span>
@@ -1630,7 +1768,7 @@
     <div class="help-card">
       <div class="help-head">
         <h2>Keyboard shortcuts</h2>
-        <span class="hclose">Esc to close</span>
+        <button class="tp-skip" id="helpTour" type="button" style="cursor:pointer;">Take the tour</button>
       </div>
       <div class="help-body">
         <div class="help-row"><span class="hl">Search</span><span class="hk"><kbd id="helpSearchKey">⌘K</kbd></span></div>
@@ -1645,6 +1783,34 @@
         <div class="help-row"><span class="hl">Settings</span><span class="hk"><kbd>g</kbd><kbd>s</kbd></span></div>
         <div class="help-row"><span class="hl">This help</span><span class="hk"><kbd>?</kbd></span></div>
         <div class="help-row"><span class="hl">Close overlays</span><span class="hk"><kbd>Esc</kbd></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       ADDED · GUIDED TUTORIAL (coachmark tour)
+       ============================================================ -->
+  <div class="tour" id="tour" role="dialog" aria-modal="true" aria-label="Guided tutorial">
+    <div class="tour-scrim" data-s="top"></div>
+    <div class="tour-scrim" data-s="bottom"></div>
+    <div class="tour-scrim" data-s="left"></div>
+    <div class="tour-scrim" data-s="right"></div>
+    <div class="tour-ring" id="tourRing"></div>
+    <div class="tour-pop" id="tourPop">
+      <span class="tp-arrow"></span>
+      <div class="tp-body">
+        <div class="tp-eyebrow" id="tourEyebrow">Tutorial</div>
+        <div class="tp-title" id="tourTitle"></div>
+        <div class="tp-text" id="tourText"></div>
+        <div class="tp-ack" id="tourAck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 6"/></svg><span id="tourAckText"></span></div>
+        <div id="tourExtra"></div>
+      </div>
+      <div class="tp-foot">
+        <span class="tp-dots" id="tourDots"></span>
+        <span class="tp-spacer"></span>
+        <button class="tp-skip" id="tourSkip" type="button">Skip</button>
+        <button class="tp-btn" id="tourBack" type="button">Back</button>
+        <button class="tp-btn solid" id="tourNext" type="button">Next</button>
       </div>
     </div>
   </div>
@@ -3439,6 +3605,7 @@
       cmdkSel = 0;
       renderCmdk();
       setTimeout(function () { cmdkInput.focus(); }, 0);
+      if (typeof window.__haloTourSawSearch === "function") window.__haloTourSawSearch();
     }
     function closeSearch() { searchOvl.classList.remove("show"); }
     function runCmdk(i) {
@@ -3487,9 +3654,14 @@
         if (searchOvl.classList.contains("show")) closeSearch(); else openSearch();
         return;
       }
-      // Esc closes overlays
+      // Esc closes overlays / skips the tour
       if (e.key === "Escape") {
         if (searchOvl.classList.contains("show")) { closeSearch(); return; }
+        if (typeof tourActiveNow === "function" && tourActiveNow()) {
+          // if a help overlay was opened by the tour, close it too
+          if (helpOvl.classList.contains("show")) closeHelp();
+          endTour(true); return;
+        }
         if (helpOvl.classList.contains("show")) { closeHelp(); return; }
       }
       // don't intercept plain keys while typing or while search overlay is open
@@ -3514,36 +3686,259 @@
     });
 
     // ============================================================
-    // ADDED · FIRST-RUN WELCOME
+    // ADDED · GUIDED TUTORIAL (coachmark tour)
+    // Replaces the simple first-run welcome with a step-through tour
+    // that points at real UI, lets the user try shortcuts, and can be
+    // replayed from Settings or the ? help overlay.
     // ============================================================
     var WELCOME_KEY = "bsgy-halo-welcomed";
-    (function welcome() {
+    var MOD = (navigator.platform || "").toLowerCase().indexOf("mac") >= 0 ? "⌘K" : "Ctrl+K";
+
+    // each step: title/text, a target selector (or null for centered),
+    // the screen it lives on, where the callout sits, and optional hooks.
+    var TOUR_STEPS = [
+      {
+        target: null, screen: "overview", center: true,
+        eyebrow: "Welcome",
+        title: "Better SGY, drawn over Schoology.",
+        text: "This is the demo, filled with sample grades — in the live extension these are drawn over your real Schoology page. There are four looks (Apple, Halo, Slate, Friendly); switch them in Settings. Let’s take a quick tour."
+      },
+      {
+        target: "#nav", screen: "overview", side: "right",
+        eyebrow: "Navigation",
+        title: "Move between screens.",
+        text: "Click any tab here — or press <kbd>g</kbd> then a letter: <kbd>o</kbd> overview, <kbd>g</kbd> grades, <kbd>a</kbd> assignments, <kbd>c</kbd> calendar, <kbd>n</kbd> announcements, <kbd>m</kbd> materials, <kbd>e</kbd> games, <kbd>s</kbd> settings."
+      },
+      {
+        target: "#searchCue", screen: "overview", side: "right",
+        eyebrow: "Search",
+        title: "Find anything fast.",
+        text: "Press <kbd>" + MOD + "</kbd> to search courses, assignments, announcements and screens. Try it now.",
+        ack: "Search opened — nice.",
+        wantKey: "search"
+      },
+      {
+        target: null, screen: "overview", center: true,
+        eyebrow: "Shortcuts",
+        title: "The full list is one key away.",
+        text: "Press <kbd>?</kbd> any time for the keyboard shortcuts overlay. We’ll open it for you.",
+        showHelp: true
+      },
+      {
+        target: '.nav-item[data-screen="grades"]', screen: "overview", side: "right",
+        eyebrow: "Grades",
+        title: "Open a course gradebook.",
+        text: "On the Grades screen, pick a course to see its categories, recent work, and a grade-over-time chart."
+      },
+      {
+        target: '.nav-item[data-screen="games"]', screen: "overview", side: "right",
+        eyebrow: "Games",
+        title: "A quiet break.",
+        text: "This edition includes four small games: Minesweeper, Lights Out, Dodge, and Word Search. Best scores are kept on this device."
+      },
+      {
+        target: null, screen: "overview", center: true, finish: true,
+        eyebrow: "Done",
+        title: "That’s the tour.",
+        text: "A quick cheat-sheet to keep:"
+      }
+    ];
+
+    var tourEl = $("#tour"), tourPop = $("#tourPop"), tourRing = $("#tourRing");
+    var tourTitle = $("#tourTitle"), tourText = $("#tourText"), tourEyebrow = $("#tourEyebrow");
+    var tourDots = $("#tourDots"), tourBack = $("#tourBack"), tourNext = $("#tourNext"), tourSkip = $("#tourSkip");
+    var tourAck = $("#tourAck"), tourAckText = $("#tourAckText"), tourExtra = $("#tourExtra");
+    var tourScrims = $$(".tour-scrim", tourEl);
+    var tourIdx = -1, tourActive = false, tourAcked = false;
+
+    function tourActiveNow() { return tourActive; }
+
+    function markWelcomed() { try { localStorage.setItem(WELCOME_KEY, "1"); } catch (e) {} }
+
+    function startTour(fromReplay) {
+      // close other overlays so the tour owns the screen
+      closeSearch(); closeHelp();
+      tourActive = true;
+      tourEl.classList.add("show");
+      tourIdx = 0;
+      showTourStep();
+    }
+    function endTour(complete) {
+      tourActive = false;
+      tourEl.classList.remove("show");
+      if (complete) markWelcomed();
+    }
+
+    function layoutScrim(rect) {
+      // four panels surrounding the spotlight rect; if no rect, full cover
+      var vw = window.innerWidth, vh = window.innerHeight;
+      var t = tourScrims[0], b = tourScrims[1], l = tourScrims[2], r = tourScrims[3];
+      if (!rect) {
+        t.style.cssText = "top:0;left:0;width:100vw;height:100vh;";
+        b.style.cssText = l.style.cssText = r.style.cssText = "width:0;height:0;";
+        return;
+      }
+      var pad = 6;
+      var x = Math.max(0, rect.left - pad), y = Math.max(0, rect.top - pad);
+      var w = Math.min(vw, rect.right + pad) - x, h = Math.min(vh, rect.bottom + pad) - y;
+      t.style.cssText = "top:0;left:0;width:" + vw + "px;height:" + y + "px;";
+      b.style.cssText = "top:" + (y + h) + "px;left:0;width:" + vw + "px;height:" + (vh - y - h) + "px;";
+      l.style.cssText = "top:" + y + "px;left:0;width:" + x + "px;height:" + h + "px;";
+      r.style.cssText = "top:" + y + "px;left:" + (x + w) + "px;width:" + (vw - x - w) + "px;height:" + h + "px;";
+      tourRing.style.cssText = "top:" + y + "px;left:" + x + "px;width:" + w + "px;height:" + h + "px;display:block;";
+    }
+
+    function placePop(rect, side, center) {
+      var vw = window.innerWidth, vh = window.innerHeight;
+      tourPop.classList.toggle("center", !!center);
+      // measure after content + class set
+      var pw = tourPop.offsetWidth, ph = tourPop.offsetHeight, gap = 14, m = 12;
+      var top, left, arrow = null;
+      if (center || !rect) {
+        left = (vw - pw) / 2; top = (vh - ph) / 2;
+        tourRing.style.display = "none";
+      } else {
+        // choose a side that fits
+        var fitsRight = rect.right + gap + pw <= vw - m;
+        var fitsLeft = rect.left - gap - pw >= m;
+        var fitsBelow = rect.bottom + gap + ph <= vh - m;
+        var use = side;
+        if (use === "right" && !fitsRight) use = fitsLeft ? "left" : (fitsBelow ? "down" : "up");
+        if (use === "left" && !fitsLeft) use = fitsRight ? "right" : (fitsBelow ? "down" : "up");
+        if (use === "down" && !fitsBelow) use = "up";
+        if (use === "right") { left = rect.right + gap; top = rect.top + rect.height / 2 - ph / 2; arrow = "left"; }
+        else if (use === "left") { left = rect.left - gap - pw; top = rect.top + rect.height / 2 - ph / 2; arrow = "right"; }
+        else if (use === "down") { top = rect.bottom + gap; left = rect.left + rect.width / 2 - pw / 2; arrow = "up"; }
+        else { top = rect.top - gap - ph; left = rect.left + rect.width / 2 - pw / 2; arrow = "down"; }
+      }
+      // clamp into viewport
+      left = Math.max(m, Math.min(left, vw - pw - m));
+      top = Math.max(m, Math.min(top, vh - ph - m));
+      tourPop.style.left = left + "px";
+      tourPop.style.top = top + "px";
+      if (arrow) {
+        tourPop.setAttribute("data-arrow", arrow);
+        var ar = tourPop.querySelector(".tp-arrow");
+        if (arrow === "left" || arrow === "right") {
+          var cy = rect.top + rect.height / 2 - top; cy = Math.max(12, Math.min(cy, ph - 12));
+          ar.style.top = cy + "px"; ar.style.left = ""; ar.style.bottom = "";
+        } else {
+          var cx = rect.left + rect.width / 2 - left; cx = Math.max(14, Math.min(cx, pw - 14));
+          ar.style.left = cx + "px"; ar.style.top = ""; ar.style.right = "";
+        }
+      } else {
+        tourPop.removeAttribute("data-arrow");
+      }
+    }
+
+    function cheatSheet() {
+      var rows = [
+        ["Search", "<kbd>" + MOD + "</kbd>"],
+        ["Shortcuts help", "<kbd>?</kbd>"],
+        ["Jump to a screen", "<kbd>g</kbd> <kbd>o g a c n m e s</kbd>"],
+        ["Close overlays", "<kbd>Esc</kbd>"]
+      ];
+      var h = '<div class="tour-cheats">';
+      rows.forEach(function (r) {
+        h += '<div class="tc-row"><span class="tc-l">' + r[0] + '</span><span class="tc-k">' + r[1] + '</span></div>';
+      });
+      return h + '</div>';
+    }
+
+    function showTourStep() {
+      var step = TOUR_STEPS[tourIdx];
+      if (!step) { endTour(true); return; }
+      tourAcked = false;
+
+      // make sure the right screen is visible so the target exists
+      if (step.screen) goScreen(step.screen);
+
+      // content
+      tourEyebrow.textContent = step.eyebrow || "Tutorial";
+      tourTitle.textContent = step.title || "";
+      tourText.innerHTML = step.text || "";
+      tourExtra.innerHTML = step.finish ? cheatSheet() : "";
+      tourAck.classList.remove("show");
+      if (step.ack) tourAckText.textContent = step.ack;
+
+      // progress dots
+      var dh = "";
+      for (var i = 0; i < TOUR_STEPS.length; i++) dh += '<span class="tp-dot' + (i === tourIdx ? " on" : "") + '"></span>';
+      tourDots.innerHTML = dh;
+
+      // buttons
+      tourBack.style.visibility = tourIdx === 0 ? "hidden" : "visible";
+      tourNext.textContent = step.finish ? "Done" : (tourIdx === TOUR_STEPS.length - 1 ? "Done" : "Next");
+
+      // optional: show the shortcuts help overlay for the ? step;
+      // close it again on any other step so it never lingers.
+      if (step.showHelp) { searchOvl.classList.remove("show"); helpOvl.classList.add("show"); }
+      else if (helpOvl.classList.contains("show")) { helpOvl.classList.remove("show"); }
+
+      // resolve + position target
+      requestAnimationFrame(function () {
+        var rect = null;
+        if (step.target && !step.center) {
+          var node = $(step.target);
+          if (node) rect = node.getBoundingClientRect();
+        }
+        layoutScrim(rect);
+        placePop(rect, step.side || "right", step.center || !rect);
+      });
+    }
+
+    function tourNextStep() {
+      if (tourIdx >= TOUR_STEPS.length - 1) { endTour(true); return; }
+      tourIdx++; showTourStep();
+    }
+    function tourPrevStep() {
+      if (tourIdx <= 0) return;
+      // closing help if we are leaving the ? step
+      tourIdx--; showTourStep();
+    }
+
+    tourNext.addEventListener("click", tourNextStep);
+    tourBack.addEventListener("click", tourPrevStep);
+    tourSkip.addEventListener("click", function () { endTour(true); });
+
+    // when a step is waiting on a key (⌘K), acknowledge + advance
+    function tourSawSearch() {
+      var step = TOUR_STEPS[tourIdx];
+      if (tourActive && step && step.wantKey === "search" && !tourAcked) {
+        tourAcked = true;
+        tourAck.classList.add("show");
+        setTimeout(function () {
+          // search overlay is open; close it and move on
+          closeSearch();
+          tourNextStep();
+        }, 850);
+      }
+    }
+    window.__haloTourSawSearch = tourSawSearch;
+
+    // reposition on resize while active
+    window.addEventListener("resize", function () {
+      if (!tourActive) return;
+      var step = TOUR_STEPS[tourIdx]; if (!step) return;
+      var rect = null;
+      if (step.target && !step.center) { var n = $(step.target); if (n) rect = n.getBoundingClientRect(); }
+      layoutScrim(rect);
+      placePop(rect, step.side || "right", step.center || !rect);
+    });
+
+    // entry points: Settings + help overlay
+    var tourStartBtn = $("#tourStart");
+    if (tourStartBtn) tourStartBtn.addEventListener("click", function () { startTour(true); });
+    var helpTourBtn = $("#helpTour");
+    if (helpTourBtn) helpTourBtn.addEventListener("click", function () { closeHelp(); startTour(true); });
+
+    // first-run launch
+    (function () {
       var done;
       try { done = localStorage.getItem(WELCOME_KEY) === "1"; } catch (e) { done = false; }
       if (done) return;
-      var slot = $("#welcomeSlot"); if (!slot) return;
-      var card = el("div", "welcome");
-      card.setAttribute("data-export-hide", "");
-      card.innerHTML =
-        '<button class="wl-x" aria-label="Dismiss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>' +
-        '<div class="wl-eyebrow">Welcome</div>' +
-        '<div class="wl-title">Your Schoology, redrawn in place.</div>' +
-        '<div class="wl-body">Better SGY draws this over your real Schoology page. It does not replace Schoology. ' +
-        'This is the demo. The grades are sample data, so you can look around without logging in. ' +
-        'Four looks. Switch in Settings.</div>' +
-        '<div class="wl-actions">' +
-        '<button class="btn solid" data-wl="settings">Open Settings</button>' +
-        '<button class="btn" data-wl="dismiss">Dismiss</button>' +
-        '</div>';
-      slot.appendChild(card);
-      function dismiss() { try { localStorage.setItem(WELCOME_KEY, "1"); } catch (e) {} card.parentNode && card.parentNode.removeChild(card); }
-      card.querySelector(".wl-x").addEventListener("click", dismiss);
-      card.addEventListener("click", function (e) {
-        var b = e.target.closest("[data-wl]"); if (!b) return;
-        var act = b.getAttribute("data-wl");
-        dismiss();
-        if (act === "settings") goScreen("settings");
-      });
+      // let layout settle, then launch
+      setTimeout(function () { startTour(false); }, 350);
     })();
 
     // ============================================================

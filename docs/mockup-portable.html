@@ -10,14 +10,17 @@
    Better SGY — ADAPTIVE portable widget.
    One file. Detects the active edition (?mode= → localStorage →
    default 'apple') and themes the whole widget to match. A tiny
-   in-widget switcher (Apple / Halo / Slate / Friendly) re-themes
-   live and writes localStorage['bsgy-edition'].
+   in-widget switcher (Apple / Halo / Slate / Friendly / Carbon)
+   re-themes live and writes localStorage['bsgy-edition'].
+   It also re-detects LIVE (storage event + focus/visibility +
+   a heartbeat) so it follows the sibling apps without a reload.
 
-   Four editions, all matched to their themed siblings:
+   Five editions, all matched to their themed siblings:
      apple  — clean, SF, blue accent
      halo   — monochrome, signal-only color
      slate  — strict black & white, serif/editorial, hard shadows
      forge  — warm cream, rounded, light emoji (the Friendly one)
+     carbon — warm wood + bento, walnut/oak browns, honey accent
 
    Inline CSS + inline SVG + vanilla JS. No deps. file:// safe.
    ================================================================ */
@@ -147,6 +150,29 @@ html[data-edition="forge"]{
   /* forge course accents differ slightly */
   --c-alg:#5aa9e6; --c-bio:#4fb286; --c-fre:#ffb454;
   --c-dra:#9b87f2; --c-lit:#ef6a9b; --c-pe:#4fb286;
+}
+
+/* ================================================================
+   EDITION: CARBON  (warm wood + bento; walnut/oak, cream, honey)
+   ================================================================ */
+html[data-edition="carbon"]{
+  --bg:#efe2cd; --paper:#fbf3e6; --card:#fffaf0;
+  --paper-2:#f1e3cd; --bubble:#f6ecd8;
+  --tile:#f1e3cd; --tile-hover:#e7d6ba;
+  --ink:#34261a; --ink-2:#7a6043; --ink-3:#a08a6c;
+  --line:rgba(120,86,40,0.18); --hair:rgba(120,86,40,0.10);
+  --up:#5f7a3c; --down:#b14e34; --warn:#bd7a25;
+  --accent:#b86c1f;
+  --pill-radius:16px; --panel-radius:20px; --card-radius:16px;
+  --pill-shadow:0 1px 1px rgba(90,60,20,.10),0 12px 30px -10px rgba(120,80,30,.42);
+  --panel-shadow:0 24px 60px -22px rgba(80,52,16,.55),0 2px 6px rgba(90,60,20,.12);
+  --font:"SF Pro Rounded","ui-rounded","Nunito","Segoe UI Variable",system-ui,-apple-system,sans-serif;
+  --font-display:var(--font);
+  --scrim:rgba(48,32,14,.22);
+  --panel-bg:#fbf3e6;
+  /* warm wood-toned course accents */
+  --c-alg:#b86c1f; --c-bio:#5f7a3c; --c-fre:#bd8a25;
+  --c-dra:#8e5ca6; --c-lit:#4f7d86; --c-pe:#5f7a3c;
 }
 
 html,body{height:100%;}
@@ -345,7 +371,7 @@ html[data-edition="forge"] .phead .close{border-radius:12px;border:1.5px solid v
 
 /* --- mode switcher --- */
 .modes{
-  display:flex;gap:4px;padding:10px 16px 10px 20px;
+  display:flex;flex-wrap:wrap;gap:4px 4px;padding:10px 16px 10px 20px;
   border-bottom:1px solid var(--hair);flex:none;
   background:var(--panel-bg);align-items:center;
 }
@@ -539,8 +565,64 @@ html[data-edition="slate"] .resize{
   background:linear-gradient(135deg,transparent 0 52%,#000 52% 60%,transparent 60% 70%,#000 70% 78%,transparent 78% 88%,#000 88% 96%,transparent 96%);}
 html[data-edition="slate"] .resize svg{display:none;}
 
+/* ================================================================
+   CARBON component styling  (warm wood + bento cards, honey accent)
+   ================================================================ */
+html[data-edition="carbon"] body{background:var(--bg);}
+html[data-edition="carbon"] .pill .mark{
+  border-radius:11px;font-weight:800;font-size:13px;
+  background:linear-gradient(150deg,#d68a3a,#a85e15);box-shadow:0 3px 0 rgba(120,72,20,.28);}
+html[data-edition="carbon"] .pill .mark svg{display:none;}
+html[data-edition="carbon"] .pill .mark::after{content:"SGY";}
+html[data-edition="carbon"] .pill .pchg{color:var(--up);font-weight:800;}
+html[data-edition="carbon"] .panel{border:1.5px solid var(--line);
+  background-image:radial-gradient(circle at 10% 2%,rgba(184,108,31,.10),transparent 42%),radial-gradient(circle at 98% 0%,rgba(95,122,60,.08),transparent 40%);}
+html[data-edition="carbon"] .phead .mark{border-radius:11px;font-weight:800;
+  background:linear-gradient(150deg,#d68a3a,#a85e15);box-shadow:0 3px 0 rgba(120,72,20,.25);}
+html[data-edition="carbon"] .phead .mark svg{display:none;}
+html[data-edition="carbon"] .phead .mark::after{content:"SGY";font-size:12px;}
+html[data-edition="carbon"] .phead .ptitle{font-weight:800;}
+html[data-edition="carbon"] .phead .close{border-radius:11px;border:1.5px solid var(--line);}
+html[data-edition="carbon"] .mbtn{border-radius:11px;font-weight:700;}
+html[data-edition="carbon"] .mbtn.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+html[data-edition="carbon"] .overall{margin:14px 16px 0;border:1.5px solid var(--line);border-radius:18px;
+  background:var(--card);box-shadow:0 8px 22px -16px rgba(120,80,30,.5);padding:18px;}
+html[data-edition="carbon"] .overall .big{font-weight:800;font-size:48px;}
+html[data-edition="carbon"] .overall .chip{background:var(--bubble);border:1.5px solid var(--line);border-radius:12px;
+  color:var(--ink);font-weight:700;padding:8px 12px;}
+html[data-edition="carbon"] .overall .delta{color:var(--up);font-weight:800;}
+html[data-edition="carbon"] .activity{padding:0 16px;}
+html[data-edition="carbon"] .seclab{font-size:13px;font-weight:800;letter-spacing:.01em;padding:20px 16px 10px;text-transform:none;}
+html[data-edition="carbon"] .arow{
+  border-top:none;padding:11px 13px;margin-bottom:9px;gap:12px;
+  background:var(--card);border:1.5px solid var(--line);border-radius:14px;position:relative;overflow:hidden;
+  box-shadow:0 6px 16px -16px rgba(120,80,30,.5);}
+html[data-edition="carbon"] .arow .stripe{position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:0;}
+html[data-edition="carbon"] .arow .ic{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;flex:none;font-size:16px;margin-left:5px;}
+html[data-edition="carbon"] .arow .atitle{font-weight:700;}
+html[data-edition="carbon"] .arow .badge-new{background:var(--c-dra);color:#fff;border-radius:10px;font-weight:800;font-size:10.5px;padding:3px 9px;}
+html[data-edition="carbon"] .arow .badge-score{font-weight:800;}
+html[data-edition="carbon"] .chartcard-wrap{padding:0 16px 8px;}
+html[data-edition="carbon"] .tab{border:1.5px solid transparent;border-radius:11px;background:var(--paper-2);font-weight:700;}
+html[data-edition="carbon"] .tab.on{background:var(--accent);color:#fff;}
+html[data-edition="carbon"] .chartcard{border:1.5px solid var(--line);box-shadow:0 8px 20px -16px rgba(120,80,30,.5);}
+html[data-edition="carbon"] .chart-head .ctitle{font-weight:800;}
+html[data-edition="carbon"] .chart-foot{display:flex;gap:7px;align-items:flex-start;text-align:left;font-weight:600;}
+html[data-edition="carbon"] .chart-foot .q{flex:none;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:11px;}
+html[data-edition="carbon"] .pfoot{justify-content:center;color:var(--ink-3);font-weight:600;}
+html[data-edition="carbon"] .pfoot .dot{background:var(--up);}
+
+/* --- live "updated" affordance (footer dot + brief flash) --- */
+.pfoot .dot{transition:transform .2s ease,box-shadow .2s ease;}
+body.bump .pfoot .dot{transform:scale(1.7);box-shadow:0 0 0 5px color-mix(in srgb,var(--up) 26%,transparent);}
+@keyframes bsgyFlash{0%{background:color-mix(in srgb,var(--accent) 16%,transparent);}100%{background:transparent;}}
+.overall.flash{animation:bsgyFlash .9s ease;}
+html[data-edition="slate"] .overall.flash{animation:none;}
+
 @media(prefers-reduced-motion:reduce){
   .pill,.panel,#scrim{transition:none;}
+  .overall.flash{animation:none;}
+  body.bump .pfoot .dot{transform:none;}
 }
 </style>
 </head>
@@ -613,6 +695,7 @@ html[data-edition="slate"] .resize svg{display:none;}
     <button class="mbtn" data-mode="halo" type="button">Halo</button>
     <button class="mbtn" data-mode="slate" type="button">Slate</button>
     <button class="mbtn" data-mode="forge" type="button">Friendly</button>
+    <button class="mbtn" data-mode="carbon" type="button">Carbon</button>
   </div>
 
   <div class="scroll">
@@ -720,6 +803,13 @@ var VOICE = {
     activityAside:"last few days",
     foot:"that's the gist. close me and keep reading.",
     footRight:""
+  },
+  carbon: {
+    sub:"overall average · 6 courses · checked just now",
+    chip:"2 missing · worth a look",
+    activityAside:"last few days",
+    foot:"reading your gradebook locally",
+    footRight:""
   }
 };
 
@@ -750,17 +840,33 @@ var cssVar = function(n){ return getComputedStyle(document.documentElement).getP
 /* ================================================================
    MODE DETECTION  (?mode= → localStorage['bsgy-edition'] → apple)
    ================================================================ */
-var EDITIONS = ["apple","halo","slate","forge"];
+var EDITIONS = ["apple","halo","slate","forge","carbon"];
 var EDITION_KEY = "bsgy-edition";
+/* tolerate friendly aliases / casing / whitespace so we never silently
+   fall back to apple when the sibling app wrote a known-but-unexpected value */
+var EDITION_ALIAS = { friendly:"forge", wood:"carbon", bento:"carbon" };
+function normEdition(raw){
+  if(raw == null) return null;
+  var v = String(raw).trim().toLowerCase();
+  if(EDITIONS.indexOf(v) !== -1) return v;
+  if(EDITION_ALIAS[v]) return EDITION_ALIAS[v];
+  return null;
+}
 function detectEdition(){
   var q = null;
   try{ q = new URLSearchParams(location.search).get("mode"); }catch(e){}
-  if(q && EDITIONS.indexOf(q) !== -1) return q;
+  var nq = normEdition(q);
+  if(nq) return nq;
   var stored = null;
   try{ stored = localStorage.getItem(EDITION_KEY); }catch(e){}
-  if(stored && EDITIONS.indexOf(stored) !== -1) return stored;
+  var ns = normEdition(stored);
+  if(ns) return ns;
   return "apple";
 }
+/* did a ?mode= override pin the edition? if so, live re-detection must
+   not yank it away from under the user. */
+var modePinned = false;
+try{ modePinned = !!normEdition(new URLSearchParams(location.search).get("mode")); }catch(e){}
 var edition = detectEdition();
 
 function setEdition(id, persist){
@@ -778,13 +884,36 @@ function setEdition(id, persist){
 /* edition-specific copy + pill mark labels */
 function applyVoice(){
   var v = VOICE[edition] || VOICE.apple;
-  $("#overallSub").textContent = v.sub;
+  $("#overallSub").textContent = withStamp(v.sub);
   $("#overallChip").innerHTML = '<span class="dot"></span>'+esc(v.chip);
   $("#activityAside").textContent = v.activityAside;
   $("#footText").textContent = v.foot;
   $("#footRight").textContent = v.footRight || "";
-  // pill aria + grades label casing for forge
-  $(".pill .plab").textContent = (edition==="forge") ? "grades" : "Grades";
+  // pill aria + grades label casing for the lowercase editions
+  $(".pill .plab").textContent = (edition==="forge"||edition==="carbon") ? "grades" : "Grades";
+}
+
+/* ================================================================
+   LIVE "checked …" stamp — proves to the user the widget is updating.
+   The VOICE strings carry a literal "checked just now"; we swap that
+   tail for a relative time that ticks on a heartbeat.
+   ================================================================ */
+var lastCheck = Date.now();
+function relTime(){
+  var s = Math.max(0, Math.round((Date.now()-lastCheck)/1000));
+  if(s < 5)  return "just now";
+  if(s < 60) return s+"s ago";
+  var m = Math.round(s/60);
+  return m+(m===1?" min ago":" min ago");
+}
+function withStamp(sub){
+  // replace the "checked just now" suffix (any edition) with a live one
+  return sub.replace(/checked just now/i, "checked "+relTime());
+}
+function refreshStamp(){
+  var v = VOICE[edition] || VOICE.apple;
+  var el = $("#overallSub");
+  if(el) el.textContent = withStamp(v.sub);
 }
 
 /* ================================================================
@@ -819,7 +948,7 @@ function renderActivity(){
     } else if(a.kind==="score"){
       right = '<span class="aval"><span class="badge-score">'+esc(a.value)+'</span></span>';
     } else if(a.kind==="new"){
-      var nlab = (edition==="forge") ? "new" : "New";
+      var nlab = (edition==="forge"||edition==="carbon") ? "new" : "New";
       right = '<span class="aval"><span class="badge-new">'+nlab+'</span></span>';
     }
     return '<div class="arow" style="--row-accent:'+accent+'">'+
@@ -846,7 +975,7 @@ function renderTabs(){
   $("#tabs").innerHTML = COURSES.map(function(c){
     var accent = cssVar("--c-"+c.id);
     var label = (edition==="slate"||edition==="halo") ? c.short
-              : (edition==="forge") ? c.short.toLowerCase()
+              : (edition==="forge"||edition==="carbon") ? c.short.toLowerCase()
               : c.name;
     return '<button class="tab'+(c.id===state.tab?" on":"")+'" data-tab="'+c.id+'" type="button">'+
       '<span class="tdot" style="background:'+accent+'"></span>'+esc(label)+'</button>';
@@ -881,9 +1010,9 @@ function renderChart(){
   var pts = arr.map(function(v,i){ return px(i).toFixed(1)+","+py(v).toFixed(1); });
 
   // area fill (apple + forge tinted; halo signal-tinted; slate none)
-  if(edition==="apple" || edition==="forge"){
+  if(edition==="apple" || edition==="forge" || edition==="carbon"){
     var area = px(0).toFixed(1)+","+py(Y_MIN).toFixed(1)+" "+pts.join(" ")+" "+px(N-1).toFixed(1)+","+py(Y_MIN).toFixed(1);
-    var op = (edition==="forge") ? 0.26 : 0.18;
+    var op = (edition==="forge"||edition==="carbon") ? 0.26 : 0.18;
     g += '<defs><linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">'+
          '<stop offset="0" stop-color="'+accent+'" stop-opacity="'+op+'"/>'+
          '<stop offset="1" stop-color="'+accent+'" stop-opacity="0"/></linearGradient></defs>';
@@ -920,7 +1049,7 @@ function renderChart(){
   $("#gchart").setAttribute("aria-label", c.name+" grade over time, "+arr[0].toFixed(1)+" to "+c.grade.toFixed(1)+" percent");
 
   // header
-  var label = (edition==="forge") ? c.name.toLowerCase() : c.name;
+  var label = (edition==="forge"||edition==="carbon") ? c.name.toLowerCase() : c.name;
   $("#chartTitle").textContent = label;
   var now = $("#chartNow");
   now.className = "cnow"+(tr==="up"?" up":tr==="down"?" down":"");
@@ -931,7 +1060,7 @@ function renderChart(){
   var foot = $("#chartFoot");
   if(edition==="slate"){
     foot.textContent = SLATE_FOOT[c.id];
-  } else if(edition==="forge"){
+  } else if(edition==="forge" || edition==="carbon"){
     var note = FORGE_NOTE[c.id];
     foot.innerHTML = '<span class="q" style="background:color-mix(in srgb,'+cssVar("--c-"+c.id)+' 16%,transparent)">'+note.q+'</span><p>'+note.html+'</p>';
   } else if(edition==="halo"){
@@ -1093,8 +1222,56 @@ document.addEventListener("keydown", function(e){ if(e.key==="Escape" && state.o
 
 /* mode switcher */
 $$("#modes .mbtn").forEach(function(b){
-  b.addEventListener("click", function(){ setEdition(b.dataset.mode, true); });
+  b.addEventListener("click", function(){ setEdition(b.dataset.mode, true); flashUpdated(); });
 });
+
+/* ================================================================
+   LIVE RE-DETECTION
+   The sibling apps write localStorage['bsgy-edition'] when their
+   edition changes. We follow it without a reload via:
+     • storage event  — fires when ANOTHER tab/file changes localStorage
+     • visibilitychange / focus — catch changes made while hidden
+     • a heartbeat — re-check + tick the "checked …" stamp so the
+       user can SEE it's live, even on file:// where storage events
+       between separate windows can be flaky.
+   A ?mode= override pins the edition and is never overridden live.
+   ================================================================ */
+function flashUpdated(){
+  lastCheck = Date.now();
+  refreshStamp();
+  var ov = $(".overall");
+  if(ov){ ov.classList.remove("flash"); void ov.offsetWidth; ov.classList.add("flash"); }
+  document.body.classList.add("bump");
+  setTimeout(function(){ document.body.classList.remove("bump"); }, 260);
+}
+
+function reDetect(opts){
+  opts = opts || {};
+  // when pinned by ?mode=, keep the pinned edition; just refresh the stamp
+  var next = modePinned ? edition : detectEdition();
+  if(next !== edition){
+    setEdition(next, false);   // do NOT re-persist — we're following, not setting
+    flashUpdated();
+  } else if(opts.bump){
+    flashUpdated();
+  } else {
+    refreshStamp();
+  }
+}
+
+// another tab/window changed localStorage
+window.addEventListener("storage", function(e){
+  if(!e || e.key === null || e.key === EDITION_KEY){ reDetect({bump:true}); }
+});
+// returning to this tab / window
+document.addEventListener("visibilitychange", function(){
+  if(document.visibilityState === "visible") reDetect({bump:true});
+});
+window.addEventListener("focus", function(){ reDetect({bump:true}); });
+window.addEventListener("pageshow", function(){ reDetect({bump:true}); });
+
+// heartbeat: re-detect + tick the timestamp so "checked …" stays live
+setInterval(function(){ reDetect(); }, 5000);
 
 /* keep on-screen on resize */
 window.addEventListener("resize", function(){

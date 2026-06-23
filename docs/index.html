@@ -204,6 +204,117 @@
   .ping .t2{font-size:.68rem;color:var(--ink-faint)}
   @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 
+  /* ---------- Overlay explainer (large before → after) ---------- */
+  .overlay-sec{background:linear-gradient(180deg, color-mix(in srgb,var(--accent-soft) 30%, transparent), transparent)}
+  .overlay-copy{max-width:60ch}
+  .overlay-copy p.lead{color:var(--ink-soft);font-size:1.05rem;margin-top:.6rem}
+  .overlay-copy p.point{font-size:.95rem;color:var(--ink-faint);margin-top:.5rem}
+  .overlay-copy .demo-link{font-weight:600;color:var(--accent-ink);display:inline-flex;align-items:center;gap:.4rem;transition:gap .2s ease;margin-top:1rem}
+  .overlay-copy .demo-link:hover{gap:.65rem}
+  .overlay-copy .demo-link svg{width:15px;height:15px}
+
+  /* the stacked stage: a faithful raw Schoology page underneath, clean Better SGY layer on top */
+  .ol-stage{
+    position:relative;width:100%;margin-top:2.4rem;border-radius:var(--radius-lg);overflow:hidden;
+    border:1px solid var(--line);box-shadow:var(--shadow-lg);background:#e9ebee;
+    min-height:560px;
+  }
+  /* labels that ride the corners of the stage */
+  .ol-flag{
+    position:absolute;z-index:6;font-family:var(--mono);font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;font-weight:600;
+    padding:.3rem .6rem;border-radius:999px;backdrop-filter:blur(6px);
+  }
+  .ol-flag.before{left:14px;top:50px;background:rgba(255,255,255,.86);color:#5b6066;border:1px solid rgba(0,0,0,.08)}
+  .ol-flag.after{right:14px;top:50px;background:var(--accent);color:#fff;opacity:0;transition:opacity .6s ease .35s}
+  .ol-stage.shown .ol-flag.after{opacity:1}
+
+  /* ===== raw Schoology recreation (the BEFORE) ===== */
+  .sgy{position:absolute;inset:0;background:#e9ebee;color:#2a2a2a;font-family:Arial,Helvetica,sans-serif;font-size:12px;overflow:hidden}
+  /* browser chrome */
+  .sgy-chrome{display:flex;align-items:center;gap:8px;padding:6px 12px;background:#dfe1e5;border-bottom:1px solid #c7cace}
+  .sgy-chrome .glyph{color:#70757a;font-size:14px;line-height:1}
+  .sgy-chrome .glyph.dim{opacity:.4}
+  .sgy-addr{flex:1;display:flex;align-items:center;gap:6px;background:#fff;border-radius:13px;padding:3px 12px;color:#5f6368;font-size:11px;max-width:560px}
+  .sgy-addr svg{width:11px;height:11px;flex:0 0 auto;color:#5f8c3f}
+  .sgy-chrome .tdots{display:flex;gap:4px;margin-left:auto}
+  .sgy-chrome .tdots span{width:4px;height:4px;border-radius:50%;background:#9aa0a6}
+  /* thin orange accent under chrome */
+  .sgy-accent{height:3px;background:linear-gradient(90deg,#f47b20,#e8410f)}
+  /* Schoology top nav */
+  .sgy-nav{display:flex;align-items:center;gap:16px;padding:8px 16px;background:#fff;border-bottom:1px solid #e3e3e3}
+  .sgy-nav .pmark{display:flex;align-items:center;gap:7px}
+  .sgy-nav .pmark .pword{font-weight:700;font-size:20px;color:#3a87c8;letter-spacing:-.5px}
+  .sgy-nav .crest{width:22px;height:22px;flex:0 0 auto}
+  .sgy-nav .navlink{color:#444;font-size:12px;white-space:nowrap}
+  .sgy-nav .navlink b{font-weight:400}
+  .sgy-nav .navspace{flex:1}
+  .sgy-nav .navicons{display:flex;align-items:center;gap:13px;color:#777}
+  .sgy-nav .navicons svg{width:16px;height:16px;display:block}
+  .sgy-nav .ienv{position:relative}
+  .sgy-nav .badge70{position:absolute;top:-7px;right:-9px;background:#d8412f;color:#fff;font-size:9px;line-height:1;font-weight:700;border-radius:9px;padding:2px 4px}
+  .sgy-nav .avatar{display:flex;align-items:center;gap:6px;color:#444;font-size:12px}
+  .sgy-nav .avatar .av{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#7aa5c8,#436f95);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:700}
+  /* sub-tab row */
+  .sgy-tabs{display:flex;gap:24px;padding:0 16px;background:#fff;border-bottom:1px solid #e3e3e3}
+  .sgy-tabs .tab{padding:9px 0;font-size:11px;letter-spacing:.04em;color:#888;text-transform:uppercase;border-bottom:3px solid transparent}
+  .sgy-tabs .tab.active{color:#222;border-bottom-color:#f47b20;font-weight:700}
+  /* body layout */
+  .sgy-body{display:grid;grid-template-columns:1fr 260px;gap:14px;padding:14px 16px}
+  .sgy-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .sgy-card{background:#fff;border:1px solid #e0e0e0;border-radius:3px;overflow:hidden}
+  .sgy-card .ban{height:78px;position:relative;overflow:hidden}
+  .sgy-card .cinfo{padding:8px 10px}
+  .sgy-card .ctitle{color:#0a66c2;font-size:12px;font-weight:700;line-height:1.25}
+  .sgy-card .cschool{color:#777;font-size:11px;margin-top:2px}
+  /* right sidebar */
+  .sgy-side{display:flex;flex-direction:column;gap:12px}
+  .sgy-wid{background:#fff;border:1px solid #e0e0e0;border-radius:3px}
+  .sgy-wid .wh{padding:7px 10px;border-bottom:1px solid #ededed;font-size:12px;font-weight:700;color:#333;display:flex;justify-content:space-between;align-items:center}
+  .sgy-wid .wh a{color:#0a66c2;font-weight:400;font-size:11px}
+  .sgy-wid .wb{padding:9px 10px;font-size:11px;color:#555;line-height:1.4}
+  .sgy-wid .todo{display:flex;gap:8px;align-items:flex-start}
+  .sgy-wid .todo .ex{width:16px;height:16px;border-radius:50%;background:#d8412f;color:#fff;display:grid;place-items:center;font-size:11px;font-weight:700;flex:0 0 auto;margin-top:1px}
+  .sgy-wid .todo .od{color:#d8412f;font-weight:700}
+  .sgy-wid .lnk{color:#0a66c2}
+  /* floating accessibility icon */
+  .sgy-a11y{position:absolute;right:14px;top:128px;width:30px;height:30px;border-radius:50%;background:#0a66c2;color:#fff;display:grid;place-items:center;box-shadow:0 1px 4px rgba(0,0,0,.3);z-index:4}
+  .sgy-a11y svg{width:18px;height:18px}
+
+  /* ===== the clean Better SGY layer (the AFTER) ===== */
+  .ol-clean{
+    position:absolute;z-index:5;left:50%;bottom:0;width:min(680px,86%);
+    transform:translate(-50%, 40px);opacity:0;
+    transition:opacity .85s cubic-bezier(.2,.7,.2,1), transform .85s cubic-bezier(.2,.7,.2,1);
+  }
+  .ol-stage.shown .ol-clean{opacity:1;transform:translate(-50%,0)}
+  .ol-clean-inner{
+    background:var(--bg-raised);border:1px solid var(--line);border-radius:18px 18px 0 0;
+    box-shadow:0 -30px 70px -24px rgba(28,26,23,.45), 0 -6px 18px rgba(28,26,23,.12);
+    padding:1.3rem 1.4rem 1.5rem;
+  }
+  .ol-clean-top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:1rem}
+  .ol-clean-top .big{font-family:var(--serif);font-size:2.4rem;line-height:1;font-weight:600;color:var(--ink)}
+  .ol-clean-top .big small{display:block;font-family:var(--mono);font-size:.6rem;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:.3rem;font-weight:600}
+  .ol-clean-spark{width:118px;height:42px}
+  .ol-clean-rows{display:grid;gap:.5rem}
+  .ol-clean-row{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:.7rem;padding:.55rem .7rem;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+  .ol-clean-row .nm{font-size:.84rem;font-weight:550}
+  .ol-clean-row .mini{width:46px;height:18px}
+  .ol-clean-row .gr{font-family:var(--mono);font-weight:600;font-size:.9rem;padding:.16rem .5rem;border-radius:7px;background:var(--accent-soft);color:var(--accent-ink)}
+  .ol-clean-row .gr.warn{background:#f6e6d8;color:#a14e1f}
+  html[data-theme="dark"] .ol-clean-row .gr.warn{background:#3a2a1c;color:#e0a16f}
+  .ol-clean-flag{display:inline-flex;align-items:center;gap:.3rem;font-family:var(--mono);font-size:.62rem;color:#a14e1f}
+  @media (max-width:760px){
+    .ol-stage{min-height:0}
+    .sgy{position:relative;inset:auto}
+    .sgy-body{grid-template-columns:1fr}
+    .sgy-side{display:none}
+    .ol-clean{position:relative;left:auto;bottom:auto;width:100%;transform:translateY(30px);margin-top:-40px}
+    .ol-stage.shown .ol-clean{transform:none}
+    .ol-clean-inner{border-radius:18px}
+    .ol-flag.before{top:48px}
+  }
+
   /* ---------- Section scaffold ---------- */
   section{padding:clamp(3.5rem,7vw,6rem) 0;position:relative}
   .sec-head{max-width:62ch}
@@ -437,6 +548,7 @@
       Better SGY
     </a>
     <nav class="nav-links" id="navlinks" aria-label="Primary">
+      <a class="lnk" href="#overlay">Overlay</a>
       <a class="lnk" href="#story">Story</a>
       <a class="lnk" href="#editions">Editions</a>
       <a class="lnk" href="#browse">Browse</a>
@@ -502,6 +614,198 @@
         <div class="ping">
           <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>
           <div><div class="t1">Biology grade updated</div><div class="t2">81% → 84% · just now</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ OVERLAY EXPLAINER (before → after) ============ -->
+<section class="overlay-sec" id="overlay" aria-labelledby="overlay-h2">
+  <div class="wrap">
+    <div class="sec-head overlay-copy reveal">
+      <span class="eyebrow">How it overlays Schoology</span>
+      <h2 id="overlay-h2">It draws itself on top of your real Schoology.</h2>
+      <p class="lead">Better SGY isn't a separate site. It sits on top of the Schoology you already use and redraws it &mdash; same grades, finally readable. Scroll, and watch the clean version settle over the real page below.</p>
+      <p class="point">Want to see it without logging in? The demo shows exactly this, with sample grades.</p>
+      <a class="demo-link" href="#download">
+        Jump to the demo
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+
+    <!-- The stacked stage: raw Schoology underneath, Better SGY layer on top -->
+    <div class="ol-stage" id="olStage" role="img"
+         aria-label="A recreation of a cluttered Schoology course dashboard, with the clean Better SGY dashboard layered on top of it showing a 96.2 percent overall average across six courses.">
+      <span class="ol-flag before">Your Schoology</span>
+      <span class="ol-flag after">Better SGY, on top</span>
+
+      <!-- ===== RAW SCHOOLOGY PAGE (anonymized recreation) ===== -->
+      <div class="sgy" aria-hidden="true">
+        <!-- browser chrome -->
+        <div class="sgy-chrome">
+          <span class="glyph">&#8592;</span>
+          <span class="glyph dim">&#8594;</span>
+          <span class="glyph">&#8635;</span>
+          <div class="sgy-addr">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+            yourschool.schoology.com/home
+          </div>
+          <span class="tdots"><span></span><span></span><span></span></span>
+        </div>
+        <div class="sgy-accent"></div>
+
+        <!-- Schoology top nav -->
+        <div class="sgy-nav">
+          <div class="pmark">
+            <span class="pword">P</span>
+            <svg class="crest" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="11" fill="#2f5d8a"/>
+              <path d="M12 4 5 7v4c0 4 3 6 7 7 4-1 7-3 7-7V7l-7-3Z" fill="#fff" opacity=".92"/>
+              <path d="M9 11.5l2 2 4-4" stroke="#2f5d8a" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <span class="navlink">Courses &#9662;</span>
+          <span class="navlink">Groups &#9662;</span>
+          <span class="navlink">Resources</span>
+          <span class="navlink">Grades &#9662;</span>
+          <span class="navspace"></span>
+          <div class="navicons">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="5" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="19" cy="5" r="2"/><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="12" cy="19" r="2"/><circle cx="19" cy="19" r="2"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
+            <span class="ienv">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+              <span class="badge70">70</span>
+            </span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+            <span class="avatar">
+              <span class="av">AM</span>
+              Alex Mercer &#9662;
+            </span>
+          </div>
+        </div>
+
+        <!-- sub-tab row -->
+        <div class="sgy-tabs">
+          <span class="tab">Recent Activity</span>
+          <span class="tab active">Course Dashboard</span>
+          <span class="tab">Assignments</span>
+        </div>
+
+        <!-- body: 2x2 course cards + right sidebar -->
+        <div class="sgy-body">
+          <div class="sgy-cards">
+            <!-- 1. collage banner -->
+            <div class="sgy-card">
+              <div class="ban" style="background:linear-gradient(120deg,#f6a623,#e8410f 45%,#b8157a 78%,#5b2db8)">
+                <svg viewBox="0 0 200 78" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%">
+                  <circle cx="34" cy="24" r="16" fill="#ffffff" opacity=".22"/>
+                  <rect x="120" y="10" width="40" height="40" rx="6" fill="#ffffff" opacity=".18" transform="rotate(12 140 30)"/>
+                  <path d="M0 60 50 44 100 58 150 40 200 56 200 78 0 78Z" fill="#ffffff" opacity=".16"/>
+                  <text x="14" y="46" font-family="Arial" font-size="13" font-weight="700" fill="#fff" opacity=".95">welcome to the Class hub!</text>
+                </svg>
+              </div>
+              <div class="cinfo"><div class="ctitle">Class Hub: Gr09</div><div class="cschool">Riverside High School</div></div>
+            </div>
+            <!-- 2. book + pencil -->
+            <div class="sgy-card">
+              <div class="ban" style="background:#2f6db5">
+                <svg viewBox="0 0 200 78" style="position:absolute;inset:0;width:100%;height:100%">
+                  <rect x="64" y="20" width="40" height="34" rx="3" fill="#fff" opacity=".92"/>
+                  <path d="M84 20v34" stroke="#2f6db5" stroke-width="2"/>
+                  <rect x="108" y="14" width="6" height="44" rx="3" fill="#ffd35b" transform="rotate(28 111 36)"/>
+                  <path d="M120 26l5 9-9-2Z" fill="#444"/>
+                </svg>
+              </div>
+              <div class="cinfo"><div class="ctitle">Counseling: Class of 2029</div><div class="cschool">Riverside High School</div></div>
+            </div>
+            <!-- 3. book + pencil -->
+            <div class="sgy-card">
+              <div class="ban" style="background:#2f6db5">
+                <svg viewBox="0 0 200 78" style="position:absolute;inset:0;width:100%;height:100%">
+                  <rect x="64" y="20" width="40" height="34" rx="3" fill="#fff" opacity=".92"/>
+                  <path d="M84 20v34" stroke="#2f6db5" stroke-width="2"/>
+                  <rect x="108" y="14" width="6" height="44" rx="3" fill="#ffd35b" transform="rotate(28 111 36)"/>
+                  <path d="M120 26l5 9-9-2Z" fill="#444"/>
+                </svg>
+              </div>
+              <div class="cinfo"><div class="ctitle">Advisory: Class of 2029</div><div class="cschool">Riverside High School</div></div>
+            </div>
+            <!-- 4. Schoology Basics banner -->
+            <div class="sgy-card">
+              <div class="ban" style="background:linear-gradient(120deg,#3a87c8,#2c5f8f)">
+                <svg viewBox="0 0 200 78" style="position:absolute;inset:0;width:100%;height:100%">
+                  <circle cx="160" cy="20" r="30" fill="#fff" opacity=".1"/>
+                  <text x="14" y="34" font-family="Arial" font-size="13" font-weight="700" fill="#fff">Schoology Basics</text>
+                  <text x="14" y="52" font-family="Arial" font-size="11" fill="#fff" opacity=".9">for Students</text>
+                </svg>
+              </div>
+              <div class="cinfo"><div class="ctitle">Schoology Basics for Students</div><div class="cschool">Unified School District</div></div>
+            </div>
+          </div>
+
+          <!-- right sidebar -->
+          <div class="sgy-side">
+            <div class="sgy-wid">
+              <div class="wh">To Do</div>
+              <div class="wb">
+                <div class="todo">
+                  <span class="ex">!</span>
+                  <span><b>Testing Lockdown Browser</b><br><span class="od">305 days overdue</span> &middot; Schoology Basics for Students</span>
+                </div>
+              </div>
+            </div>
+            <div class="sgy-wid">
+              <div class="wh">Upcoming Events <a href="#overlay" tabindex="-1">Calendar</a></div>
+              <div class="wb">No upcoming events</div>
+            </div>
+            <div class="sgy-wid">
+              <div class="wh">Recently Completed</div>
+              <div class="wb">Recently Completed items are collapsed by default. <a class="lnk" href="#overlay" tabindex="-1">Click here to load&hellip;</a></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- floating accessibility icon -->
+        <span class="sgy-a11y">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="8" r="1.4" fill="currentColor"/><path d="M7 10.5h10M12 10.5V16M12 16l-2.5 3M12 16l2.5 3"/></svg>
+        </span>
+      </div>
+
+      <!-- ===== BETTER SGY LAYER (the AFTER, animates on top) ===== -->
+      <div class="ol-clean" aria-hidden="true">
+        <div class="ol-clean-inner">
+          <div class="ol-clean-top">
+            <div class="big"><small>Overall average &middot; 6 courses</small>96.2%</div>
+            <svg class="ol-clean-spark" viewBox="0 0 118 42" fill="none">
+              <polyline points="2,34 22,28 40,30 58,18 78,22 98,11 116,7" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="116" cy="7" r="3" fill="var(--accent)"/>
+              <path d="M2,34 22,28 40,30 58,18 78,22 98,11 116,7 116,42 2,42Z" fill="var(--accent)" opacity=".08"/>
+            </svg>
+          </div>
+          <div class="ol-clean-rows">
+            <div class="ol-clean-row">
+              <span class="nm">AP Literature</span>
+              <svg class="mini" viewBox="0 0 46 18" fill="none"><polyline points="1,13 11,11 21,12 31,7 45,4" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="gr">98%</span>
+            </div>
+            <div class="ol-clean-row">
+              <span class="nm">Algebra II</span>
+              <svg class="mini" viewBox="0 0 46 18" fill="none"><polyline points="1,9 11,11 21,8 31,9 45,6" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="gr">95%</span>
+            </div>
+            <div class="ol-clean-row">
+              <span class="nm">Biology &middot; <span class="ol-clean-flag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="M12 9v4m0 4h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>2 missing</span></span>
+              <svg class="mini" viewBox="0 0 46 18" fill="none"><polyline points="1,7 11,9 21,11 31,10 45,13" stroke="#c8632b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="gr warn">91%</span>
+            </div>
+            <div class="ol-clean-row">
+              <span class="nm">French I</span>
+              <svg class="mini" viewBox="0 0 46 18" fill="none"><polyline points="1,11 11,8 21,9 31,5 45,4" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="gr">99%</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -699,13 +1003,13 @@
   </div>
 </section>
 
-<!-- ============ CHANGELOG ============ -->
+<!-- ============ CHANGELOG / HOW IT'S EVOLVED ============ -->
 <section id="changelog" aria-labelledby="changelog-h2">
   <div class="wrap">
     <div class="sec-head reveal">
-      <span class="eyebrow">What's new</span>
+      <span class="eyebrow">How it's evolved</span>
       <h2 id="changelog-h2">A short, honest history.</h2>
-      <p>No roadmap theater. This is what actually shipped, in the order it shipped.</p>
+      <p>No roadmap theater. This is what actually shipped, in the order it shipped. You can still open every earlier iteration: all four looks live in the <a href="#browse" style="color:var(--accent-ink);font-weight:600">Browse everything</a> gallery.</p>
     </div>
 
     <ol class="log reveal" aria-label="Release history, newest first">
@@ -735,6 +1039,13 @@
         <p>The first release shipped two ways in: a demo with sample grades that needs no login, and the real extension that reads your own logged-in Schoology session.</p>
       </li>
     </ol>
+
+    <p class="reveal" style="margin-top:2rem;font-size:.95rem;color:var(--ink-soft)">
+      See the earlier iterations for yourself:
+      <a href="#browse" style="color:var(--accent-ink);font-weight:600">Browse everything</a> &middot;
+      <a href="#editions" style="color:var(--accent-ink);font-weight:600">the four editions</a> &middot;
+      <a href="https://github.com/saptarshighosh10-oss/better-sgy/releases" target="_blank" rel="noopener" style="color:var(--accent-ink);font-weight:600">all versions on GitHub</a>
+    </p>
   </div>
 </section>
 
@@ -787,28 +1098,28 @@
   <div class="wrap">
     <div class="sec-head reveal">
       <span class="eyebrow">Get it</span>
-      <h2 id="download-h2">Two ways to start.</h2>
-      <p>Have a look with sample data first, or install the real version and see your own grades. Both are free and download from the project's GitHub Releases page.</p>
+      <h2 id="download-h2">Start here &mdash; try the demo, no login.</h2>
+      <p>The demo shows the overlay with sample grades, and you can switch between the four looks. Then install the real one to see your actual grades. Both are free and download from the project's GitHub Releases page.</p>
     </div>
 
     <div class="dl-grid">
-      <div class="dl-card reveal">
+      <div class="dl-card feature reveal">
+        <span class="badge">Start here</span>
         <span class="kicker">No login needed</span>
         <h3>Try the demo</h3>
-        <p>Loads with sample grades so you can see all four editions right away. Nothing connects to Schoology, so it is a safe way to look around before installing the real thing.</p>
-        <a href="https://github.com/saptarshighosh10-oss/better-sgy/releases" target="_blank" rel="noopener" class="btn btn-ghost" style="align-self:flex-start">
+        <p>This is the one to open first. It loads with sample grades and shows the overlay exactly as it appears on top of Schoology, so you can switch between all four looks right away. Nothing connects to Schoology, so it is a safe way to look around.</p>
+        <a href="https://github.com/saptarshighosh10-oss/better-sgy/releases" target="_blank" rel="noopener" class="btn btn-primary" style="align-self:flex-start">
           Download the demo
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
         </a>
         <span class="fname">Better-SGY-Demo.zip</span>
       </div>
 
-      <div class="dl-card feature reveal">
-        <span class="badge">Real grades</span>
+      <div class="dl-card reveal">
         <span class="kicker">Reads your Schoology</span>
-        <h3>Install the real version</h3>
-        <p>Log into Schoology the way you normally do, and the extension shows your actual grades. The gradebook data stays in your browser; it is not uploaded anywhere.</p>
-        <a href="https://github.com/saptarshighosh10-oss/better-sgy/releases" target="_blank" rel="noopener" class="btn btn-primary" style="align-self:flex-start">
+        <h3>Then install the real one</h3>
+        <p>Once you have seen the demo, install this to see your own grades. Log into Schoology the way you normally do, and the extension shows your actual numbers. The gradebook data stays in your browser; it is not uploaded anywhere.</p>
+        <a href="https://github.com/saptarshighosh10-oss/better-sgy/releases" target="_blank" rel="noopener" class="btn btn-ghost" style="align-self:flex-start">
           Download the extension
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
         </a>
@@ -865,6 +1176,7 @@
       <p>A student project to make checking your grades feel less like a chore. Free, and built to sit quietly on top of the Schoology you already have.</p>
     </div>
     <nav class="links" aria-label="Footer">
+      <a href="#overlay">Overlay</a>
       <a href="#story">Story</a>
       <a href="#editions">Editions</a>
       <a href="#browse">Browse</a>
@@ -934,6 +1246,22 @@
       io.observe(el);
     });
   }
+
+  /* ---- Overlay stage: animate the clean layer on top when seen ---- */
+  (function(){
+    var stage = document.getElementById("olStage");
+    if(!stage) return;
+    if(reduce || !("IntersectionObserver" in window)){
+      stage.classList.add("shown");   // reduced motion: show final overlaid state, no movement
+      return;
+    }
+    var oio = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(en.isIntersecting){ stage.classList.add("shown"); oio.unobserve(en.target); }
+      });
+    }, {threshold:.35});
+    oio.observe(stage);
+  })();
 
   /* ---- Browse gallery: lazy iframe + edition/form picker ---- */
   (function(){

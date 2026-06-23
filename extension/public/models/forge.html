@@ -2578,8 +2578,8 @@ function maybeShowWelcome(){
   card.innerHTML = `
     <button class="wx" id="welcomex" title="dismiss">×</button>
     <div class="wtop"><span class="we">🙂</span><span class="wt">hey, welcome in</span></div>
-    <p>this is the friendly look. i'll point out the stuff that actually matters and leave the rest alone.
-    <span>not into the warmth? you can switch to a cleaner look (or dark) over in settings.</span></p>`;
+    <p>this is your real schoology, just redrawn on top of it — same grades and classes, friendlier to look at. it doesn't replace schoology, it just lays over it.
+    <span>and this is the demo, so the grades here are made up. poke around all you want, no login needed. four looks total — swap them anytime in settings.</span></p>`;
   main.insertBefore(card, main.firstChild);
   $('#welcomex').onclick = () => {
     try{ localStorage.setItem(WELCOME_KEY,'1'); }catch(e){}

@@ -1,7 +1,12 @@
 # Better SGY — Download & Install
 
-Two downloads available. **Start with the Demo** — no Schoology account
-needed, shows all three looks instantly.
+**Better SGY doesn't replace Schoology — it redraws your real Schoology page
+on top of itself.** Same login, same grades, a cleaner view drawn over the
+page you already use. Nothing moves; the numbers come from the same place.
+
+**Start with the Demo.** It shows exactly that overlay, loaded with sample
+grades, so you can see how it works without a Schoology account. Install the
+real version after, to see your own grades.
 
 ---
 
@@ -50,22 +55,25 @@ Done. It's installed.
 
 ---
 
-## The Demo version — try all three looks
+## The Demo — see the overlay, no login
 
 Open the **Better SGY — Demo** side panel (click its icon in the toolbar).
-A fake gradebook loads instantly — 6 courses, real-looking grades, teacher
-messages — no login needed.
+A sample gradebook loads instantly — 6 courses, real-looking grades, teacher
+messages — no login needed. This is the same view the real extension draws
+over your Schoology; only the grades are fake.
 
-Scroll to **Settings → UI style** to switch between:
+**Try the looks.** Go to **Settings → UI style** to switch between the four
+designs, or open the **Versions** tab to browse every look the project has
+been through:
 
-| Style | What it looks like |
+| Look | What it's like |
 |---|---|
-| **Halo** ⭐ | Clean and minimal. Color only for real signals — red for missing work, green when a grade goes up. The default. |
-| **Forge** | Compact. Tighter layout, more info per screen. |
-| **Slate** | Pure black and white. No color at all. |
+| **Apple** | Spare and confident. Lots of space, one calm blue. |
+| **Halo** ⭐ | Clean and minimal. Color only for real signals — red for missing, green for a climb. The default. |
+| **Slate** | Black-and-white editorial. Serif type, like a printed page. |
+| **Friendly** | Warm and chatty — a plain-language note on every grade. |
 
-Hit **Switch** to change it. Your choice saves and carries over to the real
-extension if you install that too.
+Your choice saves and carries over to the real extension if you install it too.
 
 ---
 
@@ -73,8 +81,9 @@ extension if you install that too.
 
 Install `better-sgy-extension-1.0.0-chrome.zip` the same way (same four steps),
 then go to **your school's Schoology page** (e.g. `yourschool.schoology.com`) —
-the redesigned UI loads over your dashboard automatically.
-Whatever style you picked in the Demo is already set.
+the redesigned UI draws itself over your real dashboard automatically. Nothing
+on Schoology changes; Better SGY just lays a cleaner view on top, with your
+actual grades. Whatever style you picked in the Demo is already set.
 
 ---
 

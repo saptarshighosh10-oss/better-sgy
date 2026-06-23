@@ -1060,6 +1060,197 @@
     .arow__score{ grid-area:score; text-align:left; } .arow__pct{ grid-area:pct; }
     .snapshot{ grid-template-columns:1fr; gap:14px; }
   }
+
+  /* ============================================================
+     ADDED — Search ⌘K affordance in the masthead
+     ============================================================ */
+  .masthead__topline{ position:relative; }
+  .mh-search{
+    font-family:var(--sans); font-size:9.5px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink-60); border:1px solid var(--ink-30);
+    background:var(--paper); padding:5px 10px 4px; cursor:pointer; line-height:1;
+    display:inline-flex; gap:8px; align-items:center;
+  }
+  .mh-search:hover{ color:var(--ink); border-color:var(--ink); }
+  .mh-search .kbd{
+    font-family:var(--sans); font-size:9px; font-weight:700; letter-spacing:.08em;
+    border:1px solid var(--ink-30); padding:2px 5px 1px; color:var(--ink-60);
+  }
+  .mh-search:hover .kbd{ border-color:var(--ink); color:var(--ink); }
+
+  /* ============================================================
+     ADDED — overlays: command palette + shortcuts help + welcome
+     ============================================================ */
+  .ov-scrim{
+    position:fixed; inset:0; z-index:60; background:rgba(0,0,0,.28);
+    display:none; align-items:flex-start; justify-content:center;
+    padding:clamp(40px,9vh,110px) 18px 40px;
+  }
+  body.theme-wob .ov-scrim{ background:rgba(0,0,0,.62); }
+  .ov-scrim--on{ display:flex; }
+
+  /* — command palette — */
+  .pal{
+    width:100%; max-width:620px; background:var(--paper);
+    border:2px solid var(--ink); box-shadow:8px 8px 0 var(--ink);
+    display:flex; flex-direction:column; max-height:72vh;
+  }
+  .pal__top{ border-bottom:var(--rule); padding:10px 16px 0; }
+  .pal__kicker{
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-family:var(--sans); font-size:9px; font-weight:700; letter-spacing:.22em;
+    text-transform:uppercase; color:var(--ink-60); margin-bottom:6px;
+  }
+  .pal__field{
+    width:100%; border:none; background:none; outline:none;
+    font-family:var(--serif); font-style:italic; font-size:22px; color:var(--ink);
+    padding:4px 0 12px;
+  }
+  .pal__field::placeholder{ color:var(--ink-30); }
+  .pal__results{ overflow:auto; }
+  .pal__group{
+    font-family:var(--sans); font-size:9px; font-weight:700; letter-spacing:.2em;
+    text-transform:uppercase; color:var(--ink-45); padding:11px 16px 5px;
+    border-bottom:var(--hairline);
+  }
+  .pal__row{
+    display:grid; grid-template-columns:minmax(0,1fr) auto; gap:16px; align-items:baseline;
+    padding:11px 16px; border-bottom:var(--hairline); cursor:pointer;
+  }
+  .pal__row:last-child{ border-bottom:none; }
+  .pal__row--sel{ background:var(--ink); }
+  .pal__row--sel .pal__name,
+  .pal__row--sel .pal__sub,
+  .pal__row--sel .pal__where{ color:var(--paper); }
+  .pal__name{ font-family:var(--serif); font-weight:700; font-size:16px; letter-spacing:-.01em; line-height:1.15; }
+  .pal__sub{ display:block; margin-top:3px; font-size:11px; color:var(--ink-60); letter-spacing:.02em; }
+  .pal__where{
+    font-family:var(--sans); font-size:9px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink-45); white-space:nowrap; align-self:center;
+  }
+  .pal__empty{
+    padding:34px 16px; text-align:center; font-family:var(--serif); font-style:italic;
+    font-size:15px; color:var(--ink-45);
+  }
+  .pal__foot{
+    border-top:var(--rule); padding:8px 16px; display:flex; gap:16px; flex-wrap:wrap;
+    font-family:var(--sans); font-size:9px; font-weight:700; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--ink-45);
+  }
+  .pal__foot .k{ border:1px solid var(--ink-30); padding:1px 5px; color:var(--ink-60); }
+
+  /* — shortcuts help (ruled key) — */
+  .help{
+    width:100%; max-width:560px; background:var(--paper);
+    border:2px solid var(--ink); box-shadow:8px 8px 0 var(--ink); max-height:80vh; overflow:auto;
+  }
+  .help__top{
+    display:flex; justify-content:space-between; align-items:baseline;
+    border-bottom:3px solid var(--ink); padding:14px 18px 12px;
+  }
+  .help__title{ font-family:var(--serif); font-weight:700; font-size:24px; letter-spacing:-.01em; }
+  .help__title em{ font-style:italic; font-weight:400; }
+  .help__close{
+    font-family:var(--sans); font-size:10px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink-60); border:none; background:none; cursor:pointer;
+  }
+  .help__close:hover{ color:var(--ink); }
+  .help__grp{
+    font-family:var(--sans); font-size:9px; font-weight:700; letter-spacing:.22em;
+    text-transform:uppercase; color:var(--ink-45); padding:14px 18px 4px;
+  }
+  .help__row{
+    display:grid; grid-template-columns:minmax(0,1fr) auto; gap:18px; align-items:center;
+    padding:9px 18px; border-bottom:var(--hairline);
+  }
+  .help__row:last-child{ border-bottom:none; }
+  .help__what{ font-family:var(--serif); font-size:15px; }
+  .help__keys{ display:flex; gap:5px; align-items:center; white-space:nowrap; }
+  .help__keys .key{
+    font-family:var(--sans); font-size:11px; font-weight:700; letter-spacing:.04em;
+    border:1px solid var(--ink); background:var(--paper); color:var(--ink);
+    padding:3px 8px 2px; min-width:22px; text-align:center; line-height:1.2;
+  }
+  .help__keys .then{ font-family:var(--serif); font-style:italic; font-size:12px; color:var(--ink-45); }
+
+  /* — first-run welcome note — */
+  .welcome{
+    width:100%; max-width:540px; background:var(--paper);
+    border:2px solid var(--ink); box-shadow:8px 8px 0 var(--ink);
+  }
+  .welcome__band{ border-top:3px solid var(--ink); border-bottom:var(--rule); padding:9px 20px;
+    font-family:var(--sans); font-size:9px; font-weight:700; letter-spacing:.24em;
+    text-transform:uppercase; color:var(--ink-60); display:flex; justify-content:space-between; }
+  .welcome__body{ padding:22px 24px 8px; }
+  .welcome__head{
+    font-family:var(--serif); font-weight:700; font-size:clamp(24px,4vw,32px);
+    line-height:1.02; letter-spacing:-.02em; margin-bottom:14px;
+  }
+  .welcome__head em{ font-style:italic; font-weight:400; }
+  .welcome__body p{
+    font-family:var(--serif); font-size:14.5px; line-height:1.6; color:var(--ink-80);
+    margin-bottom:12px; max-width:58ch;
+  }
+  .welcome__body p .lead{ font-weight:700; color:var(--ink); }
+  .welcome__foot{ border-top:var(--rule); padding:14px 24px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .welcome__sig{ font-family:var(--serif); font-style:italic; font-size:11px; color:var(--ink-45); margin-left:auto; }
+
+  /* ============================================================
+     ADDED — arcade: best-scores panel + sound toggle + daily label
+     ============================================================ */
+  .arcade-extras{
+    border-top:var(--rule); border-bottom:var(--rule);
+    display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:0;
+  }
+  @media (max-width:700px){ .arcade-extras{ grid-template-columns:1fr; } }
+  .scores-panel{ border-right:var(--hairline); padding:18px 20px 20px; }
+  @media (max-width:700px){ .scores-panel{ border-right:none; border-bottom:var(--hairline); } }
+  .scores-panel__head{
+    font-family:var(--sans); font-size:10px; font-weight:700; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--ink-60); border-bottom:var(--hairline);
+    padding-bottom:8px; margin-bottom:4px; display:flex; justify-content:space-between;
+  }
+  .scorerow{
+    display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:14px; align-items:baseline;
+    padding:9px 0; border-bottom:var(--hairline);
+  }
+  .scorerow:last-child{ border-bottom:none; }
+  .scorerow__no{ font-family:var(--serif); font-style:italic; font-size:13px; color:var(--ink-30); }
+  .scorerow__name{ font-family:var(--serif); font-weight:700; font-size:16px; letter-spacing:-.01em; }
+  .scorerow__val{
+    font-family:var(--serif); font-weight:700; font-size:16px; text-align:right;
+    font-variant-numeric:tabular-nums;
+  }
+  .scorerow__val.none{ font-style:italic; font-weight:400; color:var(--ink-45); }
+  .arcade-aside{ padding:18px 20px 20px; display:flex; flex-direction:column; gap:16px; }
+  .sfx-toggle{
+    display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:14px;
+    border-bottom:var(--hairline); padding-bottom:16px; cursor:pointer;
+  }
+  .sfx-toggle__name{ font-family:var(--serif); font-weight:700; font-size:16px; }
+  .sfx-toggle__desc{ font-size:11px; color:var(--ink-60); margin-top:3px; }
+  .daily-card .label{ display:block; margin-bottom:6px; }
+  .daily-card__line{ font-family:var(--serif); font-style:italic; font-size:13px; line-height:1.5; color:var(--ink-80); }
+  .daily-tag{
+    display:inline-block; font-family:var(--sans); font-size:9px; font-weight:700;
+    letter-spacing:.16em; text-transform:uppercase; border:1px solid var(--ink);
+    background:var(--ink); color:var(--paper); padding:3px 8px 2px; margin-left:8px; vertical-align:1px;
+  }
+
+  /* ============================================================
+     ADDED — PRINT (fallback for "Save as PDF"). Overview only, B&W.
+     ============================================================ */
+  @media print{
+    /* force monochrome regardless of dark theme */
+    body, body.theme-wob{ --ink:#000; --paper:#fff; background:#fff; color:#000; padding:0; }
+    .nav, .colophon, .ping-dock, .ov-scrim, .mh-search,
+    #export-overview, .course__trend{ display:none !important; }
+    /* print only the overview */
+    .screen{ display:none !important; }
+    #s-overview{ display:block !important; }
+    .hero, .stats, .figure, .clist, .closing{ break-inside:avoid; }
+    a{ color:#000; }
+  }
 </style>
 </head>
 <body>
@@ -1071,7 +1262,7 @@
     <div class="masthead__topline">
       <span class="edition">Better&nbsp;SGY</span>
       <span>The Grade Review</span>
-      <span>No.&nbsp;96.2</span>
+      <button class="mh-search" id="mh-search" type="button" aria-label="Open search">Search <span class="kbd" id="mh-search-kbd">⌘K</span></button>
     </div>
 
     <h1 class="masthead__title">Better <em>SGY</em></h1>
@@ -1328,7 +1519,10 @@
 
     <section class="closing" aria-label="In closing">
       <p class="closing__line">An A− in Drama, two papers owed, and not much else to report. A solid term, held together.</p>
-      <p class="closing__byline">Filed Semester 2 · Six courses of record</p>
+      <p class="closing__byline">
+        <button class="btn btn--ghost" id="export-overview" type="button" style="cursor:pointer;margin-bottom:8px">Save edition as PNG ↓</button><br>
+        <span id="export-note">Filed Semester 2 · Six courses of record</span>
+      </p>
     </section>
   </section>
 
@@ -1390,7 +1584,7 @@
         <span class="label standfirst__kicker">The Month</span>
         <h2>June, <em>in full</em>.</h2>
       </div>
-      <p class="standfirst__intro">Deadlines set against the days that hold them. Today is the 22nd, with two entries owed; the week ahead carries three more.</p>
+      <p class="standfirst__intro" id="cal-standfirst">Deadlines set against the days that hold them. Two entries are owed today; the week ahead carries more.</p>
     </div>
 
     <div class="calbar">
@@ -1568,6 +1762,24 @@
       </div>
     </div>
 
+    <!-- Arcade home extras: best scores · sound · daily challenge -->
+    <div class="arcade-extras" id="arcade-extras">
+      <div class="scores-panel">
+        <div class="scores-panel__head"><span>Best Scores</span><span>Kept locally</span></div>
+        <div id="best-scores"></div>
+      </div>
+      <div class="arcade-aside">
+        <div class="sfx-toggle" id="sfx-toggle" role="button" tabindex="0" aria-label="Toggle sound effects">
+          <div><div class="sfx-toggle__name">Sound effects</div><div class="sfx-toggle__desc">Spare blips on key events. Off by design.</div></div>
+          <span class="switch switch--off" id="sfx-switch">Off</span>
+        </div>
+        <div class="daily-card">
+          <span class="label">The Daily Challenge<span class="daily-tag">Daily</span></span>
+          <p class="daily-card__line" id="daily-line">A fixed word search, the same for every reader today. Beat the clock and return tomorrow for a new field.</p>
+        </div>
+      </div>
+    </div>
+
     <!-- Arcade play stage: one game at a time -->
     <div class="arcade-stage" id="arcade-stage" hidden>
       <div class="stage__bar">
@@ -1684,6 +1896,60 @@
 <!-- ===================== PING DOCK (desktop-style toasts) ===================== -->
 <div class="ping-dock" id="ping-dock" aria-live="polite"></div>
 
+<!-- ===================== COMMAND PALETTE (⌘K) ===================== -->
+<div class="ov-scrim" id="pal-scrim" aria-hidden="true">
+  <div class="pal" role="dialog" aria-modal="true" aria-label="Search">
+    <div class="pal__top">
+      <div class="pal__kicker"><span>The Index — Search</span><span id="pal-count"></span></div>
+      <input class="pal__field" id="pal-field" type="text" autocomplete="off"
+             autocorrect="off" autocapitalize="off" spellcheck="false"
+             placeholder="Courses, assignments, bulletins, materials, screens…">
+    </div>
+    <div class="pal__results" id="pal-results"></div>
+    <div class="pal__foot">
+      <span><span class="k">↑</span> <span class="k">↓</span> Move</span>
+      <span><span class="k">↵</span> Open</span>
+      <span><span class="k">Esc</span> Close</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SHORTCUTS HELP ===================== -->
+<div class="ov-scrim" id="help-scrim" aria-hidden="true">
+  <div class="help" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts">
+    <div class="help__top">
+      <span class="help__title">Keyboard <em>shortcuts</em></span>
+      <button class="help__close" id="help-close" type="button">Close ×</button>
+    </div>
+    <div class="help__grp">Navigation</div>
+    <div class="help__row"><span class="help__what">Go to a section</span><span class="help__keys"><span class="key">g</span><span class="then">then</span><span class="key">o g a c n m e s</span></span></div>
+    <div class="help__row"><span class="help__what">Overview · Grades · Assignments</span><span class="help__keys"><span class="key">g o</span><span class="key">g g</span><span class="key">g a</span></span></div>
+    <div class="help__row"><span class="help__what">Calendar · Bulletins · Materials</span><span class="help__keys"><span class="key">g c</span><span class="key">g n</span><span class="key">g m</span></span></div>
+    <div class="help__row"><span class="help__what">Games · Settings</span><span class="help__keys"><span class="key">g e</span><span class="key">g s</span></span></div>
+    <div class="help__grp">Commands</div>
+    <div class="help__row"><span class="help__what">Open search</span><span class="help__keys"><span class="key" id="help-cmdk">⌘K</span></span></div>
+    <div class="help__row"><span class="help__what">This help card</span><span class="help__keys"><span class="key">?</span></span></div>
+    <div class="help__row"><span class="help__what">Close any overlay</span><span class="help__keys"><span class="key">Esc</span></span></div>
+  </div>
+</div>
+
+<!-- ===================== FIRST-RUN WELCOME ===================== -->
+<div class="ov-scrim" id="welcome-scrim" aria-hidden="true">
+  <div class="welcome" role="dialog" aria-modal="true" aria-label="Welcome">
+    <div class="welcome__band"><span>Better SGY</span><span>The Slate Edition · No. 1</span></div>
+    <div class="welcome__body">
+      <h2 class="welcome__head">A gradebook, set in <em>type</em>.</h2>
+      <p><span class="lead">Welcome to Slate.</span> Your standing is laid out the way a paper lays out the day: ruled columns, a single ink, nothing that blinks. Six courses of record, read at a glance.</p>
+      <p>Four editions share these figures. To change the dress, open <strong>Settings</strong> and pick another house style — Apple, Halo, Slate, or Friendly. The data does not change; only the type does.</p>
+      <p>Press <strong>⌘K</strong> to search the whole paper, or <strong>?</strong> for the keyboard shortcuts.</p>
+    </div>
+    <div class="welcome__foot">
+      <button class="btn" id="welcome-dismiss" type="button" style="cursor:pointer">Begin reading</button>
+      <span class="welcome__sig">Filed for first issue · dismiss to continue</span>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ============================================================
    SLATE — interactive engine. Vanilla JS, no dependencies.
@@ -1782,56 +2048,106 @@
       closeBy:'PE 9 · P7 · Coach Bryant' }
   };
 
-  /* cross-course docket */
+  /* ---------- LIVE "TODAY" — everything derives from the real date ---------- */
+  var MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var DOW_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var DOW_FULL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var NOW = new Date();
+  var TODAY = { y:NOW.getFullYear(), m:NOW.getMonth(), d:NOW.getDate() };
+  /* a Date for today at midnight, and an offset helper that returns {y,m,d,date,weekday,label} */
+  function dayAt(offset){
+    var dt = new Date(TODAY.y, TODAY.m, TODAY.d + offset);
+    return { date:dt, y:dt.getFullYear(), m:dt.getMonth(), d:dt.getDate(),
+             wd:dt.getDay(), mon:MONTH_NAMES[dt.getMonth()].slice(0,3) };
+  }
+  function shortDate(o){ return o.mon+' '+o.d; }      /* "Jun 23" */
+  function longDate(o){ return MONTH_NAMES[o.m]+' '+o.d+', '+o.y; }
+  function dowName(o){ return DOW_FULL[o.wd]; }
+
+  /* schedule, expressed as offsets from today (negative = past). Two due today,
+     two recently overdue, a clutch upcoming, and a few already filed. */
+  var SCHED = {
+    dueA:        dayAt(0),    /* HW 7.3 — due today */
+    dueB:        dayAt(0),    /* Chapter 4 Response — due today */
+    overdueLab:  dayAt(-3),   /* Cell Energetics Lab — recently overdue */
+    overdueRef:  dayAt(-4),   /* Monologue Reflection — recently overdue */
+    upBook:      dayAt(2),
+    upEco:       dayAt(3),
+    upVocab:     dayAt(4),
+    upFit:       dayAt(4),
+    upTest:      dayAt(7),
+    filedUnit6:  dayAt(-10),
+    filedOral:   dayAt(-12),
+    filedEnz:    dayAt(-6),
+    /* extra past calendar texture */
+    pastQuiz:    dayAt(-13),
+    pastMile:    dayAt(-13),
+    pastPhoto:   dayAt(-11),
+    pastScene:   dayAt(-7)
+  };
+
+  /* cross-course docket — due text is built live from SCHED */
+  function dueToday(o, by){ return 'Due today · '+by; }
+  function dueOn(o){ return 'Due '+dowName(o)+' · '+shortDate(o); }
+  function wasDue(o){ return 'Was due '+shortDate(o)+' · not submitted'; }
+  function filedOn(o, score){ return 'Filed '+shortDate(o)+' · '+score; }
   var DOCKET = [
-    { title:'HW 7.3 problems', course:'alg', due:'Due today · before P1', status:'due', sort:0 },
-    { title:'Chapter 4 Response', course:'lit', due:'Due today · by P6', status:'due', sort:0 },
-    { title:'Cell Energetics Lab', course:'bio', due:'Was due Jun 19 · not submitted', status:'missing', sort:1 },
-    { title:'Monologue Reflection', course:'dra', due:'Was due Jun 18 · not submitted', status:'missing', sort:1 },
-    { title:'Book club notes', course:'lit', due:'Due Wed · Jun 24', status:'upcoming', sort:2 },
-    { title:'Ecology reading', course:'bio', due:'Due Thu · Jun 25', status:'upcoming', sort:2 },
-    { title:'Unité 6 vocab', course:'fre', due:'Due Fri · Jun 26', status:'upcoming', sort:2 },
-    { title:'Fitness Log Wk 15', course:'pe', due:'Due Fri · Jun 26', status:'upcoming', sort:2 },
-    { title:'Unit 7 Test', course:'alg', due:'Due Mon · Jun 29', status:'upcoming', sort:2 },
-    { title:'Unit 6 Test', course:'alg', due:'Filed Jun 12 · 96/100', status:'done', sort:3 },
-    { title:'Dialogue oral', course:'fre', due:'Filed Jun 10 · 29/30', status:'done', sort:3 },
-    { title:'Enzymes Problem Set', course:'bio', due:'Filed Jun 16 · 18/20', status:'done', sort:3 }
+    { title:'HW 7.3 problems', course:'alg', due:dueToday(SCHED.dueA,'before P1'), status:'due', sort:0 },
+    { title:'Chapter 4 Response', course:'lit', due:dueToday(SCHED.dueB,'by P6'), status:'due', sort:0 },
+    { title:'Cell Energetics Lab', course:'bio', due:wasDue(SCHED.overdueLab), status:'missing', sort:1 },
+    { title:'Monologue Reflection', course:'dra', due:wasDue(SCHED.overdueRef), status:'missing', sort:1 },
+    { title:'Book club notes', course:'lit', due:dueOn(SCHED.upBook), status:'upcoming', sort:2 },
+    { title:'Ecology reading', course:'bio', due:dueOn(SCHED.upEco), status:'upcoming', sort:2 },
+    { title:'Unité 6 vocab', course:'fre', due:dueOn(SCHED.upVocab), status:'upcoming', sort:2 },
+    { title:'Fitness Log Wk 15', course:'pe', due:dueOn(SCHED.upFit), status:'upcoming', sort:2 },
+    { title:'Unit 7 Test', course:'alg', due:dueOn(SCHED.upTest), status:'upcoming', sort:2 },
+    { title:'Unit 6 Test', course:'alg', due:filedOn(SCHED.filedUnit6,'96/100'), status:'done', sort:3 },
+    { title:'Dialogue oral', course:'fre', due:filedOn(SCHED.filedOral,'29/30'), status:'done', sort:3 },
+    { title:'Enzymes Problem Set', course:'bio', due:filedOn(SCHED.filedEnz,'18/20'), status:'done', sort:3 }
   ];
   var STATUS_TAG = { due:'Due Today', missing:'Missing', upcoming:'Upcoming', done:'Filed' };
 
-  /* calendar events by month/day. key 'YYYY-M' (M 0-based) -> {day:[{course,title}]} */
-  var CAL_EVENTS = {
-    '2026-5':{ /* June 2026 */
-      9:[{c:'alg',t:'Trig Identities Quiz'},{c:'pe',t:'Mile Run'}],
-      11:[{c:'bio',t:'Photosynthesis Test'}],
-      12:[{c:'alg',t:'Unit 6 Test'},{c:'fre',t:'Unité 5 Exam'}],
-      15:[{c:'dra',t:'Scene Performance'}],
-      18:[{c:'dra',t:'Monologue Reflection due'}],
-      19:[{c:'bio',t:'Cell Energetics Lab due'}],
-      22:[{c:'alg',t:'HW 7.3 problems'},{c:'lit',t:'Chapter 4 Response'}],
-      24:[{c:'lit',t:'Book club notes'}],
-      25:[{c:'bio',t:'Ecology reading'}],
-      26:[{c:'fre',t:'Unité 6 vocab'},{c:'pe',t:'Fitness Log Wk 15'}],
-      29:[{c:'alg',t:'Unit 7 Test'}]
+  /* calendar events by month/day, built live from SCHED.
+     key 'YYYY-M' (M 0-based) -> {day:[{c:course,t:title}]} */
+  var CAL_EVENTS = (function(){
+    var map={};
+    function add(o, c, t){
+      var key=o.y+'-'+o.m;
+      (map[key]=map[key]||{});
+      (map[key][o.d]=map[key][o.d]||[]).push({c:c,t:t});
     }
-  };
-  var TODAY = { y:2026, m:5, d:22 };
-  var MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    add(SCHED.pastQuiz,'alg','Trig Identities Quiz');
+    add(SCHED.pastMile,'pe','Mile Run');
+    add(SCHED.pastPhoto,'bio','Photosynthesis Test');
+    add(SCHED.filedUnit6,'alg','Unit 6 Test');
+    add(SCHED.filedOral,'fre','Unité 5 Exam');
+    add(SCHED.pastScene,'dra','Scene Performance');
+    add(SCHED.overdueRef,'dra','Monologue Reflection due');
+    add(SCHED.overdueLab,'bio','Cell Energetics Lab due');
+    add(SCHED.dueA,'alg','HW 7.3 problems');
+    add(SCHED.dueB,'lit','Chapter 4 Response');
+    add(SCHED.upBook,'lit','Book club notes');
+    add(SCHED.upEco,'bio','Ecology reading');
+    add(SCHED.upVocab,'fre','Unité 6 vocab');
+    add(SCHED.upFit,'pe','Fitness Log Wk 15');
+    add(SCHED.upTest,'alg','Unit 7 Test');
+    return map;
+  })();
 
-  /* bulletins */
+  /* bulletins — datelines derive from today; bodies reference live weekdays */
   var BULLETINS = [
-    { id:'b1', course:'bio', teacher:'Ms. Carrington', date:'Jun 22', time:'2 hours ago',
-      head:'Lab safety quiz Friday', body:'A quick 10-question quiz on lab safety opens class Friday. Review the handout filed under Materials; the questions follow it closely.' },
-    { id:'b2', course:'pe', teacher:'Coach Bryant', date:'Jun 22', time:'5 hours ago',
-      head:'Bring sneakers Thursday', body:'The outdoor unit begins Thursday, weather permitting. Closed-toe shoes are required; sandals will sit the period out.' },
-    { id:'b3', course:'dra', teacher:'Mr. Ellison', date:'Jun 21', time:'Yesterday',
+    { id:'b1', course:'bio', teacher:'Ms. Carrington', date:shortDate(SCHED.upBook), time:'2 hours ago',
+      head:'Lab safety quiz '+dowName(SCHED.upBook), body:'A quick 10-question quiz on lab safety opens class '+dowName(SCHED.upBook)+'. Review the handout filed under Materials; the questions follow it closely.' },
+    { id:'b2', course:'pe', teacher:'Coach Bryant', date:shortDate(dayAt(0)), time:'5 hours ago',
+      head:'Bring sneakers '+dowName(SCHED.upEco), body:'The outdoor unit begins '+dowName(SCHED.upEco)+', weather permitting. Closed-toe shoes are required; sandals will sit the period out.' },
+    { id:'b3', course:'dra', teacher:'Mr. Ellison', date:shortDate(dayAt(-1)), time:'Yesterday',
       head:'Monologue sign-ups open', body:'Pick a performance slot for next week. The sign-up sheet is on the board and posted in Materials; first come, first served.' },
-    { id:'b4', course:'lit', teacher:'Ms. Howe', date:'Jun 21', time:'Yesterday',
-      head:'Chapter 4 response due Monday', body:'Two paragraphs, focused on the narrator’s voice. Submit through Schoology before the period; late work loses a letter.' },
-    { id:'b5', course:'alg', teacher:'Mr. Stubbs', date:'Jun 20', time:'2 days ago',
-      head:'Unit 7 starts', body:'We begin Unit 7 today. HW 7.3 is due Monday and the Unit 7 test falls on the 29th. No new homework over the weekend.' },
-    { id:'b6', course:'fre', teacher:'Mme. Laurent', date:'Jun 19', time:'3 days ago',
-      head:'Vocab list for Unité 6', body:'The new list is posted with audio under Materials. The quiz is the 26th; practice the passé composé forms in particular.' }
+    { id:'b4', course:'lit', teacher:'Ms. Howe', date:shortDate(dayAt(-1)), time:'Yesterday',
+      head:'Chapter 4 response due today', body:'Two paragraphs, focused on the narrator’s voice. Submit through Schoology before the period; late work loses a letter.' },
+    { id:'b5', course:'alg', teacher:'Mr. Stubbs', date:shortDate(dayAt(-2)), time:'2 days ago',
+      head:'Unit 7 starts', body:'We begin Unit 7 this week. HW 7.3 is due today and the Unit 7 test falls on '+shortDate(SCHED.upTest)+'. No new homework over the weekend.' },
+    { id:'b6', course:'fre', teacher:'Mme. Laurent', date:shortDate(dayAt(-3)), time:'3 days ago',
+      head:'Vocab list for Unité 6', body:'The new list is posted with audio under Materials. The quiz is '+dowName(SCHED.upVocab)+' the '+SCHED.upVocab.d+'th; practice the passé composé forms in particular.' }
   ];
 
   /* materials — Biology shelf, default open = Cell Energetics Lab */
@@ -1892,7 +2208,7 @@
     revisions:{},                    /* material id -> revision count */
     comments:{},                     /* material id -> [comments] */
     arcadeBest:{ typing:0, anagram:0, ttt:'', search:0 }, /* typing=WPM, anagram=streak, ttt=W-D-L, search=fastest sec */
-    settings:{ compact:false, notify:true, themeWob:false, contrast:false, appearance:'light',
+    settings:{ compact:false, notify:true, themeWob:false, contrast:false, appearance:'light', sfx:false,
                nav:{ overview:true, grades:true, assignments:true, calendar:true, announcements:true, materials:true, arcade:true } }
   };
   var state;
@@ -2195,7 +2511,13 @@
     visible.sort(function(a,b){ return (a.sort-b.sort); });
 
     if(!visible.length){
-      box.appendChild(el('div','empty','Nothing under this heading. The column reads clean.'));
+      var emptyMsg;
+      if(q) emptyMsg='Nothing answers to “'+esc(q)+'”. The search comes up empty.';
+      else if(filter==='missing') emptyMsg='No missing work. Every column is squared away.';
+      else if(filter==='done') emptyMsg='Nothing filed yet. The record is still to be written.';
+      else if(filter==='upcoming') emptyMsg='Nothing scheduled and nothing owed. The docket is clean.';
+      else emptyMsg='Nothing under this heading. The column reads clean.';
+      box.appendChild(el('div','empty',emptyMsg));
     }
     visible.forEach(function(it, idx){
       var c=courseById[it.course];
@@ -2303,7 +2625,19 @@
       ? total+' entries set against '+MONTH_NAMES[m]+'. The page does not crowd.'
       : 'No deadlines fall in '+MONTH_NAMES[m]+'. A clear month.';
     $('#cal-closing-by').textContent = MONTH_NAMES[m]+' '+y+' · Semester 2';
+
+    /* live standfirst reflecting today */
+    var sf=$('#cal-standfirst');
+    if(sf){
+      var todayEv=(eventsFor(TODAY.y,TODAY.m)[TODAY.d]||[]).length;
+      var ahead=0, te=eventsFor(TODAY.y,TODAY.m);
+      Object.keys(te).forEach(function(k){ if(+k>TODAY.d) ahead+=te[k].length; });
+      sf.textContent = 'Deadlines set against the days that hold them. Today is the '+ordinal(TODAY.d)+
+        ', with '+nWord(todayEv)+' '+(todayEv===1?'entry':'entries')+' owed; the days ahead carry '+nWord(ahead)+' more.';
+    }
   }
+  function ordinal(n){ var s=['th','st','nd','rd'], v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); }
+  function nWord(n){ var w=['no','one','two','three','four','five','six','seven','eight','nine','ten']; return n<=10?w[n]:String(n); }
   function showDay(d){
     var ev=eventsFor(calView.y,calView.m)[d];
     if(!ev||!ev.length){ closeDayStrip(); return; }
@@ -2340,6 +2674,11 @@
      ============================================================ */
   function renderBulletins(){
     var box=$('#bulletins'); box.innerHTML='';
+    if(!BULLETINS.length){
+      box.appendChild(el('div','empty','No bulletins posted. The faculty is holding its peace.'));
+      $('#bull-count').textContent='No notices';
+      return;
+    }
     BULLETINS.forEach(function(b){
       var c=courseById[b.course];
       var imp=!!state.important[b.id];
@@ -2360,6 +2699,7 @@
     $('#bull-closing-line').textContent = kept===1
       ? 'One starred, '+(BULLETINS.length-1)+' standing by. The faculty has little to add this week.'
       : kept+' starred, '+(BULLETINS.length-kept)+' standing by. The faculty has little to add this week.';
+    var by=$('#bull-closing-by'); if(by) by.textContent='Posted across six courses · Refreshed '+shortDate(dayAt(0));
   }
   $('#bulletins').addEventListener('click', function(e){
     var s=e.target.closest('[data-star]'); if(!s) return;
@@ -2498,7 +2838,7 @@
   });
 
   function timeStamp(){
-    return 'Jun 22, 2026 · ' + nowClock();
+    return longDate(dayAt(0)) + ' · ' + nowClock();
   }
   function nowClock(){
     var d=new Date();
@@ -2652,9 +2992,14 @@
     var active=null;            /* current game name or null */
     var teardown=null;          /* function to stop the running game */
     var keyHandler=null;        /* document keydown handler while playing */
+    var dailySeed=null;         /* when set, Word Search builds deterministically */
+
+    /* seedable RNG (mulberry32) — only used for the Daily Challenge */
+    function mulberry(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; var t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
 
     function bestVal(g){ return state.arcadeBest[g]; }
     function setBest(g,v){ state.arcadeBest[g]=v; save(); refreshHomeBests(); }
+    function sfx(kind){ var s=window.__SGY_SFX; if(s && s[kind]) s[kind](); }
 
     function fmtSec(s){ return Math.floor(s/60)+':'+('0'+(s%60)).slice(-2); }
 
@@ -2670,6 +3015,7 @@
       $$('#arcade-home [data-best]').forEach(function(node){
         node.textContent = bestLabel(node.getAttribute('data-best'));
       });
+      if(typeof renderBestScores==='function') renderBestScores();
     }
 
     /* ---- stage chrome ---- */
@@ -2691,9 +3037,10 @@
       active=null;
     }
 
-    function openGame(name){
+    function openGame(name, keepDaily){
       if(!GAME_NAMES[name]) return;
       stopActive();
+      if(!keepDaily) dailySeed=null;
       active=name;
       $('#arcade-home').hidden=true;
       $('#arcade-stage').hidden=false;
@@ -2705,13 +3052,17 @@
       else if(name==='ttt') startTicTacToe();
       else if(name==='search') startSearch();
     }
+    function openDaily(){
+      dailySeed = TODAY.y*10000+(TODAY.m+1)*100+TODAY.d;
+      openGame('search', true);
+    }
     function backToHome(){
       stopActive();
       $('#arcade-stage').hidden=true;
       $('#arcade-home').hidden=false;
       refreshHomeBests();
     }
-    function restartActive(){ if(active) openGame(active); }
+    function restartActive(){ if(active) openGame(active, dailySeed!=null && active==='search'); }
 
     /* ========================================================
        GAME 1 — TYPING TEST
@@ -2781,6 +3132,7 @@
         var prev=bestVal('typing')||0;
         var isBest = wpm>prev;
         if(isBest) setBest('typing', wpm);
+        sfx(isBest?'win':'good');
         showOverlay('The Result', wpm+' words a minute',
           'Accuracy of '+acc+'% over '+target.length+' characters.'+
           (isBest?' A new personal best.':' Best holds at '+prev+' wpm.'));
@@ -2881,10 +3233,12 @@
           var prev=bestVal('anagram')||0;
           if(streak>prev){ setBest('anagram', streak); setMeta('Best', streak); }
           renderSlots();
+          sfx('good');
           hintEl.textContent='Correct — '+current.w+'.';
           nextBtn.hidden=false;
           try{ nextBtn.focus(); }catch(e){}
         } else {
+          sfx('bad');
           slotsEl.querySelectorAll('.ana-slot').forEach(function(s){ s.classList.add('wrong'); });
           setTimeout(function(){
             if(streak>0){ /* streak ends on a wrong word */
@@ -3002,9 +3356,9 @@
           draw(w.line);
           var rec2=parseRec(bestVal('ttt'));
           var head, sub;
-          if(w.p==='X'){ rec2.w++; head='You win.'; sub='The cross takes it. A rare thing against this machine.'; }
-          else if(w.p==='O'){ rec2.l++; head='You lose.'; sub='The circle closes it out. The machine does not blunder.'; }
-          else { rec2.d++; head='A draw.'; sub='Even play to an even end — the honest result of perfect defence.'; }
+          if(w.p==='X'){ rec2.w++; head='You win.'; sub='The cross takes it. A rare thing against this machine.'; sfx('win'); }
+          else if(w.p==='O'){ rec2.l++; head='You lose.'; sub='The circle closes it out. The machine does not blunder.'; sfx('bad'); }
+          else { rec2.d++; head='A draw.'; sub='Even play to an even end — the honest result of perfect defence.'; sfx('good'); }
           setBest('ttt', rec2.w+'-'+rec2.d+'-'+rec2.l);
           setMeta('Record', rec2.w+'–'+rec2.d+'–'+rec2.l);
           $('#ttt-w').textContent=rec2.w; $('#ttt-d').textContent=rec2.d; $('#ttt-l').textContent=rec2.l;
@@ -3013,7 +3367,7 @@
       }
       function playX(i){
         if(over||lock||b[i]) return;
-        b[i]='X'; draw();
+        b[i]='X'; draw(); sfx('tick');
         if(winner(b)){ finishCheck(); return; }
         lock=true;
         setTimeout(function(){ if(!over){ cpuMove(); lock=false; } }, 280);
@@ -3051,21 +3405,23 @@
 
       var grid=$('#ws-grid'), listEl=$('#ws-list');
       var cellsArr, placedWords, found, startTime, timer, aimStart=null;
+      var isDaily = dailySeed!=null;
+      var rnd = isDaily ? mulberry(dailySeed) : Math.random;
 
       function idx(r,c){ return r*WS_N+c; }
       function build(){
         var g=[]; for(var i=0;i<WS_N*WS_N;i++) g.push('');
         placedWords=[];
         var dirs=[[0,1],[1,0]]; /* horizontal, vertical */
-        WS_WORDS.slice().sort(function(){return Math.random()-0.5;}).forEach(function(w){
+        WS_WORDS.slice().sort(function(){return rnd()-0.5;}).forEach(function(w){
           var ok=false, tries=0, cellsList;
           while(!ok && tries<300){
             tries++;
-            var d=dirs[Math.floor(Math.random()*dirs.length)];
+            var d=dirs[Math.floor(rnd()*dirs.length)];
             var maxR = d[0]? WS_N-w.length : WS_N-1;
             var maxC = d[1]? WS_N-w.length : WS_N-1;
-            var r=Math.floor(Math.random()*(maxR+1));
-            var c=Math.floor(Math.random()*(maxC+1));
+            var r=Math.floor(rnd()*(maxR+1));
+            var c=Math.floor(rnd()*(maxC+1));
             var fits=true; cellsList=[];
             for(var k=0;k<w.length;k++){
               var rr=r+d[0]*k, cc=c+d[1]*k, cur=g[idx(rr,cc)];
@@ -3079,7 +3435,7 @@
             }
           }
         });
-        for(var i=0;i<g.length;i++){ if(!g[i]) g[i]=WS_ALPHA[Math.floor(Math.random()*26)]; }
+        for(var i=0;i<g.length;i++){ if(!g[i]) g[i]=WS_ALPHA[Math.floor(rnd()*26)]; }
         return g;
       }
 
@@ -3129,6 +3485,7 @@
           cells.forEach(function(ci){ cellsArr[ci].classList.add('found'); });
           found.push(hit); renderList();
           setScore(found.length+' / 6');
+          sfx('good');
           if(found.length===WS_WORDS.length) win();
         }
       }
@@ -3139,6 +3496,7 @@
         var isBest = !prev || secs<prev;
         if(isBest) setBest('search', secs);
         setMeta('Best', fmtSec(isBest?secs:prev));
+        sfx('win');
         showOverlay('Cleared', 'All six words.',
           'Found in '+fmtSec(secs)+'.'+(isBest?' A new fastest time.':' Best holds at '+fmtSec(prev)+'.'));
       }
@@ -3160,6 +3518,9 @@
         },1000);
         setHint('Select the first then the last letter of a hidden word. Words run across or down. Esc cancels a pick.');
       }
+      if(isDaily){
+        var st=$('#stage-title'); if(st) st.textContent='Word Search · Daily';
+      }
       newPuzzle();
       teardown=function(){ clearInterval(timer); grid.removeEventListener('click', onClick); };
     }
@@ -3180,12 +3541,345 @@
     /* stop any running game when leaving the arcade screen */
     function onLeave(){ if(active){ stopActive(); $('#arcade-stage').hidden=true; $('#arcade-home').hidden=false; } }
 
-    return { init:init, onLeave:onLeave };
+    return { init:init, onLeave:onLeave, openGame:function(n){ openGame(n); }, openDaily:openDaily };
+  })();
+
+  /* ============================================================
+     ADDED — SOUND FX (WebAudio blips, no files, off by default)
+     ============================================================ */
+  var SFX = (function(){
+    var ctx=null;
+    function ensure(){
+      if(ctx) return ctx;
+      try{ var AC=window.AudioContext||window.webkitAudioContext; if(AC) ctx=new AC(); }catch(e){ ctx=null; }
+      return ctx;
+    }
+    function on(){ return !!(state.settings && state.settings.sfx); }
+    function blip(freq, dur, type){
+      if(!on()) return;
+      var c=ensure(); if(!c) return;
+      try{
+        if(c.state==='suspended') c.resume();
+        var o=c.createOscillator(), g=c.createGain();
+        o.type=type||'square'; o.frequency.value=freq||440;
+        o.connect(g); g.connect(c.destination);
+        var t=c.currentTime;
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.12, t+0.008);
+        g.gain.exponentialRampToValueAtTime(0.0001, t+(dur||0.08));
+        o.start(t); o.stop(t+(dur||0.08)+0.02);
+      }catch(e){}
+    }
+    return {
+      on:on,
+      tick:function(){ blip(620,0.04,'square'); },
+      good:function(){ blip(720,0.07,'square'); setTimeout(function(){ blip(960,0.09,'square'); },70); },
+      bad:function(){ blip(180,0.14,'sawtooth'); },
+      win:function(){ blip(640,0.08,'square'); setTimeout(function(){ blip(840,0.08,'square'); },90); setTimeout(function(){ blip(1040,0.13,'square'); },180); }
+    };
+  })();
+  /* expose to ARCADE (defined above, calls window.__SGY_SFX if present) */
+  window.__SGY_SFX = SFX;
+
+  /* ============================================================
+     ADDED — ARCADE HOME EXTRAS: best-scores panel, sfx toggle, daily
+     ============================================================ */
+  var ARCADE_META = [
+    { g:'typing', name:'Typing Test', fmt:function(b){ return b ? b+' wpm' : null; } },
+    { g:'anagram', name:'Anagram', fmt:function(b){ return b ? 'run of '+b : null; } },
+    { g:'ttt', name:'Tic-Tac-Toe', fmt:function(b){ var p=String(b||'').split('-'); var w=+p[0]||0,d=+p[1]||0,l=+p[2]||0; return (w||d||l)? (w+'–'+d+'–'+l) : null; } },
+    { g:'search', name:'Word Search', fmt:function(b){ return b ? (Math.floor(b/60)+':'+('0'+(b%60)).slice(-2)) : null; } }
+  ];
+  function renderBestScores(){
+    var box=$('#best-scores'); if(!box) return; box.innerHTML='';
+    ARCADE_META.forEach(function(m,i){
+      var v=m.fmt(state.arcadeBest[m.g]);
+      var row=el('div','scorerow');
+      row.innerHTML='<span class="scorerow__no">'+['I','II','III','IV'][i]+'</span>'+
+        '<span class="scorerow__name">'+esc(m.name)+'</span>'+
+        '<span class="scorerow__val'+(v?'':' none')+'">'+(v?esc(v):'unplayed')+'</span>';
+      box.appendChild(row);
+    });
+  }
+  function renderSfxSwitch(){
+    var sw=$('#sfx-switch'); if(!sw) return;
+    var on=!!state.settings.sfx;
+    sw.classList.toggle('switch--on', on); sw.classList.toggle('switch--off', !on);
+    sw.textContent = on ? 'On' : 'Off';
+  }
+  (function wireSfx(){
+    var t=$('#sfx-toggle'); if(!t) return;
+    function toggle(){ state.settings.sfx=!state.settings.sfx; save(); renderSfxSwitch(); if(state.settings.sfx) SFX.tick(); }
+    t.addEventListener('click', toggle);
+    t.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggle(); } });
+  })();
+  /* Daily challenge: a date-seeded line + label. Deterministic per calendar day. */
+  (function dailyLabel(){
+    var line=$('#daily-line'); if(!line) return;
+    var seed=TODAY.y*10000+(TODAY.m+1)*100+TODAY.d;
+    var sets=[
+      'six course words, one fixed field',
+      'the same ten-by-ten for every reader today',
+      'today’s grid, set once and shared',
+      'one field, no reshuffle until midnight'
+    ];
+    var pick=sets[seed % sets.length];
+    line.textContent='A fixed word search — '+pick+'. Beat the clock and return tomorrow for a new field. Filed '+shortDate(dayAt(0))+'.';
+    var card=line.closest('.daily-card');
+    if(card){
+      card.style.cursor='pointer';
+      card.setAttribute('role','button'); card.setAttribute('tabindex','0');
+      card.setAttribute('aria-label','Play the Daily Challenge word search');
+      function play(){ if(ARCADE && ARCADE.openDaily){ showScreen('arcade'); ARCADE.openDaily(); } }
+      card.addEventListener('click', play);
+      card.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); play(); } });
+    }
+  })();
+
+  /* ============================================================
+     ADDED — COMMAND PALETTE (⌘K) + KEYBOARD SHORTCUTS + HELP
+     ============================================================ */
+  var SCREEN_LABEL = { overview:'Overview', grades:'Grades', assignments:'Assignments',
+    calendar:'Calendar', announcements:'Bulletins', materials:'Materials', arcade:'Games', settings:'Settings' };
+  var SCREEN_KEY = { o:'overview', g:'grades', a:'assignments', c:'calendar', n:'announcements', m:'materials', e:'arcade', s:'settings' };
+  var IS_MAC = /Mac|iPhone|iPad/.test(navigator.platform||navigator.userAgent||'');
+
+  /* fix the ⌘K affordance label to match platform */
+  (function(){
+    var lbl = IS_MAC ? '⌘K' : 'Ctrl K';
+    var k=$('#mh-search-kbd'); if(k) k.textContent=lbl;
+    var hk=$('#help-cmdk'); if(hk) hk.textContent=lbl;
+  })();
+
+  /* build the searchable index across the paper */
+  function buildIndex(){
+    var idx=[];
+    /* screens */
+    SCREENS.forEach(function(s){
+      idx.push({ kind:'Screen', name:SCREEN_LABEL[s], sub:'Jump to the '+SCREEN_LABEL[s].toLowerCase()+' page',
+        where:'Section', go:function(){ showScreen(s); } });
+    });
+    /* courses -> grades */
+    COURSES.forEach(function(c){
+      idx.push({ kind:'Course', name:c.name, sub:c.teacher+' · '+c.per+' · '+c.grade.toFixed(1)+'% '+c.ltr,
+        where:'Grades', go:function(){ state.gradeCourse=c.id; renderGrades(); showScreen('grades'); } });
+    });
+    /* assignments (docket) */
+    DOCKET.forEach(function(it){
+      var c=courseById[it.course];
+      idx.push({ kind:'Assignment', name:it.title, sub:c.name+' · '+it.due,
+        where:'Docket', go:function(){ showScreen('assignments'); } });
+    });
+    /* announcements */
+    BULLETINS.forEach(function(b){
+      var c=courseById[b.course];
+      idx.push({ kind:'Bulletin', name:b.head, sub:c.name+' · '+b.teacher+' · '+b.date,
+        where:'Bulletins', go:function(){ showScreen('announcements'); } });
+    });
+    /* materials */
+    MATERIALS.groups.forEach(function(g){
+      g.rows.forEach(function(r){
+        idx.push({ kind:'Material', name:r.name, sub:r.kind+' · '+g.title,
+          where:'Materials', go:function(){ state.matSel=r.id; save(); renderMaterials(); showScreen('materials'); } });
+      });
+    });
+    return idx;
+  }
+  var PAL_INDEX = null;
+
+  var palSel=0, palMatches=[];
+  function palRender(q){
+    var box=$('#pal-results'); box.innerHTML='';
+    q=(q||'').trim().toLowerCase();
+    PAL_INDEX = PAL_INDEX || buildIndex();
+    palMatches = !q ? PAL_INDEX.slice() : PAL_INDEX.filter(function(it){
+      return (it.name+' '+it.sub+' '+it.kind+' '+it.where).toLowerCase().indexOf(q)>=0;
+    });
+    $('#pal-count').textContent = palMatches.length+' of '+PAL_INDEX.length;
+    if(!palMatches.length){
+      box.appendChild(el('div','pal__empty','Nothing in the index answers to that. Try a course, a date, or a screen.'));
+      return;
+    }
+    if(palSel>=palMatches.length) palSel=palMatches.length-1;
+    if(palSel<0) palSel=0;
+    /* group by kind, preserving order */
+    var lastKind=null;
+    palMatches.forEach(function(it, i){
+      if(it.kind!==lastKind){ box.appendChild(el('div','pal__group', esc(it.kind+'s'))); lastKind=it.kind; }
+      var row=el('div','pal__row'+(i===palSel?' pal__row--sel':''));
+      row.setAttribute('data-i', i);
+      row.innerHTML='<div><span class="pal__name">'+esc(it.name)+'</span>'+
+        '<span class="pal__sub">'+esc(it.sub)+'</span></div>'+
+        '<span class="pal__where">'+esc(it.where)+'</span>';
+      box.appendChild(row);
+    });
+    var sel=box.querySelector('.pal__row--sel');
+    if(sel && sel.scrollIntoView) sel.scrollIntoView({ block:'nearest' });
+  }
+  function palOpen(){
+    closeOverlays();
+    PAL_INDEX = buildIndex();   /* rebuild each open so live data is current */
+    palSel=0;
+    var f=$('#pal-field'); f.value='';
+    palRender('');
+    $('#pal-scrim').classList.add('ov-scrim--on');
+    $('#pal-scrim').setAttribute('aria-hidden','false');
+    setTimeout(function(){ try{ f.focus(); }catch(e){} }, 20);
+  }
+  function palClose(){ $('#pal-scrim').classList.remove('ov-scrim--on'); $('#pal-scrim').setAttribute('aria-hidden','true'); }
+  function palChoose(i){
+    var it=palMatches[i]; if(!it) return;
+    palClose();
+    it.go();
+  }
+  $('#pal-field').addEventListener('input', function(){ palSel=0; palRender(this.value); });
+  $('#pal-field').addEventListener('keydown', function(e){
+    if(e.key==='ArrowDown'){ e.preventDefault(); palSel=Math.min(palSel+1, palMatches.length-1); palRender(this.value); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); palSel=Math.max(palSel-1, 0); palRender(this.value); }
+    else if(e.key==='Enter'){ e.preventDefault(); palChoose(palSel); }
+    else if(e.key==='Escape'){ e.preventDefault(); palClose(); }
+  });
+  $('#pal-results').addEventListener('click', function(e){
+    var r=e.target.closest('[data-i]'); if(!r) return; palChoose(+r.getAttribute('data-i'));
+  });
+  $('#pal-scrim').addEventListener('mousedown', function(e){ if(e.target===this) palClose(); });
+  $('#mh-search').addEventListener('click', palOpen);
+
+  /* shortcuts help */
+  function helpOpen(){ closeOverlays(); $('#help-scrim').classList.add('ov-scrim--on'); $('#help-scrim').setAttribute('aria-hidden','false'); }
+  function helpClose(){ $('#help-scrim').classList.remove('ov-scrim--on'); $('#help-scrim').setAttribute('aria-hidden','true'); }
+  $('#help-close').addEventListener('click', helpClose);
+  $('#help-scrim').addEventListener('mousedown', function(e){ if(e.target===this) helpClose(); });
+
+  function anyOverlayOpen(){ return !!$('.ov-scrim--on'); }
+  function closeOverlays(){ palClose(); helpClose(); welcomeClose(); }
+
+  /* global keyboard: g-then-letter, ⌘K, ?, Esc */
+  var gPending=false, gTimer=null;
+  function typingInField(t){
+    if(!t) return false;
+    var tag=(t.tagName||'').toLowerCase();
+    return tag==='input'||tag==='textarea'||t.isContentEditable;
+  }
+  document.addEventListener('keydown', function(e){
+    /* ⌘K / Ctrl+K — works even in fields */
+    if((e.metaKey||e.ctrlKey) && (e.key==='k'||e.key==='K')){ e.preventDefault(); palOpen(); return; }
+    /* Esc closes any overlay */
+    if(e.key==='Escape'){ if(anyOverlayOpen()){ e.preventDefault(); closeOverlays(); } return; }
+    if(e.metaKey||e.ctrlKey||e.altKey) return;
+    /* don't hijack typing inside fields or while an overlay/game owns the keys */
+    if(typingInField(e.target)) return;
+    if(anyOverlayOpen()) return;
+    /* '?' help */
+    if(e.key==='?'){ e.preventDefault(); helpOpen(); return; }
+    /* 'g' then a letter */
+    if(gPending){
+      var dest=SCREEN_KEY[e.key.toLowerCase()];
+      gPending=false; if(gTimer){ clearTimeout(gTimer); gTimer=null; }
+      if(dest){ e.preventDefault(); showScreen(dest); }
+      return;
+    }
+    if(e.key==='g'||e.key==='G'){ gPending=true; gTimer=setTimeout(function(){ gPending=false; }, 1200); }
+  });
+
+  /* ============================================================
+     ADDED — FIRST-RUN WELCOME
+     ============================================================ */
+  var WELCOME_KEY='bsgy-slate-welcomed';
+  function welcomeClose(){ $('#welcome-scrim').classList.remove('ov-scrim--on'); $('#welcome-scrim').setAttribute('aria-hidden','true'); }
+  function welcomeMaybeShow(){
+    var seen; try{ seen=localStorage.getItem(WELCOME_KEY); }catch(e){ seen='1'; }
+    if(seen) return;
+    $('#welcome-scrim').classList.add('ov-scrim--on');
+    $('#welcome-scrim').setAttribute('aria-hidden','false');
+  }
+  function welcomeDismiss(){ try{ localStorage.setItem(WELCOME_KEY,'1'); }catch(e){} welcomeClose(); }
+  $('#welcome-dismiss').addEventListener('click', welcomeDismiss);
+  $('#welcome-scrim').addEventListener('mousedown', function(e){ if(e.target===this) welcomeDismiss(); });
+
+  /* ============================================================
+     ADDED — EXPORT OVERVIEW AS PNG (foreignObject -> canvas -> dataURL)
+     Falls back to print ("Save as PDF") if the canvas would taint.
+     Output is strictly B&W (we render onto the page's own ink/paper).
+     ============================================================ */
+  (function wireExport(){
+    var btn=$('#export-overview'); if(!btn) return;
+    var note=$('#export-note');
+    function setNote(t){ if(note) note.textContent=t; }
+    var origNote = note ? note.textContent : '';
+
+    function inlineStyleSnapshot(node){
+      /* clone the overview and inline computed styles so the SVG is self-contained */
+      var clone=node.cloneNode(true);
+      function walk(src, dst){
+        var cs=getComputedStyle(src);
+        var props=['font-family','font-size','font-weight','font-style','letter-spacing',
+          'line-height','color','background-color','text-transform','text-align',
+          'border-top','border-bottom','border-left','border-right','padding','margin',
+          'display','grid-template-columns','gap','text-decoration','font-variant-numeric'];
+        var s='';
+        props.forEach(function(p){ var v=cs.getPropertyValue(p); if(v) s+=p+':'+v+';'; });
+        dst.setAttribute('style', (dst.getAttribute('style')||'')+s);
+        var sc=src.children, dc=dst.children;
+        for(var i=0;i<sc.length;i++){ if(dc[i]) walk(sc[i], dc[i]); }
+      }
+      walk(node, clone);
+      return clone;
+    }
+
+    function doExport(){
+      var src=$('#s-overview');
+      if(!src){ return printFallback(); }
+      try{
+        var rect=src.getBoundingClientRect();
+        var w=Math.max(700, Math.ceil(rect.width));
+        var h=Math.max(400, Math.ceil(src.scrollHeight));
+        var paper=getComputedStyle(document.body).backgroundColor || '#fff';
+        var clone=inlineStyleSnapshot(src);
+        clone.style.width=w+'px';
+        var xml=new XMLSerializer().serializeToString(clone);
+        var html='<div xmlns="http://www.w3.org/1999/xhtml" style="width:'+w+'px;background:'+paper+';padding:24px;">'+xml+'</div>';
+        var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+(h+48)+'">'+
+          '<foreignObject width="100%" height="100%">'+html+'</foreignObject></svg>';
+        var blob=new Blob([svg], { type:'image/svg+xml;charset=utf-8' });
+        var url=URL.createObjectURL(blob);
+        var img=new Image();
+        img.onload=function(){
+          try{
+            var scale=2;
+            var canvas=document.createElement('canvas');
+            canvas.width=w*scale; canvas.height=(h+48)*scale;
+            var cx=canvas.getContext('2d');
+            cx.scale(scale,scale);
+            cx.fillStyle=paper; cx.fillRect(0,0,w,h+48);
+            cx.drawImage(img,0,0);
+            URL.revokeObjectURL(url);
+            var data;
+            try{ data=canvas.toDataURL('image/png'); }
+            catch(taint){ setNote('Canvas blocked — opening print instead.'); return printFallback(); }
+            var a=document.createElement('a');
+            a.href=data; a.download='better-sgy-overview-'+TODAY.y+'-'+('0'+(TODAY.m+1)).slice(-2)+'-'+('0'+TODAY.d).slice(-2)+'.png';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            setNote('Saved as PNG · '+longDate(dayAt(0)));
+            setTimeout(function(){ setNote(origNote); }, 3200);
+          }catch(err){ setNote('Image export failed — opening print.'); printFallback(); }
+        };
+        img.onerror=function(){ URL.revokeObjectURL(url); setNote('SVG render failed — opening print.'); printFallback(); };
+        img.src=url;
+      }catch(e){ printFallback(); }
+    }
+    function printFallback(){
+      window.print();
+    }
+    btn.addEventListener('click', doExport);
   })();
 
   /* ============================================================
      BOOT
      ============================================================ */
+  /* MOCKUP_CONVENTIONS: declare the active edition on load */
+  try{ localStorage.setItem('bsgy-edition','slate'); }catch(e){}
+
   applyBodyClasses();
   bindOverview();
   renderGrades();
@@ -3195,7 +3889,25 @@
   renderMaterials();
   renderSettings();
   ARCADE.init();
-  showScreen(state.screen);
+  renderBestScores();
+  renderSfxSwitch();
+
+  /* MOCKUP_CONVENTIONS deep-linking: ?screen=<id> and ?game=<id> */
+  var QS = (function(){
+    var o={}; var s=(location.search||'').replace(/^\?/,'');
+    s.split('&').forEach(function(p){ if(!p) return; var kv=p.split('='); o[decodeURIComponent(kv[0])]=decodeURIComponent(kv[1]||''); });
+    return o;
+  })();
+  var bootScreen = QS.screen && SCREENS.indexOf(QS.screen)>=0 ? QS.screen : state.screen;
+  showScreen(bootScreen);
+  if(QS.game){
+    showScreen('arcade');
+    if(QS.game==='daily') ARCADE.openDaily();
+    else ARCADE.openGame(QS.game);
+  }
+
+  /* first-run welcome (after the first paint) */
+  welcomeMaybeShow();
 })();
 </script>
 </body>

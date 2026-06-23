@@ -719,6 +719,152 @@
   .goverlay .oacts{margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
 
   /* ============================================================
+     EMPTY STATES
+  ============================================================ */
+  .emptystate{
+    padding:52px 24px;text-align:center;
+    display:flex;flex-direction:column;align-items:center;gap:4px;
+  }
+  .emptystate .esicon{
+    width:56px;height:56px;border-radius:50%;margin-bottom:10px;
+    display:inline-flex;align-items:center;justify-content:center;
+    background:var(--tile);color:var(--ink3);
+  }
+  .emptystate .estitle{font-size:17px;font-weight:600;letter-spacing:-0.016em;color:var(--ink);}
+  .emptystate .esbody{font-size:14.5px;color:var(--ink3);letter-spacing:-0.012em;max-width:320px;line-height:1.4;}
+
+  /* ============================================================
+     COMMAND PALETTE / SEARCH + SHORTCUTS + WELCOME (overlays)
+  ============================================================ */
+  .overlay{
+    position:fixed;inset:0;z-index:400;display:none;
+    background:rgba(0,0,0,.28);
+    backdrop-filter:saturate(120%) blur(3px);-webkit-backdrop-filter:saturate(120%) blur(3px);
+  }
+  :root[data-theme="dark"] .overlay{background:rgba(0,0,0,.5);}
+  .overlay.show{display:block;animation:ovfade .16s ease;}
+  @keyframes ovfade{from{opacity:0;}to{opacity:1;}}
+
+  /* command palette */
+  .palette{
+    position:absolute;left:50%;top:14vh;transform:translateX(-50%);
+    width:min(640px,calc(100% - 32px));
+    background:var(--paper);border:1px solid var(--line);border-radius:18px;
+    box-shadow:0 24px 70px rgba(0,0,0,.28);overflow:hidden;
+    animation:palpop .18s cubic-bezier(.2,.7,.2,1);
+  }
+  @keyframes palpop{from{opacity:0;transform:translate(-50%,6px);}to{opacity:1;transform:translate(-50%,0);}}
+  .palette .pq{display:flex;align-items:center;gap:11px;padding:16px 18px;border-bottom:1px solid var(--hair);}
+  .palette .pq svg{flex:0 0 18px;color:var(--ink3);}
+  .palette .pq input{
+    flex:1;border:none;background:none;outline:none;font-family:inherit;
+    font-size:18px;color:var(--ink);letter-spacing:-0.016em;
+  }
+  .palette .pq input::placeholder{color:var(--ink3);}
+  .palette .pq .kbd{font-size:12px;color:var(--ink3);border:1px solid var(--line);border-radius:6px;padding:2px 7px;letter-spacing:0;}
+  .palres{max-height:min(52vh,420px);overflow-y:auto;padding:6px;}
+  .palgrp{font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:var(--ink3);padding:12px 12px 5px;}
+  .palitem{
+    display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:11px;cursor:pointer;
+  }
+  .palitem .pdot{width:9px;height:9px;border-radius:3px;flex:0 0 9px;background:var(--ink3);}
+  .palitem .picon{width:20px;flex:0 0 20px;color:var(--ink3);display:inline-flex;}
+  .palitem .pmain{min-width:0;flex:1;}
+  .palitem .pname{font-size:15px;font-weight:500;letter-spacing:-0.014em;color:var(--ink);line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .palitem .pmeta{font-size:12.5px;color:var(--ink3);letter-spacing:-0.01em;margin-top:1px;}
+  .palitem .pkind{font-size:12px;color:var(--ink3);margin-left:auto;flex:0 0 auto;}
+  .palitem.sel{background:rgba(0,113,227,.1);}
+  .palitem.sel .pname{color:var(--blue);}
+  .palempty{padding:34px 20px;text-align:center;color:var(--ink3);font-size:14.5px;letter-spacing:-0.012em;}
+
+  /* topbar search affordance */
+  .searchbtn{
+    appearance:none;border:1px solid var(--line);background:var(--paper);cursor:pointer;font-family:inherit;
+    height:36px;border-radius:10px;padding:0 12px;display:inline-flex;align-items:center;gap:8px;
+    font-size:14px;color:var(--ink3);letter-spacing:-0.012em;transition:background .15s ease;
+  }
+  .searchbtn:hover{background:var(--tile);}
+  .searchbtn .kbd{font-size:11px;border:1px solid var(--line);border-radius:5px;padding:1px 5px;letter-spacing:0;}
+  @media (max-width:560px){ .searchbtn .lab,.searchbtn .kbd{display:none;} .searchbtn{padding:0 9px;} }
+
+  /* shortcuts help + welcome share a centered card */
+  .sheet{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:min(540px,calc(100% - 32px));max-height:84vh;overflow-y:auto;
+    background:var(--paper);border:1px solid var(--line);border-radius:22px;
+    box-shadow:0 24px 70px rgba(0,0,0,.28);padding:30px 32px;
+    animation:palpop .2s cubic-bezier(.2,.7,.2,1);
+  }
+  @keyframes sheetpop{from{opacity:0;transform:translate(-50%,-46%);}to{opacity:1;transform:translate(-50%,-50%);}}
+  .sheet .sh-h{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px;}
+  .sheet h3{font-size:24px;font-weight:600;letter-spacing:-0.022em;}
+  .sheet .sh-sub{margin-top:5px;font-size:15px;color:var(--ink2);letter-spacing:-0.012em;line-height:1.4;}
+  .sheet .closex{
+    appearance:none;border:none;background:var(--tile);cursor:pointer;color:var(--ink2);
+    width:32px;height:32px;border-radius:50%;flex:0 0 32px;display:inline-flex;align-items:center;justify-content:center;
+    transition:background .15s ease;
+  }
+  .sheet .closex:hover{background:var(--tile-hover);}
+  .scgrp{margin-top:20px;}
+  .scgrp .scl{font-size:12px;font-weight:600;letter-spacing:0.03em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px;}
+  .scrow{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:9px 0;border-top:1px solid var(--hair);}
+  .scrow:first-of-type{border-top:none;}
+  .scrow .scd{font-size:15px;letter-spacing:-0.012em;color:var(--ink);}
+  .scrow .sck{display:inline-flex;gap:5px;align-items:center;flex:0 0 auto;}
+  .kbd{font-size:12.5px;font-weight:600;font-family:-apple-system,"SF Mono",ui-monospace,monospace;
+    color:var(--ink2);background:var(--tile);border:1px solid var(--line);border-radius:7px;padding:3px 8px;letter-spacing:0;line-height:1;}
+  .kbd.plain{background:none;border:none;color:var(--ink3);font-weight:500;padding:0;}
+
+  /* welcome card extras */
+  .welcome-art{
+    height:120px;border-radius:16px;margin-bottom:20px;
+    background:linear-gradient(150deg,#0071e3,#5b6cff);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .welcome-acts{margin-top:24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .welcome-list{margin-top:18px;display:flex;flex-direction:column;gap:14px;}
+  .welcome-list .wl{display:flex;gap:13px;align-items:flex-start;}
+  .welcome-list .wlic{width:34px;height:34px;border-radius:10px;flex:0 0 34px;background:var(--tile);color:var(--blue);display:flex;align-items:center;justify-content:center;}
+  .welcome-list .wlt{font-size:15px;font-weight:600;letter-spacing:-0.014em;}
+  .welcome-list .wld{font-size:13.5px;color:var(--ink3);letter-spacing:-0.012em;margin-top:1px;line-height:1.35;}
+
+  /* ============================================================
+     ARCADE EXTRAS — best scores panel, daily badge
+  ============================================================ */
+  .bestpanel{
+    background:var(--tile);border-radius:24px;padding:20px 24px;margin-top:6px;
+  }
+  .bestpanel .bph{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px;}
+  .bestpanel .bpt{font-size:15px;font-weight:600;letter-spacing:-0.014em;}
+  .bestrow{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--hair);}
+  .bestrow:first-of-type{border-top:none;}
+  .bestrow .brn{font-size:15px;font-weight:500;letter-spacing:-0.014em;}
+  .bestrow .brl{font-size:12.5px;color:var(--ink3);}
+  .bestrow .brv{margin-left:auto;font-size:16px;font-weight:600;letter-spacing:-0.016em;color:var(--ink);}
+  .bestrow .brv.none{color:var(--ink3);font-weight:500;}
+  .soundtoggle{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--ink2);letter-spacing:-0.012em;}
+  .dailybadge{
+    font-size:11px;font-weight:600;letter-spacing:0.02em;text-transform:uppercase;
+    background:rgba(0,113,227,.12);color:var(--blue);border-radius:980px;padding:3px 9px;
+  }
+
+  /* export button lives in the closer; keep it inline-friendly */
+  .ov-export{margin-top:30px;display:flex;justify-content:center;}
+
+  /* ============================================================
+     PRINT — clean fallback for "Save as PDF"
+  ============================================================ */
+  @media print{
+    .side,.topbar,.overlay,#toasts,#tip,.ov-export,.ov-cta{display:none !important;}
+    body{background:#fff;font-size:13px;}
+    .screen{display:none !important;}
+    .screen.active{display:block !important;animation:none !important;}
+    .pad{max-width:none;padding:0;}
+    .card,.surface,.tile{box-shadow:none !important;border:1px solid #ddd !important;break-inside:avoid;}
+    .gallery{grid-template-columns:repeat(2,1fr);}
+  }
+
+  /* ============================================================
      RESPONSIVE
   ============================================================ */
   @media (max-width:1080px){
@@ -820,6 +966,7 @@
       <span class="ttl">Better SGY</span>
       <span class="ctx">2025&ndash;2026 &middot; Semester 2</span>
       <div class="right">
+        <button class="searchbtn" id="searchBtn" title="Search (⌘K)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="6" stroke-width="1.7"/><path d="M20 20l-3.5-3.5" stroke-width="1.7" stroke-linecap="round"/></svg><span class="lab">Search</span><span class="kbd">⌘K</span></button>
         <button class="iconbtn" id="bellBtn" title="Test notification"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink)"><path d="M6 9a6 6 0 0112 0c0 5 2 6 2 6H4s2-1 2-6zM10 20a2 2 0 004 0" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <button class="iconbtn" id="topRefresh" title="Refresh"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink)"><path d="M20 11a8 8 0 10-1.5 5.5M20 5v5h-5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </div>
@@ -860,9 +1007,13 @@
 
         <section class="gallery" id="ovGallery"></section>
 
+        <div class="ov-export">
+          <button class="btn ghost sm" id="ovExport"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 4v11M8 11l4 4 4-4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 19h14" stroke-width="1.8" stroke-linecap="round"/></svg>Export dashboard</button>
+        </div>
+
         <section class="closer">
           <p>Two assignments to turn in. The rest takes care of itself.</p>
-          <p class="note">Updated from Schoology a moment ago.</p>
+          <p class="note" id="ovUpdated">Updated from Schoology a moment ago.</p>
         </section>
       </div>
     </section>
@@ -1047,6 +1198,65 @@
   </div><!-- /main -->
 </div><!-- /app -->
 
+<!-- ============ COMMAND PALETTE / SEARCH ============ -->
+<div class="overlay" id="searchOverlay">
+  <div class="palette" role="dialog" aria-label="Search">
+    <div class="pq">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="6" stroke-width="1.7"/><path d="M20 20l-3.5-3.5" stroke-width="1.7" stroke-linecap="round"/></svg>
+      <input type="text" id="searchInput" placeholder="Search courses, assignments, posts, screens…" autocomplete="off" spellcheck="false" />
+      <span class="kbd">Esc</span>
+    </div>
+    <div class="palres" id="searchResults"></div>
+  </div>
+</div>
+
+<!-- ============ SHORTCUTS HELP ============ -->
+<div class="overlay" id="shortcutsOverlay">
+  <div class="sheet" role="dialog" aria-label="Keyboard shortcuts">
+    <div class="sh-h">
+      <div><h3>Keyboard shortcuts</h3><div class="sh-sub">Move around without the mouse.</div></div>
+      <button class="closex" data-close-shortcuts aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 6l12 12M18 6L6 18" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+    </div>
+    <div class="scgrp">
+      <div class="scl">General</div>
+      <div class="scrow"><span class="scd">Search</span><span class="sck"><span class="kbd">⌘</span><span class="kbd">K</span></span></div>
+      <div class="scrow"><span class="scd">Shortcuts (this)</span><span class="sck"><span class="kbd">?</span></span></div>
+      <div class="scrow"><span class="scd">Close overlay</span><span class="sck"><span class="kbd">Esc</span></span></div>
+    </div>
+    <div class="scgrp">
+      <div class="scl">Go to screen</div>
+      <div class="scrow"><span class="scd">Overview</span><span class="sck"><span class="kbd">g</span><span class="kbd plain">then</span><span class="kbd">o</span></span></div>
+      <div class="scrow"><span class="scd">Grades</span><span class="sck"><span class="kbd">g</span><span class="kbd plain">then</span><span class="kbd">g</span></span></div>
+      <div class="scrow"><span class="scd">Assignments</span><span class="sck"><span class="kbd">g</span><span class="kbd plain">then</span><span class="kbd">a</span></span></div>
+      <div class="scrow"><span class="scd">Calendar</span><span class="sck"><span class="kbd">g</span><span class="kbd plain">then</span><span class="kbd">c</span></span></div>
+      <div class="scrow"><span class="scd">Announcements</span><span class="sck"><span class="kbd">g</span><span class="kbd plain">then</span><span class="kbd">n</span></span></div>
+      <div class="scrow"><span class="scd">Materials</span><span class="sck"><span class="kbd">g</span><span class="kbd plain">then</span><span class="kbd">m</span></span></div>
+      <div class="scrow"><span class="scd">Games</span><span class="sck"><span class="kbd">g</span><span class="kbd plain">then</span><span class="kbd">e</span></span></div>
+      <div class="scrow"><span class="scd">Settings</span><span class="sck"><span class="kbd">g</span><span class="kbd plain">then</span><span class="kbd">s</span></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ FIRST-RUN WELCOME ============ -->
+<div class="overlay" id="welcomeOverlay">
+  <div class="sheet" role="dialog" aria-label="Welcome">
+    <div class="welcome-art">
+      <svg width="44" height="44" viewBox="0 0 24 24" fill="none"><path d="M4 7.5L12 4l8 3.5v9L12 20l-8-3.5v-9z" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/><path d="M12 4v16M4 7.5l8 3.5 8-3.5" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg>
+    </div>
+    <h3>Welcome to Better SGY</h3>
+    <div class="sh-sub">A calmer view of your Schoology — grades, what's due, and a little more.</div>
+    <div class="welcome-list">
+      <div class="wl"><span class="wlic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 13h7V4H4v9zM13 20h7v-9h-7v9zM4 20h7v-4H4v4zM13 9h7V4h-7v5z" stroke-width="1.6" stroke-linejoin="round"/></svg></span><div><div class="wlt">Your dashboard</div><div class="wld">Overview shows your average, what's due today, and every course at a glance.</div></div></div>
+      <div class="wl"><span class="wlic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="6" stroke-width="1.7"/><path d="M20 20l-3.5-3.5" stroke-width="1.7" stroke-linecap="round"/></svg></span><div><div class="wlt">Search anything</div><div class="wld">Press ⌘K to jump to a course, assignment, or screen. Press ? for all shortcuts.</div></div></div>
+      <div class="wl"><span class="wlic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3" stroke-width="1.6"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" stroke-width="1.6" stroke-linecap="round"/></svg></span><div><div class="wlt">Change the look</div><div class="wld">Open Settings to switch editions — Apple, Halo, Slate, or Friendly — and choose light or dark.</div></div></div>
+    </div>
+    <div class="welcome-acts">
+      <button class="btn" id="welcomeGotit">Got it</button>
+      <button class="tlink" id="welcomeSettings">Open Settings <span class="chev">&rsaquo;</span></button>
+    </div>
+  </div>
+</div>
+
 <div id="tip"></div>
 <div id="toasts"></div>
 
@@ -1194,6 +1404,73 @@ const NOTIFS = [
 ];
 
 /* ============================================================
+   LIVE "TODAY" — the sample data is anchored to Mon Jun 22 2026.
+   We shift every relative date so it reads sensibly against the
+   real current date: 2 due today, 2 recently overdue (missing),
+   a few upcoming this/next week, the rest already graded.
+============================================================ */
+const NOW = new Date();
+const REAL_TODAY = new Date(NOW.getFullYear(), NOW.getMonth(), NOW.getDate());
+function addDays(base, n){ const d = new Date(base); d.setDate(d.getDate()+n); return d; }
+function fmtMD(d){ return d.toLocaleDateString("en-US",{month:"short",day:"numeric"}); }
+function sameDay(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+
+// Each agenda item gets a real Date, offset from today. Order roughly
+// preserves the original spacing while keeping the narrative intact.
+const AGENDA_OFFSETS = {
+  "a-hw73":0, "a-ch4":0,            // due today
+  "a-cell":-4, "a-mono":-5,         // recently overdue → missing
+  "a-book":2, "a-eco":3, "a-vocab":4, "a-fit15":4, "a-u7":7,  // upcoming
+  "a-u6t":-10, "a-dial":-12, "a-enz":-6,   // already done
+};
+// build live dates + human labels onto AGENDA
+AGENDA.forEach(a=>{
+  const off = (a.id in AGENDA_OFFSETS) ? AGENDA_OFFSETS[a.id] : 0;
+  a.date = addDays(REAL_TODAY, off);
+  if(a.group==="due") a.dueLabel = "Today";
+  else if(a.group==="missing") a.dueLabel = "was due "+fmtMD(a.date);
+  else if(a.group==="done") a.dueLabel = fmtMD(a.date);
+  else { // upcoming
+    a.dueLabel = off===1 ? "Tomorrow" : fmtMD(a.date);
+  }
+});
+
+// Calendar events: map the fixed-June day numbers onto real dates by the
+// same relative ordering, keyed off the matching agenda items where possible.
+// We derive a fresh CAL_EVENTS_LIVE: {ISOdate: [{t,c}]}.
+const CAL_EVENTS_LIVE = {};
+function calKey(d){ return d.getFullYear()+"-"+d.getMonth()+"-"+d.getDate(); }
+function addCalEvent(d, ev){ const k=calKey(d); (CAL_EVENTS_LIVE[k] || (CAL_EVENTS_LIVE[k]=[])).push(ev); }
+// Past graded events (spread across the two weeks before today)
+[
+  {off:-12, t:"Trig Identities Quiz", c:"alg"}, {off:-12, t:"Mile Run", c:"pe"},
+  {off:-11, t:"Photosynthesis Test", c:"bio"},
+  {off:-10, t:"Unit 6 Test", c:"alg"}, {off:-10, t:"Unité 5 Exam", c:"fre"},
+  {off:-7,  t:"Scene Performance", c:"dra"},
+  {off:-5,  t:"Monologue Reflection due", c:"dra"},
+  {off:-4,  t:"Cell Energetics Lab due", c:"bio"},
+  // today
+  {off:0, t:"HW 7.3", c:"alg"}, {off:0, t:"Chapter 4 Response", c:"lit"},
+  // upcoming
+  {off:2, t:"Book club notes", c:"lit"},
+  {off:3, t:"Ecology reading", c:"bio"},
+  {off:4, t:"Unité 6 vocab", c:"fre"}, {off:4, t:"Fitness Log Wk 15", c:"pe"},
+  {off:7, t:"Unit 7 Test", c:"alg"},
+].forEach(e=> addCalEvent(addDays(REAL_TODAY, e.off), {t:e.t, c:e.c}));
+
+// "Last week" label for the trend chart now ends at the real today.
+WEEK_LABELS[WEEK_LABELS.length-1] = fmtMD(REAL_TODAY);
+
+// Relabel the gradebook items that are anchored to "today" or recently
+// overdue so the per-course view reads against the real clock.
+Object.values(GRADEBOOKS).forEach(gb=>{
+  gb.items.forEach(it=>{
+    if(it.status==="due") it.date = "Today";
+    else if(it.status==="missing") it.date = "was due "+fmtMD(addDays(REAL_TODAY,-4));
+  });
+});
+
+/* ============================================================
    STATE (with localStorage persistence)
 ============================================================ */
 const LS = "bsgy_apple_mock_v1";
@@ -1233,6 +1510,17 @@ const N = 8;
 const cx = i => X0 + (X1-X0) * (i/(N-1));
 const cy = v => Y_BOT - (Y_BOT-Y_TOP) * ((v-V_MIN)/(V_MAX-V_MIN));
 function ptsStr(arr){ return arr.map((v,i)=>cx(i).toFixed(2)+","+cy(v).toFixed(2)).join(" "); }
+
+/* Calm, consistent empty states. kind = check | calm | search | star */
+function emptyState(kind, title, body){
+  const icons = {
+    check:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9" stroke-width="1.5"/><path d="M8 12.5l2.5 2.5L16 9" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    calm:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9" stroke-width="1.5"/><path d="M8.5 13.5c1 1 2.2 1.5 3.5 1.5s2.5-.5 3.5-1.5" stroke-width="1.6" stroke-linecap="round"/><path d="M9 9.5h.01M15 9.5h.01" stroke-width="2" stroke-linecap="round"/></svg>',
+    search:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="6.5" stroke-width="1.6"/><path d="M20 20l-4-4" stroke-width="1.7" stroke-linecap="round"/></svg>',
+    star:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9 6.8 19.2l1-5.8L3.5 9.2l5.9-.9z" stroke-width="1.5" stroke-linejoin="round"/></svg>',
+  };
+  return `<div class="emptystate"><span class="esicon">${icons[kind]||icons.calm}</span><div class="estitle">${esc(title)}</div><div class="esbody">${esc(body)}</div></div>`;
+}
 
 function trendIcon(trend){
   if(trend==="up") return '<svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 10L6 6L8.5 8.5L12 4" fill="none" stroke="#34c759" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 4H12V7" fill="none" stroke="#34c759" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -1452,16 +1740,28 @@ function renderAssignments(){
   if(q) list = list.filter(a=> a.t.toLowerCase().includes(q) || courseById(a.course).name.toLowerCase().includes(q));
 
   const rows = $("#asgRows");
-  if(!list.length){ rows.innerHTML = `<div class="empty">Nothing here${q?" for “"+esc(state.asgSearch)+"”":""}.</div>`; updateMissBadge(); return; }
+  if(!list.length){
+    let es;
+    if(q){
+      es = emptyState("search","No matches","Nothing matches “"+esc(state.asgSearch)+"”. Try a different course or title.");
+    } else if(filter==="missing"){
+      es = emptyState("check","Nothing missing","Every assignment is turned in. Keep it up.");
+    } else if(filter==="upcoming"){
+      es = emptyState("calm","All caught up","No upcoming work right now. Enjoy the breather.");
+    } else {
+      es = emptyState("calm","Nothing here yet","Completed assignments will show up in this view.");
+    }
+    rows.innerHTML = es; updateMissBadge(); return;
+  }
 
   rows.innerHTML = list.map(a=>{
     const c = courseById(a.course);
     const grp = asgEffectiveGroup(a);
     let right;
     if(grp==="done") right = a.result ? `<span class="pill green">Done · ${esc(a.result)}</span>` : `<span class="pill green">Done</span>`;
-    else if(grp==="missing") right = `<span class="pill red">Missing</span>`;
-    else if(a.due==="Jun 22") right = `<span class="pill blue">Due today</span>`;
-    else right = `<span class="rmeta" style="margin:0;">${esc(a.due)}</span>`;
+    else if(grp==="missing") right = `<span class="pill red">Missing · ${esc(a.dueLabel)}</span>`;
+    else if(a.group==="due") right = `<span class="pill blue">Due today</span>`;
+    else right = `<span class="rmeta" style="margin:0;">${esc(a.dueLabel)}</span>`;
     const checked = grp==="done";
     return `<div class="row${checked?" done":""}">
       <button class="check${checked?" on":""}" data-toggle="${a.id}" title="${checked?"Mark not done":"Mark done"}">
@@ -1488,15 +1788,16 @@ function updateMissBadge(){
 /* ============================================================
    CALENDAR
 ============================================================ */
-const TODAY = {y:2026, m:5, d:22}; // June = month index 5
-let calY = 2026, calM = 5;
+// Calendar now runs on the real clock. It starts on the actual current
+// month, highlights the real today, and pulls events from CAL_EVENTS_LIVE.
+let calY = REAL_TODAY.getFullYear(), calM = REAL_TODAY.getMonth();
+function eventsForDay(y,m,d){ return CAL_EVENTS_LIVE[y+"-"+m+"-"+d] || []; }
 function renderCalendar(){
   const first = new Date(calY, calM, 1);
   const startDow = first.getDay(); // 0=Sun
   const daysIn = new Date(calY, calM+1, 0).getDate();
   const monthName = first.toLocaleString("en-US",{month:"long"});
   $("#calLabel").textContent = `${monthName} ${calY}`;
-  const isJune = (calY===2026 && calM===5);
 
   const prevDays = new Date(calY, calM, 0).getDate();
   let cells = [];
@@ -1505,10 +1806,13 @@ function renderCalendar(){
   while(cells.length % 7 !== 0) cells.push({d:cells.length-(startDow+daysIn)+1, dim:true});
   while(cells.length < 35) cells.push({d:"", dim:true});
 
+  const isThisMonth = (calY===REAL_TODAY.getFullYear() && calM===REAL_TODAY.getMonth());
+  const todayD = REAL_TODAY.getDate();
+
   $("#calGrid").innerHTML = cells.map(cell=>{
     if(cell.d==="") return `<div class="cell dim"></div>`;
-    const events = (isJune && cell.cur) ? (CAL_EVENTS[cell.d]||[]) : [];
-    const today = isJune && cell.cur && cell.d===TODAY.d;
+    const events = cell.cur ? eventsForDay(calY,calM,cell.d) : [];
+    const today = isThisMonth && cell.cur && cell.d===todayD;
     const cls = ["cell"];
     if(cell.dim) cls.push("dim");
     if(today) cls.push("today");
@@ -1518,11 +1822,10 @@ function renderCalendar(){
   }).join("");
 
   $$("#calGrid .has").forEach(c=> c.addEventListener("click", ()=> showDay(+c.dataset.day)));
-  // keep an open day popover only for June
-  if(!isJune) $("#calDay").innerHTML = "";
+  $("#calDay").innerHTML = "";
 }
 function showDay(d){
-  const events = CAL_EVENTS[d]||[];
+  const events = eventsForDay(calY,calM,d);
   if(!events.length){ $("#calDay").innerHTML=""; return; }
   const monthName = new Date(calY,calM,1).toLocaleString("en-US",{month:"long"});
   $("#calDay").innerHTML = `<div class="surface daypop">
@@ -1537,6 +1840,10 @@ function showDay(d){
 function annStar(a){ return (a.id in state.stars) ? state.stars[a.id] : a.star; }
 function renderAnnouncements(){
   const feed = $("#annFeed");
+  if(!ANNOUNCEMENTS.length){
+    feed.innerHTML = emptyState("calm","No announcements","When a teacher posts, it will show up here.");
+    return;
+  }
   feed.innerHTML = ANNOUNCEMENTS.map(a=>{
     const c = courseById(a.course);
     const on = annStar(a);
@@ -1607,7 +1914,7 @@ function renderMaterialDetail(){
 
   $("#matDetail").innerHTML = `
     <h3>Cell Energetics Lab</h3>
-    <div class="dmeta">Posted by Ms. Carrington · due Jun 19 · Labs (25%)</div>
+    <div class="dmeta">Posted by Ms. Carrington · due ${esc(fmtMD(addDays(REAL_TODAY,-4)))} · Labs (25%)</div>
 
     <div class="fieldlab">Attachments</div>
     <div class="attach"><span class="ai">${matIcon("pdf")}</span><div><div class="an">Cell Energetics Lab handout.pdf</div><div class="as">412 KB</div></div><button class="tlink" style="margin-left:auto;" data-open>Open</button></div>
@@ -1709,21 +2016,97 @@ const Arcade = (function(){
   function fmtClock(ms){ const s=Math.floor(ms/1000); return Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); }
   const gameById = id => GAMES.find(g=>g.id===id);
 
+  /* ---- Sound FX (off by default, persisted) — short WebAudio blips ---- */
+  const SND_KEY = "bsgy-apple-arcade-sound";
+  let soundOn = false;
+  try{ soundOn = localStorage.getItem(SND_KEY)==="1"; }catch(e){}
+  let audioCtx = null;
+  function setSound(on){ soundOn = on; try{ localStorage.setItem(SND_KEY, on?"1":"0"); }catch(e){} }
+  function blip(freq, dur, type){
+    if(!soundOn) return;
+    try{
+      audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+      if(audioCtx.state==="suspended") audioCtx.resume();
+      const t = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type||"sine";
+      osc.frequency.setValueAtTime(freq, t);
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.18, t+0.008);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t+(dur||0.12));
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(t); osc.stop(t+(dur||0.12)+0.02);
+    }catch(e){}
+  }
+  // named cues kept short and distinct
+  const sfx = {
+    tap:   ()=> blip(420, 0.07, "sine"),
+    move:  ()=> blip(330, 0.06, "triangle"),
+    good:  ()=> blip(660, 0.10, "sine"),
+    great: ()=> { blip(700,0.10,"sine"); setTimeout(()=>blip(980,0.12,"sine"),90); },
+    bad:   ()=> blip(150, 0.16, "sawtooth"),
+    win:   ()=> { [523,659,784,1046].forEach((f,i)=> setTimeout(()=>blip(f,0.14,"sine"), i*100)); },
+  };
+
+  /* ---- Daily Challenge seed for Word Search (same all day) ---- */
+  function todaySeed(){
+    const d = new Date();
+    return d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate();
+  }
+  function dailyLabel(){
+    return new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"});
+  }
+  // deterministic PRNG (mulberry32) so the daily puzzle is stable for the day
+  function makeRng(seed){
+    let a = seed >>> 0;
+    return function(){
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
   let active = null;     // {id, destroy()}
   const homeEl = ()=> $("#arcadeHome");
   const viewEl = ()=> $("#gameView");
 
   function renderHome(){
-    homeEl().innerHTML = GAMES.map(g=>`
+    HS = loadHS();
+    const cards = GAMES.map(g=>`
       <button class="gamecard" data-game="${g.id}">
         <span class="gicon" style="background:${g.grad};">${g.icon}</span><!-- icon is trusted inline svg -->
         <span class="ginfo">
-          <span class="gname">${esc(g.name)}</span>
+          <span class="gname">${esc(g.name)}${g.id==="word"?' <span class="dailybadge">Daily</span>':''}</span>
           <span class="gdesc">${esc(g.desc)}</span>
         </span>
         <span class="gbest"><span class="bl">${esc(g.bestLabel)}</span><span class="bv">${esc(g.fmtBest(getBest(g.id)))}</span></span>
       </button>`).join("");
+
+    const panel = `
+      <div class="bestpanel">
+        <div class="bph">
+          <span class="bpt">Best scores</span>
+          <label class="soundtoggle">
+            Sound FX
+            <span class="toggle"><input type="checkbox" id="arcadeSound"${soundOn?" checked":""} /><span class="tk"></span></span>
+          </label>
+        </div>
+        ${GAMES.map(g=>{
+          const v = getBest(g.id);
+          const none = v==null;
+          return `<div class="bestrow">
+            <div><div class="brn">${esc(g.name)}</div><div class="brl">${esc(g.bestLabel)}${g.id==="word"?" · Daily "+esc(dailyLabel()):""}</div></div>
+            <div class="brv${none?" none":""}">${esc(g.fmtBest(v))}</div>
+          </div>`;
+        }).join("")}
+      </div>`;
+
+    homeEl().innerHTML = cards + panel;
     $$("[data-game]", homeEl()).forEach(b=> b.addEventListener("click", ()=> play(b.dataset.game)));
+    const st = $("#arcadeSound");
+    if(st) st.addEventListener("change", e=>{ setSound(e.target.checked); if(e.target.checked) sfx.good(); });
   }
 
   function play(id){
@@ -1855,6 +2238,7 @@ const Arcade = (function(){
         board[gi]=v; board[ti]=0;
         moves++; ui.pod("moves",String(moves));
         place(tiles[v], gi);
+        sfx.move();
         checkWin();
       }
     }
@@ -1875,12 +2259,15 @@ const Arcade = (function(){
         Object.values(tiles).forEach(el=> el.classList.add("done"));
         const isBest = best==null || moves<best;
         if(isBest){ best=moves; setBest("slide",best); ui.pod("best",String(best)); }
+        sfx.win();
         ui.overlay("Solved","Ordered in "+moves+" moves"+(isBest?" · new best":""),[
           {label:"Shuffle", onClick:()=> reset()},
         ]);
       }
     }
     function onKey(e){
+      // don't steal keys while an overlay (search/shortcuts/welcome) is open
+      if(document.querySelector(".overlay.show")) return;
       const map={ArrowUp:"up",ArrowDown:"down",ArrowLeft:"left",ArrowRight:"right",
                  w:"up",s:"down",a:"left",d:"right",W:"up",S:"down",A:"left",D:"right"};
       const dir=map[e.key];
@@ -1959,6 +2346,7 @@ const Arcade = (function(){
       const avg = hits? Math.round(totalRT/hits) : 0;
       const isBest = score>best;
       if(isBest){ best=score; setBest("aim",best); ui.pod("best",String(best)); }
+      isBest ? sfx.win() : sfx.tap();
       ui.overlay("Time", "Score "+score+(hits?(" · "+avg+" ms avg"):"")+(isBest?" · new best":""),[
         {label:"Play again", onClick:()=> reset()},
       ]);
@@ -1969,12 +2357,14 @@ const Arcade = (function(){
       if(!running){ start(); return; }
       totalRT += performance.now()-lastSpawn; hits++;
       score++; ui.pod("score",String(score));
+      sfx.good();
       spawn();
     });
     boardEl.addEventListener("pointerdown", ()=>{
       if(ended) return;
       if(!running){ start(); return; }
       score = Math.max(0, score-1); ui.pod("score",String(score)); // miss penalty
+      sfx.bad();
       flashEl.classList.remove("show"); void flashEl.offsetWidth; flashEl.classList.add("show");
     });
 
@@ -2005,8 +2395,10 @@ const Arcade = (function(){
 
     function later(fn,ms){ const t=setTimeout(fn,ms); timeouts.push(t); return t; }
     function clearTimers(){ timeouts.forEach(clearTimeout); timeouts=[]; }
+    const PAD_TONES = [392, 523, 659, 784]; // G4 C5 E5 G5
     function lit(i){
       pads[i].classList.add("lit");
+      blip(PAD_TONES[i], 0.18, "sine");
       later(()=> pads[i].classList.remove("lit"), 320);
     }
     function reset(){
@@ -2046,6 +2438,7 @@ const Arcade = (function(){
     }
     function fail(){
       dead=true; locking=true;
+      sfx.bad();
       const reached = Math.max(0, level-1); // levels fully completed before the miss
       const isBest = reached>best;
       if(isBest){ best=reached; setBest("flow",best); ui.pod("best",String(best)); }
@@ -2082,8 +2475,9 @@ const Arcade = (function(){
     const gridEl = host.querySelector("[data-grid]");
     const wordsEl = host.querySelector("[data-words]");
     let board, placed, foundSet, first, t0, timer, running, cells;
-
-    function rint(n){ return Math.floor(Math.random()*n); }
+    let daily = true;            // first load is the seeded Daily puzzle
+    let rng = makeRng(todaySeed());
+    function rint(n){ return Math.floor(rng()*n); }
     function genGrid(){
       // returns {board, placements:[{word, cells:[idx...]}]} or null on failure
       const b = Array.from({length:SIZE*SIZE}, ()=>null);
@@ -2114,12 +2508,18 @@ const Arcade = (function(){
       return {board:b, placements};
     }
     function reset(){
+      // Daily puzzle is reproducible from today's seed; "New puzzle" uses random.
+      rng = daily ? makeRng(todaySeed()) : Math.random;
       let g=null;
       for(let i=0;i<40 && !g;i++) g=genGrid();
       board=g.board; placed=g.placements; foundSet=new Set(); first=null; running=false;
       clearInterval(timer); t0=null;
       ui.pod("found","0 / 6"); ui.pod("time","0:00"); ui.hideOverlay();
-      host.querySelector("[data-msg]").textContent="Tap the first and last letter of a word.";
+      host.querySelector("[data-msg]").textContent = daily
+        ? "Daily challenge · "+dailyLabel()+". Tap the first and last letter of a word."
+        : "Tap the first and last letter of a word.";
+      const restartBtn = host.querySelector("[data-restart]");
+      if(restartBtn) restartBtn.textContent = daily ? "Random puzzle" : "New puzzle";
       gridEl.innerHTML="";
       cells=[];
       board.forEach((ch,i)=>{
@@ -2165,6 +2565,7 @@ const Arcade = (function(){
         const chip = wordsEl.querySelector(`[data-w="${match}"]`);
         if(chip) chip.classList.add("hit");
         ui.pod("found", foundSet.size+" / "+WORDS.length);
+        sfx.good();
         if(foundSet.size===WORDS.length) win();
       }
     }
@@ -2173,11 +2574,12 @@ const Arcade = (function(){
       const ms = Date.now()-t0;
       const isBest = best==null || ms<best;
       if(isBest){ best=ms; setBest("word",best); ui.pod("best",fmtClock(best)); }
+      sfx.win();
       ui.overlay("All found","Cleared in "+fmtClock(ms)+(isBest?" · new best":""),[
         {label:"New puzzle", onClick:()=> reset()},
       ]);
     }
-    host.querySelector("[data-restart]").addEventListener("click", reset);
+    host.querySelector("[data-restart]").addEventListener("click", ()=>{ daily=false; reset(); });
     reset();
     return { destroy(){ clearInterval(timer); } };
   }
@@ -2209,6 +2611,271 @@ function testNotification(){
 }
 
 /* ============================================================
+   OVERLAY PLUMBING (search, shortcuts, welcome)
+============================================================ */
+function anyOverlayOpen(){ return $$(".overlay.show").length>0; }
+function closeAllOverlays(){ $$(".overlay.show").forEach(o=> o.classList.remove("show")); }
+
+/* ---- Command palette / global search ---- */
+const SCREEN_INDEX = [
+  {screen:"overview", label:"Overview", meta:"Your dashboard"},
+  {screen:"grades",   label:"Grades",   meta:"Per-course gradebook"},
+  {screen:"assign",   label:"Assignments", meta:"What's due"},
+  {screen:"cal",      label:"Calendar", meta:"Due dates"},
+  {screen:"announce", label:"Announcements", meta:"Teacher posts"},
+  {screen:"materials",label:"Materials", meta:"Files & submissions"},
+  {screen:"games",    label:"Games", meta:"Arcade"},
+  {screen:"settings", label:"Settings", meta:"Look & sections"},
+];
+let palItems = [];   // current filtered results (flat)
+let palSel = 0;
+
+function buildSearchResults(q){
+  q = q.trim().toLowerCase();
+  const groups = [];
+  const match = s => s.toLowerCase().includes(q);
+
+  // Screens
+  const screens = SCREEN_INDEX.filter(s=> !q || match(s.label) || match(s.meta));
+  if(screens.length) groups.push({title:"Screens", items: screens.map(s=>({
+    kind:"Screen", name:s.label, meta:s.meta, icon:"screen",
+    run:()=> go(s.screen),
+  }))});
+
+  // Courses
+  const courses = COURSES.filter(c=> !q || match(c.name) || match(c.teacher));
+  if(courses.length) groups.push({title:"Courses", items: courses.map(c=>({
+    kind:"Course", name:c.name, meta:c.teacher+" · "+c.grade+"%", dot:c.accent,
+    run:()=>{ selectCourse(c.id); go("grades"); },
+  }))});
+
+  // Assignments
+  const asg = AGENDA.filter(a=> !q || match(a.t) || match(courseById(a.course).name));
+  if(asg.length) groups.push({title:"Assignments", items: asg.map(a=>{
+    const c = courseById(a.course);
+    const grp = asgEffectiveGroup(a);
+    const meta = c.name+" · "+(grp==="done"?"Done":grp==="missing"?"Missing":a.dueLabel);
+    return { kind:"Assignment", name:a.t, meta, dot:c.accent, run:()=> go("assign") };
+  })});
+
+  // Announcements
+  const ann = ANNOUNCEMENTS.filter(a=> !q || match(a.title) || match(a.body) || match(courseById(a.course).name));
+  if(ann.length) groups.push({title:"Announcements", items: ann.map(a=>{
+    const c = courseById(a.course);
+    return { kind:"Post", name:a.title, meta:c.name+" · "+c.teacher, dot:c.accent, run:()=> go("announce") };
+  })});
+
+  // Materials
+  const mats = MATERIALS.filter(m=> !q || match(m.name) || match(m.meta));
+  if(mats.length) groups.push({title:"Materials", items: mats.map(m=>({
+    kind:"Material", name:m.name, meta:m.meta, icon:"file",
+    run:()=>{ state.material = m.id; save(); renderMaterialsList(); renderMaterialDetail(); go("materials"); },
+  }))});
+
+  return groups;
+}
+
+function renderSearch(){
+  const q = $("#searchInput").value;
+  const groups = buildSearchResults(q);
+  palItems = [];
+  const res = $("#searchResults");
+  if(!groups.length){
+    res.innerHTML = `<div class="palempty">No results for “${esc(q)}”.</div>`;
+    return;
+  }
+  let html = "";
+  groups.forEach(g=>{
+    html += `<div class="palgrp">${esc(g.title)}</div>`;
+    g.items.forEach(it=>{
+      const i = palItems.length;
+      palItems.push(it);
+      const lead = it.dot
+        ? `<span class="pdot" style="background:${it.dot};"></span>`
+        : `<span class="picon">${it.icon==="file"
+            ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M7 3h7l5 5v13H7a2 2 0 01-2-2V5a2 2 0 012-2z" stroke-width="1.5" stroke-linejoin="round"/></svg>'
+            : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="4" y="4" width="16" height="16" rx="3" stroke-width="1.5"/><path d="M4 9h16" stroke-width="1.5"/></svg>'}</span>`;
+      html += `<div class="palitem" data-i="${i}">${lead}
+        <span class="pmain"><span class="pname">${esc(it.name)}</span><span class="pmeta">${esc(it.meta)}</span></span>
+        <span class="pkind">${esc(it.kind)}</span></div>`;
+    });
+  });
+  res.innerHTML = html;
+  palSel = 0;
+  highlightSel();
+  $$(".palitem", res).forEach(el=>{
+    el.addEventListener("mousemove", ()=>{ palSel = +el.dataset.i; highlightSel(); });
+    el.addEventListener("click", ()=> runPalItem(+el.dataset.i));
+  });
+}
+function highlightSel(){
+  $$(".palitem").forEach(el=> el.classList.toggle("sel", +el.dataset.i===palSel));
+  const sel = $(`.palitem[data-i="${palSel}"]`);
+  if(sel) sel.scrollIntoView({block:"nearest"});
+}
+function runPalItem(i){
+  const it = palItems[i];
+  if(!it) return;
+  closeSearch();
+  it.run();
+}
+function openSearch(){
+  closeAllOverlays();
+  $("#searchOverlay").classList.add("show");
+  const inp = $("#searchInput");
+  inp.value = "";
+  renderSearch();
+  setTimeout(()=> inp.focus(), 0);
+}
+function closeSearch(){ $("#searchOverlay").classList.remove("show"); }
+
+$("#searchBtn").addEventListener("click", openSearch);
+$("#searchInput").addEventListener("input", renderSearch);
+$("#searchInput").addEventListener("keydown", e=>{
+  if(e.key==="ArrowDown"){ e.preventDefault(); if(palItems.length){ palSel=(palSel+1)%palItems.length; highlightSel(); } }
+  else if(e.key==="ArrowUp"){ e.preventDefault(); if(palItems.length){ palSel=(palSel-1+palItems.length)%palItems.length; highlightSel(); } }
+  else if(e.key==="Enter"){ e.preventDefault(); runPalItem(palSel); }
+});
+$("#searchOverlay").addEventListener("click", e=>{ if(e.target.id==="searchOverlay") closeSearch(); });
+
+/* ---- Shortcuts help ---- */
+function openShortcuts(){ closeAllOverlays(); $("#shortcutsOverlay").classList.add("show"); }
+function closeShortcuts(){ $("#shortcutsOverlay").classList.remove("show"); }
+$$("[data-close-shortcuts]").forEach(b=> b.addEventListener("click", closeShortcuts));
+$("#shortcutsOverlay").addEventListener("click", e=>{ if(e.target.id==="shortcutsOverlay") closeShortcuts(); });
+
+/* ---- First-run welcome ---- */
+const WELCOME_KEY = "bsgy-apple-welcomed";
+function showWelcomeIfFirstRun(){
+  let seen = false;
+  try{ seen = localStorage.getItem(WELCOME_KEY)==="1"; }catch(e){}
+  if(!seen) $("#welcomeOverlay").classList.add("show");
+}
+function dismissWelcome(){
+  $("#welcomeOverlay").classList.remove("show");
+  try{ localStorage.setItem(WELCOME_KEY, "1"); }catch(e){}
+}
+$("#welcomeGotit").addEventListener("click", dismissWelcome);
+$("#welcomeSettings").addEventListener("click", ()=>{ dismissWelcome(); go("settings"); });
+
+/* ---- Global keyboard shortcuts ---- */
+let gPending = false, gTimer = null;
+const G_MAP = {o:"overview", g:"grades", a:"assign", c:"cal", n:"announce", m:"materials", e:"games", s:"settings"};
+document.addEventListener("keydown", e=>{
+  const inField = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement && document.activeElement.tagName);
+
+  // ⌘K / Ctrl+K — search (works even from a field)
+  if((e.metaKey||e.ctrlKey) && (e.key==="k"||e.key==="K")){
+    e.preventDefault(); openSearch(); return;
+  }
+  // Esc — close any overlay
+  if(e.key==="Escape"){
+    if(anyOverlayOpen()){ e.preventDefault(); closeAllOverlays(); }
+    return;
+  }
+  if(inField) return;          // don't hijack typing
+  if(e.metaKey||e.ctrlKey||e.altKey) return;
+
+  // ? — shortcuts help
+  if(e.key==="?"){ e.preventDefault(); openShortcuts(); return; }
+
+  // g then <letter>
+  if(gPending){
+    const target = G_MAP[e.key.toLowerCase()];
+    gPending = false; clearTimeout(gTimer);
+    if(target){ e.preventDefault(); go(target); }
+    return;
+  }
+  if(e.key==="g"||e.key==="G"){
+    gPending = true;
+    gTimer = setTimeout(()=> gPending=false, 900);
+  }
+});
+
+/* ============================================================
+   EXPORT DASHBOARD IMAGE
+   Approach: serialize the Overview DOM into an <svg><foreignObject>,
+   draw it to a <canvas>, and download via toDataURL. All content is
+   inline (no external images/fonts), so the canvas does not taint.
+   Falls back to the print dialog ("Save as PDF") if anything fails.
+============================================================ */
+function collectCSSText(){
+  let css = "";
+  for(const sheet of document.styleSheets){
+    try{ for(const rule of sheet.cssRules) css += rule.cssText + "\n"; }catch(e){}
+  }
+  return css;
+}
+function exportOverviewPNG(){
+  try{
+    const node = $("#sc-overview .pad");
+    const rect = node.getBoundingClientRect();
+    const w = Math.ceil(rect.width), h = Math.ceil(node.scrollHeight);
+    const scale = Math.min(2, window.devicePixelRatio||1);
+
+    const clone = node.cloneNode(true);
+    // drop the export button itself from the snapshot
+    const ex = clone.querySelector(".ov-export"); if(ex) ex.remove();
+
+    const theme = document.documentElement.getAttribute("data-theme")||"light";
+    const bg = getComputedStyle(document.body).backgroundColor || "#ffffff";
+    const css = collectCSSText();
+
+    const xhtml = new XMLSerializer().serializeToString(clone);
+    const svg =
+      `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">`+
+      `<foreignObject width="100%" height="100%">`+
+      `<div xmlns="http://www.w3.org/1999/xhtml" data-theme="${theme}" `+
+      `style="width:${w}px;background:${bg};">`+
+      `<style>${css}</style>`+
+      `<div class="canvas" style="overflow:visible;">${xhtml}</div>`+
+      `</div></foreignObject></svg>`;
+
+    const img = new Image();
+    const url = "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
+    img.onload = ()=>{
+      try{
+        const canvas = document.createElement("canvas");
+        canvas.width = w*scale; canvas.height = h*scale;
+        const ctx = canvas.getContext("2d");
+        ctx.scale(scale, scale);
+        ctx.fillStyle = bg; ctx.fillRect(0,0,w,h);
+        ctx.drawImage(img, 0, 0);
+        const png = canvas.toDataURL("image/png");
+        const a = document.createElement("a");
+        a.href = png;
+        a.download = "better-sgy-overview.png";
+        a.click();
+        toast({ic:"↓",color:"#0071e3",tt:"Saved dashboard",td:"better-sgy-overview.png",src:"Better SGY"});
+      }catch(err){ exportFallback(); }
+    };
+    img.onerror = ()=> exportFallback();
+    img.src = url;
+  }catch(e){ exportFallback(); }
+}
+function exportFallback(){
+  toast({ic:"⎙",color:"#0071e3",tt:"Opening print dialog",td:"Choose “Save as PDF” to keep a copy.",src:"Better SGY"});
+  setTimeout(()=> window.print(), 350);
+}
+$("#ovExport").addEventListener("click", exportOverviewPNG);
+
+/* ============================================================
+   CONVENTIONS — write active edition + read ?screen= / ?game=
+============================================================ */
+try{ localStorage.setItem("bsgy-edition", "apple"); }catch(e){}
+function applyDeepLink(){
+  const params = new URLSearchParams(window.location.search);
+  const screen = params.get("screen");
+  if(screen && SCREENS.includes(screen)){
+    go(screen);
+    if(screen==="games"){
+      const game = params.get("game");
+      if(game) try{ Arcade.play(game); }catch(e){}
+    }
+  }
+}
+
+/* ============================================================
    WIRING
 ============================================================ */
 $$("#nav .navitem").forEach(b=> b.addEventListener("click", ()=> go(b.dataset.screen)));
@@ -2230,7 +2897,7 @@ $$("#asgSegs .seg").forEach(s=> s.addEventListener("click", ()=>{ state.asgFilte
 // calendar
 $("#calPrev").addEventListener("click", ()=>{ calM--; if(calM<0){calM=11;calY--;} $("#calDay").innerHTML=""; renderCalendar(); });
 $("#calNext").addEventListener("click", ()=>{ calM++; if(calM>11){calM=0;calY++;} $("#calDay").innerHTML=""; renderCalendar(); });
-$("#calToday").addEventListener("click", ()=>{ calY=2026; calM=5; renderCalendar(); });
+$("#calToday").addEventListener("click", ()=>{ calY=REAL_TODAY.getFullYear(); calM=REAL_TODAY.getMonth(); $("#calDay").innerHTML=""; renderCalendar(); });
 
 // announcements
 $("#annRefresh").addEventListener("click", ()=>{
@@ -2276,6 +2943,8 @@ renderMaterialDetail();
 renderSettings();
 Arcade.renderHome();
 go("overview");
+applyDeepLink();          // ?screen= / ?game= for the debug hub
+showWelcomeIfFirstRun();  // first-run welcome card
 </script>
 </body>
 </html>

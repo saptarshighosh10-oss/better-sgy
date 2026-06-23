@@ -1278,6 +1278,12 @@
             <div class="ed">Warm, rounded, playful.</div>
             <div class="activetag"></div>
           </button>
+          <button class="edition" data-ed="carbon">
+            <div class="swatchbar" style="background:linear-gradient(135deg,#0e1726,#334155);"></div>
+            <div class="en">Carbon</div>
+            <div class="ed">Sleek bluish-dark. Crisp and modern.</div>
+            <div class="activetag"></div>
+          </button>
         </div>
 
         <div class="blockh">Getting started</div>
@@ -1381,6 +1387,7 @@
       <div class="scl">General</div>
       <div class="scrow"><span class="scd">Search</span><span class="sck"><span class="kbd">⌘</span><span class="kbd">K</span></span></div>
       <div class="scrow"><span class="scd">Shortcuts (this)</span><span class="sck"><span class="kbd">?</span></span></div>
+      <div class="scrow"><span class="scd">Cycle looks</span><span class="sck"><span class="kbd">\</span></span></div>
       <div class="scrow"><span class="scd">Close overlay</span><span class="sck"><span class="kbd">Esc</span></span></div>
     </div>
     <div class="scgrp">
@@ -3271,6 +3278,9 @@ document.addEventListener("keydown", e=>{
   // ? — shortcuts help (suppressed during the tour; the tour step handles it)
   if(e.key==="?"){ e.preventDefault(); if(!Tour.isActive()) openShortcuts(); return; }
 
+  // \ — cycle to the next edition ("look")
+  if(e.key==="\\"){ e.preventDefault(); if(!Tour.isActive() && !anyOverlayOpen()) cycleEdition(); return; }
+
   // g then <letter>
   if(gPending){
     const target = G_MAP[e.key.toLowerCase()];
@@ -3553,7 +3563,18 @@ const EDITION_FILES = {
   halo:     "mockup-app-halo.html",
   slate:    "mockup-app-slate.html",
   friendly: "mockup-app-forge.html",
+  carbon:   "mockup-app-carbon.html",
 };
+// cycle "looks" — apple → halo → slate → forge → carbon → apple
+const EDITION_CYCLE = ["apple","halo","slate","friendly","carbon"];
+const CURRENT_EDITION = "apple";
+function cycleEdition(){
+  const i = EDITION_CYCLE.indexOf(CURRENT_EDITION);
+  const next = EDITION_CYCLE[(i+1) % EDITION_CYCLE.length];
+  try{ localStorage.setItem("bsgy-edition", next); }catch(e){}
+  const file = EDITION_FILES[next];
+  if(file){ window.location.href = file; }
+}
 $$("#editions .edition").forEach(b=> b.addEventListener("click", ()=>{
   const ed = b.dataset.ed;
   if(ed === "apple"){ // current edition — just mark active

@@ -8,7 +8,7 @@
 import React, { useState } from 'react';
 import { useExtensionGrades } from '../lib/use-extension-grades';
 import type { ScrapeResult } from '../lib/scrape-status';
-import { FloatingNav } from './FloatingNav';
+import { SettingsLauncher } from './SettingsLauncher';
 import { QuickNav } from './QuickNav';
 import { OverviewPage } from './pages/OverviewPage';
 import { GradesPage } from './pages/GradesPage';
@@ -175,17 +175,9 @@ export function ExtRouter({ scrapeResult }: Props) {
     if (courseName !== undefined) setSelectedCourseName(courseName);
   }
 
-  // Bell toggle: open Announcements, or — if already there — go back to the page
-  // you came from (press it again to "leave it").
+  // Settings toggle: open Settings, or — if already there — go back to the page
+  // you came from (press the gear again to "leave it").
   const prevPageRef = React.useRef<Page>('overview');
-  function toggleAnnouncements() {
-    setPage((p) => {
-      if (p === 'announcements') return prevPageRef.current;
-      prevPageRef.current = p;
-      return 'announcements';
-    });
-  }
-
   function toggleSettings() {
     setPage((p) => {
       if (p === 'settings') return prevPageRef.current;
@@ -340,19 +332,19 @@ export function ExtRouter({ scrapeResult }: Props) {
                 onSave={saveSettingsAndApply}
                 data={grades.data}
                 onOpenTour={() => navigate('versions')}
+                onNavigate={(p) => navigate(p)}
+                pageOrder={pageOrder}
+                announcementsUnread={announcements.unreadCount}
               />
             )}
           </motion.main>
         </AnimatePresence>
       </div>
 
-      <FloatingNav
-        page={page}
-        onNavigate={(p) => navigate(p)}
+      <SettingsLauncher
+        active={page === 'settings'}
         announcementsUnread={announcements.unreadCount}
-        onBell={toggleAnnouncements}
-        onSettings={toggleSettings}
-        pageOrder={pageOrder}
+        onOpenSettings={toggleSettings}
       />
       <QuickNav
         page={page}

@@ -1702,6 +1702,7 @@
               <button class="style-card on" data-style="halo" data-file="mockup-app-halo.html"><div class="sc-name">Halo <span class="sc-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 6"/></svg></span></div><div class="sc-desc">Calm, minimal, signal-only</div></button>
               <button class="style-card" data-style="slate" data-file="mockup-app-slate.html"><div class="sc-name">Slate</div><div class="sc-desc">Dense, professional</div></button>
               <button class="style-card" data-style="friendly" data-file="mockup-app-forge.html"><div class="sc-name">Friendly</div><div class="sc-desc">Warm, approachable</div></button>
+              <button class="style-card" data-style="carbon" data-file="mockup-app-carbon.html"><div class="sc-name">Carbon</div><div class="sc-desc">Sleek bluish-dark. Crisp and modern.</div></button>
             </div>
           </div>
 
@@ -1865,6 +1866,7 @@
         <div class="help-row"><span class="hl">Nostalgia</span><span class="hk"><kbd>g</kbd><kbd>y</kbd></span></div>
         <div class="help-row"><span class="hl">Settings</span><span class="hk"><kbd>g</kbd><kbd>s</kbd></span></div>
         <div class="help-row"><span class="hl">This help</span><span class="hk"><kbd>?</kbd></span></div>
+        <div class="help-row"><span class="hl">Cycle looks</span><span class="hk"><kbd>\</kbd></span></div>
         <div class="help-row"><span class="hl">Close overlays</span><span class="hk"><kbd>Esc</kbd></span></div>
       </div>
     </div>
@@ -3734,6 +3736,23 @@
       return tag === "INPUT" || tag === "TEXTAREA" || t.isContentEditable;
     }
 
+    // cycle "looks" — apple → halo → slate → forge → carbon → apple
+    var EDITION_CYCLE = ["apple", "halo", "slate", "friendly", "carbon"];
+    var EDITION_FILE = {
+      apple: "mockup-app-apple.html",
+      halo: "mockup-app-halo.html",
+      slate: "mockup-app-slate.html",
+      friendly: "mockup-app-forge.html",
+      carbon: "mockup-app-carbon.html"
+    };
+    function cycleEdition() {
+      var i = EDITION_CYCLE.indexOf("halo");
+      var next = EDITION_CYCLE[(i + 1) % EDITION_CYCLE.length];
+      try { localStorage.setItem("bsgy-edition", next); } catch (e) {}
+      var file = EDITION_FILE[next];
+      if (file) { window.location.href = file; }
+    }
+
     var gArmed = false, gTimer = null;
     document.addEventListener("keydown", function (e) {
       // ⌘K / Ctrl+K — always
@@ -3759,6 +3778,13 @@
       // ? — shortcuts help
       if (e.key === "?") { e.preventDefault(); if (helpOvl.classList.contains("show")) closeHelp(); else openHelp(); return; }
       if (helpOvl.classList.contains("show")) return;
+
+      // \ — cycle to the next edition ("look")
+      if (e.key === "\\") {
+        e.preventDefault();
+        if (!anyOverlayOpen() && !(typeof tourActiveNow === "function" && tourActiveNow())) cycleEdition();
+        return;
+      }
 
       // g then letter — jump screens
       if (gArmed) {

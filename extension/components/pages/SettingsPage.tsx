@@ -3,6 +3,7 @@ import { T } from '../../lib/theme';
 import { AT, tileBg, hairline } from '../../lib/halo';
 import { haloCardStyle } from '../halo-ui';
 import { ORDERABLE_PAGES, PAGE_LABELS } from '../../lib/pages';
+import type { Page } from '../../lib/pages';
 import type { Settings, Edition } from '../../lib/settings';
 import type { SchoologyData } from '../../lib/schemas';
 
@@ -12,6 +13,12 @@ interface Props {
   data: SchoologyData | null;
   /** Open the Versions gallery — a hands-on demo/tutorial with sample data. */
   onOpenTour?: () => void;
+  /** Navigate to another page (wired by ExtRouter to its navigate()). */
+  onNavigate?: (p: Page) => void;
+  /** Effective tab order (hidden tabs already filtered out) — orders the "Go to" grid. */
+  pageOrder?: Page[];
+  /** Unread announcements, surfaced as a badge on the Announcements jump tile. */
+  announcementsUnread?: number;
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -43,6 +50,114 @@ function InfoRow({ label, value, last }: { label: string; value: string; last?: 
       <span style={{ fontSize: AT.sub, color: T.text }}>{label}</span>
       <span style={{ fontSize: AT.sub, color: T.muted, fontVariantNumeric: 'tabular-nums' }}>{value}</span>
     </div>
+  );
+}
+
+// ── "Go to" navigation section ───────────────────────────────────────────────
+// Every page is reachable here (the floating pill is gone). Ordered by the user's
+// tab order, then the utility pages (Nostalgia/Versions) that aren't always pinned.
+
+const NAV_ICON: Record<string, string> = {
+  overview: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
+  grades: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01',
+  assignments: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 8l2 2 4-4',
+  calendar: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
+  materials: 'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z',
+  announcements: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9',
+  nostalgia: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
+  game: 'M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z',
+  versions: 'M12 2l9 5-9 5-9-5 9-5zM3 12l9 5 9-5M3 17l9 5 9-5',
+};
+
+function GoToSection({ onNavigate, pageOrder, announcementsUnread = 0 }: {
+  onNavigate: (p: Page) => void;
+  pageOrder?: Page[];
+  announcementsUnread?: number;
+}) {
+  // User's tab order first (respecting hidden tabs), then append any orderable
+  // pages they've hidden plus the always-available utility pages (versions).
+  const base = (pageOrder && pageOrder.length > 0 ? pageOrder : (ORDERABLE_PAGES as Page[])).slice();
+  const extras = (['overview', 'grades', 'assignments', 'calendar', 'materials', 'announcements', 'nostalgia', 'game', 'versions'] as Page[])
+    .filter((p) => !base.includes(p));
+  const pages = [...base, ...extras];
+
+  return (
+    <>
+      <SectionTitle>Go to</SectionTitle>
+      <div style={{
+        display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(132px, 1fr))', gap: 8,
+      }}>
+        {pages.map((id) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => onNavigate(id)}
+            className="bs-focusable bs-press"
+            style={{
+              all: 'unset', cursor: 'pointer', boxSizing: 'border-box',
+              display: 'flex', alignItems: 'center', gap: 10, position: 'relative',
+              padding: '12px 14px', borderRadius: 14,
+              background: tileBg(), border: `1px solid ${hairline()}`,
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={T.primary}
+              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}>
+              <path d={NAV_ICON[id] ?? NAV_ICON.overview} />
+            </svg>
+            <span style={{ fontSize: AT.sub, fontWeight: AT.medium, color: T.text }}>
+              {PAGE_LABELS[id] ?? id}
+            </span>
+            {id === 'announcements' && announcementsUnread > 0 && (
+              <span aria-hidden="true" style={{
+                position: 'absolute', top: 8, right: 8, minWidth: 16, height: 16, padding: '0 4px',
+                boxSizing: 'border-box', borderRadius: 999, background: '#ef4444', color: '#fff',
+                fontSize: 9, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1,
+              }}>
+                {announcementsUnread > 9 ? '9+' : announcementsUnread}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+    </>
+  );
+}
+
+// ── "Show original Schoology" section ────────────────────────────────────────
+
+function ShowOriginalSection() {
+  return (
+    <>
+      <SectionTitle>Schoology</SectionTitle>
+      <div style={{
+        ...haloCardStyle(), padding: '16px 18px', display: 'flex',
+        alignItems: 'center', justifyContent: 'space-between', gap: 14,
+      }}>
+        <div>
+          <div style={{ fontSize: AT.sub, fontWeight: AT.semibold, color: T.text }}>Show original Schoology</div>
+          <div style={{ fontSize: AT.caption, color: T.muted, marginTop: 2, lineHeight: 1.45 }}>
+            Hide the Better SGY overlay and return to the native Schoology page.
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const w = window as any;
+            if (typeof w.__toggleSchoologyOverlay === 'function') w.__toggleSchoologyOverlay(false);
+          }}
+          className="bs-focusable bs-press"
+          style={{
+            all: 'unset', cursor: 'pointer', flexShrink: 0,
+            fontSize: AT.caption, fontWeight: AT.semibold, color: T.text,
+            border: `1px solid ${hairline()}`, background: tileBg(),
+            borderRadius: AT.rPill, padding: '8px 16px',
+          }}
+        >
+          Show original
+        </button>
+      </div>
+    </>
   );
 }
 
@@ -259,7 +374,7 @@ function DetectedSection({ data }: { data: SchoologyData }) {
 
 // ── Main page ────────────────────────────────────────────────────────────────
 
-export function SettingsPage({ settings, onSave, data, onOpenTour }: Props) {
+export function SettingsPage({ settings, onSave, data, onOpenTour, onNavigate, pageOrder, announcementsUnread }: Props) {
   return (
     <div style={{
       position: 'absolute', inset: 0, overflowY: 'auto',
@@ -276,6 +391,12 @@ export function SettingsPage({ settings, onSave, data, onOpenTour }: Props) {
         <p style={{ margin: '0 0 8px', fontSize: AT.caption, color: T.muted }}>
           Customise Better SGY to fit how you use it.
         </p>
+
+        {onNavigate && (
+          <GoToSection onNavigate={onNavigate} pageOrder={pageOrder} announcementsUnread={announcementsUnread} />
+        )}
+
+        <ShowOriginalSection />
 
         {onOpenTour && (
           <>

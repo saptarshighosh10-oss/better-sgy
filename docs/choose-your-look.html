@@ -25,16 +25,32 @@
   }
   html,body{height:100%;}
   body{
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-family:var(--ui-font,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif);
     background:
-      radial-gradient(1100px 560px at 82% -8%, rgba(124,108,252,.16), transparent 60%),
-      radial-gradient(900px 520px at 8% 108%, rgba(91,61,240,.13), transparent 60%),
+      var(--skin-grain,none),
+      radial-gradient(1100px 560px at 82% -8%, var(--glow1,rgba(124,108,252,.16)), transparent 60%),
+      radial-gradient(900px 520px at 8% 108%, var(--glow2,rgba(91,61,240,.13)), transparent 60%),
       var(--bg);
+    background-attachment:fixed;
     color:var(--ink);
     min-height:100%;
     display:flex; flex-direction:column;
     -webkit-font-smoothing:antialiased;
     overflow-x:hidden;
+    /* Live re-skin: smoothly cross-fade the themed surface as slides change. */
+    transition:background-color .55s ease, color .55s ease;
+  }
+  /* Themed elements ease between editions. prefers-reduced-motion makes them instant. */
+  .tile,.wordmark b,.intro h1,.copy h2,.copy .cta,.arrow,.dotbtn.active,
+  .eyebrow,.preview,.footnote kbd{
+    transition:background .55s ease, background-color .55s ease, color .55s ease,
+               border-color .55s ease, box-shadow .55s ease, border-radius .55s ease;
+  }
+  .reduced body,
+  .reduced .tile,.reduced .wordmark b,.reduced .intro h1,.reduced .copy h2,
+  .reduced .copy .cta,.reduced .arrow,.reduced .dotbtn.active,.reduced .eyebrow,
+  .reduced .preview,.reduced .footnote kbd{
+    transition:none !important;
   }
 
   /* ---------- header ---------- */
@@ -44,14 +60,14 @@
   }
   .mark{display:flex;align-items:center;gap:11px;}
   .tile{
-    width:34px;height:34px;border-radius:9px;
-    background:linear-gradient(160deg,var(--violet),var(--indigo));
+    width:34px;height:34px;border-radius:var(--accent-radius,9px);
+    background:var(--accent-grad,linear-gradient(160deg,var(--violet),var(--indigo)));
     display:grid;place-items:center;
-    box-shadow:0 6px 16px -4px rgba(91,61,240,.5);
+    box-shadow:0 6px 16px -4px var(--accent-glow,rgba(91,61,240,.5));
     flex:0 0 auto;
   }
   .wordmark{font-weight:700;font-size:15.5px;letter-spacing:-.2px;}
-  .wordmark b{color:var(--indigo);}
+  .wordmark b{color:var(--accent,var(--indigo));}
   @media (prefers-color-scheme:dark){.wordmark b{color:var(--violet);}}
 
   /* ---------- intro heading ---------- */
@@ -61,7 +77,8 @@
   }
   .intro h1{
     font-size:clamp(28px,4.6vw,44px);
-    letter-spacing:-1.1px; line-height:1.04; font-weight:760;
+    letter-spacing:var(--head-tracking,-1.1px); line-height:1.04; font-weight:var(--head-weight,760);
+    font-family:var(--head-font,inherit);
   }
   .intro p{
     margin-top:11px; color:var(--ink3);
@@ -164,20 +181,21 @@
     margin-bottom:12px;
   }
   .eyebrow .swatch{width:13px;height:13px;border-radius:4px;flex:0 0 auto;}
-  .copy h2{font-size:clamp(24px,3.4vw,34px);letter-spacing:-.7px;font-weight:740;line-height:1.05;}
+  .copy h2{font-size:clamp(24px,3.4vw,34px);letter-spacing:var(--head-tracking,-.7px);font-weight:var(--head-weight,740);line-height:1.05;font-family:var(--head-font,inherit);}
   .copy .desc{margin-top:12px;color:var(--ink2);font-size:clamp(14px,1.7vw,17px);line-height:1.55;max-width:34ch;}
   @media (max-width:760px){ .copy .desc{margin-inline:auto;} }
   .copy .cta{
     margin-top:22px;
     display:inline-flex;align-items:center;gap:9px;
-    background:linear-gradient(160deg,var(--violet),var(--indigo));
-    color:#fff;border:0;cursor:pointer;
+    background:var(--btn-bg,linear-gradient(160deg,var(--violet),var(--indigo)));
+    color:var(--btn-ink,#fff);border:var(--btn-border,0);cursor:pointer;
     font-size:15px;font-weight:640;
-    padding:13px 22px;border-radius:13px;
-    box-shadow:0 8px 22px -8px rgba(91,61,240,.6);
-    transition:transform .15s ease,box-shadow .2s ease,filter .2s ease;
+    padding:13px 22px;border-radius:var(--btn-radius,13px);
+    box-shadow:0 8px 22px -8px var(--accent-glow,rgba(91,61,240,.6));
+    transition:transform .15s ease,box-shadow .2s ease,filter .2s ease,
+               background .55s ease,color .55s ease,border-radius .55s ease;
   }
-  .copy .cta:hover{transform:translateY(-1px);box-shadow:0 12px 28px -8px rgba(91,61,240,.7);}
+  .copy .cta:hover{transform:translateY(-1px);box-shadow:0 12px 28px -8px var(--accent-glow,rgba(91,61,240,.7));}
   .copy .cta:active{transform:translateY(0);filter:brightness(.96);}
   .reduced .copy .cta{transition:none;}
   .copy .cta svg{transition:transform .2s ease;}
@@ -198,7 +216,7 @@
     transition:transform .15s ease,border-color .2s ease,background .2s ease;
     flex:0 0 auto;
   }
-  .arrow:hover{transform:scale(1.07);border-color:var(--violet);}
+  .arrow:hover{transform:scale(1.07);border-color:var(--accent,var(--violet));}
   .arrow:active{transform:scale(.96);}
   .reduced .arrow{transition:none;}
   .dots{display:flex;align-items:center;gap:10px;}
@@ -211,7 +229,7 @@
   .dotbtn:hover{background:var(--ink3);}
   .dotbtn.active{
     width:26px;border-radius:5px;
-    background:linear-gradient(90deg,var(--violet),var(--indigo));
+    background:var(--accent-grad,linear-gradient(90deg,var(--violet),var(--indigo)));
   }
   .reduced .dotbtn{transition:none;}
 
@@ -224,7 +242,93 @@
     border:1px solid var(--line);border-radius:5px;
     padding:1px 6px;background:var(--card);color:var(--ink2);
   }
-  :focus-visible{outline:2.5px solid var(--violet);outline-offset:3px;border-radius:8px;}
+  :focus-visible{outline:2.5px solid var(--accent,var(--violet));outline-offset:3px;border-radius:8px;}
+
+  /* ============================================================
+     LIVE RE-SKIN — body gets a .skin-<id> class for the focused
+     edition. Each block overrides the themed variables (and a few
+     decorative touches that can't be a single var) so the whole
+     chooser feels like that edition while you decide.
+     ============================================================ */
+
+  /* apple — light, airy, calm blue, system sans */
+  body.skin-apple{
+    --bg:#f5f7fb; --card:#ffffff; --line:#e6e9f1;
+    --ink:#1d1d1f; --ink2:#3a3c42; --ink3:#86868b;
+    --accent:#0a84ff;
+    --accent-grad:linear-gradient(165deg,#3aa0ff,#0a84ff);
+    --accent-glow:rgba(10,132,255,.42);
+    --accent-radius:11px;
+    --head-tracking:-1.2px; --head-weight:680;
+    --glow1:rgba(10,132,255,.12); --glow2:rgba(10,132,255,.07);
+    --btn-radius:14px;
+  }
+
+  /* halo — near-white, warm-gray, minimal, single signal accent */
+  body.skin-halo{
+    --bg:#fafaf9; --card:#ffffff; --line:#ececea;
+    --ink:#1f1f1e; --ink2:#4a4a47; --ink3:#9b9b95;
+    --accent:#16a394;
+    --accent-grad:linear-gradient(165deg,#1fc1af,#13917f);
+    --accent-glow:rgba(22,163,148,.30);
+    --accent-radius:8px;
+    --head-tracking:-.6px; --head-weight:600;
+    --glow1:rgba(22,163,148,.07); --glow2:rgba(220,80,70,.05);
+    --btn-radius:9px;
+  }
+
+  /* slate — black & white, serif headings, editorial / ruled */
+  body.skin-slate{
+    --bg:#fbfbfa; --card:#ffffff; --line:#1a1a1a;
+    --ink:#0f0f0f; --ink2:#2c2c2c; --ink3:#6b6b6b;
+    --accent:#1a1a1a;
+    --accent-grad:linear-gradient(165deg,#2a2a2a,#000);
+    --accent-glow:rgba(0,0,0,.30);
+    --accent-radius:3px;
+    --head-font:Georgia,"Times New Roman",'Iowan Old Style',serif;
+    --head-tracking:-.4px; --head-weight:700;
+    --glow1:rgba(0,0,0,.04); --glow2:rgba(0,0,0,.03);
+    --btn-bg:#111; --btn-ink:#fff; --btn-radius:4px;
+  }
+  body.skin-slate .intro h1{
+    padding-bottom:.14em;
+    border-bottom:1.5px solid var(--ink);
+    display:inline-block;
+  }
+  body.skin-slate .eyebrow{ border-bottom:1px solid var(--line); padding-bottom:7px; }
+  body.skin-slate .preview{ border-width:1.5px; border-radius:4px; }
+
+  /* forge (Friendly) — warm cream paper, rounded, cocoa ink, peach/sage */
+  body.skin-forge{
+    --bg:#faf3e8; --bg2:#f3e8d6; --card:#fffaf2; --line:#ecddc7;
+    --ink:#4a3527; --ink2:#6b513d; --ink3:#a08a72;
+    --accent:#e08a52;
+    --accent-grad:linear-gradient(165deg,#f0a06a,#dd7a45);
+    --accent-glow:rgba(224,138,82,.40);
+    --accent-radius:14px;
+    --head-tracking:-.4px; --head-weight:720;
+    --glow1:rgba(224,138,82,.14); --glow2:rgba(122,158,110,.12); /* peach + sage */
+    --btn-radius:18px;
+  }
+  body.skin-forge .preview{ border-radius:20px; }
+  body.skin-forge .arrow{ border-radius:50%; }
+
+  /* carbon — warm wood: walnut/oak/cream, honey-amber, serif (SOLID color) */
+  body.skin-carbon{
+    --bg:#e9dcc6; --bg2:#dccdb1; --card:#f4ead4; --line:#c9b694;
+    --ink:#3a2a1a; --ink2:#5a4226; --ink3:#8c7350;
+    --accent:#c8881f;
+    --accent-grad:linear-gradient(165deg,#e0a23a,#b9760f);
+    --accent-glow:rgba(200,136,31,.42);
+    --accent-radius:7px;
+    --head-font:'Iowan Old Style',Georgia,"Times New Roman",serif;
+    --head-tracking:-.5px; --head-weight:680;
+    --glow1:rgba(200,136,31,.16); --glow2:rgba(120,80,40,.14);
+    --btn-radius:9px;
+    /* SOLID warm wood — no grain/streak lines; the flat --bg walnut shows through */
+    --skin-grain:none;
+  }
+  body.skin-carbon .preview{ box-shadow:0 1px 2px rgba(58,42,26,.12),0 16px 44px -14px rgba(58,42,26,.4); }
 </style>
 </head>
 <body>
@@ -400,7 +504,15 @@
     });
   }
 
+  var SKIN_CLASSES = EDITIONS.map(function(ed){ return "skin-" + ed.id; });
+  function applySkin(){
+    var cl = document.body.classList;
+    cl.remove.apply(cl, SKIN_CLASSES);
+    cl.add("skin-" + EDITIONS[current].id);
+  }
+
   function render(){
+    applySkin();
     track.style.transform = "translateX(" + (-current * 100) + "%)";
     for (var i=0;i<dotEls.length;i++){
       var on = (i === current);

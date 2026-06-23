@@ -48,12 +48,9 @@
   body{
     color:var(--ink);
     background:var(--wood-0);
-    /* the page reads as a warm wood plank: top light + fibre grain */
+    /* warm wood plank in SOLID color: top light over a flat walnut base */
     background-image:
       radial-gradient(120% 70% at 50% -8%, rgba(214,138,60,.10), transparent 56%),
-      repeating-linear-gradient(92deg,
-        var(--grain) 0px, var(--grain) 1px,
-        transparent 1px, transparent 7px),
       linear-gradient(180deg, var(--wood-1), var(--wood-0) 70%);
     background-attachment:fixed;
     -webkit-font-smoothing:antialiased;
@@ -159,9 +156,6 @@
     border-radius:24px;overflow:hidden;
     background:var(--paper);
     background-image:
-      repeating-linear-gradient(96deg,
-        rgba(120,80,40,.08) 0px, rgba(120,80,40,.08) 1.5px,
-        transparent 1.5px, transparent 9px),
       radial-gradient(120% 80% at 50% -10%, rgba(214,138,60,.08), transparent 55%);
     border:1px solid var(--line);
     box-shadow:var(--shadow), 0 28px 60px rgba(20,12,4,.5), inset 0 1px 0 rgba(255,235,200,.05);

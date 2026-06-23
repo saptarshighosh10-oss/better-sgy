@@ -881,6 +881,7 @@
         <div class="shrow"><div class="sk"><kbd>g</kbd><kbd>e</kbd></div><div class="sd">go to games</div></div>
         <div class="shrow"><div class="sk"><kbd>g</kbd><kbd>s</kbd></div><div class="sd">go to settings</div></div>
         <div class="shrow"><div class="sk"><kbd>?</kbd></div><div class="sd">this list</div></div>
+        <div class="shrow"><div class="sk"><kbd>\</kbd></div><div class="sd">cycle looks</div></div>
         <div class="shrow"><div class="sk"><kbd>esc</kbd></div><div class="sd">close any of this</div></div>
       </div>
       <div style="padding:0 16px 18px"><button class="pingbtn" id="shtour" style="width:100%;justify-content:center">🧭 take the tour</button></div>
@@ -2544,6 +2545,7 @@ const EDITIONS = [
   ['apple','Apple','clean, glassy, quiet','linear-gradient(135deg,#f5f5f7,#e8e8ed)','mockup-app-apple.html'],
   ['halo','Halo','deep blue, sci-fi','linear-gradient(135deg,#1b2a4a,#3a6ea5)','mockup-app-halo.html'],
   ['slate','Slate','dark, no nonsense','linear-gradient(135deg,#2b2b30,#46464d)','mockup-app-slate.html'],
+  ['carbon','Carbon','sleek bluish-dark, crisp and modern','linear-gradient(135deg,#0f1722,#22324a)','mockup-app-carbon.html'],
   ['friendly','Friendly 🙂','warm, chatty, this one','linear-gradient(135deg,#ffd98a,#ff9d5c)','mockup-app-forge.html'],
 ];
 const SECTIONS = [
@@ -2813,6 +2815,17 @@ function shortcutsOpen(){ return $('#shovl') && $('#shovl').classList.contains('
 const GKEYS = {o:'overview', g:'grades', a:'assign', c:'cal', n:'ann', m:'mat', t:'nostalgia', e:'games', s:'set'};
 let gArmed = false, gTimer = 0;
 
+// cycle "looks" — apple → halo → slate → forge → carbon → apple (forge is the "friendly" one)
+const EDITION_CYCLE = ['apple','halo','slate','friendly','carbon'];
+const EDITION_CYCLE_FILE = { apple:'mockup-app-apple.html', halo:'mockup-app-halo.html', slate:'mockup-app-slate.html', friendly:'mockup-app-forge.html', carbon:'mockup-app-carbon.html' };
+function cycleEdition(){
+  const i = EDITION_CYCLE.indexOf('friendly');
+  const next = EDITION_CYCLE[(i+1) % EDITION_CYCLE.length];
+  try{ localStorage.setItem('bsgy-edition', next); }catch(e){}
+  const file = EDITION_CYCLE_FILE[next];
+  if(file){ window.location.href = file; }
+}
+
 function isTyping(t){
   return t && (t.tagName==='INPUT' || t.tagName==='TEXTAREA' || t.isContentEditable);
 }
@@ -2856,6 +2869,8 @@ function wireGlobalKeys(){
 
     if(e.key==='?'){ e.preventDefault(); shortcutsOpen()?closeShortcuts():openShortcuts(); return; }
     if(shortcutsOpen()) return;
+
+    if(e.key==='\\'){ e.preventDefault(); if(!tour.on) cycleEdition(); return; }
 
     if(gArmed){
       const target = GKEYS[e.key.toLowerCase()];

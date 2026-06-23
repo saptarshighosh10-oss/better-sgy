@@ -2237,6 +2237,7 @@
     <div class="help__grp">Commands</div>
     <div class="help__row"><span class="help__what">Open search</span><span class="help__keys"><span class="key" id="help-cmdk">⌘K</span></span></div>
     <div class="help__row"><span class="help__what">This help card</span><span class="help__keys"><span class="key">?</span></span></div>
+    <div class="help__row"><span class="help__what">Cycle looks</span><span class="help__keys"><span class="key">\</span></span></div>
     <div class="help__row"><span class="help__what">Close any overlay</span><span class="help__keys"><span class="key">Esc</span></span></div>
     <div class="help__grp">The Guide</div>
     <div class="help__row"><span class="help__what"><button class="tour__skip" id="help-take-tour" type="button" style="padding:0;letter-spacing:.04em;font-size:15px;font-family:var(--serif);text-transform:none;color:var(--ink)">Take the reader's guide tour →</button></span><span class="help__keys"></span></div>
@@ -4070,6 +4071,17 @@
   function anyOverlayOpen(){ return !!$('.ov-scrim--on'); }
   function closeOverlays(){ palClose(); helpClose(); }
 
+  /* cycle "looks" — apple → halo → slate → forge → carbon → apple */
+  var EDITION_CYCLE=['apple','halo','slate','friendly','carbon'];
+  var EDITION_CYCLE_FILE={ apple:'mockup-app-apple.html', halo:'mockup-app-halo.html', slate:'mockup-app-slate.html', friendly:'mockup-app-forge.html', carbon:'mockup-app-carbon.html' };
+  function cycleEdition(){
+    var i=EDITION_CYCLE.indexOf('slate');
+    var next=EDITION_CYCLE[(i+1)%EDITION_CYCLE.length];
+    try{ localStorage.setItem('bsgy-edition', next); }catch(e){}
+    var file=EDITION_CYCLE_FILE[next];
+    if(file){ window.location.href=file; }
+  }
+
   /* global keyboard: g-then-letter, ⌘K, ?, Esc */
   var gPending=false, gTimer=null;
   function typingInField(t){
@@ -4092,6 +4104,8 @@
     if(anyOverlayOpen()) return;
     /* '?' help */
     if(e.key==='?'){ e.preventDefault(); helpOpen(); TOUR.note('help'); return; }
+    /* '\' — cycle to the next edition ("look") */
+    if(e.key==='\\'){ e.preventDefault(); if(!TOUR.isOn()) cycleEdition(); return; }
     /* 'g' then a letter */
     if(gPending){
       var dest=SCREEN_KEY[e.key.toLowerCase()];

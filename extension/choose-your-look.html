@@ -26,19 +26,196 @@
   html,body{height:100%;}
   body{
     font-family:var(--ui-font,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif);
-    background:
-      var(--skin-grain,none),
-      radial-gradient(1100px 560px at 82% -8%, var(--glow1,rgba(124,108,252,.16)), transparent 60%),
-      radial-gradient(900px 520px at 8% 108%, var(--glow2,rgba(91,61,240,.13)), transparent 60%),
-      var(--bg);
-    background-attachment:fixed;
+    /* Flat base color only — the rich, per-edition atmosphere is painted by the
+       fixed .skinbg layers below and cross-faded with opacity. */
+    background:var(--bg);
     color:var(--ink);
     min-height:100%;
+    position:relative;
     display:flex; flex-direction:column;
     -webkit-font-smoothing:antialiased;
     overflow-x:hidden;
     /* Live re-skin: smoothly cross-fade the themed surface as slides change. */
     transition:background-color .55s ease, color .55s ease;
+  }
+
+  /* ============================================================
+     THEMED BACKDROP — fixed, behind everything, pointer-inert.
+     One .skinlayer per edition; the active edition's layer fades
+     to opacity:1 while the others fade out. Each layer is pure
+     CSS/SVG (gradients, conic/radial blooms, inline-SVG data URIs)
+     tuned to evoke that edition while staying calm enough that the
+     carousel cards remain the clear focal point.
+     ============================================================ */
+  .skinbg{
+    position:fixed; inset:0; z-index:-1;
+    pointer-events:none; overflow:hidden;
+  }
+  .skinlayer{
+    position:absolute; inset:0;
+    opacity:0;
+    transition:opacity .6s ease;
+    will-change:opacity;
+  }
+  .reduced .skinlayer{ transition:none; }
+  /* The active skin's backdrop is revealed by JS toggling body.skin-<id>. */
+  body.skin-apple  .skinlayer[data-skin="apple"],
+  body.skin-halo   .skinlayer[data-skin="halo"],
+  body.skin-slate  .skinlayer[data-skin="slate"],
+  body.skin-forge  .skinlayer[data-skin="forge"],
+  body.skin-carbon .skinlayer[data-skin="carbon"]{ opacity:1; }
+
+  /* ---- apple: soft luminous gradient mesh, pale blue/white light blooms ---- */
+  .skinlayer[data-skin="apple"]{
+    background:
+      radial-gradient(900px 620px at 78% -6%, rgba(120,185,255,.34), transparent 62%),
+      radial-gradient(820px 560px at 14% 8%,  rgba(168,210,255,.26), transparent 60%),
+      radial-gradient(1000px 760px at 92% 96%, rgba(196,224,255,.30), transparent 64%),
+      radial-gradient(760px 600px at 6% 102%, rgba(225,238,255,.40), transparent 66%),
+      linear-gradient(180deg,#fbfdff,#eef4fc 60%,#f4f8ff);
+  }
+  /* a slow, oversized light bloom drifting for a "live light" feel */
+  .skinlayer[data-skin="apple"]::after{
+    content:""; position:absolute; inset:-20%;
+    background:radial-gradient(closest-side at 50% 50%, rgba(140,195,255,.22), transparent 70%);
+    filter:blur(40px);
+    animation:appleDrift 26s ease-in-out infinite alternate;
+  }
+  @keyframes appleDrift{
+    0%{transform:translate(-6%,-4%) scale(1);}
+    100%{transform:translate(8%,6%) scale(1.12);}
+  }
+  .reduced .skinlayer[data-skin="apple"]::after{animation:none;}
+  @media (prefers-color-scheme:dark){
+    .skinlayer[data-skin="apple"]{
+      background:
+        radial-gradient(900px 620px at 78% -6%, rgba(40,95,170,.34), transparent 62%),
+        radial-gradient(1000px 760px at 92% 96%, rgba(28,70,135,.30), transparent 64%),
+        linear-gradient(180deg,#0a0f1a,#0c1220 60%,#0a0f1c);
+    }
+  }
+
+  /* ---- halo: near-white with one soft glow ring of the accent ---- */
+  .skinlayer[data-skin="halo"]{
+    background:
+      radial-gradient(1100px 1100px at 50% 42%,
+        rgba(22,163,148,.10) 0%,
+        rgba(22,163,148,.05) 26%,
+        transparent 42%),
+      #fafaf9;
+  }
+  /* a single thin halo ring — the only "signal" on lots of negative space */
+  .skinlayer[data-skin="halo"]::before{
+    content:""; position:absolute;
+    top:50%; left:50%; width:min(78vmin,760px); aspect-ratio:1;
+    transform:translate(-50%,-46%);
+    border-radius:50%;
+    background:radial-gradient(closest-side,
+      transparent 60%,
+      rgba(22,163,148,.16) 70%,
+      rgba(22,163,148,.05) 78%,
+      transparent 84%);
+  }
+  @media (prefers-color-scheme:dark){
+    .skinlayer[data-skin="halo"]{
+      background:
+        radial-gradient(1100px 1100px at 50% 42%, rgba(31,193,175,.12) 0%, transparent 42%),
+        #0c0e16;
+    }
+    .skinlayer[data-skin="halo"]::before{
+      background:radial-gradient(closest-side, transparent 60%, rgba(31,193,175,.22) 70%, transparent 84%);
+    }
+  }
+
+  /* ---- slate: editorial newsprint — ruled baseline grid + faint serif glyph ---- */
+  .skinlayer[data-skin="slate"]{
+    background:
+      /* oversized faint serif letterform watermark (inline SVG, B&W only) */
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='760' viewBox='0 0 600 760'%3E%3Ctext x='50%25' y='78%25' text-anchor='middle' font-family='Georgia,Times New Roman,serif' font-size='720' font-weight='700' fill='%23000000' fill-opacity='0.035'%3ES%3C/text%3E%3C/svg%3E"),
+      /* subtle ruled baseline grid, like a printed page */
+      repeating-linear-gradient(180deg, transparent 0 37px, rgba(0,0,0,.045) 37px 38px),
+      #fbfbfa;
+    background-repeat:no-repeat,repeat,no-repeat;
+    background-position:left -40px top,0 0,0 0;
+    background-size:auto 92%,auto,auto;
+  }
+  /* a thin printer's rule bleeding in from each edge for a "page margin" feel */
+  .skinlayer[data-skin="slate"]::after{
+    content:""; position:absolute; inset:34px;
+    border:1px solid rgba(0,0,0,.06);
+  }
+  @media (prefers-color-scheme:dark){
+    .skinlayer[data-skin="slate"]{
+      background:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='760' viewBox='0 0 600 760'%3E%3Ctext x='50%25' y='78%25' text-anchor='middle' font-family='Georgia,serif' font-size='720' font-weight='700' fill='%23ffffff' fill-opacity='0.04'%3ES%3C/text%3E%3C/svg%3E"),
+        repeating-linear-gradient(180deg, transparent 0 37px, rgba(255,255,255,.05) 37px 38px),
+        #0c0e16;
+      background-repeat:no-repeat,repeat,no-repeat;
+      background-position:left -40px top,0 0,0 0;
+      background-size:auto 92%,auto,auto;
+    }
+    .skinlayer[data-skin="slate"]::after{ border-color:rgba(255,255,255,.08); }
+  }
+
+  /* ---- forge (Friendly): warm cream with soft rounded peach + sage blobs ---- */
+  .skinlayer[data-skin="forge"]{
+    background:
+      radial-gradient(440px 440px at 84% 14%, rgba(240,160,106,.34), transparent 66%),
+      radial-gradient(520px 520px at 10% 88%, rgba(150,182,128,.30), transparent 66%),
+      radial-gradient(360px 360px at 18% 6%,  rgba(245,200,150,.30), transparent 66%),
+      radial-gradient(420px 420px at 94% 92%, rgba(170,196,150,.22), transparent 68%),
+      linear-gradient(170deg,#fdf5ea,#f8edda);
+  }
+  /* one gently floating blob for a soft, friendly, hand-made feel */
+  .skinlayer[data-skin="forge"]::after{
+    content:""; position:absolute;
+    width:min(46vmin,420px); aspect-ratio:1.15/1;
+    top:8%; right:6%;
+    background:radial-gradient(closest-side, rgba(240,160,106,.30), transparent 72%);
+    border-radius:48% 52% 56% 44%/52% 44% 56% 48%;
+    filter:blur(8px);
+    animation:forgeFloat 18s ease-in-out infinite alternate;
+  }
+  @keyframes forgeFloat{
+    0%{transform:translate(0,0) rotate(0deg);}
+    100%{transform:translate(-4%,5%) rotate(8deg);}
+  }
+  .reduced .skinlayer[data-skin="forge"]::after{animation:none;}
+  @media (prefers-color-scheme:dark){
+    .skinlayer[data-skin="forge"]{
+      background:
+        radial-gradient(440px 440px at 84% 14%, rgba(180,110,60,.30), transparent 66%),
+        radial-gradient(520px 520px at 10% 88%, rgba(90,120,72,.28), transparent 66%),
+        linear-gradient(170deg,#16110b,#120e09);
+    }
+  }
+
+  /* ---- carbon: warm wood as SOLID color planes — NO grain/pinstripe lines ---- */
+  /* Flat, hard-edged solid color fields (no soft gradients, no repeating lines)
+     layered like warm walnut / oak / honey planks of solid color, plus one warm
+     honey radial glow. Strictly solid color blocks per the Carbon ban on lines. */
+  .skinlayer[data-skin="carbon"]{
+    background:
+      /* honey warmth pooling top-right (solid-feeling soft glow, no lines) */
+      radial-gradient(900px 760px at 88% 8%, rgba(214,150,58,.30), transparent 60%),
+      /* solid plane: honey wedge */
+      linear-gradient(115deg, transparent 0 62%, #d9b06a 62% 100%),
+      /* solid plane: oak band */
+      linear-gradient(115deg, transparent 0 30%, #cda973 30% 62%, transparent 62%),
+      /* solid plane: walnut base block */
+      linear-gradient(115deg, #b88f54 0 30%, transparent 30%),
+      /* warm base fill */
+      #e7d6b6;
+  }
+  @media (prefers-color-scheme:dark){
+    .skinlayer[data-skin="carbon"]{
+      background:
+        radial-gradient(900px 760px at 88% 8%, rgba(150,100,40,.34), transparent 60%),
+        linear-gradient(115deg, transparent 0 62%, #4a371f 62% 100%),
+        linear-gradient(115deg, transparent 0 30%, #3c2c19 30% 62%, transparent 62%),
+        linear-gradient(115deg, #2c2012 0 30%, transparent 30%),
+        #18120a;
+    }
   }
   /* Themed elements ease between editions. prefers-reduced-motion makes them instant. */
   .tile,.wordmark b,.intro h1,.copy h2,.copy .cta,.arrow,.dotbtn.active,
@@ -332,6 +509,17 @@
 </style>
 </head>
 <body>
+  <!-- Per-edition themed backdrop. Each layer is painted in CSS and cross-faded
+       by opacity as the focused skin changes. Sits behind all content, never
+       intercepts pointer events, and stays quiet so the picker is the focus. -->
+  <div class="skinbg" aria-hidden="true">
+    <div class="skinlayer" data-skin="apple"></div>
+    <div class="skinlayer" data-skin="halo"></div>
+    <div class="skinlayer" data-skin="slate"></div>
+    <div class="skinlayer" data-skin="forge"></div>
+    <div class="skinlayer" data-skin="carbon"></div>
+  </div>
+
   <header class="top">
     <div class="mark">
       <span class="tile" aria-hidden="true">

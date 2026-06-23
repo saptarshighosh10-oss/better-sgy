@@ -166,14 +166,14 @@
   }
   /* Themed elements ease between editions. prefers-reduced-motion makes them instant. */
   .tile,.wordmark b,.intro h1,.copy h2,.copy .cta,.arrow,.dotbtn.active,
-  .eyebrow,.preview,.footnote kbd{
+  .eyebrow,.eyebrow .swatch,.preview,.footnote kbd{
     transition:background .55s ease, background-color .55s ease, color .55s ease,
                border-color .55s ease, box-shadow .55s ease, border-radius .55s ease;
   }
   .reduced body,
   .reduced .tile,.reduced .wordmark b,.reduced .intro h1,.reduced .copy h2,
   .reduced .copy .cta,.reduced .arrow,.reduced .dotbtn.active,.reduced .eyebrow,
-  .reduced .preview,.reduced .footnote kbd{
+  .reduced .eyebrow .swatch,.reduced .preview,.reduced .footnote kbd{
     transition:none !important;
   }
 
@@ -304,7 +304,10 @@
     color:var(--ink3);
     margin-bottom:12px;
   }
-  .eyebrow .swatch{width:13px;height:13px;border-radius:4px;flex:0 0 auto;}
+  /* Swatch tracks the focused edition's accent (not a fixed inline color),
+     so it matches the look being previewed. */
+  .eyebrow .swatch{width:13px;height:13px;border-radius:4px;flex:0 0 auto;
+    background:var(--accent,var(--indigo));}
   .copy h2{font-size:clamp(24px,3.4vw,34px);letter-spacing:var(--head-tracking,-.7px);font-weight:var(--head-weight,740);line-height:1.05;font-family:var(--head-font,inherit);}
   .copy .desc{margin-top:12px;color:var(--ink2);font-size:clamp(14px,1.7vw,17px);line-height:1.55;max-width:34ch;}
   @media (max-width:760px){ .copy .desc{margin-inline:auto;} }
@@ -386,6 +389,8 @@
     --head-tracking:-1.2px; --head-weight:680;
     --glow1:rgba(10,132,255,.12); --glow2:rgba(10,132,255,.07);
     --btn-radius:14px;
+    /* CTA + accents adopt this edition's blue (white text reads on blue). */
+    --btn-bg:var(--accent-grad); --btn-ink:#fff;
   }
 
   /* halo — near-white, warm-gray, minimal, single signal accent */
@@ -399,6 +404,8 @@
     --head-tracking:-.6px; --head-weight:600;
     --glow1:rgba(22,163,148,.07); --glow2:rgba(220,80,70,.05);
     --btn-radius:9px;
+    /* CTA + accents adopt this edition's green/teal signal (white text reads on it). */
+    --btn-bg:var(--accent-grad); --btn-ink:#fff;
   }
 
   /* slate — black & white, serif headings, editorial / ruled */
@@ -433,6 +440,8 @@
     --head-tracking:-.4px; --head-weight:720;
     --glow1:rgba(224,138,82,.14); --glow2:rgba(122,158,110,.12); /* peach + sage */
     --btn-radius:18px;
+    /* CTA + accents adopt this edition's peach/coral (white text reads on it). */
+    --btn-bg:var(--accent-grad); --btn-ink:#fff;
   }
   body.skin-forge .preview{ border-radius:20px; }
   body.skin-forge .arrow{ border-radius:50%; }
@@ -449,6 +458,8 @@
     --head-tracking:-.5px; --head-weight:680;
     --glow1:rgba(200,136,31,.16); --glow2:rgba(120,80,40,.14);
     --btn-radius:9px;
+    /* CTA + accents adopt this edition's honey-amber (white text reads on it). */
+    --btn-bg:var(--accent-grad); --btn-ink:#fff;
     /* SOLID warm wood — no grain/streak lines; the flat --bg walnut shows through */
     --skin-grain:none;
   }
@@ -614,7 +625,9 @@
 
     var eyebrow = document.createElement("span");
     eyebrow.className = "eyebrow";
-    eyebrow.innerHTML = '<span class="swatch" style="background:' + ed.color + '"></span>' +
+    // Swatch color comes from the focused skin's --accent (set in CSS),
+    // so it always matches the look being previewed.
+    eyebrow.innerHTML = '<span class="swatch"></span>' +
       "Look " + (i+1) + " of " + EDITIONS.length;
 
     var h2 = document.createElement("h2");

@@ -1278,6 +1278,12 @@
             <div class="ed">Warm, rounded, playful.</div>
             <div class="activetag"></div>
           </button>
+          <button class="edition" data-ed="carbon">
+            <div class="swatchbar" style="background:linear-gradient(135deg,#0e1726,#334155);"></div>
+            <div class="en">Carbon</div>
+            <div class="ed">Sleek bluish-dark. Crisp and modern.</div>
+            <div class="activetag"></div>
+          </button>
         </div>
 
         <div class="blockh">Getting started</div>
@@ -3553,6 +3559,7 @@ const EDITION_FILES = {
   halo:     "mockup-app-halo.html",
   slate:    "mockup-app-slate.html",
   friendly: "mockup-app-forge.html",
+  carbon:   "mockup-app-carbon.html",
 };
 $$("#editions .edition").forEach(b=> b.addEventListener("click", ()=>{
   const ed = b.dataset.ed;

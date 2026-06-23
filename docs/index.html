@@ -286,6 +286,12 @@
   .pv-forge .pv-bar{background:#f1dcb8}
   .pv-forge .pv-pill{background:#e2802f;border-radius:6px}
   .pv-forge .blob{position:absolute;width:90px;height:90px;border-radius:50%;background:radial-gradient(circle at 30% 30%, #ffcf86, #e2802f);right:-20px;top:-20px;opacity:.5}
+  /* Carbon: sleek bluish-dark, deep navy → slate blue with a blue accent */
+  .pv-carbon{background:linear-gradient(150deg,#0d1424 0%,#16203a 55%,#27375c 100%)}
+  .pv-carbon .pv-row{background:rgba(255,255,255,.05);box-shadow:inset 0 0 0 1px rgba(120,150,210,.12)}
+  .pv-carbon .pv-bar{background:rgba(255,255,255,.09)}
+  .pv-carbon .pv-pill{background:#5b8def}
+  .pv-carbon .pv-pill.dim{background:#5a6b8f}
 
   /* ---------- Browse gallery ---------- */
   .browse{background:linear-gradient(180deg, transparent, color-mix(in srgb,var(--accent-soft) 30%, transparent), transparent)}
@@ -540,8 +546,8 @@
         <span class="node"></span>
         <div class="card">
           <span class="knum">03 — The exploration</span>
-          <h3>Four looks, all real</h3>
-          <p>Picking a single design felt like guessing, so four complete directions got built and made fully interactive. Each one is a different answer to the same question: what should a gradebook feel like? You can open all four below.</p>
+          <h3>Five looks, all real</h3>
+          <p>Picking a single design felt like guessing, so several complete directions got built and made fully interactive. Each one is a different answer to the same question: what should a gradebook feel like? You can open all five below.</p>
         </div>
       </div>
 
@@ -561,9 +567,15 @@
 <section id="editions" aria-labelledby="editions-h2">
   <div class="wrap">
     <div class="sec-head reveal">
-      <span class="eyebrow">Four editions</span>
-      <h2 id="editions-h2">One gradebook, four personalities.</h2>
-      <p>Same data underneath, four distinct takes on top. Each link opens a live, clickable prototype in a new tab. Try a couple and keep the one that fits how you think.</p>
+      <span class="eyebrow">Five editions</span>
+      <h2 id="editions-h2">One gradebook, five personalities.</h2>
+      <p>Same data underneath, five distinct takes on top. Each link opens a live, clickable prototype in a new tab. Try a couple and keep the one that fits how you think.</p>
+      <p style="margin-top:1.2rem">
+        <a href="./choose-your-look.html" target="_blank" rel="noopener" class="btn btn-primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h7v7H4zM13 5h7v4h-7zM13 13h7v6h-7zM4 16h7v3H4z"/></svg>
+          Choose your look
+        </a>
+      </p>
     </div>
 
     <div class="editions-grid">
@@ -631,6 +643,22 @@
           <span class="open">Open prototype <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
         </div>
       </a>
+
+      <!-- Carbon -->
+      <a class="edition reveal" href="./mockup-app-carbon.html" target="_blank" rel="noopener">
+        <div class="preview pv-carbon">
+          <div class="pv-rows">
+            <div class="pv-row pv-bar" style="height:30px"><span class="pv-pill" style="width:38px"></span><span class="pv-pill dim" style="width:18px"></span></div>
+            <div class="pv-row"><span class="pv-pill dim" style="width:52px"></span><span class="pv-pill" style="width:14px"></span></div>
+            <div class="pv-row"><span class="pv-pill dim" style="width:40px"></span><span class="pv-pill" style="width:14px"></span></div>
+          </div>
+        </div>
+        <div class="body">
+          <div class="name">Carbon <span class="tag">prototype</span></div>
+          <p class="desc">Sleek bluish-dark. Crisp and modern.</p>
+          <span class="open">Open prototype <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
+        </div>
+      </a>
     </div>
 
     <p class="portable-row reveal" style="margin-top:28px;text-align:center;font-size:15px;line-height:1.7;color:var(--muted,#6e6e73)">
@@ -663,6 +691,7 @@
             <button type="button" data-edition="halo" aria-pressed="false">Halo</button>
             <button type="button" data-edition="slate" aria-pressed="false">Slate</button>
             <button type="button" data-edition="forge" aria-pressed="false">Friendly</button>
+            <button type="button" data-edition="carbon" aria-pressed="false">Carbon</button>
           </div>
         </div>
 
@@ -795,7 +824,7 @@
     <div class="sec-head reveal">
       <span class="eyebrow">Get it</span>
       <h2 id="download-h2">Start here &mdash; try the demo, no login.</h2>
-      <p>The demo shows the overlay with sample grades, and you can switch between the four looks. Then install the real one to see your actual grades. Both are free and download from the project's GitHub Releases page.</p>
+      <p>The demo shows the overlay with sample grades, and you can switch between the looks. Then install the real one to see your actual grades. Both are free and download from the project's GitHub Releases page.</p>
     </div>
 
     <div class="dl-grid">
@@ -803,7 +832,7 @@
         <span class="badge">Start here</span>
         <span class="kicker">No login needed</span>
         <h3>Try the demo</h3>
-        <p>This is the one to open first. It loads with sample grades and shows the overlay exactly as it appears on top of Schoology, so you can switch between all four looks right away. Nothing connects to Schoology, so it is a safe way to look around.</p>
+        <p>This is the one to open first. It loads with sample grades and shows the overlay exactly as it appears on top of Schoology, so you can switch between all of the looks right away. Nothing connects to Schoology, so it is a safe way to look around.</p>
         <a href="https://github.com/saptarshighosh10-oss/better-sgy/releases" target="_blank" rel="noopener" class="btn btn-primary" style="align-self:flex-start">
           Download the demo
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
@@ -954,8 +983,10 @@
     var openLink   = document.getElementById("galleryOpen");
     var metaText   = document.getElementById("frameMeta");
 
-    var EDITION_NAMES = {apple:"Apple", halo:"Halo", slate:"Slate", forge:"Friendly"};
+    var EDITION_NAMES = {apple:"Apple", halo:"Halo", slate:"Slate", forge:"Friendly", carbon:"Carbon"};
     var FORM_NAMES    = {overview:"Overview", app:"Full app", portable:"Portable widget"};
+    // Carbon only ships the full-app file (no overview/portable variants yet).
+    var ONLY_APP = {carbon:true};
 
     var current = {edition:"apple", form:"overview"};
     var frame = null;          // the live iframe element
@@ -963,11 +994,14 @@
     var inView = false;        // gallery scrolled into view at least once
 
     function srcFor(s){
+      // editions with only a full-app file always point at that file, whatever form is showing
+      if(ONLY_APP[s.edition]) return "./mockup-app-" + s.edition + ".html";
       // portable + an edition uses the per-edition portable file
       return "./mockup-" + s.form + "-" + s.edition + ".html";
     }
     function label(s){
-      return EDITION_NAMES[s.edition] + " · " + FORM_NAMES[s.form];
+      var form = ONLY_APP[s.edition] ? "app" : s.form;
+      return EDITION_NAMES[s.edition] + " · " + FORM_NAMES[form];
     }
 
     function updateLinks(){
@@ -1008,10 +1042,33 @@
       }
     }
 
+    // when an edition only has the full-app form, lock the form group to "app"
+    function syncFormAvailability(){
+      var onlyApp = !!ONLY_APP[current.edition];
+      var btns = segForm.querySelectorAll("button");
+      for(var i=0;i<btns.length;i++){
+        var isApp = btns[i].getAttribute("data-form") === "app";
+        var off = onlyApp && !isApp;
+        btns[i].disabled = off;
+        btns[i].setAttribute("aria-disabled", off ? "true" : "false");
+        btns[i].style.opacity = off ? ".4" : "";
+        btns[i].style.cursor = off ? "not-allowed" : "";
+      }
+      if(onlyApp){
+        current.form = "app";
+        setPressed(segForm, "data-form", "app");
+      }
+    }
+
     function pick(kind, value){
+      if(kind === "form" && ONLY_APP[current.edition] && value !== "app") return;
       current[kind] = value;
-      if(kind === "edition") setPressed(segEdition, "data-edition", value);
-      else setPressed(segForm, "data-form", value);
+      if(kind === "edition"){
+        setPressed(segEdition, "data-edition", value);
+        syncFormAvailability();
+      } else {
+        setPressed(segForm, "data-form", value);
+      }
       updateLinks();
       loadCurrent();
     }
@@ -1028,7 +1085,13 @@
         var idx = btns.indexOf(document.activeElement);
         if(idx < 0) return;
         e.preventDefault();
-        var next = e.key === "ArrowRight" ? (idx + 1) % btns.length : (idx - 1 + btns.length) % btns.length;
+        var step = e.key === "ArrowRight" ? 1 : -1;
+        var next = idx;
+        // skip over disabled buttons so locked forms aren't reachable
+        for(var n=0;n<btns.length;n++){
+          next = (next + step + btns.length) % btns.length;
+          if(!btns[next].disabled) break;
+        }
         btns[next].focus();
         pick(kind, btns[next].getAttribute(attr));
       });
@@ -1036,6 +1099,7 @@
     wireGroup(segEdition, "edition", "data-edition");
     wireGroup(segForm, "form", "data-form");
 
+    syncFormAvailability();
     updateLinks();
 
     // lazy: only build/load the iframe once the gallery is near the viewport

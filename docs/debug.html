@@ -51,6 +51,9 @@
     margin-left:auto;font:11px/1 var(--mono);color:var(--ink-dim);
     border:1px solid var(--line);border-radius:999px;padding:6px 10px;
   }
+  a.badge{margin-left:auto}
+  a.badge + .badge{margin-left:0}
+  a.badge:hover{border-color:var(--accent);color:var(--ink)}
 
   section{margin:0 0 26px}
   .sec-head{display:flex;align-items:baseline;gap:10px;margin:0 0 12px}
@@ -78,6 +81,7 @@
   .dot.halo{background:#10b6a8}
   .dot.slate{background:#8a93a6}
   .dot.forge{background:#ff7a45}
+  .dot.carbon{background:#3a3f4b}
   .ed-sub{font:10px/1 var(--mono);color:var(--ink-faint);font-weight:400;margin-top:2px}
   table.matrix td{padding:5px}
 
@@ -92,6 +96,12 @@
   .cell .lbl{font-size:13px}
   .cell .arrow{color:var(--ink-faint);font-size:13px}
   .cell:hover .arrow{color:var(--accent)}
+  .cell.disabled{
+    cursor:default;background:transparent;border-style:dashed;border-color:var(--line);
+    color:var(--ink-faint);justify-content:center;
+  }
+  .cell.disabled:hover{border-color:var(--line);background:transparent;transform:none}
+  .cell.disabled .lbl{font:11px/1 var(--mono);letter-spacing:.5px}
 
   /* controls */
   .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
@@ -170,8 +180,11 @@
     </div>
     <div class="title">
       <h1>Better SGY · QA / Launcher Hub</h1>
-      <p>Local testing console for the four-edition mockups</p>
+      <p>Local testing console for the five-edition mockups</p>
     </div>
+    <a class="badge" id="chooserLink" href="./choose-your-look.html" target="_blank" rel="noopener"
+       style="text-decoration:none;border-color:var(--line-2);color:var(--ink);transition:border-color .12s">
+       Theme chooser ↗</a>
     <span class="badge">debug.html</span>
   </header>
 
@@ -274,6 +287,7 @@
         <span class="item"><span class="dot halo"></span> halo</span>
         <span class="item"><span class="dot slate"></span> slate</span>
         <span class="item"><span class="dot forge"></span> forge (Friendly)</span>
+        <span class="item"><span class="dot carbon"></span> carbon (full app only)</span>
       </div>
       <div class="note" style="border-left-color:var(--warn)">
         These are <strong>local, self-contained HTML prototypes</strong> — no server, no build, no
@@ -284,7 +298,7 @@
   </section>
 
   <footer>
-    Better SGY mockups · editions: apple · halo · slate · forge &nbsp;|&nbsp; screens: overview, grades, assignments, calendar, announcements, materials, games, settings
+    Better SGY mockups · editions: apple · halo · slate · forge · carbon &nbsp;|&nbsp; screens: overview, grades, assignments, calendar, announcements, materials, games, settings
   </footer>
 </div>
 
@@ -298,7 +312,8 @@
     {id:"apple", name:"Apple"},
     {id:"halo",  name:"Halo"},
     {id:"slate", name:"Slate"},
-    {id:"forge", name:"Forge", sub:"Friendly"}
+    {id:"forge", name:"Forge", sub:"Friendly"},
+    {id:"carbon", name:"Carbon", sub:"Full app only", appOnly:true}
   ];
   var SCREENS = ["overview","grades","assignments","calendar","announcements","materials","games","settings"];
 
@@ -326,6 +341,11 @@
     a.appendChild(el("span", {class:"arrow", text:"↗"}));
     return a;
   }
+  function cellDash(){
+    var d = el("div", {class:"cell disabled", title:"Not available for this edition yet"});
+    d.appendChild(el("span", {class:"lbl", text:"—"}));
+    return d;
+  }
 
   /* ---- 1. matrix ---- */
   var body = document.getElementById("matrixBody");
@@ -341,10 +361,16 @@
     th.appendChild(name);
     tr.appendChild(th);
 
-    [url.overview(ed.id), url.app(ed.id), url.portable(ed.id)].forEach(function(href, i){
+    var labels = ["Overview","Full app","Portable"];
+    var hrefs  = [url.overview(ed.id), url.app(ed.id), url.portable(ed.id)];
+    labels.forEach(function(label, i){
       var td = el("td");
-      var labels = ["Overview","Full app","Portable"];
-      td.appendChild(cellLink(href, labels[i]));
+      // Carbon (appOnly) has only the Full app file — dash the rest so nothing 404s.
+      if(ed.appOnly && i !== 1){
+        td.appendChild(cellDash());
+      } else {
+        td.appendChild(cellLink(hrefs[i], label));
+      }
       tr.appendChild(td);
     });
     body.appendChild(tr);
@@ -372,6 +398,8 @@
   /* ---- 3. adaptive widget ---- */
   var ag = document.getElementById("adaptiveGrid");
   EDITIONS.forEach(function(ed){
+    // The shared mockup-portable.html only themes apple/halo/slate/forge — skip appOnly editions.
+    if(ed.appOnly) return;
     var a = cellLink(url.adaptive(ed.id), ed.name);
     a.querySelector(".lbl").insertBefore(
       el("span", {class:"dot " + ed.id, style:"display:inline-block;margin-right:7px;vertical-align:middle"}),

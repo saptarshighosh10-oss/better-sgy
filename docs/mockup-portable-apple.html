@@ -106,19 +106,22 @@
 
   /* ---- 1. COLLAPSED PILL ---- */
   .pill-widget{
-    position:fixed;right:22px;bottom:22px;z-index:50;
+    position:fixed;left:0;top:0;z-index:50;
     display:inline-flex;align-items:center;gap:11px;
     padding:9px 15px 9px 11px;
     background:var(--paper);
     border:1px solid var(--line);
     border-radius:980px;
     box-shadow:0 1px 2px rgba(0,0,0,0.05),0 10px 34px rgba(0,0,0,0.16);
-    cursor:pointer;font-family:inherit;
+    cursor:grab;font-family:inherit;
     transition:transform .18s cubic-bezier(.2,.7,.2,1),box-shadow .2s ease,opacity .22s ease;
+    touch-action:none;user-select:none;-webkit-user-select:none;
   }
   .pill-widget:hover{transform:translateY(-2px);box-shadow:0 2px 6px rgba(0,0,0,0.06),0 16px 44px rgba(0,0,0,0.2);}
   .pill-widget:active{transform:translateY(0) scale(.985);}
+  .pill-widget.dragging{cursor:grabbing;transition:none;transform:none;box-shadow:0 4px 10px rgba(0,0,0,0.08),0 22px 60px rgba(0,0,0,0.26);}
   body.open .pill-widget{opacity:0;pointer-events:none;transform:translateY(8px) scale(.96);}
+  body.dragging{cursor:grabbing;user-select:none;-webkit-user-select:none;}
   .pill-widget .mark{
     width:30px;height:30px;border-radius:9px;flex:0 0 30px;
     background:linear-gradient(150deg,#0071e3,#5b6cff);
@@ -130,24 +133,28 @@
   .pill-widget .pchg{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:600;letter-spacing:-0.01em;color:#1f8f3f;}
   .pill-widget .plab{font-size:11px;font-weight:600;letter-spacing:0.02em;text-transform:uppercase;color:var(--ink3);margin-right:1px;}
 
-  /* ---- 2. EXPANDED SIDE PANEL ---- */
+  /* ---- 2. EXPANDED FLOATING PANEL ---- */
   .panel{
-    position:fixed;top:0;right:0;bottom:0;z-index:50;
-    width:388px;max-width:92vw;
+    position:fixed;left:0;top:0;z-index:50;
+    width:388px;height:560px;
+    max-width:96vw;
+    border-radius:22px;overflow:hidden;
     background:rgba(255,255,255,0.86);
     backdrop-filter:saturate(180%) blur(28px);
     -webkit-backdrop-filter:saturate(180%) blur(28px);
-    border-left:1px solid var(--line);
-    box-shadow:-16px 0 50px rgba(0,0,0,0.12);
-    display:flex;flex-direction:column;
-    transform:translateX(102%);
-    transition:transform .34s cubic-bezier(.2,.8,.2,1);
-    will-change:transform;
+    border:1px solid var(--line);
+    box-shadow:0 12px 50px rgba(0,0,0,0.22);
+    display:none;flex-direction:column;
+    transform:scale(.96);transform-origin:bottom right;opacity:0;
+    transition:transform .26s cubic-bezier(.2,.8,.2,1),opacity .22s ease;
+    will-change:transform,opacity;
   }
-  body.open .panel{transform:translateX(0);}
+  body.open .panel{display:flex;}
+  body.open.shown .panel{transform:scale(1);opacity:1;}
+  .panel.dragging,.panel.resizing{transition:none;}
   .panel .scroll{flex:1;overflow-y:auto;overflow-x:hidden;padding:0 20px 26px;}
 
-  /* header */
+  /* header (drag handle) */
   .panel .phead{
     display:flex;align-items:center;gap:11px;
     padding:18px 20px 16px;
@@ -155,7 +162,18 @@
     background:linear-gradient(180deg,rgba(255,255,255,0.92),rgba(255,255,255,0.6));
     backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
     border-bottom:1px solid var(--hair);
+    cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;
   }
+  .panel.dragging .phead{cursor:grabbing;}
+
+  /* resize handle (bottom-right corner) */
+  .panel .resize{
+    position:absolute;right:0;bottom:0;width:22px;height:22px;z-index:6;
+    cursor:nwse-resize;touch-action:none;
+    display:flex;align-items:flex-end;justify-content:flex-end;padding:3px;
+  }
+  .panel .resize svg{opacity:.4;}
+  .panel .resize:hover svg{opacity:.7;}
   .panel .phead .mark{
     width:28px;height:28px;border-radius:8px;flex:0 0 28px;
     background:linear-gradient(150deg,#0071e3,#5b6cff);
@@ -257,8 +275,7 @@
   .panel-foot .dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(52,199,89,.16);flex:0 0 6px;}
 
   @media (max-width:480px){
-    .panel{width:100%;max-width:100%;}
-    .pill-widget{right:14px;bottom:14px;}
+    .panel{max-width:96vw;}
   }
 </style>
 </head>
@@ -355,6 +372,10 @@
 
     <div class="panel-foot"><span class="dot"></span>Synced a moment ago · reading your gradebook locally</div>
   </div>
+
+  <div class="resize" id="resizeHandle" aria-hidden="true" title="Drag to resize">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="var(--ink3)"><path d="M11 4L4 11M11 8l-3 3" stroke-width="1.4" stroke-linecap="round"/></svg>
+  </div>
 </aside>
 
 <script>
@@ -397,11 +418,18 @@ const ACTIVITY = [
 /* ============================================================
    STATE (localStorage: open/closed + active tab)
 ============================================================ */
-const LS = "bsgy_portable_apple_v1";
+const LS = "bsgy_portable_apple_v2";
 function loadState(){
   let s = {};
   try{ s = JSON.parse(localStorage.getItem(LS) || "{}"); }catch(e){}
-  return Object.assign({ open:false, tab:"alg" }, s);
+  // pill / panel positions are null until first placed (so we can default them
+  // to the bottom-right corner relative to the current viewport).
+  return Object.assign({
+    open:false, tab:"alg",
+    pill:null,                 // {x,y}
+    panel:null,                // {x,y}
+    size:{w:388, h:560},       // panel size
+  }, s);
 }
 let state = loadState();
 function save(){ try{ localStorage.setItem(LS, JSON.stringify(state)); }catch(e){} }
@@ -499,17 +527,178 @@ function renderTabs(){
 }
 
 /* ============================================================
+   GEOMETRY — placement, clamping, drag & resize
+============================================================ */
+const pillEl  = $("#pill");
+const panelEl = $("#panel");
+const MARGIN  = 16;                       // keep this far from viewport edges
+const MIN_W = 300, MIN_H = 360;           // panel size limits
+const maxW = ()=> Math.min(560, window.innerWidth  - MARGIN*2);
+const maxH = ()=> Math.max(MIN_H, window.innerHeight - MARGIN*2);
+const clamp = (v,a,b)=> Math.max(a, Math.min(b, v));
+
+function pillSize(){ const r = pillEl.getBoundingClientRect(); return {w:r.width||180, h:r.height||48}; }
+function panelSize(){ return {w: state.size.w, h: state.size.h}; }
+
+// default pill position = bottom-right of viewport
+function defaultPill(){ const s=pillSize(); return {x: window.innerWidth - s.w - 22, y: window.innerHeight - s.h - 22}; }
+
+function clampPill(p){
+  const s = pillSize();
+  return {
+    x: clamp(p.x, MARGIN, Math.max(MARGIN, window.innerWidth  - s.w - MARGIN)),
+    y: clamp(p.y, MARGIN, Math.max(MARGIN, window.innerHeight - s.h - MARGIN)),
+  };
+}
+function clampPanel(p){
+  const w = state.size.w, h = state.size.h;
+  return {
+    x: clamp(p.x, MARGIN, Math.max(MARGIN, window.innerWidth  - w - MARGIN)),
+    y: clamp(p.y, MARGIN, Math.max(MARGIN, window.innerHeight - h - MARGIN)),
+  };
+}
+
+function applyPill(){
+  if(!state.pill) state.pill = defaultPill();
+  state.pill = clampPill(state.pill);
+  pillEl.style.left = state.pill.x + "px";
+  pillEl.style.top  = state.pill.y + "px";
+}
+function applyPanel(){
+  // size first (clamp to viewport), then position
+  state.size.w = clamp(state.size.w, MIN_W, maxW());
+  state.size.h = clamp(state.size.h, MIN_H, maxH());
+  panelEl.style.width  = state.size.w + "px";
+  panelEl.style.height = state.size.h + "px";
+  if(!state.panel) state.panel = anchorPanelToPill();
+  state.panel = clampPanel(state.panel);
+  panelEl.style.left = state.panel.x + "px";
+  panelEl.style.top  = state.panel.y + "px";
+}
+
+// place the panel adjacent to the pill, flipping so it stays on-screen
+function anchorPanelToPill(){
+  const p = state.pill || defaultPill();
+  const ps = pillSize();
+  const w = state.size.w, h = state.size.h;
+  const gap = 12;
+  // horizontal: prefer right-aligned to the pill; if it overflows, left-align
+  let x = p.x + ps.w - w;                  // right edges aligned
+  if(x < MARGIN) x = p.x;                  // fall back to left edges aligned
+  // vertical: prefer above the pill; if no room, below
+  let y = p.y - h - gap;
+  if(y < MARGIN) y = p.y + ps.h + gap;
+  return clampPanel({x, y});
+}
+
+/* ---- generic pointer drag helper ---- */
+function makeDraggable(handle, opts){
+  // opts: { onStart(), onMove(dx,dy), onEnd(moved), threshold }
+  let active=false, startX=0, startY=0, moved=false, pid=null;
+  const TH = opts.threshold || 0;
+  function down(e){
+    if(opts.ignore && opts.ignore(e.target)) return;
+    active=true; moved=false; pid=e.pointerId;
+    startX=e.clientX; startY=e.clientY;
+    try{ handle.setPointerCapture(pid); }catch(_){}
+    opts.onStart && opts.onStart();
+  }
+  function move(e){
+    if(!active) return;
+    const dx=e.clientX-startX, dy=e.clientY-startY;
+    if(!moved && (Math.abs(dx)>TH || Math.abs(dy)>TH)) moved=true;
+    if(moved){ e.preventDefault(); opts.onMove(dx,dy); }
+  }
+  function up(e){
+    if(!active) return;
+    active=false;
+    try{ handle.releasePointerCapture(pid); }catch(_){}
+    opts.onEnd && opts.onEnd(moved);
+  }
+  handle.addEventListener("pointerdown", down);
+  handle.addEventListener("pointermove", move);
+  handle.addEventListener("pointerup", up);
+  handle.addEventListener("pointercancel", up);
+}
+
+/* ---- PILL drag (a tap with no movement opens the panel) ---- */
+let pillOrigin=null;
+makeDraggable(pillEl, {
+  threshold:5,
+  onStart:()=>{ pillOrigin={...(state.pill||defaultPill())}; },
+  onMove:(dx,dy)=>{
+    pillEl.classList.add("dragging"); document.body.classList.add("dragging");
+    state.pill = clampPill({x:pillOrigin.x+dx, y:pillOrigin.y+dy});
+    pillEl.style.left = state.pill.x+"px"; pillEl.style.top = state.pill.y+"px";
+  },
+  onEnd:(moved)=>{
+    pillEl.classList.remove("dragging"); document.body.classList.remove("dragging");
+    if(moved){ save(); }
+    else { open(); }   // treat as a click
+  },
+});
+
+/* ---- PANEL header drag ---- */
+let panelOrigin=null;
+makeDraggable($(".phead", panelEl), {
+  threshold:2,
+  ignore:(t)=> !!t.closest(".close"),     // don't drag when hitting the close button
+  onStart:()=>{ panelOrigin={...state.panel}; },
+  onMove:(dx,dy)=>{
+    panelEl.classList.add("dragging");
+    state.panel = clampPanel({x:panelOrigin.x+dx, y:panelOrigin.y+dy});
+    panelEl.style.left=state.panel.x+"px"; panelEl.style.top=state.panel.y+"px";
+  },
+  onEnd:()=>{ panelEl.classList.remove("dragging"); save(); },
+});
+
+/* ---- PANEL resize (bottom-right corner) ---- */
+let sizeOrigin=null;
+makeDraggable($("#resizeHandle"), {
+  threshold:0,
+  onStart:()=>{ sizeOrigin={...state.size}; },
+  onMove:(dx,dy)=>{
+    panelEl.classList.add("resizing");
+    state.size.w = clamp(sizeOrigin.w+dx, MIN_W, maxW());
+    state.size.h = clamp(sizeOrigin.h+dy, MIN_H, maxH());
+    panelEl.style.width=state.size.w+"px"; panelEl.style.height=state.size.h+"px";
+    state.panel = clampPanel(state.panel);   // keep on-screen as it grows
+    panelEl.style.left=state.panel.x+"px"; panelEl.style.top=state.panel.y+"px";
+  },
+  onEnd:()=>{ panelEl.classList.remove("resizing"); save(); },
+});
+
+/* ============================================================
    OPEN / CLOSE
 ============================================================ */
-function setOpen(open){
-  state.open = open; save();
-  document.body.classList.toggle("open", open);
-  $("#panel").setAttribute("aria-hidden", open ? "false" : "true");
+function open(){
+  state.open = true; save();
+  // re-anchor relative to where the pill currently sits
+  state.panel = anchorPanelToPill();
+  applyPanel();
+  document.body.classList.add("open");
+  panelEl.setAttribute("aria-hidden","false");
+  // two-phase so the scale/opacity transition runs from display:flex
+  requestAnimationFrame(()=> requestAnimationFrame(()=> document.body.classList.add("shown")));
 }
-$("#pill").addEventListener("click", ()=> setOpen(true));
-$("#closeBtn").addEventListener("click", ()=> setOpen(false));
-$("#scrim").addEventListener("click", ()=> setOpen(false));
-document.addEventListener("keydown", e=>{ if(e.key==="Escape" && state.open) setOpen(false); });
+function close(){
+  state.open = false; save();
+  document.body.classList.remove("shown");
+  panelEl.setAttribute("aria-hidden","true");
+  setTimeout(()=>{ if(!state.open) document.body.classList.remove("open"); }, 260);
+}
+function setOpen(o){ o ? open() : close(); }
+
+$("#closeBtn").addEventListener("click", close);
+$("#scrim").addEventListener("click", close);
+document.addEventListener("keydown", e=>{ if(e.key==="Escape" && state.open) close(); });
+
+// keep everything on-screen when the window resizes
+window.addEventListener("resize", ()=>{
+  applyPill();
+  if(state.open) applyPanel();
+  save();
+});
 
 /* ============================================================
    INIT
@@ -517,7 +706,15 @@ document.addEventListener("keydown", e=>{ if(e.key==="Escape" && state.open) set
 renderActivity();
 renderTabs();
 renderChart();
-setOpen(state.open);
+applyPill();
+applyPanel();
+if(state.open){
+  document.body.classList.add("open");
+  panelEl.setAttribute("aria-hidden","false");
+  requestAnimationFrame(()=> requestAnimationFrame(()=> document.body.classList.add("shown")));
+} else {
+  panelEl.setAttribute("aria-hidden","true");
+}
 </script>
 </body>
 </html>

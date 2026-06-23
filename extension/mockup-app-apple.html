@@ -581,6 +581,116 @@
   .toast .tsrc{font-size:11.5px;color:var(--ink3);margin-top:4px;}
 
   /* ============================================================
+     ARCADE / GAMES
+  ============================================================ */
+  .arcade-wrap{max-width:560px;margin:0 auto;}
+  .arcade-home{display:flex;flex-direction:column;gap:16px;margin-top:8px;}
+  .gamecard{
+    appearance:none;font-family:inherit;text-align:left;cursor:pointer;
+    background:var(--paper);border:1px solid var(--hair);border-radius:24px;
+    padding:22px 24px;display:flex;align-items:center;gap:18px;
+    box-shadow:0 1px 2px rgba(0,0,0,0.04),0 8px 28px rgba(0,0,0,0.05);
+    transition:transform .22s cubic-bezier(.2,.7,.2,1),box-shadow .22s ease;
+  }
+  .gamecard:hover{transform:translateY(-3px);box-shadow:0 2px 6px rgba(0,0,0,0.05),0 18px 44px rgba(0,0,0,0.09);}
+  .gamecard:active{transform:translateY(-1px) scale(.995);}
+  .gamecard .gicon{
+    width:54px;height:54px;border-radius:16px;flex:0 0 54px;
+    display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;
+    box-shadow:0 4px 12px rgba(0,0,0,.14);
+  }
+  .gamecard .ginfo{min-width:0;flex:1;}
+  .gamecard .gname{font-size:19px;font-weight:600;letter-spacing:-0.02em;line-height:1.15;}
+  .gamecard .gdesc{margin-top:3px;font-size:14px;color:var(--ink3);letter-spacing:-0.012em;}
+  .gamecard .gbest{margin-left:auto;flex:0 0 auto;text-align:right;}
+  .gamecard .gbest .bl{font-size:11px;font-weight:600;letter-spacing:0.02em;text-transform:uppercase;color:var(--ink3);}
+  .gamecard .gbest .bv{font-size:18px;font-weight:600;letter-spacing:-0.018em;color:var(--ink);}
+
+  .gameview{margin-top:4px;}
+  .gamebar{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap;}
+  .backbtn{
+    appearance:none;border:none;background:var(--tile);cursor:pointer;font-family:inherit;
+    font-size:14px;font-weight:500;letter-spacing:-0.012em;color:var(--ink);
+    padding:8px 15px 8px 11px;border-radius:980px;display:inline-flex;align-items:center;gap:5px;
+    transition:background .15s ease;
+  }
+  .backbtn:hover{background:var(--tile-hover);}
+  .scorepods{margin-left:auto;display:flex;gap:10px;}
+  .pod{background:var(--tile);border-radius:14px;padding:8px 16px;text-align:center;min-width:74px;}
+  .pod .pl{font-size:11px;font-weight:600;letter-spacing:0.02em;text-transform:uppercase;color:var(--ink3);}
+  .pod .pv{font-size:22px;font-weight:600;letter-spacing:-0.02em;line-height:1.05;margin-top:1px;}
+  .stage{
+    position:relative;background:var(--tile);border-radius:24px;
+    padding:18px;display:flex;flex-direction:column;align-items:center;gap:14px;
+  }
+
+  /* Climb (2048) */
+  .climb-grid{
+    position:relative;background:var(--track);border-radius:16px;
+    width:100%;max-width:360px;aspect-ratio:1/1;padding:10px;
+    touch-action:none;
+  }
+  .climb-cells{position:absolute;inset:10px;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);gap:10px;}
+  .climb-cell{background:rgba(120,120,128,0.16);border-radius:11px;}
+  .climb-tiles{position:absolute;inset:10px;}
+  .ctile{
+    position:absolute;border-radius:11px;display:flex;align-items:center;justify-content:center;
+    font-weight:700;letter-spacing:-0.02em;color:#fff;
+    transition:left .12s ease,top .12s ease,transform .12s ease;
+    will-change:left,top;
+  }
+  .ctile.pop{animation:ctpop .16s ease;}
+  .ctile.spawn{animation:ctspawn .16s ease;}
+  @keyframes ctpop{0%{transform:scale(1);}50%{transform:scale(1.12);}100%{transform:scale(1);}}
+  @keyframes ctspawn{0%{transform:scale(0);}100%{transform:scale(1);}}
+
+  /* Streak (snake) */
+  .streak-board{
+    background:var(--track);border-radius:16px;width:100%;max-width:360px;aspect-ratio:1/1;
+    display:block;touch-action:none;
+  }
+  .dpad{display:grid;grid-template-columns:repeat(3,46px);grid-template-rows:repeat(3,46px);gap:8px;justify-content:center;}
+  .dbtn{
+    appearance:none;border:none;background:var(--paper);border:1px solid var(--line);cursor:pointer;
+    border-radius:13px;display:flex;align-items:center;justify-content:center;color:var(--ink);
+    transition:background .12s ease,transform .1s ease;
+  }
+  .dbtn:active{transform:scale(.92);background:var(--tile-hover);}
+  .dbtn.up{grid-column:2;grid-row:1;}
+  .dbtn.left{grid-column:1;grid-row:2;}
+  .dbtn.right{grid-column:3;grid-row:2;}
+  .dbtn.down{grid-column:2;grid-row:3;}
+
+  /* Recall (memory) */
+  .recall-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;width:100%;max-width:360px;}
+  .mcard{
+    aspect-ratio:3/4;position:relative;cursor:pointer;
+    background:none;border:none;padding:0;font-family:inherit;
+    perspective:600px;
+  }
+  .mcard .inner{position:absolute;inset:0;transition:transform .32s cubic-bezier(.2,.7,.2,1);transform-style:preserve-3d;}
+  .mcard.flip .inner,.mcard.matched .inner{transform:rotateY(180deg);}
+  .mface{position:absolute;inset:0;border-radius:14px;display:flex;align-items:center;justify-content:center;backface-visibility:hidden;-webkit-backface-visibility:hidden;}
+  .mface.back{background:linear-gradient(150deg,var(--blue),#5b6cff);color:#fff;}
+  .mface.front{background:var(--paper);border:1px solid var(--line);transform:rotateY(180deg);font-size:30px;}
+  .mcard.matched .mface.front{background:rgba(52,199,89,.14);border-color:rgba(52,199,89,.4);}
+  .mcard:disabled{cursor:default;}
+
+  .gmsg{font-size:14px;color:var(--ink2);letter-spacing:-0.012em;text-align:center;min-height:20px;}
+
+  .goverlay{
+    position:absolute;inset:0;border-radius:24px;z-index:5;
+    background:var(--toast-bg);
+    backdrop-filter:saturate(180%) blur(16px);-webkit-backdrop-filter:saturate(180%) blur(16px);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:24px;
+    opacity:0;pointer-events:none;transition:opacity .25s ease;
+  }
+  .goverlay.show{opacity:1;pointer-events:auto;}
+  .goverlay .ot{font-size:30px;font-weight:600;letter-spacing:-0.03em;}
+  .goverlay .od{font-size:15px;color:var(--ink2);letter-spacing:-0.014em;}
+  .goverlay .oacts{margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+
+  /* ============================================================
      RESPONSIVE
   ============================================================ */
   @media (max-width:1080px){
@@ -657,6 +767,10 @@
       <button class="navitem" data-screen="materials">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 7a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2V7z" stroke-width="1.6" stroke-linejoin="round"/></svg>
         Materials
+      </button>
+      <button class="navitem" data-screen="games">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="8" width="18" height="9" rx="4.5" stroke-width="1.6"/><path d="M8 11v3M6.5 12.5h3" stroke-width="1.6" stroke-linecap="round"/><circle cx="15.5" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="17.5" cy="14" r="1" fill="currentColor" stroke="none"/></svg>
+        Games
       </button>
       <button class="navitem" data-screen="settings">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3" stroke-width="1.6"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" stroke-width="1.6" stroke-linecap="round"/></svg>
@@ -879,6 +993,24 @@
           </div>
           <div class="setrow"><div><div class="sl">Reduce motion</div><div class="sd">Calmer transitions and sparklines.</div></div><label class="toggle sr"><input type="checkbox" id="setMotion" /><span class="tk"></span></label></div>
           <div class="setrow"><div><div class="sl">Show GPA estimate</div><div class="sd">Display the weighted 4.0 estimate.</div></div><label class="toggle sr"><input type="checkbox" id="setGpa" checked /><span class="tk"></span></label></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 8. GAMES / ARCADE ================= -->
+    <section class="screen" id="sc-games">
+      <div class="pad">
+        <div class="arcade-wrap">
+          <div class="pagehead">
+            <h1>Arcade</h1>
+            <p class="sub">Three quick games. Best scores save automatically.</p>
+          </div>
+
+          <!-- home -->
+          <div class="arcade-home" id="arcadeHome"></div>
+
+          <!-- a single game lives here -->
+          <div class="gameview" id="gameView" style="display:none;"></div>
         </div>
       </div>
     </section>
@@ -1113,7 +1245,7 @@ else if(darkMQ.addListener) darkMQ.addListener(onOSChange); // older Safari
 /* ============================================================
    SCREEN ROUTING
 ============================================================ */
-const SCREENS = ["overview","grades","assign","cal","announce","materials","settings"];
+const SCREENS = ["overview","grades","assign","cal","announce","materials","games","settings"];
 function go(screen){
   if(!SCREENS.includes(screen)) screen = "overview";
   SCREENS.forEach(s=>{
@@ -1122,6 +1254,8 @@ function go(screen){
   $$("#nav .navitem").forEach(b=> b.classList.toggle("active", b.dataset.screen===screen));
   $(".canvas").scrollTop = 0;
   $("#side").classList.remove("open");
+  // leaving Games tears down any running game (timers / key handlers)
+  if(screen!=="games") Arcade.exit();
 }
 
 /* ============================================================
@@ -1518,6 +1652,495 @@ function renderSettings(){
 }
 
 /* ============================================================
+   ARCADE — three self-contained games
+   High scores persist under their own localStorage key so they
+   never collide with the main app state.
+============================================================ */
+const Arcade = (function(){
+  const HS_KEY = "bsgy_apple_arcade_v1";
+  function loadHS(){ try{ return JSON.parse(localStorage.getItem(HS_KEY) || "{}"); }catch(e){ return {}; } }
+  function saveHS(o){ try{ localStorage.setItem(HS_KEY, JSON.stringify(o)); }catch(e){} }
+  let HS = loadHS();
+  function getBest(id){ return HS[id]; }
+  function setBest(id, val){ HS[id] = val; saveHS(HS); }
+
+  const GAMES = [
+    {id:"climb",  name:"Climb",  desc:"Merge grades to reach A+",     icon:"📈", grad:"linear-gradient(150deg,#0071e3,#5b6cff)",
+      bestLabel:"Best", fmtBest:v=> v==null?"—":String(v)},
+    {id:"streak", name:"Streak", desc:"Eat tokens, don't crash",      icon:"🟢", grad:"linear-gradient(150deg,#34c759,#30d158)",
+      bestLabel:"Best", fmtBest:v=> v==null?"—":String(v)},
+    {id:"recall", name:"Recall", desc:"Match every pair from memory", icon:"🃏", grad:"linear-gradient(150deg,#bf5af2,#5b6cff)",
+      bestLabel:"Fewest", fmtBest:v=> v==null?"—":v+" moves"},
+  ];
+  const gameById = id => GAMES.find(g=>g.id===id);
+
+  let active = null;     // {id, destroy()}
+  const homeEl = ()=> $("#arcadeHome");
+  const viewEl = ()=> $("#gameView");
+
+  function renderHome(){
+    homeEl().innerHTML = GAMES.map(g=>`
+      <button class="gamecard" data-game="${g.id}">
+        <span class="gicon" style="background:${g.grad};">${g.icon}</span>
+        <span class="ginfo">
+          <span class="gname">${esc(g.name)}</span>
+          <span class="gdesc">${esc(g.desc)}</span>
+        </span>
+        <span class="gbest"><span class="bl">${esc(g.bestLabel)}</span><span class="bv">${esc(g.fmtBest(getBest(g.id)))}</span></span>
+      </button>`).join("");
+    $$("[data-game]", homeEl()).forEach(b=> b.addEventListener("click", ()=> play(b.dataset.game)));
+  }
+
+  function play(id){
+    exit();
+    homeEl().style.display = "none";
+    viewEl().style.display = "block";
+    if(id==="climb")  active = Climb(viewEl());
+    else if(id==="streak") active = Streak(viewEl());
+    else if(id==="recall") active = Recall(viewEl());
+  }
+  // return to the arcade home (also called when leaving the Games tab)
+  function exit(){
+    if(active){ try{ active.destroy(); }catch(e){} active = null; }
+    const v = viewEl(); if(v){ v.style.display="none"; v.innerHTML=""; }
+    const h = homeEl(); if(h){ h.style.display=""; renderHome(); }
+  }
+
+  // shared chrome for a game view
+  function shell(host, opts){
+    // opts: {title, pods:[{id,label,init}], stageHTML}
+    host.innerHTML = `
+      <div class="gamebar">
+        <button class="backbtn" data-back>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 5l-7 7 7 7" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Arcade
+        </button>
+        <div class="scorepods">
+          ${opts.pods.map(p=>`<div class="pod"><div class="pl">${esc(p.label)}</div><div class="pv" data-pod="${p.id}">${esc(p.init)}</div></div>`).join("")}
+        </div>
+      </div>
+      <div class="stage" data-stage>
+        ${opts.stageHTML}
+        <div class="goverlay" data-overlay></div>
+      </div>`;
+    host.querySelector("[data-back]").addEventListener("click", ()=> exit());
+    const stage = host.querySelector("[data-stage]");
+    return {
+      stage,
+      pod:(id,val)=>{ const el = host.querySelector(`[data-pod="${id}"]`); if(el) el.textContent = val; },
+      overlay:(title,desc,actions)=>{
+        const ov = host.querySelector("[data-overlay]");
+        ov.innerHTML = `<div class="ot">${title}</div><div class="od">${esc(desc)}</div><div class="oacts"></div>`;
+        const acts = ov.querySelector(".oacts");
+        (actions||[]).forEach(a=>{
+          const b = document.createElement("button");
+          b.className = a.ghost ? "btn ghost" : "btn";
+          b.textContent = a.label;
+          b.addEventListener("click", a.onClick);
+          acts.appendChild(b);
+        });
+        ov.classList.add("show");
+      },
+      hideOverlay:()=>{ host.querySelector("[data-overlay]").classList.remove("show"); },
+    };
+  }
+
+  /* ---------------------------------------------------------
+     GAME 1 — CLIMB (2048 variant)
+  --------------------------------------------------------- */
+  function Climb(host){
+    const SIZE = 4;
+    // value -> {label, bg, font scale}
+    const FACES = {2:"D",4:"C−",8:"C",16:"C+",32:"B−",64:"B",128:"B+",256:"A−",512:"A",1024:"A+",2048:"🏆"};
+    const COLORS = {
+      2:"#a1a1a6",4:"#8e8e93",8:"#ff9f0a",16:"#ff9500",32:"#ff7a00",64:"#ff6a00",
+      128:"#5b6cff",256:"#4b5cf0",512:"#34c759",1024:"#28b14c",2048:"#0071e3"
+    };
+    let grid, score, best=getBest("climb"), won=false, dead=false;
+    let tileSeq = 0, tiles = {};   // id -> {id,v,r,c,el,merged}
+
+    const ui = shell(host, {
+      pods:[{id:"score",label:"Score",init:"0"},{id:"best",label:"Best",init:String(best||0)}],
+      stageHTML:`
+        <div class="gmsg" data-msg>Slide tiles together. Reach A+.</div>
+        <div class="climb-grid" data-grid tabindex="0">
+          <div class="climb-cells">${Array.from({length:16}).map(()=>'<div class="climb-cell"></div>').join("")}</div>
+          <div class="climb-tiles" data-tiles></div>
+        </div>
+        <button class="btn ghost sm" data-restart>Restart</button>`
+    });
+    const gridEl = host.querySelector("[data-grid]");
+    const tilesEl = host.querySelector("[data-tiles]");
+
+    function emptyCells(){
+      const out=[];
+      for(let r=0;r<SIZE;r++) for(let c=0;c<SIZE;c++) if(grid[r][c]==null) out.push([r,c]);
+      return out;
+    }
+    function addTile(spawn){
+      const cells = emptyCells(); if(!cells.length) return;
+      const [r,c] = cells[Math.floor(Math.random()*cells.length)];
+      const v = Math.random()<0.9 ? 2 : 4;
+      const id = ++tileSeq;
+      const t = {id,v,r,c,el:document.createElement("div")};
+      t.el.className = "ctile" + (spawn?" spawn":"");
+      tiles[id]=t; grid[r][c]=id;
+      tilesEl.appendChild(t.el);
+      paint(t);
+    }
+    function paint(t){
+      const gap=10;
+      t.el.style.width = `calc((100% - ${gap*(SIZE-1)}px)/${SIZE})`;
+      t.el.style.height = t.el.style.width;
+      // precise placement: position = idx * (cellSize + gap)
+      t.el.style.left = `calc(${t.c} * ((100% - ${gap*(SIZE-1)}px)/${SIZE} + ${gap}px))`;
+      t.el.style.top  = `calc(${t.r} * ((100% - ${gap*(SIZE-1)}px)/${SIZE} + ${gap}px))`;
+      const lab = FACES[t.v] || t.v;
+      t.el.textContent = lab;
+      t.el.style.background = COLORS[t.v] || "#0071e3";
+      t.el.style.fontSize = t.v>=2048 ? "30px" : (String(lab).length>1 ? "min(7vw,30px)" : "min(8vw,34px)");
+    }
+    function reset(){
+      grid = Array.from({length:SIZE},()=>Array(SIZE).fill(null));
+      tiles={}; tileSeq=0; score=0; won=false; dead=false;
+      tilesEl.innerHTML="";
+      ui.hideOverlay();
+      ui.pod("score","0");
+      host.querySelector("[data-msg]").textContent = "Slide tiles together. Reach A+.";
+      addTile(true); addTile(true);
+    }
+
+    // build sequence of line indices for a direction, then compact+merge
+    function move(dir){
+      if(dead) return;
+      let moved=false, gained=0;
+      const lines = [];
+      for(let i=0;i<SIZE;i++){
+        const line=[];
+        for(let j=0;j<SIZE;j++){
+          const [r,c] = dir==="left"?[i,j]:dir==="right"?[i,SIZE-1-j]:dir==="up"?[j,i]:[SIZE-1-j,i];
+          line.push([r,c]);
+        }
+        lines.push(line);
+      }
+      // clear merged flags
+      for(const id in tiles) tiles[id].merged=false;
+
+      lines.forEach(line=>{
+        // gather tile ids in travel order
+        let ids = line.map(([r,c])=>grid[r][c]).filter(x=>x!=null);
+        const newIds=[];
+        for(let k=0;k<ids.length;k++){
+          if(k+1<ids.length && tiles[ids[k]].v===tiles[ids[k+1]].v){
+            // merge ids[k+1] into ids[k]
+            const keep = tiles[ids[k]], gone = tiles[ids[k+1]];
+            keep.v *= 2; keep.merged=true; gained += keep.v;
+            newIds.push(keep.id);
+            // remove gone tile after it slides
+            gone._removeTo = keep;
+            k++;
+          } else {
+            newIds.push(ids[k]);
+          }
+        }
+        // place newIds along the line
+        // first clear the grid for this line
+        line.forEach(([r,c])=> grid[r][c]=null);
+        newIds.forEach((id,pos)=>{
+          const [r,c] = line[pos];
+          if(tiles[id].r!==r || tiles[id].c!==c) moved=true;
+          tiles[id].r=r; tiles[id].c=c; grid[r][c]=id;
+        });
+      });
+
+      // handle removals (merged-away tiles): slide them to target then delete
+      let removedMoved=false;
+      for(const id in tiles){
+        const t = tiles[id];
+        if(t._removeTo){
+          removedMoved=true;
+          t.r = t._removeTo.r; t.c = t._removeTo.c;
+          paint(t);
+          const el=t.el; delete tiles[id];
+          setTimeout(()=>{ el.remove(); }, 120);
+        }
+      }
+      if(removedMoved) moved=true;
+
+      if(!moved){ return; }
+
+      // repaint survivors
+      for(const id in tiles){ paint(tiles[id]); if(tiles[id].merged){ tiles[id].el.classList.remove("pop"); void tiles[id].el.offsetWidth; tiles[id].el.classList.add("pop"); } }
+
+      score += gained;
+      ui.pod("score", String(score));
+      if(score > (best||0)){ best=score; setBest("climb",best); ui.pod("best", String(best)); }
+
+      setTimeout(()=>{
+        addTile(true);
+        // win check
+        if(!won && Object.values(tiles).some(t=>t.v>=2048)){
+          won=true;
+          ui.overlay("A+ reached 🏆","Top of the class. Keep going or start fresh.",[
+            {label:"Keep playing", ghost:true, onClick:()=> ui.hideOverlay()},
+            {label:"New game", onClick:()=> reset()},
+          ]);
+        } else if(!hasMoves()){
+          dead=true;
+          ui.overlay("No moves left","Board's full. Score "+score+".",[
+            {label:"Try again", onClick:()=> reset()},
+          ]);
+        }
+      }, 120);
+    }
+    function hasMoves(){
+      if(emptyCells().length) return true;
+      for(let r=0;r<SIZE;r++) for(let c=0;c<SIZE;c++){
+        const v=tiles[grid[r][c]].v;
+        if(c+1<SIZE && tiles[grid[r][c+1]].v===v) return true;
+        if(r+1<SIZE && tiles[grid[r+1][c]].v===v) return true;
+      }
+      return false;
+    }
+
+    function onKey(e){
+      const map={ArrowLeft:"left",ArrowRight:"right",ArrowUp:"up",ArrowDown:"down",a:"left",d:"right",w:"up",s:"down",A:"left",D:"right",W:"up",S:"down"};
+      const dir = map[e.key];
+      if(dir){ e.preventDefault(); move(dir); }
+    }
+    document.addEventListener("keydown", onKey);
+
+    // touch swipe
+    let sx=0,sy=0,touching=false;
+    function ts(e){ const t=e.touches[0]; sx=t.clientX; sy=t.clientY; touching=true; }
+    function te(e){
+      if(!touching) return; touching=false;
+      const t=e.changedTouches[0], dx=t.clientX-sx, dy=t.clientY-sy;
+      if(Math.abs(dx)<24 && Math.abs(dy)<24) return;
+      if(Math.abs(dx)>Math.abs(dy)) move(dx>0?"right":"left");
+      else move(dy>0?"down":"up");
+    }
+    gridEl.addEventListener("touchstart", ts, {passive:true});
+    gridEl.addEventListener("touchend", te, {passive:true});
+
+    host.querySelector("[data-restart]").addEventListener("click", reset);
+    reset();
+    gridEl.focus();
+
+    return { destroy(){ document.removeEventListener("keydown", onKey); } };
+  }
+
+  /* ---------------------------------------------------------
+     GAME 2 — STREAK (snake)
+  --------------------------------------------------------- */
+  function Streak(host){
+    const CELLS = 17;           // grid cells per side
+    const ui = shell(host, {
+      pods:[{id:"score",label:"Score",init:"0"},{id:"best",label:"Best",init:String(getBest("streak")||0)}],
+      stageHTML:`
+        <div class="gmsg" data-msg>Arrow keys, WASD, or the pad.</div>
+        <canvas class="streak-board" data-canvas width="360" height="360" tabindex="0"></canvas>
+        <div class="dpad">
+          <button class="dbtn up" data-dir="up" aria-label="Up"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 19V6M6 11l6-6 6 6" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <button class="dbtn left" data-dir="left" aria-label="Left"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 12H6M11 6l-6 6 6 6" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <button class="dbtn right" data-dir="right" aria-label="Right"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 12h13M13 6l6 6-6 6" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <button class="dbtn down" data-dir="down" aria-label="Down"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v13M6 13l6 6 6-6" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+        <button class="btn ghost sm" data-restart>Restart</button>`
+    });
+    const cv = host.querySelector("[data-canvas]");
+    const ctx = cv.getContext("2d");
+    let best = getBest("streak")||0;
+
+    let snake, dir, nextDir, food, score, dead, started;
+    let raf=null, lastStep=0, stepMs;
+
+    function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+
+    function reset(){
+      snake=[{x:8,y:8},{x:7,y:8},{x:6,y:8}];
+      dir={x:1,y:0}; nextDir=dir;
+      score=0; dead=false; started=false; stepMs=140;
+      placeFood();
+      ui.pod("score","0");
+      ui.hideOverlay();
+      host.querySelector("[data-msg]").textContent="Arrow keys, WASD, or the pad.";
+      draw();
+    }
+    function placeFood(){
+      do{ food={x:Math.floor(Math.random()*CELLS), y:Math.floor(Math.random()*CELLS)}; }
+      while(snake.some(s=>s.x===food.x && s.y===food.y));
+    }
+    function setDir(nx,ny){
+      if(dead) return;
+      // no 180° reversal
+      if(nx===-dir.x && ny===-dir.y) return;
+      nextDir={x:nx,y:ny};
+      started=true;
+      host.querySelector("[data-msg]").textContent="";
+    }
+    function step(){
+      dir=nextDir;
+      const head={x:snake[0].x+dir.x, y:snake[0].y+dir.y};
+      if(head.x<0||head.y<0||head.x>=CELLS||head.y>=CELLS || snake.some(s=>s.x===head.x&&s.y===head.y)){
+        gameOver(); return;
+      }
+      snake.unshift(head);
+      if(head.x===food.x && head.y===food.y){
+        score+=1; ui.pod("score",String(score));
+        if(score>best){ best=score; setBest("streak",best); ui.pod("best",String(best)); }
+        stepMs = Math.max(70, 140 - score*2);
+        placeFood();
+      } else {
+        snake.pop();
+      }
+      draw();
+    }
+    function gameOver(){
+      dead=true;
+      ui.overlay("Run ended","You scored "+score+".",[
+        {label:"Play again", onClick:()=> reset()},
+      ]);
+    }
+    function draw(){
+      const W=cv.width, cell=W/CELLS;
+      ctx.clearRect(0,0,W,W);
+      // food
+      ctx.fillStyle = css("--blue") || "#0071e3";
+      roundRect(food.x*cell+cell*0.18, food.y*cell+cell*0.18, cell*0.64, cell*0.64, cell*0.3);
+      ctx.fill();
+      // snake
+      const head = css("--green") || "#34c759";
+      snake.forEach((s,i)=>{
+        ctx.fillStyle = i===0 ? head : shade(head, i);
+        roundRect(s.x*cell+1.5, s.y*cell+1.5, cell-3, cell-3, cell*0.28);
+        ctx.fill();
+      });
+    }
+    function shade(hex,i){
+      // fade body tiles slightly using opacity overlay
+      return hex; // keep solid; green reads cleanly on the track
+    }
+    function roundRect(x,y,w,h,r){
+      ctx.beginPath();
+      ctx.moveTo(x+r,y);
+      ctx.arcTo(x+w,y,x+w,y+h,r);
+      ctx.arcTo(x+w,y+h,x,y+h,r);
+      ctx.arcTo(x,y+h,x,y,r);
+      ctx.arcTo(x,y,x+w,y,r);
+      ctx.closePath();
+    }
+    function loop(ts){
+      raf=requestAnimationFrame(loop);
+      if(dead || !started) { lastStep=ts; return; }
+      if(ts-lastStep >= stepMs){ lastStep=ts; step(); }
+    }
+
+    function onKey(e){
+      const k=e.key;
+      const m={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],
+               w:[0,-1],s:[0,1],a:[-1,0],d:[1,0],W:[0,-1],S:[0,1],A:[-1,0],D:[1,0]};
+      if(m[k]){ e.preventDefault(); setDir(m[k][0],m[k][1]); }
+    }
+    document.addEventListener("keydown", onKey);
+    host.querySelectorAll("[data-dir]").forEach(b=> b.addEventListener("click", ()=>{
+      const d=b.dataset.dir;
+      setDir(d==="left"?-1:d==="right"?1:0, d==="up"?-1:d==="down"?1:0);
+    }));
+    // swipe on canvas
+    let sx=0,sy=0,tch=false;
+    cv.addEventListener("touchstart", e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;tch=true;}, {passive:true});
+    cv.addEventListener("touchend", e=>{
+      if(!tch)return; tch=false;
+      const t=e.changedTouches[0], dx=t.clientX-sx, dy=t.clientY-sy;
+      if(Math.abs(dx)<20&&Math.abs(dy)<20)return;
+      if(Math.abs(dx)>Math.abs(dy)) setDir(dx>0?1:-1,0); else setDir(0,dy>0?1:-1);
+    }, {passive:true});
+
+    host.querySelector("[data-restart]").addEventListener("click", reset);
+    reset();
+    cv.focus();
+    raf=requestAnimationFrame(loop);
+
+    return { destroy(){ document.removeEventListener("keydown", onKey); if(raf) cancelAnimationFrame(raf); } };
+  }
+
+  /* ---------------------------------------------------------
+     GAME 3 — RECALL (memory match)
+  --------------------------------------------------------- */
+  function Recall(host){
+    const EMOJI = ["📐","🧬","🥐","🎭","📚","🏃","✏️","🎒"];
+    let best=getBest("recall");
+    const ui = shell(host, {
+      pods:[{id:"moves",label:"Moves",init:"0"},{id:"time",label:"Time",init:"0:00"},{id:"best",label:"Fewest",init:best!=null?String(best):"—"}],
+      stageHTML:`
+        <div class="gmsg" data-msg>Flip two cards. Find all eight pairs.</div>
+        <div class="recall-grid" data-board></div>
+        <button class="btn ghost sm" data-restart>Shuffle</button>`
+    });
+    const board = host.querySelector("[data-board]");
+    let deck, first, lock, moves, matched, t0, timer, running;
+
+    function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+    function fmt(ms){ const s=Math.floor(ms/1000); return Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); }
+
+    function reset(){
+      deck = shuffle(EMOJI.concat(EMOJI).map((e,i)=>({e, id:i})));
+      first=null; lock=false; moves=0; matched=0; running=false;
+      clearInterval(timer); t0=null;
+      ui.pod("moves","0"); ui.pod("time","0:00");
+      ui.hideOverlay();
+      host.querySelector("[data-msg]").textContent="Flip two cards. Find all eight pairs.";
+      board.innerHTML = deck.map((c,i)=>`
+        <button class="mcard" data-i="${i}">
+          <span class="inner">
+            <span class="mface back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 7.5L12 4l8 3.5v9L12 20l-8-3.5v-9z" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg></span>
+            <span class="mface front">${c.e}</span>
+          </span>
+        </button>`).join("");
+      board.querySelectorAll(".mcard").forEach(b=> b.addEventListener("click", ()=> flip(+b.dataset.i, b)));
+    }
+    function startTimer(){
+      if(running) return; running=true; t0=Date.now();
+      timer=setInterval(()=> ui.pod("time", fmt(Date.now()-t0)), 250);
+    }
+    function flip(i, el){
+      if(lock) return;
+      if(el.classList.contains("flip")||el.classList.contains("matched")) return;
+      startTimer();
+      el.classList.add("flip");
+      if(first==null){ first={i,el}; return; }
+      if(first.i===i) return;
+      moves++; ui.pod("moves",String(moves));
+      const a=deck[first.i], b=deck[i];
+      if(a.e===b.e){
+        first.el.classList.add("matched"); el.classList.add("matched");
+        first=null; matched+=2;
+        if(matched===deck.length) win();
+      } else {
+        lock=true;
+        const f=first; first=null;
+        setTimeout(()=>{ f.el.classList.remove("flip"); el.classList.remove("flip"); lock=false; }, 700);
+      }
+    }
+    function win(){
+      clearInterval(timer); running=false;
+      const isBest = best==null || moves<best;
+      if(isBest){ best=moves; setBest("recall",best); ui.pod("best",String(best)); }
+      ui.overlay("All matched","Done in "+moves+" moves · "+fmt(Date.now()-t0)+(isBest?" · new best":""),[
+        {label:"Shuffle", onClick:()=> reset()},
+      ]);
+    }
+
+    host.querySelector("[data-restart]").addEventListener("click", reset);
+    reset();
+    return { destroy(){ clearInterval(timer); } };
+  }
+
+  return { renderHome, exit, play };
+})();
+
+/* ============================================================
    TOOLTIP + TOAST
 ============================================================ */
 const tipEl = $("#tip");
@@ -1606,6 +2229,7 @@ renderAnnouncements();
 renderMaterialsList();
 renderMaterialDetail();
 renderSettings();
+Arcade.renderHome();
 go("overview");
 </script>
 </body>

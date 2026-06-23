@@ -115,7 +115,7 @@
     border:2px solid var(--ink);
     box-shadow:5px 5px 0 var(--ink);
     font-family:var(--sans);
-    cursor:pointer;
+    cursor:grab; touch-action:none;
     transition:transform .16s ease, box-shadow .16s ease, opacity .2s ease;
   }
   .pill:hover{ transform:translate(-1px,-1px); box-shadow:6px 6px 0 var(--ink); }
@@ -148,22 +148,43 @@
   .pill__delta .arr{ font-size:10px; }
 
   /* ============================================================
-     EXPANDED SIDE PANEL — narrow newspaper column from the right
+     EXPANDED PANEL — floating newspaper column, anchored near pill.
+     Draggable by its nameplate, resizable from the corner.
+     Position + size are set inline by JS; these are the defaults.
      ============================================================ */
   .panel{
-    position:fixed; top:0; right:0; bottom:0; z-index:55;
-    width:380px; max-width:92vw;
+    position:fixed; z-index:55;
+    left:auto; right:22px; top:auto; bottom:92px; /* JS overrides */
+    width:380px; height:560px;
+    max-width:94vw; max-height:90vh;
     background:var(--paper); color:var(--ink);
-    border-left:3px solid var(--ink);
-    box-shadow:-8px 0 28px rgba(0,0,0,.16);
-    display:flex; flex-direction:column;
-    transform:translateX(100%);
-    transition:transform .28s cubic-bezier(.4,0,.1,1);
+    border:3px solid var(--ink);
+    box-shadow:8px 8px 0 var(--ink);
+    display:none; flex-direction:column;
     overflow:hidden;
   }
-  .panel--on{ transform:translateX(0); }
+  .panel--on{ display:flex; }
+  /* subtle entrance, skipped while dragging/resizing or on restore */
+  .panel--anim{ animation:panelIn .2s cubic-bezier(.4,0,.1,1); }
+  @keyframes panelIn{ from{ opacity:0; transform:translateY(8px) scale(.985); } to{ opacity:1; transform:none; } }
 
-  .panel__scroll{ overflow-y:auto; flex:1; }
+  .panel__scroll{ overflow-y:auto; flex:1; min-height:0; }
+
+  /* corner resize handle — ruled black triangle, bottom-right */
+  .panel__resize{
+    position:absolute; right:0; bottom:0; width:20px; height:20px;
+    cursor:nwse-resize; z-index:4; touch-action:none;
+    background:
+      linear-gradient(135deg, transparent 0 52%, var(--ink) 52% 60%, transparent 60% 70%, var(--ink) 70% 78%, transparent 78% 88%, var(--ink) 88% 96%, transparent 96%);
+  }
+
+  /* while dragging / resizing: kill selection + transitions, show grab */
+  body.bsgy-dragging,
+  body.bsgy-dragging *{ user-select:none !important; -webkit-user-select:none !important; }
+  body.bsgy-dragging{ cursor:grabbing !important; }
+  body.bsgy-resizing{ cursor:nwse-resize !important; }
+  body.bsgy-dragging .panel,
+  body.bsgy-resizing .panel{ animation:none; }
 
   /* nameplate header */
   .ph{
@@ -179,6 +200,9 @@
   }
   .ph__top .ed{ color:var(--ink); }
   .ph__bar{ display:flex; justify-content:space-between; align-items:flex-end; margin:8px 0 12px; }
+  /* nameplate doubles as the panel's drag handle */
+  .ph__drag{ cursor:grab; touch-action:none; flex:1; display:flex; align-items:flex-end; }
+  .ph__drag:active{ cursor:grabbing; }
   .ph__name{
     font-family:var(--serif); font-weight:700; font-size:32px;
     line-height:.9; letter-spacing:-.025em;
@@ -426,7 +450,7 @@
         <span>The Standing</span>
       </div>
       <div class="ph__bar">
-        <div class="ph__name">Better <em>SGY</em></div>
+        <div class="ph__drag" id="ph-drag" title="Drag to move"><div class="ph__name">Better <em>SGY</em></div></div>
         <button class="ph__close" id="close" type="button" aria-label="Close panel">&times;</button>
       </div>
       <div class="ph__rule"></div>
@@ -511,6 +535,7 @@
 
     </div>
   </div>
+  <div class="panel__resize" id="resize" title="Drag to resize" aria-hidden="true"></div>
 </aside>
 
 <script>
@@ -599,12 +624,25 @@
   var gRead  = document.getElementById("g-read");
   var gLt    = document.getElementById("g-lt");
   var gFoot  = document.getElementById("g-foot");
+  var phDrag = document.getElementById("ph-drag");
+  var resizeH= document.getElementById("resize");
 
   var STORE_OPEN = "bsgy.portable.open";
   var STORE_TAB  = "bsgy.portable.course";
+  var STORE_PILL = "bsgy.portable.pill";   // {x,y} top-left of pill
+  var STORE_POS  = "bsgy.portable.pos";    // {x,y} top-left of panel
+  var STORE_SIZE = "bsgy.portable.size";   // {w,h} of panel
 
   function lsGet(k){ try { return window.localStorage.getItem(k); } catch(e){ return null; } }
   function lsSet(k,v){ try { window.localStorage.setItem(k,v); } catch(e){} }
+  function lsJSON(k){ var v=lsGet(k); if(!v) return null; try{ return JSON.parse(v); }catch(e){ return null; } }
+
+  // ---- geometry helpers ----
+  var MARGIN = 8;                 // keep this far from viewport edges
+  var PANEL_MIN_W = 280, PANEL_MIN_H = 320;
+  function vw(){ return window.innerWidth || document.documentElement.clientWidth; }
+  function vh(){ return window.innerHeight || document.documentElement.clientHeight; }
+  function clamp(v, lo, hi){ return v < lo ? lo : (v > hi ? hi : v); }
 
   // build tabs
   COURSES.forEach(function(c, idx){
@@ -638,15 +676,105 @@
     lsSet(STORE_TAB, c.id);
   }
 
-  function openPanel(){
+  // ============================================================
+  //  PILL POSITION — fixed by left/top; persisted; clamped.
+  //  Default lower-right if nothing stored.
+  // ============================================================
+  function pillSize(){ var r = pill.getBoundingClientRect(); return { w:r.width, h:r.height }; }
+
+  function placePill(x, y){
+    var s = pillSize();
+    x = clamp(x, MARGIN, vw() - s.w - MARGIN);
+    y = clamp(y, MARGIN, vh() - s.h - MARGIN);
+    pill.style.left = x + "px";
+    pill.style.top  = y + "px";
+    pill.style.right = "auto";
+    pill.style.bottom = "auto";
+    return { x:x, y:y };
+  }
+  function pillPos(){
+    var r = pill.getBoundingClientRect();
+    return { x:r.left, y:r.top };
+  }
+  function restorePill(){
+    var saved = lsJSON(STORE_PILL), s = pillSize();
+    if (saved && typeof saved.x === "number"){
+      placePill(saved.x, saved.y);
+    } else {
+      // default: lower-right, mirroring the original CSS anchor
+      placePill(vw() - s.w - 22, vh() - s.h - 22);
+    }
+  }
+
+  // ============================================================
+  //  PANEL POSITION + SIZE — floating box anchored near the pill,
+  //  flipped to stay within the viewport; draggable + resizable.
+  // ============================================================
+  function panelSize(){
+    var sz = lsJSON(STORE_SIZE);
+    var w = sz && sz.w ? sz.w : 380;
+    var h = sz && sz.h ? sz.h : 560;
+    w = clamp(w, PANEL_MIN_W, Math.max(PANEL_MIN_W, vw() - MARGIN*2));
+    h = clamp(h, PANEL_MIN_H, Math.max(PANEL_MIN_H, vh() - MARGIN*2));
+    return { w:w, h:h };
+  }
+  function applyPanelSize(w, h){
+    panel.style.width  = w + "px";
+    panel.style.height = h + "px";
+  }
+  function placePanel(x, y){
+    var w = panel.offsetWidth, h = panel.offsetHeight;
+    x = clamp(x, MARGIN, Math.max(MARGIN, vw() - w - MARGIN));
+    y = clamp(y, MARGIN, Math.max(MARGIN, vh() - h - MARGIN));
+    panel.style.left = x + "px";
+    panel.style.top  = y + "px";
+    panel.style.right = "auto";
+    panel.style.bottom = "auto";
+    return { x:x, y:y };
+  }
+  // anchor near the pill, flipping so the panel never overflows
+  function anchorToPill(){
+    var sz = panelSize();
+    applyPanelSize(sz.w, sz.h);
+    var p = pillPos(), s = pillSize(), gap = 10;
+    var w = sz.w, h = sz.h;
+    // horizontal: prefer right-aligned to pill; flip to left side if it overflows
+    var x;
+    var pillRight = p.x + s.w;
+    if (pillRight - w >= MARGIN) x = pillRight - w;      // align right edges
+    else if (p.x + w <= vw() - MARGIN) x = p.x;          // align left edges
+    else x = vw() - w - MARGIN;                          // pin to right margin
+    // vertical: prefer above the pill; flip below if not enough room
+    var y;
+    if (p.y - gap - h >= MARGIN) y = p.y - gap - h;      // above
+    else if (p.y + s.h + gap + h <= vh() - MARGIN) y = p.y + s.h + gap; // below
+    else y = clamp(p.y, MARGIN, vh() - h - MARGIN);      // beside / clamped
+    return placePanel(x, y);
+  }
+  function restorePanel(){
+    var sz = panelSize();
+    applyPanelSize(sz.w, sz.h);
+    var saved = lsJSON(STORE_POS);
+    if (saved && typeof saved.x === "number") placePanel(saved.x, saved.y);
+    else anchorToPill();
+  }
+
+  function openPanel(anim){
+    // size + position before showing
+    var sz = panelSize();
+    applyPanelSize(sz.w, sz.h);
+    var saved = lsJSON(STORE_POS);
+    if (saved && typeof saved.x === "number") placePanel(saved.x, saved.y);
+    else anchorToPill();
     panel.classList.add("panel--on");
+    if (anim !== false){ panel.classList.add("panel--anim");
+      window.setTimeout(function(){ panel.classList.remove("panel--anim"); }, 220); }
     panel.setAttribute("aria-hidden","false");
     scrim.classList.add("scrim--on");
     pill.classList.add("pill--hidden");
     hint.classList.add("hint--off");
     lsSet(STORE_OPEN, "1");
-    // focus close for keyboard users
-    window.setTimeout(function(){ closeB.focus(); }, 60);
+    if (anim !== false) window.setTimeout(function(){ closeB.focus(); }, 60);
   }
   function closePanel(){
     panel.classList.remove("panel--on");
@@ -657,25 +785,139 @@
     pill.focus();
   }
 
-  pill.addEventListener("click", openPanel);
+  // ============================================================
+  //  POINTER DRAG ENGINE — shared by pill, panel header, resizer.
+  //  Mouse + touch via Pointer Events, with a graceful fallback.
+  // ============================================================
+  var DRAG_THRESHOLD = 4; // px before a press counts as a drag (vs a click)
+
+  function startDrag(e, opts){
+    // opts: { onMove(dx,dy,moved), onUp(moved), cursorClass }
+    if (e.button != null && e.button !== 0) return; // left/touch only
+    var startX = e.clientX, startY = e.clientY;
+    var moved = false;
+
+    function move(ev){
+      var cx = ev.clientX, cy = ev.clientY;
+      var dx = cx - startX, dy = cy - startY;
+      if (!moved && (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD)){
+        moved = true;
+        document.body.classList.add(opts.cursorClass);
+      }
+      if (moved){ if (ev.cancelable) ev.preventDefault(); opts.onMove(dx, dy); }
+    }
+    function up(ev){
+      document.removeEventListener("pointermove", move, true);
+      document.removeEventListener("pointerup", up, true);
+      document.removeEventListener("pointercancel", up, true);
+      document.removeEventListener("mousemove", move, true);
+      document.removeEventListener("mouseup", up, true);
+      document.removeEventListener("touchmove", moveT, true);
+      document.removeEventListener("touchend", up, true);
+      document.body.classList.remove(opts.cursorClass);
+      if (opts.onUp) opts.onUp(moved);
+    }
+    function moveT(ev){ if (ev.touches && ev.touches[0]){ move(ev.touches[0]); if (moved && ev.cancelable) ev.preventDefault(); } }
+
+    if ("PointerEvent" in window){
+      document.addEventListener("pointermove", move, true);
+      document.addEventListener("pointerup", up, true);
+      document.addEventListener("pointercancel", up, true);
+    } else {
+      document.addEventListener("mousemove", move, true);
+      document.addEventListener("mouseup", up, true);
+      document.addEventListener("touchmove", moveT, true);
+      document.addEventListener("touchend", up, true);
+    }
+  }
+
+  // ---- pill: drag to move, tap (no drag) to open ----
+  function pillDown(e){
+    var origin = pillPos();
+    startDrag(e, {
+      cursorClass:"bsgy-dragging",
+      onMove:function(dx, dy){ placePill(origin.x + dx, origin.y + dy); },
+      onUp:function(moved){
+        if (moved){ lsSet(STORE_PILL, JSON.stringify(pillPos())); }
+        else { openPanel(true); } // a tap → open
+      }
+    });
+  }
+  pill.addEventListener("pointerdown", pillDown);
+  if (!("PointerEvent" in window)){
+    pill.addEventListener("mousedown", pillDown);
+    pill.addEventListener("touchstart", function(e){ if (e.touches[0]){ var t=e.touches[0]; t.button=0; pillDown(t); } });
+  }
+  // keyboard: Enter/Space opens (button default would also fire click, so guard)
+  pill.addEventListener("keydown", function(e){
+    if (e.key === "Enter" || e.key === " "){ e.preventDefault(); openPanel(true); }
+  });
+
+  // ---- panel header: drag to move the panel ----
+  function headerDown(e){
+    var r = panel.getBoundingClientRect();
+    var origin = { x:r.left, y:r.top };
+    startDrag(e, {
+      cursorClass:"bsgy-dragging",
+      onMove:function(dx, dy){ placePanel(origin.x + dx, origin.y + dy); },
+      onUp:function(moved){ if (moved) lsSet(STORE_POS, JSON.stringify({ x:panel.offsetLeft, y:panel.offsetTop })); }
+    });
+  }
+  phDrag.addEventListener("pointerdown", headerDown);
+  if (!("PointerEvent" in window)){
+    phDrag.addEventListener("mousedown", headerDown);
+    phDrag.addEventListener("touchstart", function(e){ if (e.touches[0]){ var t=e.touches[0]; t.button=0; headerDown(t); } });
+  }
+
+  // ---- corner handle: resize the panel; newspaper column reflows ----
+  function resizeDown(e){
+    e.stopPropagation();
+    var r = panel.getBoundingClientRect();
+    var ox = r.left, oy = r.top, ow = r.width, oh = r.height;
+    var maxW = vw() - ox - MARGIN, maxH = vh() - oy - MARGIN;
+    startDrag(e, {
+      cursorClass:"bsgy-resizing",
+      onMove:function(dx, dy){
+        var w = clamp(ow + dx, PANEL_MIN_W, maxW);
+        var h = clamp(oh + dy, PANEL_MIN_H, maxH);
+        applyPanelSize(w, h);
+      },
+      onUp:function(){ lsSet(STORE_SIZE, JSON.stringify({ w:panel.offsetWidth, h:panel.offsetHeight })); }
+    });
+  }
+  resizeH.addEventListener("pointerdown", resizeDown);
+  if (!("PointerEvent" in window)){
+    resizeH.addEventListener("mousedown", resizeDown);
+    resizeH.addEventListener("touchstart", function(e){ if (e.touches[0]){ var t=e.touches[0]; t.button=0; t.stopPropagation=function(){}; resizeDown(t); } });
+  }
+
   closeB.addEventListener("click", closePanel);
   scrim.addEventListener("click", closePanel);
   document.addEventListener("keydown", function(e){
     if (e.key === "Escape" && panel.classList.contains("panel--on")) closePanel();
   });
 
-  // restore state
+  // keep everything on-screen if the viewport changes
+  window.addEventListener("resize", function(){
+    restorePill();
+    if (panel.classList.contains("panel--on")){
+      var sz = panelSize(); applyPanelSize(sz.w, sz.h);
+      // re-clamp current position
+      placePanel(panel.offsetLeft, panel.offsetTop);
+    }
+  });
+
+  // ============================================================
+  //  RESTORE STATE
+  // ============================================================
   var savedTab = lsGet(STORE_TAB);
   var validTab = savedTab && COURSES.some(function(c){ return c.id === savedTab; });
   selectCourse(validTab ? savedTab : COURSES[0].id);
 
+  restorePill();
+
   if (lsGet(STORE_OPEN) === "1"){
-    // open without focus-stealing transition jump
-    panel.classList.add("panel--on");
-    panel.setAttribute("aria-hidden","false");
-    scrim.classList.add("scrim--on");
-    pill.classList.add("pill--hidden");
-    hint.classList.add("hint--off");
+    openPanel(false); // restore open, no animation/focus jump
   }
 })();
 </script>

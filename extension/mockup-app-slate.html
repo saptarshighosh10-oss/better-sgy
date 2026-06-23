@@ -92,7 +92,7 @@
      ============================================================ */
   .nav{
     display:grid;
-    grid-template-columns:repeat(7,1fr);
+    grid-template-columns:repeat(8,1fr);
     border-bottom:3px solid var(--ink);
     margin-bottom:4px;
   }
@@ -715,6 +715,225 @@
   /* live "updated" note for bulletins refresh */
   .bull-updated{ font-style:italic; font-family:var(--serif); color:var(--ink-45); }
 
+  /* ============================================================
+     ARCADE — three printed game diagrams. Strictly B&W.
+     ============================================================ */
+  .arcade{
+    border-top:var(--rule);
+    display:grid; grid-template-columns:repeat(3,1fr); gap:0;
+  }
+  .gcard{
+    border-right:var(--hairline); border-bottom:var(--rule);
+    padding:22px 20px 24px; display:flex; flex-direction:column;
+    cursor:pointer; transition:background .12s ease;
+  }
+  .gcard:last-child{ border-right:none; }
+  .gcard:hover{ background:var(--ink-08); }
+  .gcard:focus-visible{ outline:2px solid var(--ink); outline-offset:-2px; }
+  .gcard__top{
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-family:var(--sans); font-size:10px; font-weight:700;
+    letter-spacing:.18em; text-transform:uppercase; color:var(--ink-60);
+    border-bottom:var(--hairline); padding-bottom:9px; margin-bottom:14px;
+  }
+  .gcard__no{ color:var(--ink); }
+  .gcard__diag{ border:var(--rule); margin-bottom:14px; background:var(--paper); }
+  .gcard__diag svg{ display:block; width:100%; height:auto; }
+  .gcard__name{
+    font-family:var(--serif); font-weight:700; font-size:clamp(22px,3vw,28px);
+    line-height:1; letter-spacing:-.02em; margin-bottom:8px;
+  }
+  .gcard__desc{
+    font-family:var(--serif); font-style:italic; font-size:13px; line-height:1.5;
+    color:var(--ink-80); margin-bottom:16px;
+  }
+  .gcard__cta{
+    margin-top:auto; font-family:var(--sans); font-size:10px; font-weight:700;
+    letter-spacing:.16em; text-transform:uppercase; color:var(--ink);
+  }
+  .gcard:hover .gcard__cta{ text-decoration:underline; text-underline-offset:3px; }
+
+  /* play stage */
+  .arcade-stage{ border-top:var(--rule); padding-top:18px; position:relative; }
+  .stage__bar{
+    display:flex; justify-content:space-between; align-items:center; gap:14px;
+    border-bottom:var(--rule); padding-bottom:14px; margin-bottom:4px;
+  }
+  .stage__title{
+    font-family:var(--serif); font-weight:700; font-size:clamp(20px,3vw,28px);
+    letter-spacing:-.02em; text-align:center; flex:1;
+  }
+  .gbtn{
+    font-family:var(--sans); font-size:10px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; padding:9px 16px 8px; border:1px solid var(--ink);
+    background:var(--ink); color:var(--paper); cursor:pointer; flex:none;
+  }
+  .gbtn--ghost{ background:var(--paper); color:var(--ink); }
+  .gbtn:hover{ opacity:.82; }
+
+  .stage__scores{
+    display:grid; grid-template-columns:1fr 1fr; border-bottom:var(--rule);
+  }
+  .gscore{ padding:12px 4px 14px; border-right:var(--hairline); }
+  .gscore:last-child{ border-right:none; text-align:right; }
+  .gscore__label{
+    display:block; font-family:var(--sans); font-size:10px; font-weight:700;
+    letter-spacing:.18em; text-transform:uppercase; color:var(--ink-60); margin-bottom:5px;
+  }
+  .gscore__val{
+    font-family:var(--serif); font-weight:700; font-size:clamp(26px,4vw,38px);
+    line-height:1; letter-spacing:-.02em; font-variant-numeric:tabular-nums;
+  }
+
+  .stage__board{
+    max-width:460px; margin:22px auto 0; touch-action:none;
+    -webkit-user-select:none; user-select:none;
+  }
+  .stage__hint{
+    max-width:460px; margin:14px auto 4px; text-align:center;
+    font-family:var(--serif); font-style:italic; font-size:12px; color:var(--ink-45);
+  }
+
+  /* CLIMB — 2048 grid */
+  .climb{
+    border:var(--rule); background:var(--ink-08);
+    display:grid; grid-template-columns:repeat(4,1fr); gap:0; aspect-ratio:1/1;
+  }
+  .climb__cell{
+    position:relative; border-right:var(--hairline); border-bottom:var(--hairline);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .climb__cell:nth-child(4n){ border-right:none; }
+  .climb__cell:nth-child(n+13){ border-bottom:none; }
+  .climb__tile{
+    position:absolute; inset:5px; border:1px solid var(--ink);
+    display:flex; align-items:center; justify-content:center; flex-direction:column;
+    font-family:var(--serif); font-weight:700; letter-spacing:-.02em;
+    background:var(--paper); color:var(--ink);
+    animation:tilePop .12s ease;
+  }
+  .climb__tile .t-let{ font-size:clamp(20px,5.5vw,30px); line-height:1; }
+  .climb__tile .t-num{
+    font-family:var(--sans); font-size:8px; font-weight:700; letter-spacing:.12em;
+    color:var(--ink-45); margin-top:3px;
+  }
+  /* tonal grays + border weight distinguish ranks (no color) */
+  .climb__tile.r1{ background:var(--paper); }
+  .climb__tile.r2{ background:rgba(0,0,0,.06); }
+  .climb__tile.r3{ background:rgba(0,0,0,.12); }
+  .climb__tile.r4{ background:rgba(0,0,0,.20); border-width:1.5px; }
+  .climb__tile.r5{ background:rgba(0,0,0,.30); border-width:1.5px; }
+  .climb__tile.r6{ background:rgba(0,0,0,.45); color:var(--paper); border-width:2px; }
+  .climb__tile.r6 .t-num{ color:rgba(255,255,255,.6); }
+  .climb__tile.r7{ background:rgba(0,0,0,.62); color:var(--paper); border-width:2px; }
+  .climb__tile.r7 .t-num{ color:rgba(255,255,255,.6); }
+  .climb__tile.r8{ background:rgba(0,0,0,.78); color:var(--paper); border-width:2.5px; }
+  .climb__tile.r8 .t-num{ color:rgba(255,255,255,.65); }
+  .climb__tile.r9{ background:var(--ink); color:var(--paper); border-width:2.5px; }
+  .climb__tile.r9 .t-num{ color:rgba(255,255,255,.65); }
+  .climb__tile.r10{ background:var(--ink); color:var(--paper); border-width:3px; }
+  .climb__tile.r10 .t-num{ color:rgba(255,255,255,.7); }
+  .climb__tile.r11{ background:var(--ink); color:var(--paper); border:3px double var(--paper); box-shadow:inset 0 0 0 2px var(--ink); }
+  @keyframes tilePop{ 0%{ transform:scale(.7); opacity:.4; } 100%{ transform:scale(1); opacity:1; } }
+
+  /* STREAK — snake canvas */
+  .streak-wrap{ border:var(--rule); background:var(--paper); }
+  .streak-wrap canvas{ display:block; width:100%; height:auto; image-rendering:pixelated; }
+  .dpad{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:6px;
+    max-width:200px; margin:16px auto 0;
+  }
+  .dpad button{
+    font-family:var(--serif); font-weight:700; font-size:18px; line-height:1;
+    border:1px solid var(--ink); background:var(--paper); color:var(--ink);
+    padding:11px 0; cursor:pointer;
+  }
+  .dpad button:active{ background:var(--ink); color:var(--paper); }
+  .dpad .d-up{ grid-column:2; }
+  .dpad .d-left{ grid-column:1; grid-row:2; }
+  .dpad .d-down{ grid-column:2; grid-row:2; }
+  .dpad .d-right{ grid-column:3; grid-row:2; }
+
+  /* RECALL — memory grid */
+  .recall{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:8px; aspect-ratio:1/1;
+  }
+  .rcard{
+    position:relative; border:1px solid var(--ink); background:var(--paper);
+    cursor:pointer; perspective:600px;
+  }
+  .rcard__inner{
+    position:absolute; inset:0; transition:transform .32s ease;
+    transform-style:preserve-3d;
+  }
+  .rcard.flipped .rcard__inner,
+  .rcard.matched .rcard__inner{ transform:rotateY(180deg); }
+  .rcard__face{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    -webkit-backface-visibility:hidden; backface-visibility:hidden;
+  }
+  .rcard__back{
+    background:var(--ink); color:var(--paper);
+    font-family:var(--serif); font-style:italic; font-weight:700;
+    font-size:clamp(18px,5vw,26px);
+  }
+  .rcard__front{
+    background:var(--paper); transform:rotateY(180deg);
+    font-size:clamp(22px,7vw,34px); filter:grayscale(1) contrast(1.1);
+  }
+  .rcard.matched{ opacity:.45; }
+  .rcard.matched .rcard__front{ outline:2px solid var(--ink); outline-offset:-3px; }
+
+  /* win/lose overlay */
+  .goverlay{
+    position:absolute; inset:0; background:rgba(255,255,255,.92);
+    display:flex; align-items:center; justify-content:center; z-index:8;
+  }
+  body.theme-wob .goverlay{ background:rgba(0,0,0,.92); }
+  .goverlay__card{
+    border:2px solid var(--ink); background:var(--paper); box-shadow:6px 6px 0 var(--ink);
+    padding:28px 32px 30px; text-align:center; max-width:340px;
+  }
+  .goverlay__kicker{
+    display:block; font-family:var(--sans); font-size:10px; font-weight:700;
+    letter-spacing:.22em; text-transform:uppercase; color:var(--ink-60); margin-bottom:10px;
+  }
+  .goverlay__head{
+    font-family:var(--serif); font-weight:700; font-size:clamp(26px,5vw,38px);
+    line-height:1; letter-spacing:-.02em; margin-bottom:10px;
+  }
+  .goverlay__sub{
+    font-family:var(--serif); font-style:italic; font-size:14px; line-height:1.5;
+    color:var(--ink-80); margin-bottom:20px;
+  }
+
+  @media (max-width:700px){
+    .arcade{ grid-template-columns:1fr; }
+    .gcard{ border-right:none; }
+  }
+
+  /* CLIMB tiles inverted for the dark (white-on-black) theme */
+  body.theme-wob .climb__tile.r1{ background:var(--paper); color:var(--ink); }
+  body.theme-wob .climb__tile.r2{ background:rgba(255,255,255,.07); color:var(--ink); }
+  body.theme-wob .climb__tile.r3{ background:rgba(255,255,255,.14); color:var(--ink); }
+  body.theme-wob .climb__tile.r4{ background:rgba(255,255,255,.22); color:var(--ink); }
+  body.theme-wob .climb__tile.r5{ background:rgba(255,255,255,.34); color:var(--ink); }
+  body.theme-wob .climb__tile.r6{ background:rgba(255,255,255,.48); color:var(--paper); }
+  body.theme-wob .climb__tile.r6 .t-num{ color:rgba(0,0,0,.6); }
+  body.theme-wob .climb__tile.r7{ background:rgba(255,255,255,.64); color:var(--paper); }
+  body.theme-wob .climb__tile.r7 .t-num{ color:rgba(0,0,0,.6); }
+  body.theme-wob .climb__tile.r8{ background:rgba(255,255,255,.80); color:var(--paper); }
+  body.theme-wob .climb__tile.r8 .t-num{ color:rgba(0,0,0,.65); }
+  body.theme-wob .climb__tile.r9,
+  body.theme-wob .climb__tile.r10{ background:var(--ink); color:var(--paper); }
+  body.theme-wob .climb__tile.r9 .t-num,
+  body.theme-wob .climb__tile.r10 .t-num{ color:rgba(0,0,0,.7); }
+  body.theme-wob .climb__tile.r11{ background:var(--ink); color:var(--paper); border:3px double var(--paper); box-shadow:inset 0 0 0 2px var(--ink); }
+  /* the static card diagrams use hard #000/#fff strokes — invert for dark */
+  body.theme-wob .gcard__diag svg [stroke="#000"]{ stroke:#fff; }
+  body.theme-wob .gcard__diag svg [fill="#000"]{ fill:#fff; }
+  body.theme-wob .gcard__diag svg [fill="#fff"]{ fill:#000; }
+
   /* THEME — white on black (strictly monochrome, ink/paper swapped) */
   body.theme-wob{ --ink:#fff; --paper:#000;
     --ink-80:rgba(255,255,255,.80); --ink-60:rgba(255,255,255,.60);
@@ -860,7 +1079,8 @@
     <a class="nav__item" data-nav="calendar" href="#calendar"><span class="nav__no">04</span><span class="nav__name">Calendar</span></a>
     <a class="nav__item" data-nav="announcements" href="#announcements"><span class="nav__no">05</span><span class="nav__name">Bulletins</span></a>
     <a class="nav__item" data-nav="materials" href="#materials"><span class="nav__no">06</span><span class="nav__name">Materials</span></a>
-    <a class="nav__item" data-nav="settings" href="#settings"><span class="nav__no">07</span><span class="nav__name">Settings</span></a>
+    <a class="nav__item" data-nav="arcade" href="#arcade"><span class="nav__no">07</span><span class="nav__name">Games</span></a>
+    <a class="nav__item" data-nav="settings" href="#settings"><span class="nav__no">08</span><span class="nav__name">Settings</span></a>
   </nav>
 
   <!-- ================================================================
@@ -1230,7 +1450,117 @@
   </section>
 
   <!-- ================================================================
-       SCREEN 7 — SETTINGS
+       SCREEN 7 — ARCADE (Games)
+       ================================================================ -->
+  <section class="screen" id="s-arcade">
+    <div class="standfirst">
+      <div class="standfirst__head">
+        <span class="label standfirst__kicker">The Arcade</span>
+        <h2>Three <em>diversions</em>.</h2>
+      </div>
+      <p class="standfirst__intro">Three diversions for the idle minute. Printed in black, played in white. Keyboard or touch; the score is kept.</p>
+    </div>
+
+    <!-- Arcade home: ruled game cards -->
+    <div class="arcade" id="arcade-home">
+      <div class="gcard" data-game="climb" role="button" tabindex="0">
+        <div class="gcard__top"><span class="gcard__no">No. I</span><span class="gcard__best" data-best="climb">Best —</span></div>
+        <div class="gcard__diag" aria-hidden="true">
+          <svg viewBox="0 0 120 84" preserveAspectRatio="xMidYMid meet">
+            <rect x="2" y="2" width="116" height="80" fill="none" stroke="#000" stroke-width="1.4"/>
+            <line x1="31" y1="2" x2="31" y2="82" stroke="#000" stroke-width=".7" opacity=".4"/>
+            <line x1="60" y1="2" x2="60" y2="82" stroke="#000" stroke-width=".7" opacity=".4"/>
+            <line x1="89" y1="2" x2="89" y2="82" stroke="#000" stroke-width=".7" opacity=".4"/>
+            <line x1="2" y1="22" x2="118" y2="22" stroke="#000" stroke-width=".7" opacity=".4"/>
+            <line x1="2" y1="42" x2="118" y2="42" stroke="#000" stroke-width=".7" opacity=".4"/>
+            <line x1="2" y1="62" x2="118" y2="62" stroke="#000" stroke-width=".7" opacity=".4"/>
+            <rect x="62" y="44" width="25" height="16" fill="#000"/>
+            <text x="74.5" y="56" fill="#fff" font-family="Georgia,serif" font-size="9" font-weight="700" text-anchor="middle">A</text>
+            <rect x="33" y="24" width="25" height="16" fill="none" stroke="#000" stroke-width="1"/>
+            <text x="45.5" y="36" fill="#000" font-family="Georgia,serif" font-size="9" font-weight="700" text-anchor="middle">C</text>
+          </svg>
+        </div>
+        <h3 class="gcard__name">Climb</h3>
+        <p class="gcard__desc">Merge like grades up the ladder — D to A+. Slide the board; watch the letters rise.</p>
+        <span class="gcard__cta">Play →</span>
+      </div>
+
+      <div class="gcard" data-game="streak" role="button" tabindex="0">
+        <div class="gcard__top"><span class="gcard__no">No. II</span><span class="gcard__best" data-best="streak">Best —</span></div>
+        <div class="gcard__diag" aria-hidden="true">
+          <svg viewBox="0 0 120 84" preserveAspectRatio="xMidYMid meet">
+            <rect x="2" y="2" width="116" height="80" fill="none" stroke="#000" stroke-width="1.4"/>
+            <g stroke="#000" stroke-width=".5" opacity=".3">
+              <line x1="22" y1="2" x2="22" y2="82"/><line x1="42" y1="2" x2="42" y2="82"/>
+              <line x1="62" y1="2" x2="62" y2="82"/><line x1="82" y1="2" x2="82" y2="82"/>
+              <line x1="98" y1="2" x2="98" y2="82"/>
+              <line x1="2" y1="22" x2="118" y2="22"/><line x1="2" y1="42" x2="118" y2="42"/>
+              <line x1="2" y1="62" x2="118" y2="62"/>
+            </g>
+            <rect x="22" y="42" width="20" height="20" fill="#000"/>
+            <rect x="42" y="42" width="20" height="20" fill="#000"/>
+            <rect x="62" y="42" width="20" height="20" fill="#000"/>
+            <rect x="62" y="22" width="20" height="20" fill="#000"/>
+            <circle cx="92" cy="32" r="6" fill="none" stroke="#000" stroke-width="1.6"/>
+          </svg>
+        </div>
+        <h3 class="gcard__name">Streak</h3>
+        <p class="gcard__desc">Build the run. Take each token, lengthen the line, and don't cross your own record.</p>
+        <span class="gcard__cta">Play →</span>
+      </div>
+
+      <div class="gcard" data-game="recall" role="button" tabindex="0">
+        <div class="gcard__top"><span class="gcard__no">No. III</span><span class="gcard__best" data-best="recall">Best —</span></div>
+        <div class="gcard__diag" aria-hidden="true">
+          <svg viewBox="0 0 120 84" preserveAspectRatio="xMidYMid meet">
+            <rect x="2" y="2" width="116" height="80" fill="none" stroke="#000" stroke-width="1.4"/>
+            <g fill="none" stroke="#000" stroke-width="1">
+              <rect x="10" y="12" width="22" height="26"/><rect x="38" y="12" width="22" height="26"/>
+              <rect x="66" y="12" width="22" height="26"/><rect x="94" y="12" width="16" height="26"/>
+              <rect x="10" y="44" width="22" height="26"/><rect x="38" y="44" width="22" height="26"/>
+            </g>
+            <rect x="66" y="44" width="22" height="26" fill="#000"/>
+            <text x="77" y="62" fill="#fff" font-size="13" text-anchor="middle">📐</text>
+            <rect x="94" y="44" width="16" height="26" fill="#000"/>
+          </svg>
+        </div>
+        <h3 class="gcard__name">Recall</h3>
+        <p class="gcard__desc">Eight pairs, face down. Turn two at a time and remember. Fewest moves wins the page.</p>
+        <span class="gcard__cta">Play →</span>
+      </div>
+    </div>
+
+    <!-- Arcade play stage: one game at a time -->
+    <div class="arcade-stage" id="arcade-stage" hidden>
+      <div class="stage__bar">
+        <button class="gbtn gbtn--ghost" id="arcade-back" type="button">← Back</button>
+        <span class="stage__title" id="stage-title">—</span>
+        <button class="gbtn" id="arcade-restart" type="button">Restart</button>
+      </div>
+
+      <div class="stage__scores">
+        <div class="gscore"><span class="gscore__label">Score</span><span class="gscore__val" id="stage-score">0</span></div>
+        <div class="gscore"><span class="gscore__label" id="stage-meta-label">Best</span><span class="gscore__val" id="stage-meta">—</span></div>
+      </div>
+
+      <div class="stage__board" id="stage-board"></div>
+
+      <p class="stage__hint" id="stage-hint"></p>
+
+      <!-- win/lose overlay -->
+      <div class="goverlay" id="stage-overlay" hidden>
+        <div class="goverlay__card">
+          <span class="goverlay__kicker" id="overlay-kicker">The Result</span>
+          <h3 class="goverlay__head" id="overlay-head">—</h3>
+          <p class="goverlay__sub" id="overlay-sub">—</p>
+          <button class="gbtn" id="overlay-again" type="button">Play again</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================
+       SCREEN 8 — SETTINGS
        ================================================================ -->
   <section class="screen" id="s-settings">
     <div class="standfirst">
@@ -1269,6 +1599,7 @@
         <div class="toggle" data-toggle="nav-calendar"><div><div class="toggle__name">Calendar</div><div class="toggle__desc">Deadlines on a month grid.</div></div><span class="switch switch--on">On</span></div>
         <div class="toggle" data-toggle="nav-announcements"><div><div class="toggle__name">Bulletins</div><div class="toggle__desc">Faculty notices, newest first.</div></div><span class="switch switch--on">On</span></div>
         <div class="toggle" data-toggle="nav-materials"><div><div class="toggle__name">Materials</div><div class="toggle__desc">Files, links, and submissions.</div></div><span class="switch switch--on">On</span></div>
+        <div class="toggle" data-toggle="nav-arcade"><div><div class="toggle__name">Games</div><div class="toggle__desc">Three diversions for the idle minute.</div></div><span class="switch switch--on">On</span></div>
         <div class="toggle" data-toggle="compact"><div><div class="toggle__name">Compact density</div><div class="toggle__desc">Tighten the rules and rows.</div></div><span class="switch switch--off">Off</span></div>
       </div>
     </div>
@@ -1522,8 +1853,9 @@
     filed:{},                        /* docket titles moved to Done */
     revisions:{},                    /* material id -> revision count */
     comments:{},                     /* material id -> [comments] */
+    arcadeBest:{ climb:0, streak:0, recall:0 }, /* recall best = fewest moves */
     settings:{ compact:false, notify:true, themeWob:false, contrast:false, appearance:'light',
-               nav:{ overview:true, grades:true, assignments:true, calendar:true, announcements:true, materials:true } }
+               nav:{ overview:true, grades:true, assignments:true, calendar:true, announcements:true, materials:true, arcade:true } }
   };
   var state;
   try { state = Object.assign({}, defaults, JSON.parse(localStorage.getItem(LS_KEY)||'{}')); }
@@ -1534,6 +1866,7 @@
   state.comments = state.comments||{};
   state.settings = Object.assign({}, defaults.settings, state.settings||{});
   state.settings.nav = Object.assign({}, defaults.settings.nav, (state.settings||{}).nav||{});
+  state.arcadeBest = Object.assign({}, defaults.arcadeBest, state.arcadeBest||{});
   /* migrate legacy boolean theme into the appearance setting */
   if(['light','dark','auto'].indexOf(state.settings.appearance)<0){
     state.settings.appearance = state.settings.themeWob ? 'dark' : 'light';
@@ -1554,10 +1887,11 @@
   /* ============================================================
      NAV / SCREENS
      ============================================================ */
-  var SCREENS = ['overview','grades','assignments','calendar','announcements','materials','settings'];
+  var SCREENS = ['overview','grades','assignments','calendar','announcements','materials','arcade','settings'];
   function showScreen(name){
     if(SCREENS.indexOf(name)<0) name='overview';
     if(name!=='settings' && !state.settings.nav[name]) { name = SCREENS.filter(function(s){return s==='settings'||state.settings.nav[s];})[0] || 'overview'; }
+    if(name!=='arcade' && state.screen==='arcade' && typeof ARCADE!=='undefined') ARCADE.onLeave();
     state.screen = name; save();
     SCREENS.forEach(function(s){
       var sec=$('#s-'+s); if(sec) sec.classList.toggle('screen--on', s===name);
@@ -2273,6 +2607,373 @@
   }
 
   /* ============================================================
+     ARCADE — three diversions, strictly B&W. Vanilla JS.
+     ============================================================ */
+  var ARCADE = (function(){
+    var GAME_NAMES = { climb:'Climb', streak:'Streak', recall:'Recall' };
+    var active=null;            /* current game name or null */
+    var teardown=null;          /* function to stop the running game */
+    var keyHandler=null;        /* document keydown handler while playing */
+
+    function bestVal(g){ return state.arcadeBest[g]||0; }
+    function setBest(g,v){ state.arcadeBest[g]=v; save(); refreshHomeBests(); }
+
+    function refreshHomeBests(){
+      $$('#arcade-home [data-best]').forEach(function(node){
+        var g=node.getAttribute('data-best'); var b=bestVal(g);
+        if(g==='recall'){ node.textContent = b ? ('Best '+b+' moves') : 'Best —'; }
+        else { node.textContent = b ? ('Best '+b) : 'Best —'; }
+      });
+    }
+
+    /* ---- stage chrome ---- */
+    function showOverlay(kicker, head, sub){
+      $('#overlay-kicker').textContent=kicker;
+      $('#overlay-head').textContent=head;
+      $('#overlay-sub').textContent=sub;
+      $('#stage-overlay').hidden=false;
+    }
+    function hideOverlay(){ $('#stage-overlay').hidden=true; }
+    function setScore(v){ $('#stage-score').textContent=v; }
+    function setMeta(label,v){ $('#stage-meta-label').textContent=label; $('#stage-meta').textContent=v; }
+    function setHint(t){ $('#stage-hint').textContent=t; }
+
+    function stopActive(){
+      if(teardown){ try{ teardown(); }catch(e){} teardown=null; }
+      if(keyHandler){ document.removeEventListener('keydown', keyHandler); keyHandler=null; }
+      active=null;
+    }
+
+    function openGame(name){
+      if(!GAME_NAMES[name]) return;
+      stopActive();
+      active=name;
+      $('#arcade-home').hidden=true;
+      $('#arcade-stage').hidden=false;
+      $('#stage-title').textContent=GAME_NAMES[name];
+      hideOverlay();
+      if(name==='climb') startClimb();
+      else if(name==='streak') startStreak();
+      else if(name==='recall') startRecall();
+    }
+    function backToHome(){
+      stopActive();
+      $('#arcade-stage').hidden=true;
+      $('#arcade-home').hidden=false;
+      refreshHomeBests();
+    }
+    function restartActive(){ if(active) openGame(active); }
+
+    /* swipe helper: returns dir 'up'/'down'/'left'/'right' or null */
+    function attachSwipe(node, onDir){
+      var sx=0, sy=0, tracking=false;
+      function down(e){ var p=e.touches?e.touches[0]:e; sx=p.clientX; sy=p.clientY; tracking=true; }
+      function up(e){
+        if(!tracking) return; tracking=false;
+        var p=e.changedTouches?e.changedTouches[0]:e;
+        var dx=p.clientX-sx, dy=p.clientY-sy;
+        if(Math.abs(dx)<24 && Math.abs(dy)<24) return;
+        if(Math.abs(dx)>Math.abs(dy)) onDir(dx>0?'right':'left');
+        else onDir(dy>0?'down':'up');
+      }
+      node.addEventListener('touchstart', down, {passive:true});
+      node.addEventListener('touchend', up, {passive:true});
+      return function(){ node.removeEventListener('touchstart',down); node.removeEventListener('touchend',up); };
+    }
+
+    /* ========================================================
+       GAME 1 — CLIMB (2048 variant, grades)
+       ======================================================== */
+    var CLIMB_LADDER = [ /* value(power) -> letter */
+      '', 'D','C−','C','C+','B−','B','B+','A−','A','A+','★'
+    ];
+    /* rank index 1..11 maps to css class r1..r11; value 2^rank */
+    function startClimb(){
+      var board=$('#stage-board');
+      board.innerHTML='<div class="climb" id="climb-grid"></div>';
+      var grid=$('#climb-grid');
+      var cells=[];
+      for(var i=0;i<16;i++){ var c=el('div','climb__cell'); grid.appendChild(c); cells.push(c); }
+      setMeta('Best', bestVal('climb'));
+      setHint('Arrows or W A S D · swipe on touch · merge to A+');
+
+      var data=[], score=0, won=false, dead=false;
+      function blank(){ var a=[]; for(var i=0;i<16;i++)a.push(0); return a; }
+      function spawn(){
+        var empty=[]; data.forEach(function(v,i){ if(!v)empty.push(i); });
+        if(!empty.length) return;
+        var idx=empty[Math.floor(Math.random()*empty.length)];
+        data[idx]= Math.random()<0.9 ? 1 : 2; /* rank 1 (D=2) usually, sometimes rank2 (C-=4) */
+      }
+      function draw(){
+        setScore(score);
+        for(var i=0;i<16;i++){
+          cells[i].innerHTML='';
+          var r=data[i];
+          if(r){
+            var t=el('div','climb__tile r'+Math.min(r,11));
+            t.innerHTML='<span class="t-let">'+esc(CLIMB_LADDER[r]||'★')+'</span><span class="t-num">'+(Math.pow(2,r))+'</span>';
+            cells[i].appendChild(t);
+          }
+        }
+      }
+      /* slide a single line of 4 ranks toward index 0; returns {line,gained,moved} */
+      function slide(line){
+        var arr=line.filter(function(v){return v;});
+        var gained=0, out=[];
+        for(var i=0;i<arr.length;i++){
+          if(i+1<arr.length && arr[i]===arr[i+1]){
+            var nr=arr[i]+1; out.push(nr); gained+=Math.pow(2,nr);
+            if(nr>=11) won=true;
+            i++;
+          } else out.push(arr[i]);
+        }
+        while(out.length<4) out.push(0);
+        var moved=false;
+        for(var j=0;j<4;j++){ if(out[j]!==line[j]){ moved=true; break; } }
+        return { line:out, gained:gained, moved:moved };
+      }
+      function move(dir){
+        if(dead||won) return;
+        var moved=false, gained=0;
+        function getLine(idx){ return idx.map(function(i){return data[i];}); }
+        function setLine(idx,vals){ idx.forEach(function(i,k){ data[i]=vals[k]; }); }
+        for(var k=0;k<4;k++){
+          var idx;
+          if(dir==='left')  idx=[k*4,k*4+1,k*4+2,k*4+3];
+          else if(dir==='right') idx=[k*4+3,k*4+2,k*4+1,k*4];
+          else if(dir==='up')   idx=[k,k+4,k+8,k+12];
+          else idx=[k+12,k+8,k+4,k]; /* down */
+          var res=slide(getLine(idx));
+          if(res.moved) moved=true;
+          gained+=res.gained;
+          setLine(idx, res.line);
+        }
+        if(moved){
+          score+=gained; spawn(); draw();
+          var b=bestVal('climb'); if(score>b){ setBest('climb',score); setMeta('Best',score); }
+          if(won){ finishWin(); return; }
+          if(noMoves()){ dead=true; finishLose(); }
+        }
+      }
+      function noMoves(){
+        for(var i=0;i<16;i++) if(!data[i]) return false;
+        for(var r=0;r<4;r++) for(var c=0;c<4;c++){
+          var v=data[r*4+c];
+          if(c<3 && v===data[r*4+c+1]) return false;
+          if(r<3 && v===data[(r+1)*4+c]) return false;
+        }
+        return true;
+      }
+      function finishWin(){
+        showOverlay('The Summit','A+ reached.','You merged your way to the top of the ladder. Score '+score+'. Keep climbing or start anew.');
+        /* allow continue: clicking play again restarts; but let board stay playable past win */
+        won=false; /* permit further play */
+      }
+      function finishLose(){
+        showOverlay('No Moves','The board is full.','Nothing left to merge. Final score '+score+'. Best stands at '+bestVal('climb')+'.');
+      }
+
+      data=blank(); spawn(); spawn(); draw();
+
+      keyHandler=function(e){
+        var k=e.key.toLowerCase(), dir=null;
+        if(k==='arrowleft'||k==='a') dir='left';
+        else if(k==='arrowright'||k==='d') dir='right';
+        else if(k==='arrowup'||k==='w') dir='up';
+        else if(k==='arrowdown'||k==='s') dir='down';
+        if(dir){ e.preventDefault(); move(dir); }
+      };
+      document.addEventListener('keydown', keyHandler);
+      var detach=attachSwipe(board, move);
+      teardown=function(){ detach(); };
+    }
+
+    /* ========================================================
+       GAME 2 — STREAK (snake)
+       ======================================================== */
+    function startStreak(){
+      var N=15, CELL=24, SIZE=N*CELL;
+      var board=$('#stage-board');
+      board.innerHTML=
+        '<div class="streak-wrap"><canvas id="streak-cv" width="'+SIZE+'" height="'+SIZE+'"></canvas></div>'+
+        '<div class="dpad">'+
+          '<button class="d-up" data-d="up" type="button">▲</button>'+
+          '<button class="d-left" data-d="left" type="button">◀</button>'+
+          '<button class="d-down" data-d="down" type="button">▼</button>'+
+          '<button class="d-right" data-d="right" type="button">▶</button>'+
+        '</div>';
+      var cv=$('#streak-cv'), ctx=cv.getContext('2d');
+      setMeta('Best', bestVal('streak'));
+      setHint('Arrows or W A S D · d-pad on touch · don’t hit a wall or yourself');
+
+      var snake=[{x:7,y:7},{x:6,y:7},{x:5,y:7}];
+      var dir={x:1,y:0}, nextDir={x:1,y:0};
+      var food=placeFood();
+      var score=0, dead=false, baseStep=140, step=baseStep, acc=0, last=0, raf=0;
+
+      function placeFood(){
+        var f;
+        do{ f={x:Math.floor(Math.random()*N), y:Math.floor(Math.random()*N)}; }
+        while(snake.some(function(s){return s.x===f.x&&s.y===f.y;}));
+        return f;
+      }
+      function paper(){ return getComputedStyle(document.body).getPropertyValue('--paper')||'#fff'; }
+      function ink(){ return getComputedStyle(document.body).getPropertyValue('--ink')||'#000'; }
+      function draw(){
+        var P=paper().trim()||'#fff', I=ink().trim()||'#000';
+        ctx.fillStyle=P; ctx.fillRect(0,0,SIZE,SIZE);
+        /* ruled grid */
+        ctx.strokeStyle=I; ctx.globalAlpha=0.12; ctx.lineWidth=1;
+        for(var i=1;i<N;i++){
+          ctx.beginPath(); ctx.moveTo(i*CELL+.5,0); ctx.lineTo(i*CELL+.5,SIZE); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(0,i*CELL+.5); ctx.lineTo(SIZE,i*CELL+.5); ctx.stroke();
+        }
+        ctx.globalAlpha=1;
+        /* food: open marker */
+        ctx.strokeStyle=I; ctx.lineWidth=2;
+        ctx.beginPath();
+        ctx.arc(food.x*CELL+CELL/2, food.y*CELL+CELL/2, CELL/2-5, 0, Math.PI*2);
+        ctx.stroke();
+        /* snake: solid black */
+        ctx.fillStyle=I;
+        snake.forEach(function(s,i){
+          ctx.fillRect(s.x*CELL+2, s.y*CELL+2, CELL-4, CELL-4);
+        });
+      }
+      function tick(){
+        dir=nextDir;
+        var head={x:snake[0].x+dir.x, y:snake[0].y+dir.y};
+        if(head.x<0||head.y<0||head.x>=N||head.y>=N){ return over(); }
+        if(snake.some(function(s){return s.x===head.x&&s.y===head.y;})){ return over(); }
+        snake.unshift(head);
+        if(head.x===food.x&&head.y===food.y){
+          score++; setScore(score);
+          var b=bestVal('streak'); if(score>b){ setBest('streak',score); setMeta('Best',score); }
+          food=placeFood();
+          step=Math.max(60, baseStep - score*4); /* gentle speed ramp */
+        } else snake.pop();
+        draw();
+      }
+      function over(){
+        dead=true; cancelAnimationFrame(raf);
+        showOverlay('Broken','The streak ended.','You reached '+score+'. Best run holds at '+bestVal('streak')+'. Start another.');
+      }
+      function loop(ts){
+        if(dead) return;
+        if(!last) last=ts;
+        acc += ts-last; last=ts;
+        while(acc>=step){ acc-=step; if(dead)break; tick(); }
+        raf=requestAnimationFrame(loop);
+      }
+      function setDir(d){
+        var nd = d==='up'?{x:0,y:-1}:d==='down'?{x:0,y:1}:d==='left'?{x:-1,y:0}:{x:1,y:0};
+        if(nd.x===-dir.x && nd.y===-dir.y) return; /* no reverse */
+        nextDir=nd;
+      }
+      setScore(0); draw(); raf=requestAnimationFrame(loop);
+
+      keyHandler=function(e){
+        var k=e.key.toLowerCase(), d=null;
+        if(k==='arrowup'||k==='w')d='up';
+        else if(k==='arrowdown'||k==='s')d='down';
+        else if(k==='arrowleft'||k==='a')d='left';
+        else if(k==='arrowright'||k==='d')d='right';
+        if(d){ e.preventDefault(); setDir(d); }
+      };
+      document.addEventListener('keydown', keyHandler);
+      var pad=$('.dpad'); function padClick(e){ var b=e.target.closest('[data-d]'); if(b) setDir(b.getAttribute('data-d')); }
+      pad.addEventListener('click', padClick);
+      var detach=attachSwipe(board, setDir);
+      teardown=function(){ dead=true; cancelAnimationFrame(raf); pad.removeEventListener('click',padClick); detach(); };
+    }
+
+    /* ========================================================
+       GAME 3 — RECALL (memory match)
+       ======================================================== */
+    var RECALL_FACES = ['📐','🧬','🥐','🎭','📚','🏃','✏️','🎒'];
+    function startRecall(){
+      var board=$('#stage-board');
+      board.innerHTML='<div class="recall" id="recall-grid"></div>';
+      var grid=$('#recall-grid');
+      var deck = RECALL_FACES.concat(RECALL_FACES);
+      for(var i=deck.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=deck[i]; deck[i]=deck[j]; deck[j]=t; }
+      var moves=0, matched=0, lock=false, first=null, startTime=Date.now(), timer=0;
+      setScore(0); /* score = moves */
+      $('#stage-meta-label').textContent='Best';
+      setMeta('Best', bestVal('recall') ? bestVal('recall')+' mv' : '—');
+      setHint('Click two cards · match all eight pairs in the fewest moves');
+
+      timer=setInterval(function(){
+        var s=Math.floor((Date.now()-startTime)/1000);
+        setHint('Time '+Math.floor(s/60)+':'+('0'+(s%60)).slice(-2)+' · pairs '+matched+' of 8');
+      },1000);
+
+      var cards=[];
+      deck.forEach(function(face,idx){
+        var card=el('div','rcard');
+        card.setAttribute('data-i',idx); card.setAttribute('data-face',face);
+        card.setAttribute('role','button'); card.setAttribute('tabindex','0');
+        card.innerHTML='<div class="rcard__inner">'+
+          '<div class="rcard__face rcard__back">SGY</div>'+
+          '<div class="rcard__face rcard__front">'+face+'</div></div>';
+        grid.appendChild(card); cards.push(card);
+      });
+
+      function flip(card){
+        if(lock || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+        card.classList.add('flipped');
+        if(!first){ first=card; return; }
+        moves++; setScore(moves);
+        var second=card;
+        if(first.getAttribute('data-face')===second.getAttribute('data-face')){
+          first.classList.add('matched'); second.classList.add('matched');
+          first=null; matched++;
+          if(matched===8) win();
+        } else {
+          lock=true; var a=first, b=second; first=null;
+          setTimeout(function(){ a.classList.remove('flipped'); b.classList.remove('flipped'); lock=false; }, 700);
+        }
+      }
+      function win(){
+        clearInterval(timer);
+        var s=Math.floor((Date.now()-startTime)/1000);
+        var prev=bestVal('recall');
+        var isBest = !prev || moves<prev;
+        if(isBest){ setBest('recall', moves); setMeta('Best', moves+' mv'); }
+        showOverlay('Cleared',
+          'All eight pairs.',
+          'Done in '+moves+' moves and '+Math.floor(s/60)+':'+('0'+(s%60)).slice(-2)+'.'+
+          (isBest?' A new personal best.':' Best holds at '+prev+' moves.'));
+      }
+
+      function onClick(e){ var c=e.target.closest('.rcard'); if(c) flip(c); }
+      function onKey(e){ if(e.key==='Enter'||e.key===' '){ var c=e.target.closest('.rcard'); if(c){ e.preventDefault(); flip(c); } } }
+      grid.addEventListener('click', onClick);
+      grid.addEventListener('keydown', onKey);
+      teardown=function(){ clearInterval(timer); grid.removeEventListener('click',onClick); grid.removeEventListener('keydown',onKey); };
+    }
+
+    /* ---- wiring ---- */
+    function init(){
+      refreshHomeBests();
+      $('#arcade-home').addEventListener('click', function(e){
+        var card=e.target.closest('[data-game]'); if(card) openGame(card.getAttribute('data-game'));
+      });
+      $('#arcade-home').addEventListener('keydown', function(e){
+        if(e.key==='Enter'||e.key===' '){ var card=e.target.closest('[data-game]'); if(card){ e.preventDefault(); openGame(card.getAttribute('data-game')); } }
+      });
+      $('#arcade-back').addEventListener('click', backToHome);
+      $('#arcade-restart').addEventListener('click', restartActive);
+      $('#overlay-again').addEventListener('click', restartActive);
+    }
+    /* stop any running game when leaving the arcade screen */
+    function onLeave(){ if(active){ stopActive(); $('#arcade-stage').hidden=true; $('#arcade-home').hidden=false; } }
+
+    return { init:init, onLeave:onLeave };
+  })();
+
+  /* ============================================================
      BOOT
      ============================================================ */
   applyBodyClasses();
@@ -2283,6 +2984,7 @@
   renderBulletins();
   renderMaterials();
   renderSettings();
+  ARCADE.init();
   showScreen(state.screen);
 })();
 </script>

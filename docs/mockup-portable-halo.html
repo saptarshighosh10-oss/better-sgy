@@ -133,20 +133,21 @@
      COLLAPSED PILL — fixed bottom-right, always visible
      ============================================================ */
   .pill {
-    position: fixed; right: 22px; bottom: 22px; z-index: 50;
+    position: fixed; left: 0; top: 0; z-index: 50;
     display: flex; align-items: center; gap: 11px;
     padding: 9px 15px 9px 11px;
     background: var(--paper);
     border: 1px solid var(--hair-strong);
     border-radius: 999px;
     box-shadow: var(--shadow-pill);
-    cursor: pointer;
+    cursor: grab;
     font-family: inherit;
-    transition: transform 200ms cubic-bezier(.2,.7,.3,1),
-                opacity 200ms ease, box-shadow 200ms ease;
+    touch-action: none;
+    transition: opacity 200ms ease, box-shadow 200ms ease;
   }
-  .pill:hover { transform: translateY(-1px); box-shadow: 0 14px 40px rgba(20,20,15,0.20), 0 1px 4px rgba(20,20,15,0.08); }
-  .pill:active { transform: translateY(0); }
+  .pill:hover { box-shadow: 0 14px 40px rgba(20,20,15,0.20), 0 1px 4px rgba(20,20,15,0.08); }
+  .pill.dragging { cursor: grabbing; transition: none; }
+  body.dragging, body.dragging * { user-select: none !important; -webkit-user-select: none !important; }
   body.open .pill { opacity: 0; pointer-events: none; transform: translateY(6px) scale(0.98); }
 
   .pill .mark { width: 22px; height: 22px; flex: none; display: block; }
@@ -171,17 +172,37 @@
      EXPANDED PANEL — slides in from the right
      ============================================================ */
   .panel {
-    position: fixed; top: 0; right: 0; bottom: 0; z-index: 60;
-    width: var(--panel-w); max-width: 92vw;
+    position: fixed; left: 0; top: 0; z-index: 60;
+    width: var(--panel-w); max-width: 94vw;
+    height: 520px; max-height: 92vh;
     background: var(--paper);
-    border-left: 1px solid var(--hair);
+    border: 1px solid var(--hair);
+    border-radius: var(--radius);
     box-shadow: var(--shadow);
     display: flex; flex-direction: column;
-    transform: translateX(calc(100% + 12px));
-    transition: transform 320ms cubic-bezier(.22,.61,.30,1);
     overflow: hidden;
+    opacity: 0; pointer-events: none;
+    transform: scale(0.97);
+    transform-origin: bottom right;
+    transition: opacity 200ms ease, transform 220ms cubic-bezier(.22,.61,.30,1);
   }
-  body.open .panel { transform: translateX(0); }
+  body.open .panel { opacity: 1; pointer-events: auto; transform: scale(1); }
+  .panel.dragging, .panel.resizing { transition: none; }
+  .panel.dragging .p-head { cursor: grabbing; }
+
+  /* resize handle (bottom-right corner) */
+  .p-resize {
+    position: absolute; right: 0; bottom: 0; z-index: 70;
+    width: 18px; height: 18px; cursor: nwse-resize;
+    touch-action: none;
+  }
+  .p-resize::after {
+    content: ""; position: absolute; right: 4px; bottom: 4px;
+    width: 8px; height: 8px;
+    border-right: 1.5px solid var(--ink-4);
+    border-bottom: 1.5px solid var(--ink-4);
+    opacity: 0.7;
+  }
 
   .panel-scroll { overflow-y: auto; flex: 1; }
   .panel-scroll::-webkit-scrollbar { width: 9px; }
@@ -193,7 +214,9 @@
     padding: 16px 16px 16px 20px;
     border-bottom: 1px solid var(--hair);
     flex: none;
+    cursor: grab; touch-action: none; user-select: none;
   }
+  .p-head:active { cursor: grabbing; }
   .p-head .mark { width: 20px; height: 20px; flex: none; }
   .p-head .mark circle[stroke] { stroke: var(--ink); }
   .p-head .mark circle[fill]   { fill: var(--ink); }
@@ -467,6 +490,7 @@
       </span>
       <span>Updated today</span>
     </div>
+    <div class="p-resize" id="pResize" aria-hidden="true" title="Drag to resize"></div>
   </aside>
 
   <script>
@@ -610,25 +634,216 @@
       if (b) selectTab(b.getAttribute("data-id"));
     });
 
+    // ============================================================
+    // DRAG / RESIZE / ANCHOR LAYER
+    // The pill can be moved anywhere; clicking it opens the panel
+    // anchored near the pill (flipped to stay on screen). The panel
+    // is draggable by its header and resizable from the corner.
+    // Position + size + open + active tab persist in localStorage.
+    // ============================================================
+    var pill = $("#pill"), panel = $("#panel"), head = $(".p-head", panel), resize = $("#pResize");
+    var GAP = 12; // viewport edge margin
+    var MINW = 300, MINH = 360, MAXW = 560, MAXH = 760;
+
+    function lsGet(k, d) {
+      try { var v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); }
+      catch (e) { return d; }
+    }
+    function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+
+    function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+    function vw() { return document.documentElement.clientWidth; }
+    function vh() { return document.documentElement.clientHeight; }
+
+    // ---------- pill position ----------
+    var pillPos = lsGet("halo.widget.pillPos", null); // {x,y} or null -> default bottom-right
+
+    function defaultPillPos() {
+      var r = pill.getBoundingClientRect();
+      return { x: vw() - r.width - 22, y: vh() - r.height - 22 };
+    }
+    function clampPill(p) {
+      var r = pill.getBoundingClientRect();
+      return {
+        x: clamp(p.x, GAP, vw() - r.width - GAP),
+        y: clamp(p.y, GAP, vh() - r.height - GAP)
+      };
+    }
+    function placePill() {
+      if (!pillPos) pillPos = defaultPillPos();
+      pillPos = clampPill(pillPos);
+      pill.style.left = pillPos.x + "px";
+      pill.style.top = pillPos.y + "px";
+    }
+
+    // ---------- panel size + position ----------
+    var panelSize = lsGet("halo.widget.panelSize", { w: 384, h: 520 });
+    panelSize.w = clamp(panelSize.w, MINW, Math.min(MAXW, vw() - GAP * 2));
+    panelSize.h = clamp(panelSize.h, MINH, Math.min(MAXH, vh() - GAP * 2));
+    var panelPos = lsGet("halo.widget.panelPos", null); // {x,y} or null -> auto-anchor
+
+    function applyPanelSize() {
+      panel.style.width = panelSize.w + "px";
+      panel.style.height = panelSize.h + "px";
+    }
+    function clampPanel(p) {
+      return {
+        x: clamp(p.x, GAP, Math.max(GAP, vw() - panelSize.w - GAP)),
+        y: clamp(p.y, GAP, Math.max(GAP, vh() - panelSize.h - GAP))
+      };
+    }
+    // anchor the panel next to the pill, flipping so it stays on screen
+    function anchorToPill() {
+      var r = pill.getBoundingClientRect();
+      var x, y;
+      // prefer above the pill (panel grows upward from pill), else below
+      if (r.top - panelSize.h - 10 >= GAP) y = r.top - panelSize.h - 10;
+      else if (r.bottom + 10 + panelSize.h <= vh() - GAP) y = r.bottom + 10;
+      else y = vh() - panelSize.h - GAP;
+      // prefer right-aligned to pill, else left-aligned
+      if (r.right - panelSize.w >= GAP) x = r.right - panelSize.w;
+      else if (r.left + panelSize.w <= vw() - GAP) x = r.left;
+      else x = vw() - panelSize.w - GAP;
+      return clampPanel({ x: x, y: y });
+    }
+    function placePanel(pos) {
+      var p = clampPanel(pos);
+      panel.style.left = p.x + "px";
+      panel.style.top = p.y + "px";
+      return p;
+    }
+
     // ---------- open / collapse ----------
     function open() {
+      applyPanelSize();
+      var pos = panelPos ? clampPanel(panelPos) : anchorToPill();
+      placePanel(pos);
+      // transform-origin toward the pill for a natural grow
+      var r = pill.getBoundingClientRect();
+      panel.style.transformOrigin =
+        (r.left < pos.x ? "left" : "right") + " " +
+        (r.top < pos.y ? "top" : "bottom");
       document.body.classList.add("open");
-      $("#panel").setAttribute("aria-hidden", "false");
+      panel.setAttribute("aria-hidden", "false");
       $("#scrim").setAttribute("aria-hidden", "false");
-      try { localStorage.setItem("halo.widget.open", "1"); } catch (e) {}
+      lsSet("halo.widget.open", 1);
     }
     function collapse() {
       document.body.classList.remove("open");
-      $("#panel").setAttribute("aria-hidden", "true");
+      panel.setAttribute("aria-hidden", "true");
       $("#scrim").setAttribute("aria-hidden", "true");
-      try { localStorage.setItem("halo.widget.open", "0"); } catch (e) {}
+      lsSet("halo.widget.open", 0);
     }
 
-    $("#pill").addEventListener("click", open);
     $("#closeBtn").addEventListener("click", collapse);
     $("#scrim").addEventListener("click", collapse);
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && document.body.classList.contains("open")) collapse();
+    });
+
+    // ---------- generic pointer drag ----------
+    // onMove(dx,dy,ev); returns true on threshold-cross handled in caller.
+    function makeDrag(target, opts) {
+      target.addEventListener("pointerdown", function (e) {
+        if (opts.ignore && opts.ignore(e)) return;
+        if (e.button != null && e.button !== 0) return;
+        var startX = e.clientX, startY = e.clientY;
+        var moved = false;
+        var THRESH = 4;
+        try { target.setPointerCapture(e.pointerId); } catch (err) {}
+        if (opts.onStart) opts.onStart(e);
+        document.body.classList.add("dragging");
+
+        function move(ev) {
+          var dx = ev.clientX - startX, dy = ev.clientY - startY;
+          if (!moved && (Math.abs(dx) > THRESH || Math.abs(dy) > THRESH)) {
+            moved = true;
+            if (opts.onFirstMove) opts.onFirstMove();
+          }
+          if (moved) { ev.preventDefault(); opts.onMove(dx, dy, ev); }
+        }
+        function up(ev) {
+          target.removeEventListener("pointermove", move);
+          target.removeEventListener("pointerup", up);
+          target.removeEventListener("pointercancel", up);
+          document.body.classList.remove("dragging");
+          try { target.releasePointerCapture(ev.pointerId); } catch (err) {}
+          if (opts.onEnd) opts.onEnd(moved, ev);
+        }
+        target.addEventListener("pointermove", move);
+        target.addEventListener("pointerup", up);
+        target.addEventListener("pointercancel", up);
+      });
+    }
+
+    // ---------- pill: drag to move, click (no drag) to open ----------
+    var pillStart;
+    makeDrag(pill, {
+      onStart: function () { pillStart = { x: pillPos.x, y: pillPos.y }; },
+      onFirstMove: function () { pill.classList.add("dragging"); },
+      onMove: function (dx, dy) {
+        pillPos = clampPill({ x: pillStart.x + dx, y: pillStart.y + dy });
+        pill.style.left = pillPos.x + "px";
+        pill.style.top = pillPos.y + "px";
+      },
+      onEnd: function (moved) {
+        pill.classList.remove("dragging");
+        if (moved) { lsSet("halo.widget.pillPos", pillPos); }
+        else { open(); } // a clean click opens
+      }
+    });
+
+    // ---------- panel: drag by header ----------
+    var panelStart;
+    makeDrag(head, {
+      ignore: function (e) { return !!e.target.closest(".x"); }, // close button still clickable
+      onStart: function () {
+        var r = panel.getBoundingClientRect();
+        panelStart = { x: r.left, y: r.top };
+      },
+      onFirstMove: function () { panel.classList.add("dragging"); },
+      onMove: function (dx, dy) {
+        panelPos = placePanel({ x: panelStart.x + dx, y: panelStart.y + dy });
+      },
+      onEnd: function (moved) {
+        panel.classList.remove("dragging");
+        if (moved && panelPos) lsSet("halo.widget.panelPos", panelPos);
+      }
+    });
+
+    // ---------- panel: resize from corner ----------
+    var sizeStart, posStart;
+    makeDrag(resize, {
+      onStart: function () {
+        sizeStart = { w: panelSize.w, h: panelSize.h };
+        var r = panel.getBoundingClientRect();
+        posStart = { x: r.left, y: r.top };
+      },
+      onFirstMove: function () { panel.classList.add("resizing"); },
+      onMove: function (dx, dy) {
+        var maxW = Math.min(MAXW, vw() - posStart.x - GAP);
+        var maxH = Math.min(MAXH, vh() - posStart.y - GAP);
+        panelSize.w = clamp(sizeStart.w + dx, MINW, maxW);
+        panelSize.h = clamp(sizeStart.h + dy, MINH, maxH);
+        applyPanelSize();
+      },
+      onEnd: function (moved) {
+        panel.classList.remove("resizing");
+        if (moved) lsSet("halo.widget.panelSize", panelSize);
+      }
+    });
+
+    // keep everything on-screen when the window resizes
+    window.addEventListener("resize", function () {
+      placePill();
+      panelSize.w = clamp(panelSize.w, MINW, Math.min(MAXW, vw() - GAP * 2));
+      panelSize.h = clamp(panelSize.h, MINH, Math.min(MAXH, vh() - GAP * 2));
+      applyPanelSize();
+      if (document.body.classList.contains("open")) {
+        var pos = panelPos ? clampPanel(panelPos) : anchorToPill();
+        if (panelPos) panelPos = pos;
+        placePanel(pos);
+      }
     });
 
     // ---------- init ----------
@@ -640,10 +855,12 @@
     if (!HIST[savedCourse]) savedCourse = "alg";
     selectTab(savedCourse);
 
+    placePill();
+    applyPanelSize();
+
     // restore open state quietly (default collapsed)
-    var wasOpen = "0";
-    try { wasOpen = localStorage.getItem("halo.widget.open") || "0"; } catch (e) {}
-    if (wasOpen === "1") open();
+    var wasOpen = lsGet("halo.widget.open", 0);
+    if (wasOpen === 1 || wasOpen === "1") open();
   })();
   </script>
 </body>

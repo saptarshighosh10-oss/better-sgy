@@ -90,6 +90,34 @@ function updateScrapeResult(partial: Partial<ScrapeResult>) {
   rerender();
 }
 
+// ── Tab favicon — swap Schoology's for the Better SGY mark while the overlay is on ──
+const SGY_FAVICON =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='sgy' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%237c6cfc'/%3E%3Cstop offset='1' stop-color='%235b3df0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23sgy)'/%3E%3Cpath d='M9 20.5L16 11L23 20.5' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E";
+let savedFaviconHrefs: string[] | null = null;
+function applySgyFavicon() {
+  try {
+    const links = Array.from(document.querySelectorAll<HTMLLinkElement>('link[rel~="icon"]'));
+    if (savedFaviconHrefs === null) savedFaviconHrefs = links.map((l) => l.getAttribute('href') || '');
+    links.forEach((l) => { if (l.id !== 'bs-favicon') l.remove(); });
+    let ours = document.getElementById('bs-favicon') as HTMLLinkElement | null;
+    if (!ours) { ours = document.createElement('link'); ours.id = 'bs-favicon'; ours.rel = 'icon'; document.head.appendChild(ours); }
+    ours.href = SGY_FAVICON;
+  } catch { /* favicon swap is cosmetic — never block the overlay */ }
+}
+function restoreFavicon() {
+  try {
+    document.getElementById('bs-favicon')?.remove();
+    if (savedFaviconHrefs && savedFaviconHrefs.length) {
+      // re-assert Schoology's own icon(s)
+      if (!document.querySelector('link[rel~="icon"]')) {
+        for (const href of savedFaviconHrefs) {
+          const l = document.createElement('link'); l.rel = 'icon'; if (href) l.href = href; document.head.appendChild(l);
+        }
+      }
+    }
+  } catch { /* ignore */ }
+}
+
 export default defineContentScript({
   matches: ['https://*.schoology.com/*'],
   runAt: 'document_idle',
@@ -159,6 +187,9 @@ export default defineContentScript({
       // ── Hide native Schoology UI ───────────────────────────────
       const hiddenCount = hideNativeUI();
       console.log(`[BS] Hidden ${hiddenCount} native container(s)`);
+
+      // Swap the tab favicon to the Better SGY mark while the overlay is on.
+      applySgyFavicon();
     }
 
     // ── Phase 1: Scrape trigger ────────────────────────────────
@@ -377,6 +408,7 @@ async function runBackgroundScrape() {
       reactRootRef = ReactDOM.createRoot(fresh);
       rerender();
     }
+    applySgyFavicon();
     console.log('[BS] Switched to Better SGY overlay — reactivated');
   } else {
     overlayActive = false;
@@ -387,6 +419,7 @@ async function runBackgroundScrape() {
     if (host) host.style.display = 'none';
     if (btn) btn.style.display = 'flex';
     try { restoreNativeUI(); } catch (e) { console.warn('[BS] restoreNativeUI failed', e); }
+    restoreFavicon();   // give Schoology its own tab icon back on native
     // Fully deactivate: unmount React so NOTHING runs (no polling, no animations,
     // no timers) until the user presses "Show Better SGY". Defer one tick —
     // this is triggered from a button INSIDE React, and sync self-unmount glitches.

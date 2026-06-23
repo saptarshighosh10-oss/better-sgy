@@ -1,0 +1,2914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Better SGY · HALO</title>
+<style>
+  /* ============================================================
+     HALO — calm, minimal, signal-only.
+     Color is reserved for meaning: green = upward trend,
+     red = missing work. Everything else is quiet grayscale.
+     ============================================================ */
+
+  :root {
+    --paper:        #fcfcfb;
+    --paper-2:      #f6f6f4;
+    --paper-3:      #f0f0ed;
+    --ink:          #14140f;
+    --ink-2:        #3a3a35;
+    --ink-3:        #6c6c64;
+    --ink-4:        #9a9a91;
+    --hair:         rgba(0,0,0,0.07);
+    --hair-strong:  rgba(0,0,0,0.11);
+
+    --signal-up:    #2f8f5b;
+    --signal-up-soft: rgba(47,143,91,0.10);
+    --signal-miss:  #c0392b;
+    --signal-miss-soft: rgba(192,57,43,0.08);
+
+    --radius:       14px;
+    --radius-sm:    9px;
+    --sidebar:      240px;
+    --content-max:  820px;
+
+    /* toast keeps an inverted (dark) surface in light mode */
+    --toast-bg:     var(--ink);
+    --toast-fg:     var(--paper);
+    --toast-fg-2:   rgba(252,252,251,0.78);
+    --toast-fg-3:   rgba(252,252,251,0.55);
+    --knob-shadow:  rgba(0,0,0,0.15);
+    --brand-ink:    #14140f;
+    --brand-mute:   #9a9a91;
+    --spark-mute:   #9a9a91;
+  }
+
+  /* ============================================================
+     DARK THEME — near-black paper, light ink, same strict
+     monochrome + signal-only-color discipline. Signal greens/reds
+     are nudged brighter so they stay legible on dark.
+     ============================================================ */
+  html[data-theme="dark"] {
+    --paper:        #0e0e0c;
+    --paper-2:      #161614;
+    --paper-3:      #201f1c;
+    --ink:          #f2f1ec;
+    --ink-2:        #cfcec8;
+    --ink-3:        #9a9a92;
+    --ink-4:        #6e6e66;
+    --hair:         rgba(255,255,255,0.09);
+    --hair-strong:  rgba(255,255,255,0.16);
+
+    --signal-up:        #4cc285;
+    --signal-up-soft:   rgba(76,194,133,0.14);
+    --signal-miss:      #e5675a;
+    --signal-miss-soft: rgba(229,103,90,0.14);
+
+    /* toast surface flips to a light-on-dark card that reads in dark */
+    --toast-bg:     #232320;
+    --toast-fg:     #f2f1ec;
+    --toast-fg-2:   rgba(242,241,236,0.74);
+    --toast-fg-3:   rgba(242,241,236,0.50);
+    --knob-shadow:  rgba(0,0,0,0.5);
+    --brand-ink:    #f2f1ec;
+    --brand-mute:   #6e6e66;
+    --spark-mute:   #6e6e66;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "cv11", "ss01", "tnum";
+  }
+  body {
+    line-height: 1.5;
+    letter-spacing: -0.006em;
+  }
+
+  /* ============================================================
+     APP SHELL — quiet sidebar + content
+     ============================================================ */
+  .app {
+    display: grid;
+    grid-template-columns: var(--sidebar) 1fr;
+    min-height: 100vh;
+  }
+
+  /* ---------- sidebar ---------- */
+  .sidebar {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: 100vh;
+    border-right: 1px solid var(--hair);
+    background: var(--paper);
+    display: flex;
+    flex-direction: column;
+    padding: 26px 16px 18px;
+  }
+  .side-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 8px 22px;
+  }
+  .side-brand .mark { width: 22px; height: 22px; display: block; }
+  .side-brand .mark circle[stroke] { stroke: var(--brand-ink); }
+  .side-brand .mark circle[fill] { fill: var(--brand-ink); }
+  .side-foot .dotmark circle[stroke] { stroke: var(--brand-mute); }
+  .side-foot .dotmark circle[fill] { fill: var(--brand-mute); }
+  .side-brand .name {
+    font-size: 13px; font-weight: 600;
+    letter-spacing: 0.01em; color: var(--ink);
+  }
+
+  /* student identity */
+  .side-id {
+    margin: 0 8px 20px;
+    padding: 12px;
+    border: 1px solid var(--hair);
+    border-radius: var(--radius-sm);
+    background: var(--paper-2);
+  }
+  .side-id .who {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .side-id .avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--ink); color: var(--paper);
+    display: grid; place-items: center;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.02em;
+    flex: none;
+  }
+  .side-id .nm {
+    font-size: 13px; font-weight: 600; color: var(--ink);
+    line-height: 1.25;
+  }
+  .side-id .meta {
+    font-size: 11px; color: var(--ink-4); font-weight: 450;
+    margin-top: 1px;
+  }
+  .side-id .ctx {
+    margin-top: 10px; padding-top: 10px;
+    border-top: 1px solid var(--hair);
+    font-size: 11px; color: var(--ink-3); font-weight: 450;
+    letter-spacing: 0.01em;
+  }
+
+  /* nav */
+  .nav { display: flex; flex-direction: column; gap: 2px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 11px;
+    padding: 9px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 13.5px; font-weight: 500;
+    color: var(--ink-3);
+    cursor: pointer;
+    user-select: none;
+    transition: background 130ms ease, color 130ms ease;
+    position: relative;
+  }
+  .nav-item svg { width: 17px; height: 17px; flex: none; opacity: 0.85; }
+  .nav-item:hover { background: var(--paper-2); color: var(--ink-2); }
+  .nav-item .badge {
+    margin-left: auto;
+    font-size: 11px; font-weight: 600;
+    color: var(--signal-miss);
+    background: var(--signal-miss-soft);
+    border: 1px solid rgba(192,57,43,0.16);
+    border-radius: 999px;
+    padding: 1px 7px;
+    letter-spacing: 0.01em;
+  }
+  .nav-item.active {
+    background: var(--paper-3);
+    color: var(--ink);
+  }
+  .nav-item.active svg { opacity: 1; }
+
+  .side-foot {
+    margin-top: auto;
+    padding: 14px 10px 4px;
+    border-top: 1px solid var(--hair);
+    font-size: 11px; color: var(--ink-4); font-weight: 450;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .side-foot .dotmark { width: 13px; height: 13px; opacity: 0.6; }
+
+  /* ---------- content ---------- */
+  .content {
+    min-width: 0;
+    background: var(--paper);
+  }
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  .canvas {
+    max-width: var(--content-max);
+    margin: 0 auto;
+    padding: 56px 40px 110px;
+  }
+
+  /* page header (shared) */
+  .page-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 16px; margin-bottom: 34px;
+  }
+  .page-head .ptitle {
+    font-size: 22px; font-weight: 600;
+    letter-spacing: -0.022em; color: var(--ink); margin: 0;
+  }
+  .page-head .psub {
+    font-size: 13px; color: var(--ink-4); font-weight: 450;
+  }
+
+  /* ============================================================
+     SHARED COMPONENTS
+     ============================================================ */
+  .eyebrow {
+    font-size: 12px; font-weight: 500; letter-spacing: 0.04em;
+    color: var(--ink-4);
+  }
+  .section-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 16px; margin-top: 44px;
+  }
+  .section-head:first-of-type { margin-top: 0; }
+  .section-head h2 {
+    font-size: 15px; font-weight: 600; letter-spacing: -0.01em;
+    color: var(--ink); margin: 0;
+  }
+  .section-head .count { font-size: 13px; color: var(--ink-4); font-weight: 450; }
+
+  .panel {
+    border: 1px solid var(--hair);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--paper);
+  }
+
+  /* flag — only red in lists */
+  .flag {
+    display: inline-flex; align-items: center; gap: 5px;
+    margin-left: 9px;
+    padding: 2px 8px 2px 7px;
+    border-radius: 999px;
+    background: var(--signal-miss-soft);
+    border: 1px solid rgba(192,57,43,0.16);
+    color: var(--signal-miss);
+    font-size: 11px; font-weight: 600; letter-spacing: 0.01em;
+    vertical-align: middle;
+  }
+  .flag .fdot { width: 5px; height: 5px; border-radius: 50%; background: var(--signal-miss); }
+
+  .trend {
+    font-size: 12px; font-weight: 500; color: var(--ink-4);
+    letter-spacing: 0.005em; white-space: nowrap;
+  }
+  .trend.up { color: var(--signal-up); }
+
+  .spark { width: 84px; height: 28px; flex: none; opacity: 0.92; }
+  .spark svg { display: block; }
+
+  /* generic small button / chip */
+  .btn {
+    appearance: none; cursor: pointer;
+    font-family: inherit; font-size: 12.5px; font-weight: 500;
+    color: var(--ink-2);
+    background: var(--paper);
+    border: 1px solid var(--hair-strong);
+    border-radius: var(--radius-sm);
+    padding: 7px 13px;
+    transition: background 130ms ease, border-color 130ms ease;
+  }
+  .btn:hover { background: var(--paper-2); }
+  .btn.solid { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .btn.solid:hover { background: #000; }
+  .icon-btn {
+    appearance: none; cursor: pointer; background: var(--paper);
+    border: 1px solid var(--hair); border-radius: var(--radius-sm);
+    width: 32px; height: 32px; display: grid; place-items: center;
+    color: var(--ink-3); transition: background 130ms ease, color 130ms ease;
+  }
+  .icon-btn:hover { background: var(--paper-2); color: var(--ink); }
+  .icon-btn svg { width: 16px; height: 16px; }
+
+  /* search field */
+  .search {
+    display: flex; align-items: center; gap: 9px;
+    border: 1px solid var(--hair-strong);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px; background: var(--paper);
+    flex: 1; min-width: 0;
+  }
+  .search svg { width: 15px; height: 15px; color: var(--ink-4); flex: none; }
+  .search input {
+    border: none; outline: none; background: transparent;
+    font-family: inherit; font-size: 13px; color: var(--ink);
+    width: 100%; letter-spacing: -0.005em;
+  }
+  .search input::placeholder { color: var(--ink-4); }
+
+  .filterbar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .seg {
+    display: inline-flex; border: 1px solid var(--hair-strong);
+    border-radius: var(--radius-sm); overflow: hidden; flex: none;
+  }
+  .seg button {
+    appearance: none; cursor: pointer; font-family: inherit;
+    font-size: 12.5px; font-weight: 500; color: var(--ink-3);
+    background: var(--paper); border: none; padding: 7px 13px;
+    border-right: 1px solid var(--hair);
+    transition: background 120ms ease, color 120ms ease;
+  }
+  .seg button:last-child { border-right: none; }
+  .seg button:hover { background: var(--paper-2); }
+  .seg button.on { background: var(--paper-3); color: var(--ink); }
+
+  .status-pill {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+    padding: 2px 9px; border-radius: 999px;
+    border: 1px solid var(--hair-strong); color: var(--ink-3);
+    background: var(--paper-2); white-space: nowrap;
+  }
+  .status-pill.miss {
+    color: var(--signal-miss); background: var(--signal-miss-soft);
+    border-color: rgba(192,57,43,0.16);
+  }
+  .status-pill.due {
+    color: var(--ink); background: var(--paper-3); border-color: var(--hair-strong);
+  }
+  .status-pill.done { color: var(--ink-4); }
+
+  .course-tag {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+    text-transform: uppercase; color: var(--ink-4);
+  }
+
+  /* ============================================================
+     1 · OVERVIEW
+     ============================================================ */
+  .ov-hero { margin-bottom: 40px; }
+  .ov-hero .lede {
+    font-size: 13px; font-weight: 500; color: var(--ink-3);
+    letter-spacing: 0.01em; margin: 0 0 18px;
+  }
+  .ov-hero .grade { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  .ov-hero .grade .num {
+    font-size: 72px; font-weight: 600; letter-spacing: -0.04em;
+    line-height: 0.95; color: var(--ink);
+  }
+  .ov-hero .grade .num .pct {
+    font-size: 32px; font-weight: 500; color: var(--ink-4); letter-spacing: -0.02em;
+  }
+  .ov-hero .grade .across {
+    font-size: 14px; color: var(--ink-3); font-weight: 450; padding-bottom: 8px;
+  }
+  .ov-hero .status {
+    margin-top: 20px; display: inline-flex; align-items: center; gap: 8px;
+    font-size: 14px; color: var(--ink-2); font-weight: 500;
+  }
+  .ov-hero .status .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--signal-up); box-shadow: 0 0 0 4px var(--signal-up-soft);
+  }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    border: 1px solid var(--hair); border-radius: var(--radius);
+    overflow: hidden; background: var(--paper); margin-bottom: 8px;
+  }
+  .stat { padding: 20px 20px 18px; border-right: 1px solid var(--hair); }
+  .stat:last-child { border-right: none; }
+  .stat .label {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--ink-4); margin-bottom: 11px;
+  }
+  .stat .value {
+    font-size: 25px; font-weight: 600; letter-spacing: -0.02em;
+    color: var(--ink); line-height: 1.05;
+  }
+  .stat .value.miss { color: var(--signal-miss); }
+  .stat .sub { margin-top: 6px; font-size: 12px; color: var(--ink-3); font-weight: 450; }
+
+  .course {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    align-items: center; gap: 24px;
+    padding: 17px 22px;
+    border-bottom: 1px solid var(--hair);
+    transition: background 140ms ease;
+  }
+  .course:last-child { border-bottom: none; }
+  .course:hover { background: var(--paper-2); }
+  .course .who { min-width: 0; }
+  .course .cname {
+    display: flex; align-items: center; gap: 9px;
+    font-size: 15px; font-weight: 550; color: var(--ink); letter-spacing: -0.012em;
+  }
+  .course .teacher {
+    display: block; margin-top: 4px;
+    font-size: 12.5px; color: var(--ink-3); font-weight: 450;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .course .trend { text-align: right; min-width: 78px; }
+  .course .gradecell { text-align: right; min-width: 86px; }
+  .gradecell .pct {
+    font-size: 15px; font-weight: 600; letter-spacing: -0.01em;
+    color: var(--ink); font-variant-numeric: tabular-nums;
+  }
+  .gradecell .letter { margin-top: 2px; font-size: 12px; font-weight: 500; color: var(--ink-4); }
+
+  .footnote {
+    margin-top: 24px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    font-size: 12px; color: var(--ink-4); font-weight: 450;
+  }
+  .footnote .key { display: inline-flex; align-items: center; gap: 6px; }
+  .footnote .swatch { width: 9px; height: 9px; border-radius: 50%; }
+  .footnote .swatch.up { background: var(--signal-up); }
+  .footnote .swatch.miss { background: var(--signal-miss); }
+  .footnote .sep { color: var(--hair-strong); }
+
+  /* ---------- line chart (shared, monochrome) ---------- */
+  .chart {
+    border: 1px solid var(--hair);
+    border-radius: var(--radius);
+    background: var(--paper);
+    padding: 20px 22px 16px;
+  }
+  .chart .chart-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 16px; margin-bottom: 14px;
+  }
+  .chart .chart-title {
+    font-size: 13px; font-weight: 600; letter-spacing: -0.008em; color: var(--ink);
+  }
+  .chart .chart-now {
+    font-size: 12.5px; font-weight: 500; color: var(--ink-3);
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .chart .chart-now.up { color: var(--signal-up); }
+  .chart svg { display: block; width: 100%; height: auto; }
+  .chart .chart-cap {
+    margin-top: 12px; font-size: 12px; color: var(--ink-4); font-weight: 450;
+    letter-spacing: 0.005em;
+  }
+  /* svg primitives */
+  .chart .axis     { stroke: var(--hair); stroke-width: 1; }
+  .chart .grid     { stroke: var(--hair); stroke-width: 1; }
+  .chart .ylab,
+  .chart .xlab     { fill: var(--ink-4); font-size: 11px; font-weight: 500;
+                     font-family: inherit; letter-spacing: 0.01em; }
+  .chart .line     { fill: none; stroke: var(--ink); stroke-width: 1.8;
+                     stroke-linecap: round; stroke-linejoin: round; }
+  .chart .ref      { fill: none; stroke: var(--ink-4); stroke-width: 1.2;
+                     stroke-linecap: round; stroke-linejoin: round; opacity: 0.32; }
+  .chart .endpt    { fill: var(--ink); }
+  .chart .seg-up   { stroke: var(--signal-up); }
+  .chart .endpt-up { fill: var(--signal-up); }
+  .chart .endpt-miss { fill: var(--signal-miss); }
+
+  .chart-legend {
+    margin-top: 14px; display: flex; flex-wrap: wrap; gap: 6px 16px;
+  }
+  .chart-legend .lk {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 12px; font-weight: 450; color: var(--ink-3); letter-spacing: 0.005em;
+  }
+  .chart-legend .lk.cur { color: var(--ink); font-weight: 550; }
+  .chart-legend .ldash { width: 14px; height: 0; border-top: 1.8px solid var(--ink-4); flex: none; opacity: 0.5; }
+  .chart-legend .lk.cur .ldash { border-top-color: var(--ink); opacity: 1; }
+  .chart-legend .ldot { width: 6px; height: 6px; border-radius: 50%; flex: none; }
+  .chart-legend .ldot.up { background: var(--signal-up); }
+  .chart-legend .ldot.miss { background: var(--signal-miss); }
+
+  /* ============================================================
+     2 · GRADES
+     ============================================================ */
+  .grades-layout { display: grid; grid-template-columns: 232px 1fr; gap: 24px; align-items: start; }
+  .course-rail { display: flex; flex-direction: column; gap: 2px; }
+  .rail-item {
+    display: block; width: 100%; text-align: left;
+    appearance: none; cursor: pointer; font-family: inherit;
+    background: transparent; border: 1px solid transparent;
+    border-radius: var(--radius-sm); padding: 11px 12px;
+    transition: background 130ms ease, border-color 130ms ease;
+  }
+  .rail-item:hover { background: var(--paper-2); }
+  .rail-item.on { background: var(--paper-3); border-color: var(--hair); }
+  .rail-item .rn {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 13.5px; font-weight: 550; color: var(--ink); letter-spacing: -0.01em;
+  }
+  .rail-item .rt {
+    display: block; margin-top: 4px; font-size: 12px; color: var(--ink-3); font-weight: 450;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .rail-item .rg {
+    margin-top: 3px; font-size: 12px; color: var(--ink-4); font-weight: 450;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .gb-snapshot {
+    display: flex; align-items: flex-end; justify-content: space-between; gap: 20px;
+    padding: 22px; border: 1px solid var(--hair); border-radius: var(--radius);
+    margin-bottom: 28px; flex-wrap: wrap;
+  }
+  .gb-snapshot .left .gbteacher { font-size: 12.5px; color: var(--ink-3); font-weight: 450; }
+  .gb-snapshot .left .gbgrade {
+    font-size: 44px; font-weight: 600; letter-spacing: -0.03em; color: var(--ink); line-height: 1;
+    margin-top: 6px;
+  }
+  .gb-snapshot .left .gbgrade .pct { font-size: 22px; color: var(--ink-4); font-weight: 500; }
+  .gb-snapshot .left .gbsub { font-size: 12.5px; color: var(--ink-3); font-weight: 450; margin-top: 6px; }
+
+  .cat-list { margin-bottom: 6px; }
+  .cat {
+    display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 18px;
+    padding: 15px 20px; border-bottom: 1px solid var(--hair);
+  }
+  .cat:last-child { border-bottom: none; }
+  .cat .cn { font-size: 13.5px; font-weight: 550; color: var(--ink); }
+  .cat .cw { font-size: 12px; color: var(--ink-4); font-weight: 450; margin-top: 2px; }
+  .cat .bar { width: 130px; height: 4px; border-radius: 999px; background: var(--paper-3); overflow: hidden; }
+  .cat .bar span { display: block; height: 100%; background: var(--ink-3); border-radius: 999px; }
+  .cat .cavg { font-size: 13.5px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; min-width: 54px; text-align: right; }
+
+  .arow {
+    display: grid; grid-template-columns: 1fr auto auto auto; align-items: center; gap: 20px;
+    padding: 14px 20px; border-bottom: 1px solid var(--hair);
+  }
+  .arow:last-child { border-bottom: none; }
+  .arow .an { font-size: 13.5px; font-weight: 500; color: var(--ink); }
+  .arow .an.miss { color: var(--signal-miss); }
+  .arow .ameta { font-size: 12px; color: var(--ink-4); font-weight: 450; margin-top: 2px; }
+  .arow .adate { font-size: 12.5px; color: var(--ink-3); font-weight: 450; white-space: nowrap; min-width: 70px; text-align: right; }
+  .arow .ascore { font-size: 13px; color: var(--ink-2); font-weight: 500; font-variant-numeric: tabular-nums; min-width: 56px; text-align: right; }
+  .arow .apct { font-size: 13.5px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; min-width: 54px; text-align: right; }
+  .arow .apct.miss { color: var(--signal-miss); }
+
+  /* ============================================================
+     3 · ASSIGNMENTS
+     ============================================================ */
+  .asn {
+    display: grid; grid-template-columns: 110px 1fr auto auto; align-items: center; gap: 18px;
+    padding: 15px 20px; border-bottom: 1px solid var(--hair);
+    transition: background 130ms ease;
+  }
+  .asn:last-child { border-bottom: none; }
+  .asn:hover { background: var(--paper-2); }
+  .asn .atitle { font-size: 14px; font-weight: 500; color: var(--ink); letter-spacing: -0.01em; }
+  .asn .atitle.miss { color: var(--signal-miss); }
+  .asn .adue { font-size: 12.5px; color: var(--ink-3); font-weight: 450; white-space: nowrap; min-width: 92px; text-align: right; }
+  .asn .adue.today { color: var(--ink); font-weight: 550; }
+
+  /* ============================================================
+     4 · CALENDAR
+     ============================================================ */
+  .cal-head { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .cal-head .month { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); }
+  .cal-head .spacer { flex: 1; }
+  .cal-grid { border: 1px solid var(--hair); border-radius: var(--radius); overflow: hidden; }
+  .cal-dow {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    border-bottom: 1px solid var(--hair); background: var(--paper-2);
+  }
+  .cal-dow div {
+    padding: 9px 10px; font-size: 11px; font-weight: 600; letter-spacing: 0.05em;
+    text-transform: uppercase; color: var(--ink-4); text-align: left;
+    border-right: 1px solid var(--hair);
+  }
+  .cal-dow div:last-child { border-right: none; }
+  .cal-weeks { display: grid; grid-template-rows: repeat(5, 1fr); }
+  .cal-row { display: grid; grid-template-columns: repeat(7, 1fr); border-bottom: 1px solid var(--hair); }
+  .cal-row:last-child { border-bottom: none; }
+  .cal-cell {
+    min-height: 92px; padding: 8px 9px; border-right: 1px solid var(--hair);
+    display: flex; flex-direction: column; gap: 5px;
+  }
+  .cal-cell:last-child { border-right: none; }
+  .cal-cell.out { background: var(--paper-2); }
+  .cal-cell .dnum { font-size: 12px; font-weight: 500; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .cal-cell.out .dnum { color: var(--ink-4); }
+  .cal-cell.today .dnum {
+    color: var(--paper); background: var(--ink); width: 22px; height: 22px;
+    border-radius: 50%; display: grid; place-items: center;
+  }
+  .cal-ev {
+    font-size: 11.5px; font-weight: 500; color: var(--ink-2); line-height: 1.25;
+    display: flex; align-items: center; gap: 6px;
+    overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+  }
+  .cal-ev .edot { width: 5px; height: 5px; border-radius: 50%; background: var(--ink-4); flex: none; }
+  .cal-ev .edot.miss { background: var(--signal-miss); }
+  .cal-ev .edot.up { background: var(--signal-up); }
+
+  /* ============================================================
+     5 · ANNOUNCEMENTS
+     ============================================================ */
+  .ann {
+    display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: start;
+    padding: 18px 20px; border-bottom: 1px solid var(--hair);
+    transition: background 130ms ease;
+  }
+  .ann:last-child { border-bottom: none; }
+  .ann:hover { background: var(--paper-2); }
+  .ann .av {
+    width: 30px; height: 30px; border-radius: 50%; flex: none;
+    background: var(--paper-3); color: var(--ink-2);
+    display: grid; place-items: center; font-size: 11px; font-weight: 600;
+  }
+  .ann .meta { font-size: 12px; color: var(--ink-4); font-weight: 450; margin-bottom: 4px; }
+  .ann .meta .who { color: var(--ink-3); font-weight: 500; }
+  .ann .atitle { font-size: 14px; font-weight: 600; color: var(--ink); letter-spacing: -0.01em; }
+  .ann .snip { font-size: 13px; color: var(--ink-3); font-weight: 450; margin-top: 3px; line-height: 1.45; }
+  .ann .star {
+    appearance: none; cursor: pointer; background: none; border: none; padding: 2px;
+    color: var(--ink-4); transition: color 130ms ease;
+  }
+  .ann .star svg { width: 16px; height: 16px; }
+  .ann .star:hover { color: var(--ink-2); }
+  .ann .star.on { color: var(--ink); }
+  .ann .star.on svg { fill: var(--ink); }
+
+  /* ============================================================
+     6 · MATERIALS
+     ============================================================ */
+  .mat-layout { display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: start; }
+  .mat {
+    display: grid; grid-template-columns: auto 1fr auto; gap: 13px; align-items: center;
+    padding: 13px 18px; border-bottom: 1px solid var(--hair);
+    transition: background 130ms ease; cursor: pointer;
+  }
+  .mat:last-child { border-bottom: none; }
+  .mat:hover { background: var(--paper-2); }
+  .mat .ic { width: 18px; height: 18px; color: var(--ink-3); flex: none; }
+  .mat .mn { font-size: 13.5px; font-weight: 500; color: var(--ink); letter-spacing: -0.008em; }
+  .mat .mmeta { font-size: 12px; color: var(--ink-4); font-weight: 450; margin-top: 2px; }
+  .mat .msize { font-size: 12px; color: var(--ink-4); font-weight: 450; white-space: nowrap; }
+
+  .detail { border: 1px solid var(--hair); border-radius: var(--radius); padding: 20px; }
+  .detail h3 { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 4px; color: var(--ink); }
+  .detail .dmeta { font-size: 12px; color: var(--ink-4); font-weight: 450; margin-bottom: 16px; }
+  .detail .dlabel {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--ink-4); margin: 16px 0 9px;
+  }
+  .attach {
+    display: flex; align-items: center; gap: 9px; padding: 9px 11px;
+    border: 1px solid var(--hair); border-radius: var(--radius-sm);
+    margin-bottom: 7px; font-size: 12.5px; color: var(--ink-2); font-weight: 500;
+  }
+  .attach svg { width: 15px; height: 15px; color: var(--ink-3); flex: none; }
+  .field {
+    width: 100%; border: 1px solid var(--hair-strong); border-radius: var(--radius-sm);
+    background: var(--paper); font-family: inherit; font-size: 13px; color: var(--ink);
+    padding: 10px 12px; outline: none; resize: vertical;
+  }
+  .field::placeholder { color: var(--ink-4); }
+  .field:focus { border-color: var(--ink-4); }
+  .detail .revnote { font-size: 11.5px; color: var(--ink-4); font-weight: 450; margin-top: 12px; }
+  .detail .dactions { display: flex; align-items: center; gap: 9px; margin-top: 16px; flex-wrap: wrap; }
+  .link-out {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12.5px; color: var(--ink-3); font-weight: 500; text-decoration: none;
+  }
+  .link-out svg { width: 13px; height: 13px; }
+  .link-out:hover { color: var(--ink); }
+
+  /* ============================================================
+     7 · SETTINGS
+     ============================================================ */
+  .set-block { margin-bottom: 34px; }
+  .set-block .sb-title { font-size: 13px; font-weight: 600; color: var(--ink); margin: 0 0 4px; }
+  .set-block .sb-desc { font-size: 12.5px; color: var(--ink-4); font-weight: 450; margin: 0 0 14px; }
+
+  .style-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .style-card {
+    appearance: none; cursor: pointer; font-family: inherit; text-align: left;
+    border: 1px solid var(--hair-strong); border-radius: var(--radius-sm);
+    background: var(--paper); padding: 14px; transition: border-color 130ms ease, background 130ms ease;
+  }
+  .style-card:hover { background: var(--paper-2); }
+  .style-card.on { border-color: var(--ink); background: var(--paper); }
+  .style-card .sc-name { font-size: 13px; font-weight: 600; color: var(--ink); display: flex; align-items: center; justify-content: space-between; }
+  .style-card .sc-desc { font-size: 11.5px; color: var(--ink-4); font-weight: 450; margin-top: 4px; }
+  .style-card .sc-check { color: var(--ink); }
+  .style-card .sc-check svg { width: 15px; height: 15px; }
+
+  .detect-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px; border: 1px solid var(--hair); border-radius: var(--radius);
+  }
+  .detect-row .ddot { width: 7px; height: 7px; border-radius: 50%; background: var(--signal-up); box-shadow: 0 0 0 4px var(--signal-up-soft); flex: none; }
+  .detect-row .dtxt { font-size: 13px; color: var(--ink); font-weight: 500; }
+  .detect-row .dtxt span { color: var(--ink-4); font-weight: 450; }
+  .detect-row .dactive { margin-left: auto; font-size: 12px; font-weight: 600; color: var(--signal-up); }
+
+  .toggle-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 13px 16px; border-bottom: 1px solid var(--hair);
+  }
+  .toggle-row:last-child { border-bottom: none; }
+  .toggle-row .tl { font-size: 13.5px; font-weight: 500; color: var(--ink); }
+  .toggle-row .td { font-size: 12px; color: var(--ink-4); font-weight: 450; margin-top: 2px; }
+  .switch {
+    appearance: none; cursor: pointer; position: relative; flex: none;
+    width: 38px; height: 22px; border-radius: 999px; border: 1px solid var(--hair-strong);
+    background: var(--paper-3); transition: background 150ms ease, border-color 150ms ease;
+  }
+  .switch::after {
+    content: ""; position: absolute; top: 2px; left: 2px;
+    width: 16px; height: 16px; border-radius: 50%; background: var(--paper);
+    box-shadow: 0 1px 2px var(--knob-shadow); transition: transform 160ms ease;
+  }
+  .switch:checked { background: var(--ink); border-color: var(--ink); }
+  .switch:checked::after { transform: translateX(16px); }
+
+  .theme-seg { display: inline-flex; }
+
+  /* ---------- interactive additions ---------- */
+  .cal-cell.has-ev { cursor: pointer; }
+  .cal-cell.has-ev:hover { background: var(--paper-2); }
+  .cal-cell.sel { background: var(--paper-3); }
+  .cal-cell.sel.today { background: var(--paper-3); }
+
+  .cal-day-head {
+    padding: 14px 18px 10px; font-size: 13px; font-weight: 600; color: var(--ink);
+    border-bottom: 1px solid var(--hair);
+  }
+  .cal-day-row {
+    display: flex; align-items: center; gap: 11px;
+    padding: 12px 18px; border-bottom: 1px solid var(--hair);
+    font-size: 13px; color: var(--ink-2); font-weight: 450;
+  }
+  .cal-day-row:last-child { border-bottom: none; }
+  .cal-day-row .cdot { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-4); flex: none; }
+  .cal-day-row .cdot.miss { background: var(--signal-miss); }
+  .cal-day-row .cdot.up { background: var(--signal-up); }
+  .cal-day-row .ctag { margin-left: auto; font-size: 11px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; color: var(--ink-4); }
+  .cal-day-row .ctag.miss { color: var(--signal-miss); }
+
+  .mat.on { background: var(--paper-3); }
+
+  /* legend chips clickable */
+  .chart-legend .lk { cursor: pointer; user-select: none; transition: opacity 130ms ease; }
+  .chart-legend .lk.off { opacity: 0.34; }
+
+  /* chart hover point + tooltip */
+  .chart .hov { fill: transparent; cursor: pointer; }
+  .chart .hpt { fill: var(--ink); opacity: 0; pointer-events: none; }
+  .chart-tip {
+    position: absolute; pointer-events: none; z-index: 30;
+    background: var(--ink); color: var(--paper);
+    font-size: 11.5px; font-weight: 500; letter-spacing: 0.005em;
+    padding: 5px 9px; border-radius: 7px; white-space: nowrap;
+    transform: translate(-50%, -130%); opacity: 0; transition: opacity 120ms ease;
+    font-variant-numeric: tabular-nums;
+  }
+  .chart-tip.show { opacity: 1; }
+  .chart { position: relative; }
+
+  /* mark-done affordance */
+  .asn .mark {
+    appearance: none; cursor: pointer; background: var(--paper);
+    border: 1px solid var(--hair-strong); border-radius: var(--radius-sm);
+    font-family: inherit; font-size: 12px; font-weight: 500; color: var(--ink-2);
+    padding: 5px 10px; transition: background 130ms ease;
+  }
+  .asn .mark:hover { background: var(--paper-2); }
+
+  /* toast */
+  .toast-wrap {
+    position: fixed; top: 22px; right: 22px; z-index: 100;
+    display: flex; flex-direction: column; gap: 10px; max-width: 340px;
+  }
+  .toast {
+    display: flex; align-items: flex-start; gap: 11px;
+    background: var(--toast-bg); color: var(--toast-fg);
+    border: 1px solid var(--hair);
+    border-radius: 12px; padding: 13px 15px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.32);
+    opacity: 0; transform: translateY(-8px);
+    transition: opacity 240ms ease, transform 240ms ease;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast .tsig {
+    width: 7px; height: 7px; border-radius: 50%; margin-top: 6px; flex: none;
+    background: var(--toast-fg);
+  }
+  .toast .tsig.up { background: var(--signal-up); box-shadow: 0 0 0 4px var(--signal-up-soft); }
+  .toast .tsig.miss { background: var(--signal-miss); box-shadow: 0 0 0 4px var(--signal-miss-soft); }
+  .toast .ttitle { font-size: 12.5px; font-weight: 600; letter-spacing: 0.005em; }
+  .toast .tbody { font-size: 12px; font-weight: 450; color: var(--toast-fg-2); margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .toast .tapp { font-size: 10.5px; font-weight: 500; color: var(--toast-fg-3); margin-bottom: 3px; letter-spacing: 0.03em; text-transform: uppercase; }
+
+  /* compact density */
+  body.compact .arow, body.compact .asn, body.compact .cat, body.compact .course, body.compact .ann, body.compact .mat { padding-top: 9px; padding-bottom: 9px; }
+
+  /* ============================================================
+     8 · GAMES (Arcade)
+     monochrome base; single accent (ink) used sparingly for signal.
+     ============================================================ */
+  .arcade { max-width: 520px; margin: 0 auto; }
+  .game-cards { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  .game-card {
+    appearance: none; cursor: pointer; font-family: inherit; text-align: left;
+    display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 16px;
+    border: 1px solid var(--hair-strong); border-radius: var(--radius);
+    background: var(--paper); padding: 18px 20px;
+    transition: background 130ms ease, border-color 130ms ease, transform 130ms ease;
+  }
+  .game-card:hover { background: var(--paper-2); transform: translateY(-1px); }
+  .game-card .gc-ic {
+    width: 42px; height: 42px; border-radius: 11px; flex: none;
+    border: 1px solid var(--hair); background: var(--paper-2);
+    display: grid; place-items: center; color: var(--ink-2);
+  }
+  .game-card .gc-ic svg { width: 22px; height: 22px; }
+  .game-card .gc-name { font-size: 15px; font-weight: 600; color: var(--ink); letter-spacing: -0.012em; }
+  .game-card .gc-desc { font-size: 12.5px; color: var(--ink-3); font-weight: 450; margin-top: 2px; }
+  .game-card .gc-best { font-size: 12px; color: var(--ink-4); font-weight: 450; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+  .game-stage { max-width: 520px; margin: 0 auto; }
+  .game-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .game-bar .gtitle { font-size: 16px; font-weight: 600; color: var(--ink); letter-spacing: -0.012em; }
+  .game-bar .spacer { flex: 1; }
+  .game-back {
+    appearance: none; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12.5px; font-weight: 500; color: var(--ink-2);
+    background: var(--paper); border: 1px solid var(--hair-strong);
+    border-radius: var(--radius-sm); padding: 7px 12px 7px 9px;
+    transition: background 130ms ease;
+  }
+  .game-back:hover { background: var(--paper-2); }
+  .game-back svg { width: 15px; height: 15px; }
+
+  .game-scores { display: flex; gap: 10px; }
+  .gscore {
+    border: 1px solid var(--hair); border-radius: var(--radius-sm);
+    padding: 6px 12px; min-width: 64px; text-align: center; background: var(--paper);
+  }
+  .gscore .gl { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-4); }
+  .gscore .gv { font-size: 16px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; line-height: 1.2; margin-top: 1px; }
+
+  .game-board {
+    position: relative; border: 1px solid var(--hair);
+    border-radius: var(--radius); background: var(--paper-2);
+    overflow: hidden;
+  }
+  .game-hint { margin-top: 14px; font-size: 12px; color: var(--ink-4); font-weight: 450; letter-spacing: 0.004em; text-align: center; }
+
+  /* overlay (win/lose) */
+  .game-over {
+    position: absolute; inset: 0; z-index: 5;
+    display: none; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+    background: rgba(252,252,251,0.86);
+    -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+    text-align: center; padding: 24px;
+  }
+  html[data-theme="dark"] .game-over { background: rgba(14,14,12,0.84); }
+  .game-over.show { display: flex; }
+  .game-over .got { font-size: 20px; font-weight: 600; color: var(--ink); letter-spacing: -0.02em; }
+  .game-over .got.win { color: var(--signal-up); }
+  .game-over .gosub { font-size: 13px; color: var(--ink-3); font-weight: 450; font-variant-numeric: tabular-nums; }
+
+  /* ---- Minesweeper ---- */
+  .mine-grid {
+    display: grid; grid-template-columns: repeat(9, 1fr);
+    gap: 3px; padding: 12px; margin: 0 auto; max-width: 396px;
+    touch-action: manipulation;
+  }
+  .mine-cell {
+    appearance: none; cursor: pointer; font-family: inherit; padding: 0;
+    aspect-ratio: 1; display: grid; place-items: center;
+    font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums;
+    border: 1px solid var(--hair-strong); border-radius: 6px;
+    background: var(--paper-3); color: var(--ink);
+    transition: background 90ms ease, color 90ms ease, border-color 90ms ease;
+    user-select: none; -webkit-user-select: none;
+  }
+  .mine-cell:hover:not(.open) { background: var(--paper); }
+  .mine-cell.open { background: var(--paper); border-color: var(--hair); cursor: default; }
+  .mine-cell.flag { color: var(--ink-2); }
+  .mine-cell.hit { background: var(--signal-miss); color: var(--paper); border-color: var(--signal-miss); }
+  .mine-cell.mine { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .mine-cell.n1 { color: hsl(50 5% 56%); } .mine-cell.n2 { color: hsl(50 5% 48%); }
+  .mine-cell.n3 { color: hsl(50 5% 40%); } .mine-cell.n4 { color: hsl(50 5% 32%); }
+  .mine-cell.n5,.mine-cell.n6,.mine-cell.n7,.mine-cell.n8 { color: var(--ink); }
+  html[data-theme="dark"] .mine-cell.n1 { color: hsl(50 5% 56%); }
+  html[data-theme="dark"] .mine-cell.n2 { color: hsl(50 5% 64%); }
+  html[data-theme="dark"] .mine-cell.n3 { color: hsl(50 5% 72%); }
+  html[data-theme="dark"] .mine-cell.n4,
+  html[data-theme="dark"] .mine-cell.n5,
+  html[data-theme="dark"] .mine-cell.n6,
+  html[data-theme="dark"] .mine-cell.n7,
+  html[data-theme="dark"] .mine-cell.n8 { color: var(--ink); }
+
+  /* generic toolbar row for flag-toggle / regen buttons */
+  .game-tools { display: flex; justify-content: center; gap: 8px; margin-top: 14px; }
+  .gtool {
+    appearance: none; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12.5px; font-weight: 500; color: var(--ink-2);
+    background: var(--paper); border: 1px solid var(--hair-strong);
+    border-radius: var(--radius-sm); padding: 7px 12px;
+    transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+  }
+  .gtool:hover { background: var(--paper-2); }
+  .gtool.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .gtool svg { width: 14px; height: 14px; }
+
+  /* ---- Lights Out ---- */
+  .lights-grid {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    gap: 8px; padding: 16px; margin: 0 auto; max-width: 400px;
+  }
+  .light-cell {
+    appearance: none; cursor: pointer; font-family: inherit; padding: 0;
+    aspect-ratio: 1; border-radius: 9px;
+    border: 1px solid var(--hair-strong); background: var(--paper);
+    transition: background 130ms ease, border-color 130ms ease, transform 90ms ease;
+  }
+  .light-cell:hover { transform: translateY(-1px); }
+  .light-cell.on { background: var(--ink); border-color: var(--ink); }
+
+  /* ---- Dodge (canvas) ---- */
+  .dodge-wrap { padding: 12px; }
+  .dodge-wrap canvas {
+    display: block; width: 100%; height: auto; border-radius: 9px;
+    background: var(--paper); border: 1px solid var(--hair);
+    touch-action: none;
+  }
+
+  /* ---- Word Search ---- */
+  .ws-layout { padding: 14px; }
+  .ws-grid {
+    display: grid; grid-template-columns: repeat(10, 1fr);
+    gap: 2px; margin: 0 auto; max-width: 380px;
+    user-select: none; -webkit-user-select: none;
+  }
+  .ws-cell {
+    appearance: none; cursor: pointer; font-family: inherit; padding: 0;
+    aspect-ratio: 1; display: grid; place-items: center;
+    font-size: 13px; font-weight: 600; letter-spacing: 0.01em;
+    text-transform: uppercase; color: var(--ink-2);
+    border: 1px solid transparent; border-radius: 5px;
+    background: var(--paper-3);
+    transition: background 100ms ease, color 100ms ease, border-color 100ms ease;
+  }
+  .ws-cell:hover { background: var(--paper); }
+  .ws-cell.sel { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .ws-cell.found { background: var(--signal-up-soft); color: var(--signal-up); border-color: var(--signal-up); }
+  .ws-words {
+    display: flex; flex-wrap: wrap; gap: 8px 14px; justify-content: center;
+    margin-top: 16px;
+  }
+  .ws-word {
+    font-size: 12.5px; font-weight: 500; color: var(--ink-2);
+    letter-spacing: 0.02em;
+  }
+  .ws-word.done { color: var(--ink-4); text-decoration: line-through; }
+
+  @media (max-width: 480px) {
+    .mine-cell { font-size: 13px; }
+    .ws-cell { font-size: 11px; }
+  }
+
+  /* ---------- mobile ---------- */
+  .mobile-bar { display: none; }
+  @media (max-width: 860px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar {
+      position: fixed; bottom: 0; left: 0; right: 0; top: auto;
+      height: auto; flex-direction: row; align-items: center;
+      border-right: none; border-top: 1px solid var(--hair);
+      padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+      z-index: 50; background: var(--paper); overflow-x: auto;
+    }
+    .side-brand, .side-id, .side-foot { display: none; }
+    .nav { flex-direction: row; gap: 2px; }
+    .nav-item { flex-direction: column; gap: 3px; padding: 6px 11px; font-size: 10px; }
+    .nav-item .badge { position: absolute; top: 2px; right: 4px; margin: 0; padding: 0 5px; font-size: 9px; }
+    .canvas { padding: 40px 20px 110px; }
+    .grades-layout, .mat-layout { grid-template-columns: 1fr; }
+    .course-rail { flex-direction: row; flex-wrap: wrap; gap: 8px; }
+    .rail-item { width: auto; flex: 1 1 140px; }
+    .style-grid { grid-template-columns: repeat(2, 1fr); }
+    .cal-cell { min-height: 64px; }
+  }
+  @media (max-width: 560px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .stat:nth-child(2) { border-right: none; }
+    .stat:nth-child(1), .stat:nth-child(2) { border-bottom: 1px solid var(--hair); }
+    .ov-hero .grade .num { font-size: 56px; }
+    .course { grid-template-columns: 1fr auto; gap: 10px 16px; }
+    .course .spark { display: none; }
+    .course .trend { grid-row: 2; text-align: left; min-width: 0; }
+    .course .gradecell { grid-row: 1; }
+    .asn { grid-template-columns: 1fr auto; gap: 6px 14px; }
+    .asn .course-tag { grid-row: 1; }
+    .asn .atitle { grid-row: 2; grid-column: 1 / -1; }
+    .cal-ev { display: none; }
+    .cal-cell { min-height: 44px; }
+  }
+</style>
+</head>
+<body>
+  <script>
+    /* Apply saved theme before first paint to avoid a flash. */
+    (function () {
+      try {
+        var raw = localStorage.getItem("halo.theme");
+        var t = raw ? JSON.parse(raw) : "light";
+        var dark = t === "dark" ||
+          (t === "auto" && window.matchMedia &&
+           window.matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+      } catch (e) {}
+    })();
+  </script>
+  <div class="app">
+
+    <!-- ============================================================
+         SIDEBAR — persistent quiet chrome
+         ============================================================ -->
+    <aside class="sidebar">
+      <div class="side-brand">
+        <svg class="mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="8.4" stroke="#14140f" stroke-width="1.4"/>
+          <circle cx="12" cy="12" r="2.1" fill="#14140f"/>
+        </svg>
+        <span class="name">Better&nbsp;SGY</span>
+      </div>
+
+      <div class="side-id">
+        <div class="who">
+          <div class="avatar">AM</div>
+          <div>
+            <div class="nm">Alex Mercer</div>
+            <div class="meta">Student · 96.2%</div>
+          </div>
+        </div>
+        <div class="ctx">2025–2026 · Freshman · Semester 2</div>
+      </div>
+
+      <nav class="nav" id="nav">
+        <div class="nav-item active" data-screen="overview">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+          Overview
+        </div>
+        <div class="nav-item" data-screen="grades">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5"/><path d="M4 19h16"/><rect x="8" y="11" width="3" height="6"/><rect x="14" y="7" width="3" height="10"/></svg>
+          Grades
+        </div>
+        <div class="nav-item" data-screen="assignments">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>
+          Assignments
+          <span class="badge">2</span>
+        </div>
+        <div class="nav-item" data-screen="calendar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
+          Calendar
+        </div>
+        <div class="nav-item" data-screen="announcements">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l16-6v14L3 13z"/><path d="M7 12v5a2 2 0 0 0 2 2h1"/></svg>
+          Announcements
+        </div>
+        <div class="nav-item" data-screen="materials">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          Materials
+        </div>
+        <div class="nav-item" data-screen="games">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 12h4M9 10v4"/><circle cx="15.5" cy="11" r="0.6" fill="currentColor"/><circle cx="17.5" cy="13" r="0.6" fill="currentColor"/><rect x="2.5" y="6.5" width="19" height="11" rx="4"/></svg>
+          Games
+        </div>
+        <div class="nav-item" data-screen="settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 0 1-4 0v-.1A1.6 1.6 0 0 0 6.6 19l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 3 13H3a2 2 0 0 1 0-4h.1A1.6 1.6 0 0 0 4.6 6.4l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 11 3v0a2 2 0 0 1 4 0v.1A1.6 1.6 0 0 0 17.4 4.6l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A1.6 1.6 0 0 0 21 11h0a2 2 0 0 1 0 4z"/></svg>
+          Settings
+        </div>
+      </nav>
+
+      <div class="side-foot">
+        <span style="display:inline-flex;align-items:center;gap:8px;">
+          <svg class="dotmark" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.4" stroke="#9a9a91" stroke-width="1.4"/><circle cx="12" cy="12" r="2.1" fill="#9a9a91"/></svg>
+          HALO
+        </span>
+        <span>Updated today</span>
+      </div>
+    </aside>
+
+    <!-- ============================================================
+         CONTENT
+         ============================================================ -->
+    <main class="content">
+
+      <!-- ===================== 1 · OVERVIEW ===================== -->
+      <section class="screen active" id="screen-overview">
+        <div class="canvas">
+          <section class="ov-hero">
+            <p class="lede">Overall grade</p>
+            <div class="grade">
+              <div class="num">96.2<span class="pct">%</span></div>
+              <div class="across">across 6 courses</div>
+            </div>
+            <div class="status"><span class="dot"></span> Trending up</div>
+          </section>
+
+          <section class="chart" aria-label="Overall grade over time" style="margin-bottom:40px;">
+            <div class="chart-head">
+              <span class="chart-title">Overall grade over time</span>
+              <span class="chart-now up">96.2% now</span>
+            </div>
+            <svg id="ovChart" viewBox="0 0 740 180" role="img" aria-label="Line chart of overall grade, 94.2 percent rising to 96.2 percent"></svg>
+            <p class="chart-cap">Tracked since install.</p>
+          </section>
+
+          <section class="stats" aria-label="Summary">
+            <div class="stat"><div class="label">GPA estimate</div><div class="value">3.94</div><div class="sub">Weighted, 4.0 scale</div></div>
+            <div class="stat"><div class="label">Due today</div><div class="value">2</div><div class="sub">Assignments</div></div>
+            <div class="stat"><div class="label">Missing</div><div class="value miss">2</div><div class="sub">In 2 courses</div></div>
+            <div class="stat"><div class="label">Best class</div><div class="value">PE&nbsp;9</div><div class="sub">99.1%</div></div>
+          </section>
+
+          <div class="section-head"><h2>Courses</h2><span class="count">6</span></div>
+
+          <section class="panel" id="ovCourses" aria-label="Courses"></section>
+
+          <div class="footnote">
+            <span class="key"><span class="swatch up"></span> Trending up</span>
+            <span class="key"><span class="swatch miss"></span> Missing work</span>
+            <span class="sep">·</span>
+            <span class="key">4 courses caught up</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== 2 · GRADES ===================== -->
+      <section class="screen" id="screen-grades">
+        <div class="canvas">
+          <div class="page-head">
+            <h1 class="ptitle">Grades</h1>
+            <span class="psub">Semester 2 · 6 courses</span>
+          </div>
+
+          <div class="grades-layout">
+            <div class="course-rail" id="gradeRail"></div>
+
+            <div id="gradePane"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== 3 · ASSIGNMENTS ===================== -->
+      <section class="screen" id="screen-assignments">
+        <div class="canvas">
+          <div class="page-head">
+            <h1 class="ptitle">Assignments</h1>
+            <span class="psub">Across 6 courses</span>
+          </div>
+
+          <div class="filterbar">
+            <div class="search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+              <input type="text" id="asnSearch" placeholder="Search assignments" />
+            </div>
+            <div class="seg" id="asnSeg">
+              <button data-filter="upcoming">Upcoming</button>
+              <button data-filter="missing">Missing</button>
+              <button data-filter="done">Done</button>
+            </div>
+          </div>
+
+          <div class="panel" id="asnList"></div>
+          <p class="chart-cap" id="asnEmpty" style="margin-top:16px;display:none;">Nothing here.</p>
+        </div>
+      </section>
+
+      <!-- ===================== 4 · CALENDAR ===================== -->
+      <section class="screen" id="screen-calendar">
+        <div class="canvas">
+          <div class="page-head">
+            <h1 class="ptitle">Calendar</h1>
+            <span class="psub">Due dates and tests</span>
+          </div>
+
+          <div class="cal-head">
+            <span class="month" id="calMonth">June 2026</span>
+            <span class="spacer"></span>
+            <button class="btn" id="calToday">Today</button>
+            <button class="icon-btn" id="calPrev" aria-label="Previous month"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+            <button class="icon-btn" id="calNext" aria-label="Next month"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+          </div>
+
+          <div class="cal-grid">
+            <div class="cal-dow"><div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div></div>
+            <div class="cal-weeks" id="calWeeks"></div>
+          </div>
+
+          <div id="calDay" class="panel" style="margin-top:18px;display:none;"></div>
+
+          <div class="footnote">
+            <span class="key"><span class="swatch miss"></span> Missing</span>
+            <span class="key"><span class="swatch" style="background:var(--ink-4)"></span> Due date</span>
+            <span class="key"><span class="swatch up"></span> Notable result</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== 5 · ANNOUNCEMENTS ===================== -->
+      <section class="screen" id="screen-announcements">
+        <div class="canvas">
+          <div class="page-head">
+            <h1 class="ptitle">Announcements</h1>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span class="psub" id="annStatus" style="opacity:0;transition:opacity 300ms ease;">Updated just now</span>
+              <button class="icon-btn" id="annRefresh" aria-label="Refresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v5h-5"/></svg></button>
+            </div>
+          </div>
+
+          <div class="panel" id="annList">
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== 6 · MATERIALS ===================== -->
+      <section class="screen" id="screen-materials">
+        <div class="canvas">
+          <div class="page-head">
+            <h1 class="ptitle">Materials</h1>
+            <span class="psub">Biology · Ms. Carrington</span>
+          </div>
+
+          <div class="mat-layout">
+            <div class="panel" id="matList"></div>
+            <div class="detail" id="matDetail"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== 7 · SETTINGS ===================== -->
+      <section class="screen" id="screen-settings">
+        <div class="canvas">
+          <div class="page-head">
+            <h1 class="ptitle">Settings</h1>
+            <span class="psub">Better SGY</span>
+          </div>
+
+          <div class="set-block">
+            <p class="sb-title">UI Style</p>
+            <p class="sb-desc">Choose how Better SGY redraws Schoology.</p>
+            <div class="style-grid" id="styleGrid">
+              <button class="style-card" data-style="apple" data-file="mockup-app-apple.html"><div class="sc-name">Apple</div><div class="sc-desc">Soft, rounded, familiar</div></button>
+              <button class="style-card on" data-style="halo" data-file="mockup-app-halo.html"><div class="sc-name">Halo <span class="sc-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 6"/></svg></span></div><div class="sc-desc">Calm, minimal, signal-only</div></button>
+              <button class="style-card" data-style="slate" data-file="mockup-app-slate.html"><div class="sc-name">Slate</div><div class="sc-desc">Dense, professional</div></button>
+              <button class="style-card" data-style="friendly" data-file="mockup-app-forge.html"><div class="sc-name">Friendly</div><div class="sc-desc">Warm, approachable</div></button>
+            </div>
+          </div>
+
+          <div class="set-block">
+            <p class="sb-title">Connection</p>
+            <div class="detect-row">
+              <span class="ddot"></span>
+              <div class="dtxt">yourschool.schoology.com <span>· detected</span></div>
+              <span class="dactive">Active</span>
+            </div>
+          </div>
+
+          <div class="set-block">
+            <p class="sb-title">Sections</p>
+            <p class="sb-desc">Show or hide sections in the sidebar.</p>
+            <div class="panel">
+              <div class="toggle-row"><div><div class="tl">Overview</div><div class="td">Grade summary and courses</div></div><input class="switch" type="checkbox" data-key="sec.overview" checked /></div>
+              <div class="toggle-row"><div><div class="tl">Grades</div><div class="td">Per-course gradebook</div></div><input class="switch" type="checkbox" data-key="sec.grades" checked /></div>
+              <div class="toggle-row"><div><div class="tl">Assignments</div><div class="td">Cross-course list</div></div><input class="switch" type="checkbox" data-key="sec.assignments" checked /></div>
+              <div class="toggle-row"><div><div class="tl">Calendar</div><div class="td">Due dates and tests</div></div><input class="switch" type="checkbox" data-key="sec.calendar" checked /></div>
+              <div class="toggle-row"><div><div class="tl">Announcements</div><div class="td">Teacher feed</div></div><input class="switch" type="checkbox" data-key="sec.announcements" checked /></div>
+              <div class="toggle-row"><div><div class="tl">Materials</div><div class="td">Files and submissions</div></div><input class="switch" type="checkbox" data-key="sec.materials" /></div>
+            </div>
+          </div>
+
+          <div class="set-block">
+            <p class="sb-title">Notifications</p>
+            <p class="sb-desc">Quiet desktop alerts for grade and assignment changes.</p>
+            <div class="panel">
+              <div class="toggle-row"><div><div class="tl">Notifications</div><div class="td">Allow desktop-style alerts</div></div><input class="switch" type="checkbox" id="notifToggle" data-key="notif.on" checked /></div>
+              <div class="toggle-row">
+                <div><div class="tl">Test notification</div><div class="td" id="notifHint">Preview a sample alert</div></div>
+                <button class="btn" id="notifTest">Send test</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="set-block">
+            <p class="sb-title">Appearance</p>
+            <p class="sb-desc">Theme and density.</p>
+            <div class="panel">
+              <div class="toggle-row">
+                <div><div class="tl">Theme</div><div class="td">Light, dark, or follow your system</div></div>
+                <div class="seg theme-seg" id="themeSeg">
+                  <button class="on" data-theme="light">Light</button>
+                  <button data-theme="dark">Dark</button>
+                  <button data-theme="auto">Auto</button>
+                </div>
+              </div>
+              <div class="toggle-row"><div><div class="tl">Compact rows</div><div class="td">Tighter spacing in lists</div></div><input class="switch" type="checkbox" data-key="appearance.compact" /></div>
+              <div class="toggle-row"><div><div class="tl">Show trends</div><div class="td">Sparklines and trend words</div></div><input class="switch" type="checkbox" data-key="appearance.trends" checked /></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== 8 · GAMES ===================== -->
+      <section class="screen" id="screen-games">
+        <div class="canvas">
+          <div class="page-head">
+            <h1 class="ptitle">Games</h1>
+            <span class="psub">A quiet break</span>
+          </div>
+
+          <!-- arcade home -->
+          <div class="arcade" id="arcadeHome">
+            <div class="game-cards" id="gameCards"></div>
+          </div>
+
+          <!-- active game stage -->
+          <div class="game-stage" id="gameStage" style="display:none;">
+            <div class="game-bar">
+              <button class="game-back" id="gameBack"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Back</button>
+              <span class="gtitle" id="gameTitle"></span>
+              <span class="spacer"></span>
+              <button class="btn" id="gameRestart">Restart</button>
+            </div>
+            <div class="game-scores" id="gameScores"></div>
+            <div style="height:14px;"></div>
+            <div class="game-board" id="gameBoard"></div>
+            <p class="game-hint" id="gameHint"></p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <div class="toast-wrap" id="toastWrap" aria-live="polite"></div>
+
+  <script>
+  (function () {
+    "use strict";
+
+    // ============================================================
+    // CANONICAL DATA (MOCKUP_DATA.md) — today = Mon Jun 22, 2026
+    // ============================================================
+    var STORE = "halo.";
+    var $ = function (s, r) { return (r || document).querySelector(s); };
+    var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+    var el = function (tag, cls, html) {
+      var n = document.createElement(tag);
+      if (cls) n.className = cls;
+      if (html != null) n.innerHTML = html;
+      return n;
+    };
+    var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    }); };
+
+    var COURSES = [
+      { id: "alg", name: "Algebra 2 / Trig", teacher: "Mr. Stubbs", per: "P1", grade: 97.4, ltr: "A", trend: "up", missing: 0 },
+      { id: "bio", name: "Biology", teacher: "Ms. Carrington", per: "P2", grade: 96.7, ltr: "A", trend: "flat", missing: 1 },
+      { id: "fre", name: "French 1", teacher: "Mme. Laurent", per: "P4", grade: 96.5, ltr: "A", trend: "up", missing: 0 },
+      { id: "dra", name: "Drama", teacher: "Mr. Ellison", per: "P5", grade: 90.3, ltr: "A−", trend: "down", missing: 1 },
+      { id: "lit", name: "Literature", teacher: "Ms. Howe", per: "P6", grade: 94.1, ltr: "A", trend: "up", missing: 0 },
+      { id: "pe",  name: "PE 9", teacher: "Coach Bryant", per: "P7", grade: 99.1, ltr: "A", trend: "flat", missing: 0 }
+    ];
+    var byId = {}; COURSES.forEach(function (c) { byId[c.id] = c; });
+
+    // weekly grade history (8 points)
+    var HIST = {
+      overall: [94.2, 94.6, 94.9, 95.3, 95.6, 95.9, 96.0, 96.2],
+      alg: [92.0, 93.0, 94.0, 95.0, 95.5, 96.3, 97.0, 97.4],
+      bio: [96.0, 96.4, 96.2, 96.8, 96.5, 96.9, 96.6, 96.7],
+      fre: [91.0, 92.5, 93.0, 94.0, 94.8, 95.5, 96.1, 96.5],
+      dra: [95.0, 94.5, 94.0, 93.2, 92.5, 91.6, 91.0, 90.3],
+      lit: [90.0, 90.8, 91.5, 92.0, 92.6, 93.2, 93.7, 94.1],
+      pe:  [98.5, 98.7, 98.6, 99.0, 98.9, 99.1, 99.0, 99.1]
+    };
+    var WEEK_LABELS = ["Apr 27", "May 4", "May 11", "May 18", "May 25", "Jun 1", "Jun 8", "Jun 22"];
+
+    // per-course gradebooks
+    var GB = {
+      alg: {
+        cats: [["Tests", 40, 96.8], ["Quizzes", 25, 97.5], ["Homework", 20, 98.9], ["Participation", 15, 100]],
+        rows: [
+          { name: "Unit 6 Test", cat: "Tests", date: "Jun 12", score: "96/100", pct: "96%" },
+          { name: "Trig Identities Quiz", cat: "Quizzes", date: "Jun 9", score: "19/20", pct: "95%" },
+          { name: "HW 7.1–7.2", cat: "Homework", date: "Jun 17", score: "10/10", pct: "100%" },
+          { name: "HW 7.3 problems", cat: "Homework", date: "Jun 22", score: "—/10", pct: "Due", due: true },
+          { name: "Participation Wk 14", cat: "Participation", date: "Jun 13", score: "15/15", pct: "100%" }
+        ]
+      },
+      bio: {
+        cats: [["Tests", 40, 95.0], ["Labs", 25, 97.2], ["Homework", 20, 98.5], ["Participation", 15, 100]],
+        rows: [
+          { name: "Cell Energetics Lab", cat: "Labs · not submitted", date: "Jun 19", score: "0/25", pct: "Missing", miss: true },
+          { name: "Enzymes Problem Set", cat: "Homework", date: "Jun 16", score: "18/20", pct: "90%" },
+          { name: "Photosynthesis Test", cat: "Tests", date: "Jun 11", score: "95/100", pct: "95%" },
+          { name: "Mitosis Quiz", cat: "Labs", date: "Jun 5", score: "24/25", pct: "96%" },
+          { name: "Participation Wk 14", cat: "Participation", date: "Jun 13", score: "15/15", pct: "100%" }
+        ]
+      },
+      fre: {
+        cats: [["Tests", 40, 95.5], ["Speaking", 25, 97.0], ["Homework", 20, 98.0], ["Participation", 15, 100]],
+        rows: [
+          { name: "Unité 5 Exam", cat: "Tests", date: "Jun 12", score: "95/100", pct: "95%" },
+          { name: "Dialogue oral", cat: "Speaking", date: "Jun 10", score: "29/30", pct: "97%" },
+          { name: "Devoirs 5.3", cat: "Homework", date: "Jun 16", score: "10/10", pct: "100%" },
+          { name: "Vocab Quiz", cat: "Tests", date: "Jun 6", score: "48/50", pct: "96%" },
+          { name: "Participation Wk 14", cat: "Participation", date: "Jun 13", score: "15/15", pct: "100%" }
+        ]
+      },
+      dra: {
+        cats: [["Performance", 40, 91.0], ["Reflections", 25, 85.0], ["Participation", 20, 95.0], ["Projects", 15, 90.0]],
+        rows: [
+          { name: "Monologue Reflection", cat: "Reflections · not submitted", date: "Jun 18", score: "0/20", pct: "Missing", miss: true },
+          { name: "Scene Performance", cat: "Performance", date: "Jun 15", score: "88/100", pct: "88%" },
+          { name: "Character Study", cat: "Projects", date: "Jun 9", score: "27/30", pct: "90%" },
+          { name: "Theater Journal", cat: "Reflections", date: "Jun 4", score: "17/20", pct: "85%" },
+          { name: "Participation Wk 14", cat: "Participation", date: "Jun 13", score: "19/20", pct: "95%" }
+        ]
+      },
+      lit: {
+        cats: [["Essays", 40, 93.0], ["Reading Quizzes", 25, 94.5], ["Homework", 20, 95.0], ["Participation", 15, 98.0]],
+        rows: [
+          { name: "Chapter 4 Response", cat: "Homework", date: "Jun 22", score: "—/10", pct: "Due", due: true },
+          { name: "Theme Essay", cat: "Essays", date: "Jun 13", score: "92/100", pct: "92%" },
+          { name: "Reading Quiz 8", cat: "Reading Quizzes", date: "Jun 10", score: "19/20", pct: "95%" },
+          { name: "Annotation HW", cat: "Homework", date: "Jun 16", score: "10/10", pct: "100%" },
+          { name: "Participation Wk 14", cat: "Participation", date: "Jun 13", score: "14/15", pct: "93%" }
+        ]
+      },
+      pe: {
+        cats: [["Fitness", 40, 99.0], ["Skills", 25, 99.5], ["Participation", 35, 99.0]],
+        rows: [
+          { name: "Fitness Log Wk 14", cat: "Fitness", date: "Jun 13", score: "20/20", pct: "100%" },
+          { name: "Mile Run", cat: "Fitness", date: "Jun 9", score: "49/50", pct: "98%" },
+          { name: "Volleyball Skills", cat: "Skills", date: "Jun 6", score: "25/25", pct: "100%" },
+          { name: "Participation Wk 14", cat: "Participation", date: "Jun 13", score: "99/100", pct: "99%" }
+        ]
+      }
+    };
+
+    // cross-course assignments agenda
+    var ASN = [
+      { title: "HW 7.3 problems", cid: "alg", due: "Jun 22", state: "due", today: true },
+      { title: "Chapter 4 Response", cid: "lit", due: "Jun 22", state: "due", today: true },
+      { title: "Cell Energetics Lab", cid: "bio", due: "Was Jun 19", state: "missing" },
+      { title: "Monologue Reflection", cid: "dra", due: "Was Jun 18", state: "missing" },
+      { title: "Book club notes", cid: "lit", due: "Jun 24", state: "upcoming" },
+      { title: "Ecology reading", cid: "bio", due: "Jun 25", state: "upcoming" },
+      { title: "Unité 6 vocab", cid: "fre", due: "Jun 26", state: "upcoming" },
+      { title: "Fitness Log Wk 15", cid: "pe", due: "Jun 26", state: "upcoming" },
+      { title: "Unit 7 Test", cid: "alg", due: "Jun 29", state: "upcoming" },
+      { title: "Unit 6 Test", cid: "alg", due: "Submitted Jun 12", state: "done", score: "96/100" },
+      { title: "Dialogue oral", cid: "fre", due: "Submitted Jun 10", state: "done", score: "29/30" },
+      { title: "Enzymes Problem Set", cid: "bio", due: "Submitted Jun 16", state: "done", score: "18/20" }
+    ];
+
+    // calendar events by ISO date
+    var EVENTS = {
+      "2026-06-09": [{ t: "Trig Identities Quiz", c: "alg" }, { t: "Mile Run", c: "pe" }],
+      "2026-06-11": [{ t: "Photosynthesis Test", c: "bio" }],
+      "2026-06-12": [{ t: "Unit 6 Test", c: "alg" }, { t: "Unité 5 Exam", c: "fre" }],
+      "2026-06-15": [{ t: "Scene Performance", c: "dra" }],
+      "2026-06-18": [{ t: "Monologue Reflection due", c: "dra", miss: true }],
+      "2026-06-19": [{ t: "Cell Energetics Lab due", c: "bio", miss: true }],
+      "2026-06-22": [{ t: "HW 7.3", c: "alg", today: true }, { t: "Chapter 4 Response", c: "lit", today: true }],
+      "2026-06-24": [{ t: "Book club notes", c: "lit" }],
+      "2026-06-25": [{ t: "Ecology reading", c: "bio" }],
+      "2026-06-26": [{ t: "Unité 6 vocab", c: "fre" }, { t: "Fitness Log Wk 15", c: "pe" }],
+      "2026-06-29": [{ t: "Unit 7 Test", c: "alg" }]
+    };
+
+    var ANN = [
+      { id: 0, who: "Ms. Carrington", cid: "bio", time: "2h ago", title: "Lab safety quiz Friday", body: "Quick 10-question quiz on lab safety at the start of class Friday. Review the handout." },
+      { id: 1, who: "Coach Bryant", cid: "pe", time: "5h ago", title: "Bring sneakers Thursday", body: "Outdoor unit starts Thursday, weather permitting. Closed-toe shoes required." },
+      { id: 2, who: "Mr. Ellison", cid: "dra", time: "Yesterday", title: "Monologue sign-ups open", body: "Pick your performance slot for next week. Sign-up sheet on the board and in Materials." },
+      { id: 3, who: "Ms. Howe", cid: "lit", time: "Yesterday", title: "Chapter 4 response due Monday", body: "Two paragraphs, focus on the narrator's voice. Submit through Schoology." },
+      { id: 4, who: "Mr. Stubbs", cid: "alg", time: "2 days ago", title: "Unit 7 starts", body: "We begin Unit 7 today. HW 7.3 is due Monday; Unit 7 test is the 29th." },
+      { id: 5, who: "Mme. Laurent", cid: "fre", time: "3 days ago", title: "Vocab list for Unité 6", body: "New list posted. Quiz the 26th. Practice with the audio in Materials." }
+    ];
+
+    var MATERIALS = [
+      { type: "folder", name: "Unit 5 — Cell Energetics", meta: "Folder · 6 items", size: "Updated Jun 16" },
+      { type: "pdf", name: "Cell Energetics Lab handout.pdf", meta: "PDF · assignment brief", size: "412 KB" },
+      { type: "pdf", name: "Enzymes notes.pdf", meta: "PDF · notes", size: "288 KB" },
+      { type: "link", name: "Khan Academy: Cellular respiration", meta: "Link · external", size: "khanacademy.org" },
+      { type: "doc", name: "Lab report template.docx", meta: "DOC · template", size: "44 KB" },
+      { type: "pdf", name: "Photosynthesis study guide.pdf", meta: "PDF · review", size: "196 KB" }
+    ];
+
+    var NOTIF_TEXT = [
+      { sig: "up",   title: "Biology rose 1.2%", body: "95.5% → 96.7%" },
+      { sig: "",     title: "Graded · Cell Energetics Lab", body: "90% (Biology)" },
+      { sig: "",     title: "New assignment · Monologue reflection", body: "Drama" }
+    ];
+
+    // SVG icons
+    var IC = {
+      folder: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+      pdf: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>',
+      doc: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>',
+      link: '<path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/>'
+    };
+    var STAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l2.6 5.3 5.9.9-4.2 4.1 1 5.8-5.3-2.8-5.3 2.8 1-5.8L3.5 9.2l5.9-.9z"/></svg>';
+
+    var trendWord = function (t) { return t === "up" ? "Trending up" : t === "down" ? "Declining" : "Flat"; };
+
+    // ============================================================
+    // persistence helpers
+    // ============================================================
+    function load(k, d) {
+      try { var v = localStorage.getItem(STORE + k); return v == null ? d : JSON.parse(v); }
+      catch (e) { return d; }
+    }
+    function save(k, v) { try { localStorage.setItem(STORE + k, JSON.stringify(v)); } catch (e) {} }
+
+    // ============================================================
+    // NAV
+    // ============================================================
+    var nav = $("#nav");
+    function goScreen(id) {
+      // leaving Games: tear down any active game (stops its rAF/timers) and return to arcade home
+      if (id !== "games" && window.__haloGames && window.__haloGames._showHome) {
+        try { window.__haloGames._showHome(); } catch (e) {}
+      }
+      $$(".nav-item", nav).forEach(function (n) { n.classList.toggle("active", n.getAttribute("data-screen") === id); });
+      $$(".screen").forEach(function (s) { s.classList.toggle("active", s.id === "screen-" + id); });
+    }
+    nav.addEventListener("click", function (e) {
+      var item = e.target.closest(".nav-item"); if (!item) return;
+      goScreen(item.getAttribute("data-screen"));
+    });
+
+    // ============================================================
+    // LINE CHART builder (monochrome, with hover tooltip)
+    // x range, y range 88..100
+    // ============================================================
+    var YMIN = 88, YMAX = 100;
+
+    function chartGeometry(w, h, padL, padR, padT, padB) {
+      return {
+        x: function (i, n) { return padL + (w - padL - padR) * (n <= 1 ? 0 : i / (n - 1)); },
+        y: function (v) { return padT + (h - padT - padB) * (1 - (v - YMIN) / (YMAX - YMIN)); }
+      };
+    }
+    function ptsFor(arr, g, n) {
+      return arr.map(function (v, i) { return g.x(i, n) + "," + g.y(v).toFixed(1); }).join(" ");
+    }
+
+    // Build the overview overall chart
+    function renderOverviewChart() {
+      var svg = $("#ovChart");
+      var W = 740, H = 180, padL = 40, padR = 40, padT = 20, padB = 30;
+      var g = chartGeometry(W, H, padL, padR, padT, padB);
+      var n = HIST.overall.length;
+      var grids = [100, 96, 92, 88];
+      var s = "";
+      grids.forEach(function (gv, idx) {
+        var yy = g.y(gv).toFixed(1);
+        s += '<line class="' + (idx === grids.length - 1 ? "axis" : "grid") + '" x1="' + padL + '" y1="' + yy + '" x2="' + (W - padR) + '" y2="' + yy + '"/>';
+        s += '<text class="ylab" x="' + (gv === 100 ? 8 : 12) + '" y="' + (parseFloat(yy) + 4).toFixed(1) + '">' + gv + '</text>';
+      });
+      s += '<polyline class="line" points="' + ptsFor(HIST.overall, g, n) + '"/>';
+      var lx = g.x(n - 1, n), ly = g.y(HIST.overall[n - 1]);
+      s += '<circle class="endpt-up" cx="' + lx.toFixed(1) + '" cy="' + ly.toFixed(1) + '" r="3.2"/>';
+      // x labels
+      var xl = [[0, "Apr"], [2, "May"], [4, "May 25"], [6, "Jun 8"], [7, "Jun 22"]];
+      xl.forEach(function (p, idx) {
+        var anchor = idx === 0 ? "" : idx === xl.length - 1 ? ' text-anchor="end"' : ' text-anchor="middle"';
+        s += '<text class="xlab" x="' + g.x(p[0], n).toFixed(1) + '" y="' + (H - 8) + '"' + anchor + '>' + p[1] + '</text>';
+      });
+      // hover hotspots + point
+      s += '<circle class="hpt" id="ovHpt" r="3.4"/>';
+      HIST.overall.forEach(function (v, i) {
+        s += '<rect class="hov" data-i="' + i + '" x="' + (g.x(i, n) - 14).toFixed(1) + '" y="' + padT + '" width="28" height="' + (H - padT - padB) + '"/>';
+      });
+      svg.innerHTML = s;
+      attachHover(svg, $(".chart", svg.parentNode) || svg.parentNode, HIST.overall, g, n, "ovHpt", "Overall");
+    }
+
+    function attachHover(svg, chartBox, arr, g, n, hptId, label) {
+      var tip = chartBox.querySelector(".chart-tip");
+      if (!tip) { tip = el("div", "chart-tip"); chartBox.appendChild(tip); }
+      var hpt = svg.querySelector("#" + hptId);
+      $$(".hov", svg).forEach(function (r) {
+        r.addEventListener("mouseenter", function () {
+          var i = +r.getAttribute("data-i");
+          var cx = g.x(i, n), cy = g.y(arr[i]);
+          if (hpt) { hpt.setAttribute("cx", cx); hpt.setAttribute("cy", cy); hpt.style.opacity = "1"; }
+          // convert svg coords to px within chartBox
+          var box = svg.getBoundingClientRect();
+          var px = box.left - chartBox.getBoundingClientRect().left + (cx / 740) * box.width;
+          // svg height varies; we positioned via viewBox height; approximate vertical
+          var vbH = svg.viewBox.baseVal.height || 180;
+          var py = box.top - chartBox.getBoundingClientRect().top + (cy / vbH) * box.height;
+          tip.style.left = px + "px";
+          tip.style.top = py + "px";
+          tip.textContent = WEEK_LABELS[i] + " · " + arr[i].toFixed(1) + "%";
+          tip.classList.add("show");
+        });
+        r.addEventListener("mouseleave", function () {
+          if (hpt) hpt.style.opacity = "0";
+          tip.classList.remove("show");
+        });
+      });
+    }
+
+    // ============================================================
+    // OVERVIEW course list
+    // ============================================================
+    function cssVar(name, fallback) {
+      try {
+        var v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+        return v || fallback;
+      } catch (e) { return fallback; }
+    }
+    function spark(arr, up) {
+      var n = arr.length, w = 84, h = 28, pad = 2;
+      var lo = Math.min.apply(null, arr), hi = Math.max.apply(null, arr), rng = (hi - lo) || 1;
+      var col = up ? cssVar("--signal-up", "#2f8f5b") : cssVar("--spark-mute", "#9a9a91");
+      var pts = arr.map(function (v, i) {
+        var x = pad + (w - pad * 2) * (i / (n - 1));
+        var y = (h - 4) - ((v - lo) / rng) * (h - 8) + 2;
+        return x.toFixed(1) + "," + y.toFixed(1);
+      });
+      var last = pts[pts.length - 1].split(",");
+      return '<svg width="84" height="28" viewBox="0 0 84 28" fill="none"><polyline points="' + pts.join(" ") + '" fill="none" stroke="' + col + '" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="' + last[0] + '" cy="' + last[1] + '" r="2" fill="' + col + '"/></svg>';
+    }
+
+    function renderOverviewCourses() {
+      var wrap = $("#ovCourses");
+      wrap.innerHTML = "";
+      COURSES.forEach(function (c) {
+        var up = c.trend === "up";
+        var flag = c.missing ? '<span class="flag"><span class="fdot"></span>' + c.missing + ' missing</span>' : "";
+        var a = el("article", "course");
+        a.setAttribute("data-course", c.id);
+        a.style.cursor = "pointer";
+        a.innerHTML =
+          '<div class="who"><div class="cname">' + esc(c.name) + flag + '</div><div class="teacher">' + esc(c.teacher) + ' · ' + c.per + '</div></div>' +
+          '<div class="spark">' + spark(HIST[c.id], up) + '</div>' +
+          '<div class="trend' + (up ? " up" : "") + '">' + trendWord(c.trend) + '</div>' +
+          '<div class="gradecell"><div class="pct">' + c.grade.toFixed(1) + '%</div><div class="letter">' + c.ltr + '</div></div>';
+        wrap.appendChild(a);
+      });
+    }
+    $("#ovCourses").addEventListener("click", function (e) {
+      var a = e.target.closest(".course"); if (!a) return;
+      selectGrade(a.getAttribute("data-course"));
+      goScreen("grades");
+    });
+
+    // ============================================================
+    // GRADES
+    // ============================================================
+    var curGrade = "bio";
+    var legendOff = {}; // course id -> hidden
+
+    function renderRail() {
+      var rail = $("#gradeRail");
+      rail.innerHTML = "";
+      COURSES.forEach(function (c) {
+        var flag = c.missing ? '<span class="flag"><span class="fdot"></span>' + c.missing + '</span>' : "";
+        var b = el("button", "rail-item" + (c.id === curGrade ? " on" : ""));
+        b.setAttribute("data-grade", c.id);
+        b.innerHTML = '<div class="rn">' + esc(c.name) + flag + '</div>' +
+          '<div class="rt">' + esc(c.teacher) + '</div>' +
+          '<div class="rg">' + c.grade.toFixed(1) + '% · ' + c.ltr + '</div>';
+        rail.appendChild(b);
+      });
+    }
+    $("#gradeRail").addEventListener("click", function (e) {
+      var b = e.target.closest(".rail-item"); if (!b) return;
+      selectGrade(b.getAttribute("data-grade"));
+    });
+    function selectGrade(id) { curGrade = id; renderRail(); renderGradePane(); }
+
+    function renderCourseChart() {
+      var c = byId[curGrade];
+      var W = 700, H = 200, padL = 44, padR = 40, padT = 22, padB = 32;
+      var g = chartGeometry(W, H, padL, padR, padT, padB);
+      var n = HIST[curGrade].length;
+      var s = "";
+      var grids = [100, 96, 92, 88];
+      grids.forEach(function (gv, idx) {
+        var yy = g.y(gv).toFixed(1);
+        s += '<line class="' + (idx === grids.length - 1 ? "axis" : "grid") + '" x1="' + padL + '" y1="' + yy + '" x2="' + (W - padR) + '" y2="' + yy + '"/>';
+        s += '<text class="ylab" x="' + (gv === 100 ? 10 : 16) + '" y="' + (parseFloat(yy) + 4).toFixed(1) + '">' + gv + '</text>';
+      });
+      // faint reference lines (other courses), respecting legend toggles
+      COURSES.forEach(function (oc) {
+        if (oc.id === curGrade) return;
+        if (legendOff[oc.id]) return;
+        s += '<polyline class="ref" points="' + ptsFor(HIST[oc.id], g, n) + '"/>';
+      });
+      // selected course
+      if (!legendOff[curGrade]) {
+        s += '<polyline class="line" points="' + ptsFor(HIST[curGrade], g, n) + '"/>';
+        var lx = g.x(n - 1, n), ly = g.y(HIST[curGrade][n - 1]);
+        var endCls = c.missing ? "endpt-miss" : (c.trend === "up" ? "endpt-up" : "endpt");
+        s += '<circle class="' + endCls + '" cx="' + lx.toFixed(1) + '" cy="' + ly.toFixed(1) + '" r="3.4"/>';
+      }
+      // x labels
+      var xl = [[0, "Apr 27"], [2, "May"], [4, "May 25"], [6, "Jun 8"], [7, "Jun 22"]];
+      xl.forEach(function (p, idx) {
+        var anchor = idx === 0 ? "" : idx === xl.length - 1 ? ' text-anchor="end"' : ' text-anchor="middle"';
+        s += '<text class="xlab" x="' + g.x(p[0], n).toFixed(1) + '" y="' + (H - 8) + '"' + anchor + '>' + p[1] + '</text>';
+      });
+      s += '<circle class="hpt" id="gbHpt" r="3.4"/>';
+      HIST[curGrade].forEach(function (v, i) {
+        s += '<rect class="hov" data-i="' + i + '" x="' + (g.x(i, n) - 14).toFixed(1) + '" y="' + padT + '" width="28" height="' + (H - padT - padB) + '"/>';
+      });
+
+      // legend chips
+      var legend = "";
+      var order = [curGrade].concat(COURSES.map(function (x) { return x.id; }).filter(function (x) { return x !== curGrade; }));
+      order.forEach(function (cid) {
+        var cc = byId[cid];
+        var cur = cid === curGrade;
+        var miss = cc.missing ? '<span class="ldot miss" title="' + cc.missing + ' missing"></span>' : "";
+        legend += '<span class="lk' + (cur ? " cur" : "") + (legendOff[cid] ? " off" : "") + '" data-leg="' + cid + '"><span class="ldash"></span>' + esc(cc.name) + ' ' + miss + '</span>';
+      });
+
+      return { svg: s, legend: legend, g: g, n: n, c: c };
+    }
+
+    function renderGradePane() {
+      var c = byId[curGrade];
+      var gb = GB[curGrade];
+      var ch = renderCourseChart();
+      var trendTxt = c.trend === "up" ? "Trending up this quarter" : c.trend === "down" ? "Declining this quarter" : "Flat this quarter";
+      var sparkUp = c.trend === "up";
+
+      var html = "";
+      html += '<div class="gb-snapshot">';
+      html += '  <div class="left">';
+      html += '    <div class="gbteacher">' + esc(c.name) + ' · ' + esc(c.teacher) + ' · ' + c.per + '</div>';
+      html += '    <div class="gbgrade">' + c.grade.toFixed(1) + '<span class="pct">%</span></div>';
+      html += '    <div class="gbsub">Letter ' + c.ltr + ' · ' + trendTxt + (c.missing ? ' · ' + c.missing + ' missing' : '') + '</div>';
+      html += '  </div>';
+      html += '  <div class="spark" style="width:120px;height:36px;">' + spark(HIST[curGrade], sparkUp).replace('width="84" height="28" viewBox="0 0 84 28"', 'width="120" height="36" viewBox="0 0 120 36"') + '</div>';
+      html += '</div>';
+
+      html += '<section class="chart" id="gbChart" aria-label="Course grade over time" style="margin-bottom:28px;">';
+      html += '  <div class="chart-head"><span class="chart-title">' + esc(c.name) + ' · grade over time</span><span class="chart-now' + (c.trend === "up" ? " up" : "") + '">' + c.grade.toFixed(1) + '% now</span></div>';
+      html += '  <svg id="gbSvg" viewBox="0 0 700 200" role="img" aria-label="Line chart of ' + esc(c.name) + ' grade across semester 2">' + ch.svg + '</svg>';
+      html += '  <div class="chart-legend" id="gbLegend" aria-label="Courses">' + ch.legend + '</div>';
+      html += '</section>';
+
+      html += '<div class="section-head" style="margin-top:0;"><h2>Categories</h2><span class="count">Weighted</span></div>';
+      html += '<div class="panel cat-list">';
+      gb.cats.forEach(function (cat) {
+        html += '<div class="cat"><div><div class="cn">' + esc(cat[0]) + '</div><div class="cw">' + cat[1] + '% of grade</div></div>' +
+          '<div class="bar"><span style="width:' + cat[2] + '%"></span></div>' +
+          '<div class="cavg">' + (cat[2] % 1 === 0 ? cat[2] : cat[2].toFixed(1)) + '%</div></div>';
+      });
+      html += '</div>';
+
+      html += '<div class="section-head"><h2>Assignments</h2><span class="count">' + gb.rows.length + '</span></div>';
+      html += '<div class="panel">';
+      gb.rows.forEach(function (r) {
+        var anCls = r.miss ? " miss" : "";
+        var pctCls = r.miss ? " miss" : "";
+        html += '<div class="arow"><div><div class="an' + anCls + '">' + esc(r.name) + '</div><div class="ameta">' + esc(r.cat) + '</div></div>' +
+          '<div class="adate">' + esc(r.date) + '</div>' +
+          '<div class="ascore">' + esc(r.score) + '</div>' +
+          '<div class="apct' + pctCls + '">' + esc(r.pct) + '</div></div>';
+      });
+      html += '</div>';
+
+      $("#gradePane").innerHTML = html;
+
+      // wire chart hover + legend
+      var svg = $("#gbSvg"), box = $("#gbChart");
+      attachHover(svg, box, HIST[curGrade], ch.g, ch.n, "gbHpt", c.name);
+      $("#gbLegend").addEventListener("click", function (e) {
+        var lk = e.target.closest(".lk"); if (!lk) return;
+        var cid = lk.getAttribute("data-leg");
+        legendOff[cid] = !legendOff[cid];
+        renderGradePane(); // re-render chart with toggle applied
+      });
+    }
+
+    // ============================================================
+    // ASSIGNMENTS
+    // ============================================================
+    var asnFilter = "upcoming";
+    var asnQuery = "";
+    var asnDone = load("asnDone", {}); // title -> true
+
+    function asnStateOf(a) {
+      if (asnDone[a.title]) return "done";
+      return a.state;
+    }
+    function pillFor(state) {
+      if (state === "due") return '<span class="status-pill due">Due</span>';
+      if (state === "missing") return '<span class="status-pill miss">Missing</span>';
+      if (state === "done") return '<span class="status-pill done">Done</span>';
+      return '<span class="status-pill">Upcoming</span>';
+    }
+    function dueFor(a, state) {
+      if (state === "done" && a.state !== "done") return "Marked done";
+      return a.due;
+    }
+    function renderAsnCounts() {
+      var u = 0, m = 0, d = 0;
+      ASN.forEach(function (a) {
+        var st = asnStateOf(a);
+        if (st === "done") d++;
+        else if (st === "missing") m++;
+        else u++; // upcoming + due treated as upcoming agenda
+      });
+      $$("#asnSeg button").forEach(function (b) {
+        var f = b.getAttribute("data-filter");
+        var lbl = f === "upcoming" ? "Upcoming" : f === "missing" ? "Missing" : "Done";
+        var cnt = f === "upcoming" ? u : f === "missing" ? m : d;
+        b.textContent = lbl + " · " + cnt;
+      });
+      // sidebar badge = missing count
+      var badge = $('.nav-item[data-screen="assignments"] .badge');
+      if (badge) badge.textContent = m;
+    }
+    function renderAsn() {
+      var list = $("#asnList");
+      list.innerHTML = "";
+      var q = asnQuery.toLowerCase();
+      var shown = 0;
+      ASN.forEach(function (a) {
+        var st = asnStateOf(a);
+        var inFilter = (asnFilter === "upcoming" && (st === "upcoming" || st === "due")) ||
+                       (asnFilter === "missing" && st === "missing") ||
+                       (asnFilter === "done" && st === "done");
+        if (!inFilter) return;
+        if (q && (a.title + " " + byId[a.cid].name).toLowerCase().indexOf(q) < 0) return;
+        shown++;
+        var c = byId[a.cid];
+        var titleCls = st === "missing" ? " miss" : "";
+        var dueCls = a.today && st !== "done" ? " today" : "";
+        var dueTxt = a.today && st === "due" ? "Due today" : dueFor(a, st);
+        var row = el("div", "asn");
+        var right = pillFor(st);
+        // mark-done affordance for upcoming/due/missing (not already done)
+        if (st !== "done") {
+          right = '<button class="mark" data-title="' + esc(a.title) + '">Mark done</button>' + pillFor(st);
+        }
+        row.innerHTML =
+          '<span class="course-tag">' + esc(c.name.split(" ")[0]) + '</span>' +
+          '<div class="atitle' + titleCls + '">' + esc(a.title) + '</div>' +
+          '<div class="adue' + dueCls + '">' + esc(dueTxt) + (st === "done" && a.score ? ' · ' + esc(a.score) : "") + '</div>' +
+          right;
+        list.appendChild(row);
+      });
+      $("#asnEmpty").style.display = shown ? "none" : "block";
+      renderAsnCounts();
+    }
+    $("#asnSeg").addEventListener("click", function (e) {
+      var b = e.target.closest("button"); if (!b) return;
+      $$("#asnSeg button").forEach(function (x) { x.classList.toggle("on", x === b); });
+      asnFilter = b.getAttribute("data-filter");
+      renderAsn();
+    });
+    $("#asnSearch").addEventListener("input", function (e) { asnQuery = e.target.value; renderAsn(); });
+    $("#asnList").addEventListener("click", function (e) {
+      var m = e.target.closest(".mark"); if (!m) return;
+      asnDone[m.getAttribute("data-title")] = true;
+      save("asnDone", asnDone);
+      renderAsn();
+    });
+
+    // ============================================================
+    // CALENDAR
+    // ============================================================
+    var TODAY = { y: 2026, m: 5, d: 22 }; // month 0-indexed: 5 = June
+    var calY = TODAY.y, calM = TODAY.m;
+    var calSel = null; // ISO string
+    var MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+    function iso(y, m, d) {
+      return y + "-" + ("0" + (m + 1)).slice(-2) + "-" + ("0" + d).slice(-2);
+    }
+    function evDotClass(e) { return e.miss ? "miss" : e.up ? "up" : ""; }
+
+    function renderCalendar() {
+      $("#calMonth").textContent = MONTHS[calM] + " " + calY;
+      var first = new Date(calY, calM, 1);
+      var startDow = first.getDay(); // 0 Sun
+      var daysInMonth = new Date(calY, calM + 1, 0).getDate();
+      var prevDays = new Date(calY, calM, 0).getDate();
+      var weeks = $("#calWeeks");
+      weeks.innerHTML = "";
+      var cellIdx = 0;
+      for (var w = 0; w < 6; w++) {
+        var row = el("div", "cal-row");
+        var hasRealDay = false;
+        for (var dow = 0; dow < 7; dow++) {
+          var cell = el("div", "cal-cell");
+          var dayNum, out = false, y = calY, mo = calM;
+          if (cellIdx < startDow) { dayNum = prevDays - startDow + 1 + cellIdx; out = true; mo = calM - 1; if (mo < 0) { mo = 11; y--; } }
+          else if (cellIdx >= startDow + daysInMonth) { dayNum = cellIdx - startDow - daysInMonth + 1; out = true; mo = calM + 1; if (mo > 11) { mo = 0; y++; } }
+          else { dayNum = cellIdx - startDow + 1; hasRealDay = true; }
+          if (out) cell.classList.add("out");
+          var key = iso(y, mo, dayNum);
+          var isToday = (!out && y === TODAY.y && mo === TODAY.m && dayNum === TODAY.d);
+          if (isToday) cell.classList.add("today");
+          if (calSel === key) cell.classList.add("sel");
+          var evs = out ? null : EVENTS[key];
+          var inner = '<div class="dnum">' + dayNum + '</div>';
+          if (evs && evs.length) {
+            cell.classList.add("has-ev");
+            cell.setAttribute("data-day", key);
+            evs.slice(0, 2).forEach(function (ev) {
+              inner += '<div class="cal-ev"><span class="edot ' + evDotClass(ev) + '"></span>' + esc(ev.t) + '</div>';
+            });
+          }
+          cell.innerHTML = inner;
+          row.appendChild(cell);
+          cellIdx++;
+        }
+        weeks.appendChild(row);
+        if (cellIdx >= startDow + daysInMonth) break;
+      }
+      renderCalDay();
+    }
+    function renderCalDay() {
+      var panel = $("#calDay");
+      if (!calSel || !EVENTS[calSel]) { panel.style.display = "none"; return; }
+      var parts = calSel.split("-");
+      var d = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+      var DOW = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+      var head = DOW[d.getDay()] + ", " + MONTHS[+parts[1] - 1] + " " + (+parts[2]);
+      var html = '<div class="cal-day-head">' + head + '</div>';
+      EVENTS[calSel].forEach(function (ev) {
+        var c = byId[ev.c];
+        var tag = ev.miss ? '<span class="ctag miss">Missing</span>' : ev.today ? '<span class="ctag">Due today</span>' : '<span class="ctag">' + c.name.split(" ")[0] + '</span>';
+        html += '<div class="cal-day-row"><span class="cdot ' + evDotClass(ev) + '"></span>' + esc(ev.t) + ' · ' + esc(c.name) + tag + '</div>';
+      });
+      panel.innerHTML = html;
+      panel.style.display = "block";
+    }
+    $("#calWeeks").addEventListener("click", function (e) {
+      var cell = e.target.closest(".cal-cell.has-ev"); if (!cell) return;
+      calSel = cell.getAttribute("data-day");
+      renderCalendar();
+    });
+    $("#calPrev").addEventListener("click", function () { calM--; if (calM < 0) { calM = 11; calY--; } calSel = null; renderCalendar(); });
+    $("#calNext").addEventListener("click", function () { calM++; if (calM > 11) { calM = 0; calY++; } calSel = null; renderCalendar(); });
+    $("#calToday").addEventListener("click", function () { calY = TODAY.y; calM = TODAY.m; calSel = null; renderCalendar(); });
+
+    // ============================================================
+    // ANNOUNCEMENTS
+    // ============================================================
+    var starred = load("starred", { 0: false, 3: false }); // default none
+    function initials(name) {
+      var p = name.replace(/^(Mr|Ms|Mrs|Mme|Coach|M)\.?\s+/i, "").split(/\s+/);
+      return (p[0][0] + (p[1] ? p[1][0] : "")).toUpperCase();
+    }
+    function renderAnn() {
+      var list = $("#annList");
+      list.innerHTML = "";
+      ANN.forEach(function (a) {
+        var c = byId[a.cid];
+        var art = el("article", "ann");
+        art.innerHTML =
+          '<div class="av">' + initials(a.who) + '</div>' +
+          '<div><div class="meta"><span class="who">' + esc(a.who) + '</span> · ' + esc(c.name) + ' · ' + esc(a.time) + '</div>' +
+          '<div class="atitle">' + esc(a.title) + '</div>' +
+          '<div class="snip">' + esc(a.body) + '</div></div>' +
+          '<button class="star' + (starred[a.id] ? " on" : "") + '" data-id="' + a.id + '" aria-label="Star">' + STAR + '</button>';
+        list.appendChild(art);
+      });
+    }
+    $("#annList").addEventListener("click", function (e) {
+      var s = e.target.closest(".star"); if (!s) return;
+      var id = s.getAttribute("data-id");
+      starred[id] = !starred[id];
+      save("starred", starred);
+      s.classList.toggle("on", !!starred[id]);
+    });
+    var annStatusTimer;
+    $("#annRefresh").addEventListener("click", function () {
+      var st = $("#annStatus");
+      st.textContent = "Updated just now";
+      st.style.opacity = "1";
+      clearTimeout(annStatusTimer);
+      annStatusTimer = setTimeout(function () { st.style.opacity = "0"; }, 2600);
+    });
+
+    // ============================================================
+    // MATERIALS
+    // ============================================================
+    var matSel = "Cell Energetics Lab handout.pdf";
+    var matRev = load("matRev", 0);
+    var matComments = load("matComments", []);
+
+    function renderMatList() {
+      var list = $("#matList");
+      list.innerHTML = "";
+      MATERIALS.forEach(function (m) {
+        var row = el("div", "mat" + (m.name === matSel ? " on" : ""));
+        row.setAttribute("data-name", m.name);
+        row.innerHTML =
+          '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' + (IC[m.type] || IC.pdf) + '</svg>' +
+          '<div><div class="mn">' + esc(m.name) + '</div><div class="mmeta">' + esc(m.meta) + '</div></div>' +
+          '<div class="msize">' + esc(m.size) + '</div>';
+        list.appendChild(row);
+      });
+    }
+
+    // The submission detail always targets the assignment "Cell Energetics Lab".
+    function renderMatDetail() {
+      var d = $("#matDetail");
+      var openName = matSel;
+      var revLine = matRev === 0
+        ? 'No revisions yet. Submissions are kept for 30 days.'
+        : 'Submitted · revision ' + matRev + ' created · ' + (load("matRevTime", ""));
+      var commentsHtml = "";
+      if (matComments.length) {
+        commentsHtml = '<div class="dlabel">Comments</div>';
+        matComments.forEach(function (cm) {
+          commentsHtml += '<div class="attach" style="border:none;background:var(--paper-2);">' + esc(cm.text) + ' <span style="margin-left:auto;color:var(--ink-4);font-weight:450;">' + esc(cm.time) + '</span></div>';
+        });
+      }
+      d.innerHTML =
+        '<h3>Cell Energetics Lab</h3>' +
+        '<div class="dmeta">Biology · Ms. Carrington · was due Jun 19' + (openName !== "Cell Energetics Lab handout.pdf" ? ' · viewing ' + esc(openName) : '') + '</div>' +
+        '<div class="dlabel">Attachments</div>' +
+        '<div class="attach"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' + IC.pdf + '</svg> Cell Energetics Lab handout.pdf</div>' +
+        '<div class="attach"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' + IC.doc + '</svg> Lab report template.docx</div>' +
+        '<div class="dlabel">Text submission</div>' +
+        '<textarea class="field" id="matText" rows="4" placeholder="Type or paste your response"></textarea>' +
+        '<div class="dlabel">Comment</div>' +
+        '<input class="field" id="matComment" type="text" placeholder="Add a comment for your teacher" />' +
+        commentsHtml +
+        '<div class="revnote" id="matRevNote">' + revLine + '</div>' +
+        '<div class="dactions">' +
+        '<button class="btn solid" id="matSubmit">Submit</button>' +
+        '<button class="btn" id="matAddComment">Add comment</button>' +
+        '<a class="link-out" href="#" onclick="return false;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg> Open in Schoology</a>' +
+        '</div>';
+
+      $("#matSubmit").addEventListener("click", function () {
+        matRev++;
+        var ts = nowStamp();
+        save("matRev", matRev);
+        save("matRevTime", ts);
+        $("#matRevNote").textContent = "Submitted · revision " + matRev + " created · " + ts;
+        var ta = $("#matText"); if (ta) ta.value = "";
+      });
+      $("#matAddComment").addEventListener("click", function () {
+        var inp = $("#matComment"); if (!inp || !inp.value.trim()) return;
+        matComments.push({ text: inp.value.trim(), time: nowStamp() });
+        save("matComments", matComments);
+        renderMatDetail();
+      });
+    }
+    function nowStamp() {
+      var d = new Date();
+      var h = d.getHours(), m = ("0" + d.getMinutes()).slice(-2);
+      var ap = h >= 12 ? "PM" : "AM"; h = h % 12 || 12;
+      return h + ":" + m + " " + ap;
+    }
+    $("#matList").addEventListener("click", function (e) {
+      var row = e.target.closest(".mat"); if (!row) return;
+      matSel = row.getAttribute("data-name");
+      renderMatList();
+      renderMatDetail();
+    });
+
+    // ============================================================
+    // SETTINGS — toggles persist, style switcher, theme, notifications
+    // ============================================================
+    // restore + wire data-key switches
+    $$("input.switch[data-key]").forEach(function (sw) {
+      var k = sw.getAttribute("data-key");
+      var saved = load("toggle." + k, sw.checked);
+      sw.checked = !!saved;
+      applyToggleSide(k, sw.checked);
+      sw.addEventListener("change", function () {
+        save("toggle." + k, sw.checked);
+        applyToggleSide(k, sw.checked);
+      });
+    });
+    function applyToggleSide(k, on) {
+      if (k === "appearance.compact") document.body.classList.toggle("compact", on);
+      if (k.indexOf("sec.") === 0) {
+        var id = k.slice(4);
+        var item = $('.nav-item[data-screen="' + id + '"]');
+        if (item) item.style.display = on ? "" : "none";
+      }
+    }
+
+    // style switcher (edition)
+    var curStyle = load("style", "halo");
+    function applyStyle() {
+      $$("#styleGrid .style-card").forEach(function (card) {
+        var on = card.getAttribute("data-style") === curStyle;
+        card.classList.toggle("on", on);
+        var name = card.querySelector(".sc-name");
+        var hasCheck = card.querySelector(".sc-check");
+        if (on && !hasCheck) {
+          name.insertAdjacentHTML("beforeend", ' <span class="sc-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 6"/></svg></span>');
+        } else if (!on && hasCheck) {
+          hasCheck.remove();
+        }
+      });
+    }
+    $("#styleGrid").addEventListener("click", function (e) {
+      var card = e.target.closest(".style-card"); if (!card) return;
+      var style = card.getAttribute("data-style");
+      var file = card.getAttribute("data-file");
+      // Halo is the current edition — just reaffirm selection, no navigation.
+      if (style === "halo") {
+        curStyle = "halo";
+        save("style", "halo");
+        applyStyle();
+        return;
+      }
+      // Persist choice (so the target edition can reflect it) and navigate.
+      curStyle = style;
+      save("style", style);
+      applyStyle();
+      if (file) { window.location.href = file; }
+    });
+
+    // theme segment — light / dark / auto, persisted; auto follows OS
+    var curTheme = load("theme", "light");
+    var prefersDark = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+
+    function resolvedTheme() {
+      if (curTheme === "dark") return "dark";
+      if (curTheme === "auto") return (prefersDark && prefersDark.matches) ? "dark" : "light";
+      return "light";
+    }
+    function repaintThemed() {
+      // re-render anything whose colors are computed in JS (sparklines).
+      // chart/list/calendar SVGs use CSS vars and adapt automatically.
+      renderOverviewCourses();
+      if ($("#gradePane")) renderGradePane();
+    }
+    function applyTheme() {
+      var mode = resolvedTheme();
+      document.documentElement.setAttribute("data-theme", mode);
+      $$("#themeSeg button").forEach(function (b) { b.classList.toggle("on", b.getAttribute("data-theme") === curTheme); });
+      repaintThemed();
+    }
+    $("#themeSeg").addEventListener("click", function (e) {
+      var b = e.target.closest("button"); if (!b) return;
+      curTheme = b.getAttribute("data-theme");
+      save("theme", curTheme);
+      applyTheme();
+    });
+    if (prefersDark) {
+      var onScheme = function () { if (curTheme === "auto") applyTheme(); };
+      if (prefersDark.addEventListener) prefersDark.addEventListener("change", onScheme);
+      else if (prefersDark.addListener) prefersDark.addListener(onScheme);
+    }
+
+    // ============================================================
+    // TOAST / NOTIFICATIONS
+    // ============================================================
+    function toast(opts) {
+      var wrap = $("#toastWrap");
+      var t = el("div", "toast");
+      t.innerHTML =
+        '<span class="tsig ' + (opts.sig || "") + '"></span>' +
+        '<div>' + (opts.app ? '<div class="tapp">' + esc(opts.app) + '</div>' : '') +
+        '<div class="ttitle">' + esc(opts.title) + '</div>' +
+        (opts.body ? '<div class="tbody">' + esc(opts.body) + '</div>' : '') + '</div>';
+      wrap.appendChild(t);
+      requestAnimationFrame(function () { t.classList.add("show"); });
+      setTimeout(function () {
+        t.classList.remove("show");
+        setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 280);
+      }, 4200);
+    }
+    var notifIdx = 0;
+    $("#notifTest").addEventListener("click", function () {
+      if (!$("#notifToggle").checked) {
+        $("#notifHint").textContent = "Turn on notifications to preview";
+        return;
+      }
+      var n = NOTIF_TEXT[notifIdx % NOTIF_TEXT.length]; notifIdx++;
+      toast({ sig: n.sig, title: n.title, body: n.body, app: "Better SGY · Biology" });
+    });
+
+    // ============================================================
+    // GAMES — Arcade (Climb / Streak / Recall)
+    // monochrome base; ink as the single accent, used sparingly.
+    // ============================================================
+    (function games() {
+      var GAMES = [
+        { id: "mines",  name: "Minesweeper", desc: "Clear the field, 10 mines", best: "mines",  bestLabel: "Best", fmt: "time" },
+        { id: "lights", name: "Lights Out",  desc: "Turn every cell off",        best: "lights", bestLabel: "Fewest", fmt: "num" },
+        { id: "dodge",  name: "Dodge",       desc: "Avoid the falling bars",      best: "dodge",  bestLabel: "Best", fmt: "time" },
+        { id: "words",  name: "Word Search", desc: "Find six hidden words",       best: "words",  bestLabel: "Best", fmt: "time" }
+      ];
+      var GIC = {
+        mines:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg>',
+        lights: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="3" y="14" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
+        dodge:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v6M14 5v5M18 3v7"/><circle cx="11" cy="19" r="2.4"/></svg>',
+        words:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="6"/><path d="M20 20l-5.6-5.6"/></svg>'
+      };
+
+      var home = $("#arcadeHome"), stage = $("#gameStage");
+      var board = $("#gameBoard"), scoresEl = $("#gameScores"), hintEl = $("#gameHint");
+      var titleEl = $("#gameTitle");
+      var active = null;       // current game id
+      var teardown = null;     // current game's cleanup fn
+
+      // single localStorage object for all four best scores
+      var ARCADE_KEY = "bsgy-halo-arcade";
+      function arcadeAll() {
+        try { var v = localStorage.getItem(ARCADE_KEY); return v ? JSON.parse(v) : {}; }
+        catch (e) { return {}; }
+      }
+      function bestOf(key) { var a = arcadeAll(); return a[key] != null ? a[key] : 0; }
+      function setBest(key, v) {
+        var a = arcadeAll(); a[key] = v;
+        try { localStorage.setItem(ARCADE_KEY, JSON.stringify(a)); } catch (e) {}
+      }
+      function fmtTime(ms) {
+        var s = Math.floor(ms / 1000);
+        return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2);
+      }
+      function bestText(g) {
+        var b = bestOf(g.best);
+        if (!b) return "—";
+        if (g.fmt === "time") return g.bestLabel + " " + fmtTime(b);
+        return g.bestLabel + " " + b;
+      }
+
+      function renderHome() {
+        var html = "";
+        GAMES.forEach(function (g) {
+          html +=
+            '<button class="game-card" data-game="' + g.id + '">' +
+              '<span class="gc-ic">' + GIC[g.id] + '</span>' +
+              '<span><span class="gc-name">' + g.name + '</span>' +
+              '<span class="gc-desc" style="display:block;">' + g.desc + '</span></span>' +
+              '<span class="gc-best">' + bestText(g) + '</span>' +
+            '</button>';
+        });
+        $("#gameCards").innerHTML = html;
+      }
+
+      function showHome() {
+        if (teardown) { try { teardown(); } catch (e) {} teardown = null; }
+        active = null;
+        stage.style.display = "none";
+        home.style.display = "";
+        renderHome();
+      }
+
+      function play(id) {
+        if (teardown) { try { teardown(); } catch (e) {} teardown = null; }
+        active = id;
+        home.style.display = "none";
+        stage.style.display = "";
+        board.innerHTML = "";
+        scoresEl.innerHTML = "";
+        var g = null; GAMES.forEach(function (x) { if (x.id === id) g = x; });
+        titleEl.textContent = g.name;
+        if (id === "mines") teardown = startMines();
+        else if (id === "lights") teardown = startLights();
+        else if (id === "dodge") teardown = startDodge();
+        else if (id === "words") teardown = startWords();
+      }
+
+      $("#gameCards").addEventListener("click", function (e) {
+        var c = e.target.closest(".game-card"); if (!c) return;
+        play(c.getAttribute("data-game"));
+      });
+      $("#gameBack").addEventListener("click", showHome);
+      $("#gameRestart").addEventListener("click", function () { if (active) play(active); });
+
+      // scoreboard helper
+      function scoreboard(defs) {
+        var html = "";
+        defs.forEach(function (d) {
+          html += '<div class="gscore"><div class="gl">' + d.label + '</div><div class="gv" id="' + d.id + '">' + d.val + '</div></div>';
+        });
+        scoresEl.innerHTML = html;
+      }
+      function overlay(parent) {
+        var ov = el("div", "game-over");
+        ov.innerHTML = '<div class="got" id="ovTitle"></div><div class="gosub" id="ovSub"></div><button class="btn solid" id="ovAgain">Play again</button>';
+        parent.appendChild(ov);
+        return ov;
+      }
+
+      // ---------- only run keyboard handlers when Games screen is active & a game is open
+      function gamesScreenOn() {
+        var sc = $("#screen-games");
+        return sc && sc.classList.contains("active");
+      }
+
+      // =========================================================
+      // GAME 1 — MINESWEEPER (9x9, 10 mines)
+      // =========================================================
+      function startMines() {
+        var N = 9, MINES = 10;
+        scoreboard([
+          { id: "mnFlags", label: "Mines", val: MINES },
+          { id: "mnTime",  label: "Time",  val: "0:00" },
+          { id: "mnBest",  label: "Best",  val: bestOf("mines") ? fmtTime(bestOf("mines")) : "—" }
+        ]);
+        hintEl.textContent = "Reveal cells · right-click or flag mode to mark mines";
+
+        var grid = el("div", "mine-grid");
+        board.appendChild(grid);
+        var tools = el("div", "game-tools");
+        tools.innerHTML = '<button class="gtool" id="mnFlagBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 22V3M5 3h11l-2 4 2 4H5"/></svg>Flag mode</button>';
+        board.appendChild(tools);
+        var ov = overlay(board);
+
+        var cells, mines, adj, revealed, flags, dead, won, started, t0, timer, flagMode;
+
+        function idx(r, c) { return r * N + c; }
+        function inB(r, c) { return r >= 0 && c >= 0 && r < N && c < N; }
+        function neighbors(r, c) {
+          var out = [];
+          for (var dr = -1; dr <= 1; dr++) for (var dc = -1; dc <= 1; dc++) {
+            if (dr === 0 && dc === 0) continue;
+            if (inB(r + dr, c + dc)) out.push([r + dr, c + dc]);
+          }
+          return out;
+        }
+        function tick() { if (started && !dead && !won) $("#mnTime").textContent = fmtTime(Date.now() - t0); }
+
+        function reset() {
+          if (timer) { clearInterval(timer); timer = null; }
+          mines = {}; adj = []; revealed = {}; flags = {};
+          dead = false; won = false; started = false; flagMode = false;
+          $("#mnFlagBtn").classList.remove("on");
+          $("#mnFlags").textContent = MINES;
+          $("#mnTime").textContent = "0:00";
+          $("#mnBest").textContent = bestOf("mines") ? fmtTime(bestOf("mines")) : "—";
+          ov.classList.remove("show");
+          // place mines
+          var pool = [];
+          for (var i = 0; i < N * N; i++) pool.push(i);
+          for (var m = 0; m < MINES; m++) {
+            var j = Math.floor(Math.random() * pool.length);
+            mines[pool[j]] = true; pool.splice(j, 1);
+          }
+          // counts
+          for (var r = 0; r < N; r++) for (var c = 0; c < N; c++) {
+            if (mines[idx(r, c)]) { adj[idx(r, c)] = -1; continue; }
+            var n = 0;
+            neighbors(r, c).forEach(function (p) { if (mines[idx(p[0], p[1])]) n++; });
+            adj[idx(r, c)] = n;
+          }
+          // render
+          var html = "";
+          for (var k = 0; k < N * N; k++) html += '<button class="mine-cell" data-k="' + k + '"></button>';
+          grid.innerHTML = html;
+          cells = $$(".mine-cell", grid);
+        }
+
+        function flagsLeft() {
+          var f = 0; for (var k in flags) if (flags[k]) f++;
+          return MINES - f;
+        }
+        function toggleFlag(k) {
+          if (dead || won || revealed[k]) return;
+          flags[k] = !flags[k];
+          var c = cells[k];
+          if (flags[k]) { c.classList.add("flag"); c.textContent = "⚑"; }
+          else { c.classList.remove("flag"); c.textContent = ""; }
+          $("#mnFlags").textContent = flagsLeft();
+        }
+        function reveal(k) {
+          if (dead || won || revealed[k] || flags[k]) return;
+          if (!started) { started = true; t0 = Date.now(); timer = setInterval(tick, 250); }
+          if (mines[k]) { lose(k); return; }
+          // flood fill
+          var stack = [k];
+          while (stack.length) {
+            var cur = stack.pop();
+            if (revealed[cur]) continue;
+            revealed[cur] = true;
+            var cell = cells[cur];
+            cell.classList.add("open");
+            cell.classList.remove("flag"); flags[cur] = false;
+            var n = adj[cur];
+            if (n > 0) { cell.textContent = n; cell.classList.add("n" + n); }
+            else {
+              var rr = Math.floor(cur / N), cc = cur % N;
+              neighbors(rr, cc).forEach(function (p) {
+                var nk = idx(p[0], p[1]);
+                if (!revealed[nk] && !mines[nk]) stack.push(nk);
+              });
+            }
+          }
+          $("#mnFlags").textContent = flagsLeft();
+          checkWin();
+        }
+        function checkWin() {
+          var rev = 0; for (var key in revealed) if (revealed[key]) rev++;
+          if (rev === N * N - MINES) winGame();
+        }
+        function revealAllMines(hitK) {
+          for (var k = 0; k < N * N; k++) {
+            if (mines[k]) {
+              cells[k].classList.remove("flag");
+              cells[k].textContent = "●";
+              cells[k].classList.add(k === hitK ? "hit" : "mine");
+            }
+          }
+        }
+        function lose(hitK) {
+          dead = true;
+          if (timer) { clearInterval(timer); timer = null; }
+          revealAllMines(hitK);
+          $("#ovTitle").textContent = "Hit a mine";
+          $("#ovTitle").className = "got";
+          $("#ovSub").textContent = "Reveal every safe cell to win";
+          ov.classList.add("show");
+        }
+        function winGame() {
+          won = true;
+          if (timer) { clearInterval(timer); timer = null; }
+          var ms = Date.now() - t0;
+          var b = bestOf("mines");
+          var record = !b || ms < b;
+          if (record) setBest("mines", ms);
+          $("#mnBest").textContent = fmtTime(bestOf("mines"));
+          $("#ovTitle").textContent = "Field cleared";
+          $("#ovTitle").className = "got win";
+          $("#ovSub").textContent = fmtTime(ms) + (record ? " · best" : "");
+          ov.classList.add("show");
+        }
+
+        function onClick(e) {
+          var c = e.target.closest(".mine-cell"); if (!c) return;
+          var k = +c.getAttribute("data-k");
+          if (flagMode) toggleFlag(k); else reveal(k);
+        }
+        function onContext(e) {
+          var c = e.target.closest(".mine-cell"); if (!c) return;
+          e.preventDefault();
+          toggleFlag(+c.getAttribute("data-k"));
+        }
+        function onFlagBtn() {
+          flagMode = !flagMode;
+          $("#mnFlagBtn").classList.toggle("on", flagMode);
+        }
+        grid.addEventListener("click", onClick);
+        grid.addEventListener("contextmenu", onContext);
+        $("#mnFlagBtn").addEventListener("click", onFlagBtn);
+        ov.querySelector("#ovAgain").addEventListener("click", reset);
+
+        reset();
+        return function () {
+          if (timer) { clearInterval(timer); timer = null; }
+          grid.removeEventListener("click", onClick);
+          grid.removeEventListener("contextmenu", onContext);
+        };
+      }
+
+      // =========================================================
+      // GAME 2 — LIGHTS OUT (5x5)
+      // =========================================================
+      function startLights() {
+        var N = 5;
+        scoreboard([
+          { id: "loMoves", label: "Moves",  val: 0 },
+          { id: "loBest",  label: "Fewest", val: bestOf("lights") || "—" }
+        ]);
+        hintEl.textContent = "Click a cell to toggle it and its neighbors · turn all off";
+
+        var grid = el("div", "lights-grid");
+        board.appendChild(grid);
+        var ov = overlay(board);
+
+        var state, moves;
+
+        function idx(r, c) { return r * N + c; }
+        function render() {
+          for (var k = 0; k < N * N; k++) grid.children[k].classList.toggle("on", !!state[k]);
+        }
+        function toggle(k) {
+          var r = Math.floor(k / N), c = k % N;
+          var hits = [[r, c], [r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]];
+          hits.forEach(function (p) {
+            if (p[0] >= 0 && p[1] >= 0 && p[0] < N && p[1] < N) state[idx(p[0], p[1])] = state[idx(p[0], p[1])] ? 0 : 1;
+          });
+        }
+        function reset() {
+          ov.classList.remove("show");
+          moves = 0;
+          $("#loMoves").textContent = 0;
+          $("#loBest").textContent = bestOf("lights") || "—";
+          state = [];
+          for (var k = 0; k < N * N; k++) state[k] = 0;
+          // build a guaranteed-solvable lit pattern by applying random clicks
+          var clicks = 6 + Math.floor(Math.random() * 8);
+          for (var i = 0; i < clicks; i++) toggle(Math.floor(Math.random() * N * N));
+          // avoid an already-solved board
+          if (state.every(function (v) { return !v; })) toggle(Math.floor(Math.random() * N * N));
+          if (grid.children.length === 0) {
+            var html = "";
+            for (var j = 0; j < N * N; j++) html += '<button class="light-cell" data-k="' + j + '"></button>';
+            grid.innerHTML = html;
+          }
+          render();
+        }
+        function press(k) {
+          if (ov.classList.contains("show")) return;
+          toggle(k); render();
+          moves++; $("#loMoves").textContent = moves;
+          if (state.every(function (v) { return !v; })) win();
+        }
+        function win() {
+          var b = bestOf("lights");
+          var record = !b || moves < b;
+          if (record) setBest("lights", moves);
+          $("#loBest").textContent = bestOf("lights");
+          $("#ovTitle").textContent = "All off";
+          $("#ovTitle").className = "got win";
+          $("#ovSub").textContent = moves + " moves" + (record ? " · fewest" : "");
+          ov.classList.add("show");
+        }
+        function onClick(e) {
+          var c = e.target.closest(".light-cell"); if (!c) return;
+          press(+c.getAttribute("data-k"));
+        }
+        function onKey(e) {
+          if (!gamesScreenOn() || active !== "lights") return;
+          if (e.key === "r" || e.key === "R") { e.preventDefault(); reset(); }
+        }
+        grid.addEventListener("click", onClick);
+        document.addEventListener("keydown", onKey);
+        ov.querySelector("#ovAgain").addEventListener("click", reset);
+
+        reset();
+        return function () {
+          grid.removeEventListener("click", onClick);
+          document.removeEventListener("keydown", onKey);
+        };
+      }
+
+      // =========================================================
+      // GAME 3 — DODGE (avoid falling bars)
+      // =========================================================
+      function startDodge() {
+        scoreboard([
+          { id: "dgTime", label: "Time", val: "0:00" },
+          { id: "dgBest", label: "Best", val: bestOf("dodge") ? fmtTime(bestOf("dodge")) : "—" }
+        ]);
+        hintEl.textContent = "Arrows / A-D / drag · survive the falling bars";
+
+        var wrap = el("div", "dodge-wrap");
+        var cv = document.createElement("canvas");
+        wrap.appendChild(cv);
+        board.appendChild(wrap);
+        var ov = overlay(board);
+
+        var ctx = cv.getContext("2d");
+        var DPR = window.devicePixelRatio || 1;
+        var W = 0, H = 0;
+        function size() {
+          var w = wrap.clientWidth - 24;
+          if (w < 120) w = 300;
+          W = w; H = Math.round(w * 1.15);
+          cv.width = W * DPR; cv.height = H * DPR;
+          cv.style.width = W + "px"; cv.style.height = H + "px";
+          ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+        }
+
+        var px, pw, ph, bars, dead, t0, last, raf, spawnT, spawnGap, fallSpeed, left, right, hitFlash;
+
+        function reset() {
+          size();
+          pw = Math.max(28, W * 0.10); ph = 12;
+          px = W / 2 - pw / 2;
+          bars = []; dead = false;
+          t0 = 0; last = 0; spawnT = 0; spawnGap = 900; fallSpeed = 0.16;
+          left = false; right = false; hitFlash = 0;
+          ov.classList.remove("show");
+          $("#dgTime").textContent = "0:00";
+          $("#dgBest").textContent = bestOf("dodge") ? fmtTime(bestOf("dodge")) : "—";
+          draw();
+        }
+        function spawnBar() {
+          var bw = (0.18 + Math.random() * 0.32) * W;
+          var bx = Math.random() * (W - bw);
+          bars.push({ x: bx, y: -16, w: bw, h: 14 });
+        }
+        function draw() {
+          ctx.clearRect(0, 0, W, H);
+          // bars = ink
+          ctx.fillStyle = cssVar("--ink", "#14140f");
+          bars.forEach(function (b) { ctx.fillRect(b.x, b.y, b.w, b.h); });
+          // player marker = ink, flashes red on hit
+          ctx.fillStyle = hitFlash > 0 ? cssVar("--signal-miss", "#c0392b") : cssVar("--ink", "#14140f");
+          ctx.fillRect(px, H - ph - 8, pw, ph);
+        }
+        function step(dt) {
+          if (dead) return;
+          var elapsed = t0 ? (last - t0) : 0;
+          // difficulty ramp
+          spawnGap = Math.max(360, 900 - elapsed * 0.04);
+          fallSpeed = 0.16 + elapsed * 0.00004;
+          // move player
+          var pv = W * 0.012 * (dt / 16);
+          if (left) px -= pv; if (right) px += pv;
+          if (px < 0) px = 0; if (px > W - pw) px = W - pw;
+          // move bars
+          spawnT += dt;
+          if (spawnT >= spawnGap) { spawnT = 0; spawnBar(); }
+          var py = H - ph - 8;
+          for (var i = bars.length - 1; i >= 0; i--) {
+            var b = bars[i];
+            b.y += fallSpeed * dt;
+            if (b.y > H) { bars.splice(i, 1); continue; }
+            if (b.y + b.h >= py && b.y <= py + ph && px < b.x + b.w && px + pw > b.x) {
+              hitFlash = 1; lose(); return;
+            }
+          }
+          $("#dgTime").textContent = fmtTime(elapsed);
+        }
+        function loop(t) {
+          raf = requestAnimationFrame(loop);
+          if (!t0) { t0 = t; last = t; }
+          var dt = t - last; last = t;
+          if (dt > 60) dt = 60;
+          step(dt);
+          draw();
+        }
+        function lose() {
+          dead = true;
+          draw();
+          var ms = last - t0;
+          var b = bestOf("dodge");
+          var record = ms > b;
+          if (record) setBest("dodge", ms);
+          $("#dgBest").textContent = fmtTime(bestOf("dodge"));
+          $("#ovTitle").textContent = "Hit";
+          $("#ovTitle").className = "got";
+          $("#ovSub").textContent = "Survived " + fmtTime(ms) + (record ? " · best" : "");
+          ov.classList.add("show");
+        }
+
+        function onKeyDown(e) {
+          if (!gamesScreenOn() || active !== "dodge") return;
+          var k = e.key.toLowerCase();
+          if (k === "arrowleft" || k === "a") { e.preventDefault(); left = true; }
+          else if (k === "arrowright" || k === "d") { e.preventDefault(); right = true; }
+        }
+        function onKeyUp(e) {
+          var k = e.key.toLowerCase();
+          if (k === "arrowleft" || k === "a") left = false;
+          else if (k === "arrowright" || k === "d") right = false;
+        }
+        document.addEventListener("keydown", onKeyDown);
+        document.addEventListener("keyup", onKeyUp);
+
+        // drag / touch
+        function moveTo(clientX) {
+          var rect = cv.getBoundingClientRect();
+          px = (clientX - rect.left) - pw / 2;
+          if (px < 0) px = 0; if (px > W - pw) px = W - pw;
+        }
+        var dragging = false;
+        function pd(e) { dragging = true; moveTo((e.touches ? e.touches[0] : e).clientX); }
+        function pm(e) { if (dragging) { e.preventDefault(); moveTo((e.touches ? e.touches[0] : e).clientX); } }
+        function pu() { dragging = false; }
+        cv.addEventListener("mousedown", pd);
+        cv.addEventListener("mousemove", pm);
+        document.addEventListener("mouseup", pu);
+        cv.addEventListener("touchstart", pd, { passive: true });
+        cv.addEventListener("touchmove", pm, { passive: false });
+        cv.addEventListener("touchend", pu);
+
+        var onResize = function () { var keep = px / (W || 1); size(); px = keep * (W - pw); draw(); };
+        window.addEventListener("resize", onResize);
+        ov.querySelector("#ovAgain").addEventListener("click", reset);
+
+        reset();
+        raf = requestAnimationFrame(loop);
+
+        return function () {
+          cancelAnimationFrame(raf);
+          document.removeEventListener("keydown", onKeyDown);
+          document.removeEventListener("keyup", onKeyUp);
+          document.removeEventListener("mouseup", pu);
+          window.removeEventListener("resize", onResize);
+        };
+      }
+
+      // =========================================================
+      // GAME 4 — WORD SEARCH (10x10, 6 words)
+      // =========================================================
+      function startWords() {
+        var N = 10;
+        var WORDS = ["BIOLOGY", "FRENCH", "ALGEBRA", "DRAMA", "ENZYME", "ESSAY"];
+        var ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        scoreboard([
+          { id: "wsFound", label: "Found", val: "0/6" },
+          { id: "wsTime",  label: "Time",  val: "0:00" },
+          { id: "wsBest",  label: "Best",  val: bestOf("words") ? fmtTime(bestOf("words")) : "—" }
+        ]);
+        hintEl.textContent = "Click first then last letter of a word";
+
+        var layout = el("div", "ws-layout");
+        var grid = el("div", "ws-grid");
+        var wordsBar = el("div", "ws-words");
+        layout.appendChild(grid); layout.appendChild(wordsBar);
+        board.appendChild(layout);
+        var tools = el("div", "game-tools");
+        tools.innerHTML = '<button class="gtool" id="wsNew">New puzzle</button>';
+        board.appendChild(tools);
+        var ov = overlay(board);
+
+        var letters, placed, foundCount, anchor, started, t0, timer, foundCells;
+
+        function idx(r, c) { return r * N + c; }
+        function tick() { if (started) $("#wsTime").textContent = fmtTime(Date.now() - t0); }
+
+        function tryPlace(word) {
+          // dir: 0 horizontal, 1 vertical
+          for (var attempt = 0; attempt < 80; attempt++) {
+            var dir = Math.random() < 0.5 ? 0 : 1;
+            var len = word.length;
+            var r, c, dr, dc;
+            if (dir === 0) { r = Math.floor(Math.random() * N); c = Math.floor(Math.random() * (N - len + 1)); dr = 0; dc = 1; }
+            else { c = Math.floor(Math.random() * N); r = Math.floor(Math.random() * (N - len + 1)); dr = 1; dc = 0; }
+            var ok = true;
+            for (var i = 0; i < len; i++) {
+              var k = idx(r + dr * i, c + dc * i);
+              if (letters[k] && letters[k] !== word[i]) { ok = false; break; }
+            }
+            if (!ok) continue;
+            var coords = [];
+            for (var j = 0; j < len; j++) {
+              var kk = idx(r + dr * j, c + dc * j);
+              letters[kk] = word[j]; coords.push(kk);
+            }
+            return coords;
+          }
+          return null;
+        }
+        function generate() {
+          letters = []; placed = {};
+          for (var k = 0; k < N * N; k++) letters[k] = "";
+          var ok = true;
+          WORDS.forEach(function (w) {
+            var coords = tryPlace(w);
+            if (!coords) ok = false; else placed[w] = coords;
+          });
+          if (!ok) return generate(); // retry whole board on rare failure
+          for (var f = 0; f < N * N; f++) if (!letters[f]) letters[f] = ALPHA[Math.floor(Math.random() * 26)];
+        }
+        function render() {
+          var html = "";
+          for (var k = 0; k < N * N; k++) html += '<button class="ws-cell" data-k="' + k + '">' + letters[k] + '</button>';
+          grid.innerHTML = html;
+          var wh = "";
+          WORDS.forEach(function (w) {
+            wh += '<span class="ws-word" data-w="' + w + '">' + w + '</span>';
+          });
+          wordsBar.innerHTML = wh;
+        }
+        function reset() {
+          if (timer) { clearInterval(timer); timer = null; }
+          generate(); render();
+          foundCount = 0; anchor = null; started = false; foundCells = {};
+          $("#wsFound").textContent = "0/6";
+          $("#wsTime").textContent = "0:00";
+          $("#wsBest").textContent = bestOf("words") ? fmtTime(bestOf("words")) : "—";
+          ov.classList.remove("show");
+        }
+        function lineBetween(a, b) {
+          var ar = Math.floor(a / N), ac = a % N, br = Math.floor(b / N), bc = b % N;
+          var dr = br - ar, dc = bc - ac;
+          // must be straight horizontal or vertical
+          if (dr !== 0 && dc !== 0) return null;
+          var len = Math.max(Math.abs(dr), Math.abs(dc)) + 1;
+          var sr = dr === 0 ? 0 : (dr > 0 ? 1 : -1);
+          var sc = dc === 0 ? 0 : (dc > 0 ? 1 : -1);
+          var cells = [];
+          for (var i = 0; i < len; i++) cells.push(idx(ar + sr * i, ac + sc * i));
+          return cells;
+        }
+        function wordFromCells(cells) {
+          var s = ""; cells.forEach(function (k) { s += letters[k]; });
+          return s;
+        }
+        function clearAnchor() {
+          if (anchor != null) {
+            var c = grid.querySelector('.ws-cell[data-k="' + anchor + '"]');
+            if (c && !c.classList.contains("found")) c.classList.remove("sel");
+          }
+          anchor = null;
+        }
+        function pick(k) {
+          if (!started) { started = true; t0 = Date.now(); timer = setInterval(tick, 250); }
+          if (anchor == null) {
+            anchor = k;
+            grid.querySelector('.ws-cell[data-k="' + k + '"]').classList.add("sel");
+            return;
+          }
+          if (k === anchor) { clearAnchor(); return; }
+          var cells = lineBetween(anchor, k);
+          var startK = anchor;
+          clearAnchor();
+          if (!cells) return;
+          var w = wordFromCells(cells), wr = w.split("").reverse().join("");
+          var match = null;
+          WORDS.forEach(function (word) {
+            if (foundCells[word]) return;
+            if (word === w || word === wr) match = word;
+          });
+          if (match) {
+            foundCells[match] = true; foundCount++;
+            cells.forEach(function (cc) {
+              var ce = grid.querySelector('.ws-cell[data-k="' + cc + '"]');
+              ce.classList.remove("sel"); ce.classList.add("found");
+            });
+            var wlabel = wordsBar.querySelector('.ws-word[data-w="' + match + '"]');
+            if (wlabel) wlabel.classList.add("done");
+            $("#wsFound").textContent = foundCount + "/6";
+            if (foundCount === WORDS.length) win();
+          }
+        }
+        function win() {
+          if (timer) { clearInterval(timer); timer = null; }
+          started = false;
+          var ms = Date.now() - t0;
+          var b = bestOf("words");
+          var record = !b || ms < b;
+          if (record) setBest("words", ms);
+          $("#wsBest").textContent = fmtTime(bestOf("words"));
+          $("#ovTitle").textContent = "All six found";
+          $("#ovTitle").className = "got win";
+          $("#ovSub").textContent = fmtTime(ms) + (record ? " · best" : "");
+          ov.classList.add("show");
+        }
+        function onClick(e) {
+          var c = e.target.closest(".ws-cell"); if (!c) return;
+          if (c.classList.contains("found") && anchor == null) return;
+          pick(+c.getAttribute("data-k"));
+        }
+        function onNew() { reset(); }
+        grid.addEventListener("click", onClick);
+        $("#wsNew").addEventListener("click", onNew);
+        ov.querySelector("#ovAgain").addEventListener("click", reset);
+
+        reset();
+        return function () {
+          if (timer) { clearInterval(timer); timer = null; }
+          grid.removeEventListener("click", onClick);
+        };
+      }
+
+      // expose home renderer for INIT
+      games._renderHome = renderHome;
+      games._showHome = showHome;
+      window.__haloGames = games;
+    })();
+
+    // ============================================================
+    // INIT
+    // ============================================================
+    renderOverviewChart();
+    renderOverviewCourses();
+    renderRail();
+    renderGradePane();
+    renderAsn();
+    renderCalendar();
+    renderAnn();
+    renderMatList();
+    renderMatDetail();
+    if (window.__haloGames && window.__haloGames._renderHome) window.__haloGames._renderHome();
+    applyStyle();
+    applyTheme();
+    // default assignments filter highlight
+    $$("#asnSeg button").forEach(function (b) { b.classList.toggle("on", b.getAttribute("data-filter") === asnFilter); });
+
+    window.addEventListener("resize", function () {
+      // re-render charts so tooltip hotspot geometry stays roughly right (cheap)
+    });
+  })();
+  </script>
+</body>
+</html>

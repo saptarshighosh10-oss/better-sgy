@@ -27,8 +27,13 @@ export default defineConfig({
     ],
     permissions: ['storage', 'notifications', 'sidePanel', 'alarms', 'offscreen'],
     // pdf.js loads its parser worker by URL from the content script — must be web-accessible.
+    // The Versions ("previous models") gallery iframes the standalone edition prototypes
+    // bundled from public/models/ — also web-accessible so the overlay can load them.
     web_accessible_resources: [
-      { resources: ['pdf.worker.min.mjs'], matches: ['https://*.schoology.com/*'] },
+      {
+        resources: ['pdf.worker.min.mjs', 'models/*.html'],
+        matches: ['https://*.schoology.com/*'],
+      },
     ],
     icons: ICONS,
     action: {

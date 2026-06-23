@@ -188,9 +188,9 @@ function TabOrderSection({ settings, onSave }: { settings: Settings; onSave: (pa
 // ── UI style section ─────────────────────────────────────────────────────────
 
 const EDITIONS: Array<{ id: Edition; label: string; note: string }> = [
-  { id: 'halo', label: 'Halo', note: 'Clean and minimal' },
-  { id: 'forge', label: 'Forge', note: 'Compact, more info per screen' },
-  { id: 'slate', label: 'Slate', note: 'Pure black and white' },
+  { id: 'halo', label: 'Halo', note: 'Clean and minimal — the Better SGY look' },
+  { id: 'forge', label: 'Forge', note: 'Canvas-style dashboard with course cards' },
+  { id: 'slate', label: 'Slate', note: 'Classic Schoology layout & activity feed' },
 ];
 
 function UIStyleSection({ settings, onSave }: { settings: Settings; onSave: (patch: Partial<Settings>) => Promise<Settings> }) {

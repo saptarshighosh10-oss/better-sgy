@@ -19,6 +19,9 @@ import { GameHub } from './pages/GameHub';
 import { AnnouncementsPage } from './pages/AnnouncementsPage';
 import { NostalgiaPage } from './pages/NostalgiaPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { VersionsPage } from './pages/VersionsPage';
+import { ForgeCanvasLayout } from './editions/ForgeCanvasLayout';
+import { SlateSchoologyLayout } from './editions/SlateSchoologyLayout';
 import { DashboardSkeleton } from './DashboardSkeleton';
 import { seedDemoData } from '../lib/demo-data';
 import { type GradeSnapshot } from '../lib/storage';
@@ -91,7 +94,7 @@ export function ExtRouter({ scrapeResult }: Props) {
   const [page, setPage] = useState<Page>(() => {
     if (typeof localStorage === 'undefined') return 'overview';
     const saved = localStorage.getItem(PAGE_KEY) as Page | null;
-    return saved && (DEFAULT_TAB_ORDER.includes(saved) || saved === 'settings') ? saved : 'overview';
+    return saved && (DEFAULT_TAB_ORDER.includes(saved) || saved === 'settings' || saved === 'versions') ? saved : 'overview';
   });
   const [selectedCourseName, setSelectedCourseName] = useState<string | null>(() => {
     if (typeof localStorage === 'undefined') return null;
@@ -260,8 +263,16 @@ export function ExtRouter({ scrapeResult }: Props) {
     );
   }
 
-  const isSlate = settings.edition === 'slate';
-  const isForge = settings.edition === 'forge';
+  // The Forge/Slate editions replace the dashboard "home" (overview) with a wholly
+  // different layout — Canvas-flavoured (Forge) or classic Schoology (Slate) — so
+  // switching editions is an actual change of look, not just a tint. Other pages
+  // (grades, materials, the arcade…) stay on the Halo layout, reachable via the nav.
+  const homeOverride =
+    page === 'overview' && settings.edition === 'forge'
+      ? <ForgeCanvasLayout grades={grades} />
+      : page === 'overview' && settings.edition === 'slate'
+      ? <SlateSchoologyLayout grades={grades} announcements={announcements.items} />
+      : null;
 
   return (
     <div
@@ -274,10 +285,9 @@ export function ExtRouter({ scrapeResult }: Props) {
         color: T.text,
         zIndex: 1,
         overflow: 'hidden',
-        ...(isSlate ? { filter: 'grayscale(1) saturate(0)' } : {}),
       }}
     >
-      <div style={{ flex: 1, position: 'relative', minWidth: 0, ...(isForge ? { zoom: 0.92 } : {}) }}>
+      <div style={{ flex: 1, position: 'relative', minWidth: 0 }}>
         <AnimatePresence mode="wait">
           <motion.main
             key={page}
@@ -294,12 +304,12 @@ export function ExtRouter({ scrapeResult }: Props) {
               flexDirection: 'column',
             }}
           >
-            {page === 'overview' && (
+            {page === 'overview' && (homeOverride ?? (
               <OverviewPage
                 grades={grades}
                 onCourseSelect={(name) => navigate('grades', name)}
               />
-            )}
+            ))}
             {page === 'grades' && (
               <GradesPage
                 grades={grades}
@@ -323,6 +333,7 @@ export function ExtRouter({ scrapeResult }: Props) {
                 }}
               />
             )}
+            {page === 'versions' && <VersionsPage />}
             {page === 'settings' && (
               <SettingsPage
                 settings={settings}

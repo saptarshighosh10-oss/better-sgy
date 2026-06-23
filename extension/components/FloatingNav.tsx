@@ -336,6 +336,14 @@ export function FloatingNav({ page, onNavigate, announcementsUnread = 0, onBell,
           <Icon d="M12 22C17.52 22 22 17.52 22 12S17.52 2 12 2 2 6.47 2 12c0 2.76 2.24 5 5 5h1c.55 0 1 .45 1 1 0 .55-.45 1-1 1-2.76 0-5 2.24-5 5h11zm-5-14a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm4 4a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm4 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm4-4a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z" size={18} />
         </NavBtn>
         <NavBtn
+          onClick={() => onNavigate('versions')}
+          title="Versions — see every past design"
+          active={page === 'versions'}
+          ariaCurrent={page === 'versions' ? 'page' : undefined}
+        >
+          <Icon d="M12 2l9 5-9 5-9-5 9-5zM3 12l9 5 9-5M3 17l9 5 9-5" size={18} />
+        </NavBtn>
+        <NavBtn
           onClick={() => onSettings?.()}
           title="Settings"
           active={page === 'settings'}

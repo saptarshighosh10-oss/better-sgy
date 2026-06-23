@@ -12,6 +12,7 @@ export type Page =
   | 'game'
   | 'announcements'
   | 'nostalgia'
+  | 'versions'
   | 'settings';
 
 /** Pages that appear in the tab order (settings is a utility page, not cycled). */
@@ -28,5 +29,6 @@ export const PAGE_LABELS: Record<string, string> = {
   announcements: 'Announcements',
   nostalgia: 'Nostalgia',
   game: 'Arcade',
+  versions: 'Versions',
   settings: 'Settings',
 };

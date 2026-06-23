@@ -59,6 +59,7 @@ const STATIC_PAGES: Array<{ id: Page; label: string }> = [
   { id: 'announcements', label: 'Announcements' },
   { id: 'game', label: 'Arcade' },
   { id: 'nostalgia', label: 'Nostalgia' },
+  { id: 'versions', label: 'Versions' },
   { id: 'settings', label: 'Settings' },
 ];
 

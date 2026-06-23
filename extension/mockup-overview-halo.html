@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Better SGY — Overview · HALO</title>
+<style>
+  /* ============================================================
+     HALO — calm, minimal, signal-only.
+     Color is reserved for meaning: green = upward trend,
+     red = missing work. Everything else is quiet grayscale.
+     ============================================================ */
+
+  :root {
+    --paper:        #fcfcfb;   /* near-white warm paper           */
+    --paper-2:      #f6f6f4;   /* faint panel fill                */
+    --ink:          #14140f;   /* near-black ink                  */
+    --ink-2:        #3a3a35;   /* secondary text                  */
+    --ink-3:        #6c6c64;   /* tertiary / labels               */
+    --ink-4:        #9a9a91;   /* faint metadata                  */
+    --hair:         rgba(0,0,0,0.07);  /* hairline border         */
+    --hair-strong:  rgba(0,0,0,0.11);  /* slightly firmer hair    */
+
+    /* The only two saturated colors permitted. */
+    --signal-up:    #2f8f5b;   /* green — positive grade trend    */
+    --signal-up-soft: rgba(47,143,91,0.10);
+    --signal-miss:  #c0392b;   /* red — missing work              */
+    --signal-miss-soft: rgba(192,57,43,0.08);
+
+    --radius:       14px;
+    --radius-sm:    9px;
+    --max:          820px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "cv11", "ss01", "tnum";
+  }
+
+  body {
+    line-height: 1.5;
+    letter-spacing: -0.006em;
+  }
+
+  .wrap {
+    max-width: var(--max);
+    margin: 0 auto;
+    padding: 72px 28px 120px;
+  }
+
+  /* ---------- eyebrow / brand row ---------- */
+  .topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 64px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .brand .mark {
+    width: 22px; height: 22px;
+    display: block;
+  }
+  .brand .name {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--ink);
+  }
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--ink-4);
+    text-transform: none;
+  }
+
+  /* ---------- hero ---------- */
+  .hero {
+    margin-bottom: 60px;
+  }
+  .hero .lede {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-3);
+    letter-spacing: 0.01em;
+    margin: 0 0 22px;
+  }
+  .hero .grade {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .hero .grade .num {
+    font-size: 76px;
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    line-height: 0.95;
+    color: var(--ink);
+  }
+  .hero .grade .num .pct {
+    font-size: 34px;
+    font-weight: 500;
+    color: var(--ink-4);
+    letter-spacing: -0.02em;
+  }
+  .hero .grade .across {
+    font-size: 14px;
+    color: var(--ink-3);
+    font-weight: 450;
+    padding-bottom: 8px;
+  }
+  .hero .status {
+    margin-top: 22px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--ink-2);
+    font-weight: 500;
+  }
+  .hero .status .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--signal-up);
+    box-shadow: 0 0 0 4px var(--signal-up-soft);
+  }
+
+  /* ---------- stat cells ---------- */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border: 1px solid var(--hair);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--paper);
+    margin-bottom: 80px;
+  }
+  .stat {
+    padding: 22px 22px 20px;
+    border-right: 1px solid var(--hair);
+  }
+  .stat:last-child { border-right: none; }
+  .stat .label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    margin-bottom: 12px;
+  }
+  .stat .value {
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    line-height: 1.05;
+  }
+  .stat .value.miss { color: var(--signal-miss); }
+  .stat .sub {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--ink-3);
+    font-weight: 450;
+  }
+
+  /* ---------- section heading ---------- */
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .section-head h2 {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin: 0;
+  }
+  .section-head .count {
+    font-size: 13px;
+    color: var(--ink-4);
+    font-weight: 450;
+  }
+
+  /* ---------- course list ---------- */
+  .courses {
+    border: 1px solid var(--hair);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--paper);
+  }
+  .course {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    align-items: center;
+    gap: 24px;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--hair);
+    transition: background 140ms ease;
+  }
+  .course:last-child { border-bottom: none; }
+  .course:hover { background: var(--paper-2); }
+
+  .course .who { min-width: 0; }
+  .course .cname {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 15px;
+    font-weight: 550;
+    color: var(--ink);
+    letter-spacing: -0.012em;
+  }
+  .course .teacher {
+    margin-top: 3px;
+    font-size: 12.5px;
+    color: var(--ink-3);
+    font-weight: 450;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* missing flag — the only red in the list */
+  .flag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: 9px;
+    padding: 2px 8px 2px 7px;
+    border-radius: 999px;
+    background: var(--signal-miss-soft);
+    border: 1px solid rgba(192,57,43,0.16);
+    color: var(--signal-miss);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    vertical-align: middle;
+  }
+  .flag .fdot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--signal-miss);
+  }
+
+  /* per-course trend word — quiet, factual */
+  .trend {
+    text-align: right;
+    min-width: 78px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-4);
+    letter-spacing: 0.005em;
+    white-space: nowrap;
+  }
+  .trend.up { color: var(--signal-up); }
+
+  /* sparkline cell */
+  .spark {
+    width: 84px;
+    height: 28px;
+    flex: none;
+    opacity: 0.92;
+  }
+  .spark svg { display: block; }
+
+  /* grade cell */
+  .gradecell {
+    text-align: right;
+    min-width: 86px;
+  }
+  .gradecell .pct {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .gradecell .letter {
+    margin-top: 2px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-4);
+  }
+
+  /* ---------- footnote ---------- */
+  .footnote {
+    margin-top: 26px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--ink-4);
+    font-weight: 450;
+  }
+  .footnote .key {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .footnote .swatch {
+    width: 9px; height: 9px; border-radius: 50%;
+  }
+  .footnote .swatch.up   { background: var(--signal-up); }
+  .footnote .swatch.miss { background: var(--signal-miss); }
+  .footnote .sep { color: var(--hair-strong); }
+
+  /* ---------- colophon ---------- */
+  .colophon {
+    margin-top: 56px;
+    padding-top: 22px;
+    border-top: 1px solid var(--hair);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    font-size: 12px;
+    color: var(--ink-4);
+    font-weight: 450;
+  }
+  .colophon .left { display: inline-flex; align-items: center; gap: 9px; }
+  .colophon .dotmark {
+    width: 14px; height: 14px; display: block; opacity: 0.7;
+  }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 680px) {
+    .wrap { padding: 48px 20px 90px; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .stat:nth-child(2) { border-right: none; }
+    .stat:nth-child(1), .stat:nth-child(2) { border-bottom: 1px solid var(--hair); }
+    .hero .grade .num { font-size: 60px; }
+    .course {
+      grid-template-columns: 1fr auto;
+      gap: 12px 18px;
+    }
+    .course .spark { display: none; }
+    .course .trend {
+      grid-row: 2;
+      text-align: left;
+      min-width: 0;
+    }
+    .course .gradecell { grid-row: 1; }
+  }
+  @media (max-width: 420px) {
+    .stats { grid-template-columns: 1fr; }
+    .stat { border-right: none; border-bottom: 1px solid var(--hair); }
+    .stat:last-child { border-bottom: none; }
+    .colophon { flex-direction: column; align-items: flex-start; gap: 6px; }
+  }
+</style>
+</head>
+<body>
+  <main class="wrap">
+
+    <!-- eyebrow / brand -->
+    <div class="topline">
+      <div class="brand">
+        <!-- minimal monochrome halo mark -->
+        <svg class="mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="8.4" stroke="#14140f" stroke-width="1.4"/>
+          <circle cx="12" cy="12" r="2.1" fill="#14140f"/>
+        </svg>
+        <span class="name">Better&nbsp;SGY</span>
+      </div>
+      <div class="eyebrow">2025–2026 · Freshman · Semester 2</div>
+    </div>
+
+    <!-- hero -->
+    <section class="hero">
+      <p class="lede">Overall grade</p>
+      <div class="grade">
+        <div class="num">96.2<span class="pct">%</span></div>
+        <div class="across">across 6 courses</div>
+      </div>
+      <div class="status">
+        <span class="dot" aria-hidden="true"></span>
+        Trending up
+      </div>
+    </section>
+
+    <!-- stat cells -->
+    <section class="stats" aria-label="Summary">
+      <div class="stat">
+        <div class="label">GPA estimate</div>
+        <div class="value">3.94</div>
+        <div class="sub">Weighted, 4.0 scale</div>
+      </div>
+      <div class="stat">
+        <div class="label">Due today</div>
+        <div class="value">2</div>
+        <div class="sub">Assignments</div>
+      </div>
+      <div class="stat">
+        <div class="label">Missing</div>
+        <div class="value miss">2</div>
+        <div class="sub">In 2 courses</div>
+      </div>
+      <div class="stat">
+        <div class="label">Best class</div>
+        <div class="value">PE&nbsp;9</div>
+        <div class="sub">99.1%</div>
+      </div>
+    </section>
+
+    <!-- courses -->
+    <div class="section-head">
+      <h2>Courses</h2>
+      <span class="count">6</span>
+    </div>
+
+    <section class="courses" aria-label="Courses">
+
+      <!-- 1 · Algebra 2 / Trig — trending up, no missing -->
+      <article class="course">
+        <div class="who">
+          <div class="cname">Algebra 2 / Trig</div>
+          <div class="teacher">Mr. Stubbs</div>
+        </div>
+        <div class="spark" aria-hidden="true">
+          <svg width="84" height="28" viewBox="0 0 84 28" fill="none">
+            <polyline points="2,21 16,20 30,17 44,15 58,10 72,6 82,4"
+              fill="none" stroke="#2f8f5b" stroke-width="1.6"
+              stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="82" cy="4" r="2" fill="#2f8f5b"/>
+          </svg>
+        </div>
+        <div class="trend up">Trending up</div>
+        <div class="gradecell">
+          <div class="pct">97.4%</div>
+          <div class="letter">A</div>
+        </div>
+      </article>
+
+      <!-- 2 · Biology — roughly flat, 1 missing -->
+      <article class="course">
+        <div class="who">
+          <div class="cname">Biology
+            <span class="flag"><span class="fdot"></span>1 missing</span>
+          </div>
+          <div class="teacher">Ms. Carrington</div>
+        </div>
+        <div class="spark" aria-hidden="true">
+          <svg width="84" height="28" viewBox="0 0 84 28" fill="none">
+            <polyline points="2,14 16,13 30,15 44,13 58,14 72,13 82,14"
+              fill="none" stroke="#9a9a91" stroke-width="1.6"
+              stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="82" cy="14" r="2" fill="#9a9a91"/>
+          </svg>
+        </div>
+        <div class="trend">Flat</div>
+        <div class="gradecell">
+          <div class="pct">96.7%</div>
+          <div class="letter">A</div>
+        </div>
+      </article>
+
+      <!-- 3 · French 1 — trending up, no missing -->
+      <article class="course">
+        <div class="who">
+          <div class="cname">French 1</div>
+          <div class="teacher">Mme. Laurent</div>
+        </div>
+        <div class="spark" aria-hidden="true">
+          <svg width="84" height="28" viewBox="0 0 84 28" fill="none">
+            <polyline points="2,19 16,18 30,16 44,15 58,12 72,9 82,6"
+              fill="none" stroke="#2f8f5b" stroke-width="1.6"
+              stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="82" cy="6" r="2" fill="#2f8f5b"/>
+          </svg>
+        </div>
+        <div class="trend up">Trending up</div>
+        <div class="gradecell">
+          <div class="pct">96.5%</div>
+          <div class="letter">A</div>
+        </div>
+      </article>
+
+      <!-- 4 · Drama — gently declining, 1 missing -->
+      <article class="course">
+        <div class="who">
+          <div class="cname">Drama
+            <span class="flag"><span class="fdot"></span>1 missing</span>
+          </div>
+          <div class="teacher">Mr. Ellison</div>
+        </div>
+        <div class="spark" aria-hidden="true">
+          <svg width="84" height="28" viewBox="0 0 84 28" fill="none">
+            <polyline points="2,9 16,11 30,12 44,14 58,15 72,17 82,18"
+              fill="none" stroke="#9a9a91" stroke-width="1.6"
+              stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="82" cy="18" r="2" fill="#9a9a91"/>
+          </svg>
+        </div>
+        <div class="trend">Declining</div>
+        <div class="gradecell">
+          <div class="pct">90.3%</div>
+          <div class="letter">A−</div>
+        </div>
+      </article>
+
+      <!-- 5 · Literature — trending up, no missing -->
+      <article class="course">
+        <div class="who">
+          <div class="cname">Literature</div>
+          <div class="teacher">Ms. Howe</div>
+        </div>
+        <div class="spark" aria-hidden="true">
+          <svg width="84" height="28" viewBox="0 0 84 28" fill="none">
+            <polyline points="2,18 16,17 30,16 44,13 58,12 72,9 82,7"
+              fill="none" stroke="#2f8f5b" stroke-width="1.6"
+              stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="82" cy="7" r="2" fill="#2f8f5b"/>
+          </svg>
+        </div>
+        <div class="trend up">Trending up</div>
+        <div class="gradecell">
+          <div class="pct">94.1%</div>
+          <div class="letter">A</div>
+        </div>
+      </article>
+
+      <!-- 6 · PE 9 — flat & high, no missing -->
+      <article class="course">
+        <div class="who">
+          <div class="cname">PE 9</div>
+          <div class="teacher">Coach Bryant</div>
+        </div>
+        <div class="spark" aria-hidden="true">
+          <svg width="84" height="28" viewBox="0 0 84 28" fill="none">
+            <polyline points="2,6 16,6 30,5 44,6 58,5 72,6 82,5"
+              fill="none" stroke="#9a9a91" stroke-width="1.6"
+              stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="82" cy="5" r="2" fill="#9a9a91"/>
+          </svg>
+        </div>
+        <div class="trend">Flat</div>
+        <div class="gradecell">
+          <div class="pct">99.1%</div>
+          <div class="letter">A</div>
+        </div>
+      </article>
+
+    </section>
+
+    <!-- footnote / key -->
+    <div class="footnote">
+      <span class="key"><span class="swatch up"></span> Trending up</span>
+      <span class="key"><span class="swatch miss"></span> Missing work</span>
+      <span class="sep">·</span>
+      <span class="key">4 courses caught up</span>
+    </div>
+
+    <!-- colophon -->
+    <footer class="colophon">
+      <span class="left">
+        <svg class="dotmark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="8.4" stroke="#9a9a91" stroke-width="1.4"/>
+          <circle cx="12" cy="12" r="2.1" fill="#9a9a91"/>
+        </svg>
+        Better SGY
+      </span>
+      <span>Updated today</span>
+    </footer>
+
+  </main>
+</body>
+</html>

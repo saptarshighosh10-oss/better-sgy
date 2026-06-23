@@ -362,8 +362,19 @@ async function runBackgroundScrape() {
     if (btn) btn.style.display = 'none';
     try { hideNativeUI(); } catch (e) { console.warn('[BS] hideNativeUI failed', e); }
     // Re-activate the extension (it was unmounted when we went native).
-    if (!reactRootRef && reactRootEl) {
-      reactRootRef = ReactDOM.createRoot(reactRootEl);
+    // Mount onto a FRESH node: React leaves an internal marker on a container that
+    // has held a root before, so calling createRoot() on the same element again can
+    // make the first render a no-op (the "press twice to come back" bug). Swapping in
+    // a clean element guarantees a single press always restores the overlay.
+    if (!reactRootRef) {
+      const shadow = host?.shadowRoot ?? null;
+      const old = reactRootEl ?? shadow?.querySelector<HTMLElement>('#bs-react-root') ?? null;
+      const fresh = document.createElement('div');
+      fresh.id = 'bs-react-root';
+      if (old && old.parentNode) old.replaceWith(fresh);
+      else if (shadow) shadow.appendChild(fresh);
+      reactRootEl = fresh;
+      reactRootRef = ReactDOM.createRoot(fresh);
       rerender();
     }
     console.log('[BS] Switched to Better SGY overlay — reactivated');

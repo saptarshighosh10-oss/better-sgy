@@ -984,6 +984,68 @@
   }
 
   /* ============================================================
+     9 · NOSTALGIA (grade snapshots)
+     calm, hairline cards; color only for the up/down delta signal.
+     ============================================================ */
+  .nos-capture {
+    display: flex; align-items: center; justify-content: space-between; gap: 20px;
+    padding: 20px 22px; border: 1px solid var(--hair); border-radius: var(--radius);
+    background: var(--paper); margin-bottom: 8px; flex-wrap: wrap;
+  }
+  .nos-capture .ncl { min-width: 0; }
+  .nos-capture .nct { font-size: 14px; font-weight: 600; color: var(--ink); letter-spacing: -0.01em; }
+  .nos-capture .ncs { font-size: 12.5px; color: var(--ink-3); font-weight: 450; margin-top: 4px; }
+  .nos-capture .ncs b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .nos-capture .ncbtn { flex: none; }
+
+  .nos-hint {
+    margin: 14px 2px 0; font-size: 12px; color: var(--ink-4); font-weight: 450; letter-spacing: 0.004em;
+  }
+
+  .nos-empty {
+    border: 1px dashed var(--hair-strong); border-radius: var(--radius);
+    padding: 34px 22px; text-align: center; color: var(--ink-4);
+    font-size: 13px; font-weight: 450;
+  }
+
+  .snap {
+    border: 1px solid var(--hair); border-radius: var(--radius);
+    background: var(--paper); margin-bottom: 12px; overflow: hidden;
+  }
+  .snap-head {
+    display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 20px;
+    padding: 18px 22px;
+  }
+  .snap-head .sh-term { font-size: 15px; font-weight: 600; color: var(--ink); letter-spacing: -0.012em; }
+  .snap-head .sh-when { font-size: 12px; color: var(--ink-4); font-weight: 450; margin-top: 3px; }
+  .snap-head .sh-grade {
+    text-align: right; font-size: 22px; font-weight: 600; color: var(--ink);
+    letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1;
+  }
+  .snap-head .sh-grade .pct { font-size: 14px; color: var(--ink-4); font-weight: 500; }
+  .snap-head .sh-delta {
+    margin-top: 4px; font-size: 12px; font-weight: 500; color: var(--ink-4);
+    font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right;
+  }
+  .snap-head .sh-delta.up { color: var(--signal-up); }
+  .snap-head .sh-delta.down { color: var(--signal-miss); }
+  .snap-head .sh-acts { display: flex; align-items: center; gap: 8px; }
+
+  .snap-courses {
+    border-top: 1px solid var(--hair);
+    display: flex; flex-wrap: wrap; gap: 4px 0;
+    padding: 6px 0;
+  }
+  .snap-courses.collapsed { display: none; }
+  .snap-c {
+    display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 16px;
+    width: 100%; padding: 11px 22px;
+  }
+  .snap-c .scn { font-size: 13.5px; font-weight: 500; color: var(--ink); letter-spacing: -0.008em; }
+  .snap-c .scl { font-size: 12px; color: var(--ink-4); font-weight: 450; min-width: 30px; text-align: right; }
+  .snap-c .scg { font-size: 13.5px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; min-width: 54px; text-align: right; }
+
+  /* ============================================================
      ADDED · GLOBAL SEARCH (⌘K command palette)
      ============================================================ */
   .ovl {
@@ -1447,6 +1509,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 12h4M9 10v4"/><circle cx="15.5" cy="11" r="0.6" fill="currentColor"/><circle cx="17.5" cy="13" r="0.6" fill="currentColor"/><rect x="2.5" y="6.5" width="19" height="11" rx="4"/></svg>
           Games
         </div>
+        <div class="nav-item" data-screen="nostalgia">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l3 2"/></svg>
+          Nostalgia
+        </div>
         <div class="nav-item" data-screen="settings">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 0 1-4 0v-.1A1.6 1.6 0 0 0 6.6 19l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 3 13H3a2 2 0 0 1 0-4h.1A1.6 1.6 0 0 0 4.6 6.4l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 11 3v0a2 2 0 0 1 4 0v.1A1.6 1.6 0 0 0 17.4 4.6l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A1.6 1.6 0 0 0 21 11h0a2 2 0 0 1 0 4z"/></svg>
           Settings
@@ -1738,6 +1804,21 @@
         </div>
       </section>
 
+      <!-- ===================== 9 · NOSTALGIA ===================== -->
+      <section class="screen" id="screen-nostalgia">
+        <div class="canvas">
+          <div class="page-head">
+            <h1 class="ptitle">Nostalgia</h1>
+            <span class="psub">Grade snapshots, term by term</span>
+          </div>
+
+          <div class="nos-capture" id="nosCapture"></div>
+
+          <div class="section-head"><h2>Past terms</h2><span class="count" id="nosCount">0</span></div>
+          <div id="nosList"></div>
+        </div>
+      </section>
+
     </main>
   </div>
 
@@ -1772,7 +1853,7 @@
       </div>
       <div class="help-body">
         <div class="help-row"><span class="hl">Search</span><span class="hk"><kbd id="helpSearchKey">⌘K</kbd></span></div>
-        <div class="help-row"><span class="hl">Go to screen</span><span class="hk"><kbd>g</kbd><span style="color:var(--ink-4)">then</span><kbd>o g a c n m e s</kbd></span></div>
+        <div class="help-row"><span class="hl">Go to screen</span><span class="hk"><kbd>g</kbd><span style="color:var(--ink-4)">then</span><kbd>o g a c n m e y s</kbd></span></div>
         <div class="help-row"><span class="hl">Overview</span><span class="hk"><kbd>g</kbd><kbd>o</kbd></span></div>
         <div class="help-row"><span class="hl">Grades</span><span class="hk"><kbd>g</kbd><kbd>g</kbd></span></div>
         <div class="help-row"><span class="hl">Assignments</span><span class="hk"><kbd>g</kbd><kbd>a</kbd></span></div>
@@ -1780,6 +1861,7 @@
         <div class="help-row"><span class="hl">Announcements</span><span class="hk"><kbd>g</kbd><kbd>n</kbd></span></div>
         <div class="help-row"><span class="hl">Materials</span><span class="hk"><kbd>g</kbd><kbd>m</kbd></span></div>
         <div class="help-row"><span class="hl">Games</span><span class="hk"><kbd>g</kbd><kbd>e</kbd></span></div>
+        <div class="help-row"><span class="hl">Nostalgia</span><span class="hk"><kbd>g</kbd><kbd>y</kbd></span></div>
         <div class="help-row"><span class="hl">Settings</span><span class="hk"><kbd>g</kbd><kbd>s</kbd></span></div>
         <div class="help-row"><span class="hl">This help</span><span class="hk"><kbd>?</kbd></span></div>
         <div class="help-row"><span class="hl">Close overlays</span><span class="hk"><kbd>Esc</kbd></span></div>
@@ -3502,6 +3584,7 @@
       { id: "announcements", name: "Announcements", sub: "Teacher feed",               key: "n" },
       { id: "materials",     name: "Materials",     sub: "Files and submissions",      key: "m" },
       { id: "games",         name: "Games",         sub: "A quiet break",              key: "e" },
+      { id: "nostalgia",     name: "Nostalgia",     sub: "Grade snapshots",            key: "y" },
       { id: "settings",      name: "Settings",      sub: "Better SGY",                 key: "s" }
     ];
     var SCREEN_BY_KEY = {}; SCREENS.forEach(function (s) { SCREEN_BY_KEY[s.key] = s.id; });
@@ -3515,6 +3598,7 @@
       materials:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
       games:         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 12h4M9 10v4"/><circle cx="15.5" cy="11" r="0.6" fill="currentColor"/><circle cx="17.5" cy="13" r="0.6" fill="currentColor"/><rect x="2.5" y="6.5" width="19" height="11" rx="4"/></svg>',
       settings:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 4v2M12 18v2M4 12h2M18 12h2M6 6l1.5 1.5M16.5 16.5L18 18M18 6l-1.5 1.5M7.5 16.5L6 18"/></svg>',
+      nostalgia:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l3 2"/></svg>',
       assignment:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>',
       announcement:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l16-6v14L3 13z"/><path d="M7 12v5a2 2 0 0 0 2 2h1"/></svg>',
       material:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>'
@@ -4027,8 +4111,185 @@
     })();
 
     // ============================================================
+    // ADDED · NOSTALGIA (grade snapshots)
+    // Capture the current term's grades to localStorage and look
+    // back at past terms. Calm, monochrome; the only color is the
+    // up/down delta vs the previous term.
+    // ============================================================
+    var NOS_KEY = "bsgy-halo-snapshots";
+
+    // The current term, derived from canonical data.
+    var CURRENT_TERM = "2025–2026 · Freshman · Semester 2";
+    var CURRENT_OVERALL = 96.2;
+
+    function nosLoad() {
+      try { var v = JSON.parse(localStorage.getItem(NOS_KEY)); return Array.isArray(v) ? v : null; }
+      catch (e) { return null; }
+    }
+    function nosStore(list) {
+      try { localStorage.setItem(NOS_KEY, JSON.stringify(list)); } catch (e) {}
+    }
+
+    // Pre-seed one past snapshot the first time the screen is used.
+    function nosSeed() {
+      var existing = nosLoad();
+      if (existing) return existing;
+      var seeded = [{
+        term: "2025–2026 · Freshman · Semester 1",
+        label: "Freshman · Semester 1",
+        captured: "2026-01-15",
+        overall: 94.8,
+        courses: [
+          { name: "Algebra 2 / Trig", grade: 95.0, ltr: "A" },
+          { name: "Biology",          grade: 93.5, ltr: "A" },
+          { name: "French 1",         grade: 92.0, ltr: "A" },
+          { name: "Drama",            grade: 96.2, ltr: "A" },
+          { name: "Literature",       grade: 91.0, ltr: "A−" },
+          { name: "PE 9",             grade: 99.0, ltr: "A" }
+        ]
+      }];
+      nosStore(seeded);
+      return seeded;
+    }
+
+    function nosCurrentSnapshot() {
+      return {
+        term: CURRENT_TERM,
+        label: "Freshman · Semester 2",
+        captured: TODAY_ISO,
+        overall: CURRENT_OVERALL,
+        courses: COURSES.map(function (c) {
+          return { name: c.name, grade: c.grade, ltr: c.ltr };
+        })
+      };
+    }
+
+    function nosFmtDate(iso) {
+      var p = String(iso).split("-");
+      if (p.length !== 3) return iso;
+      var d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+      if (isNaN(d.getTime())) return iso;
+      return MONTHS_SHORT[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear();
+    }
+
+    // newest first, by captured date
+    function nosSorted(list) {
+      return list.slice().sort(function (a, b) {
+        return String(b.captured).localeCompare(String(a.captured));
+      });
+    }
+
+    function nosCaptured(list) {
+      return list.some(function (s) { return s.term === CURRENT_TERM; });
+    }
+
+    function renderNostalgia() {
+      var cap = $("#nosCapture"), listEl = $("#nosList"), countEl = $("#nosCount");
+      if (!cap || !listEl) return;
+      var list = nosSeed();
+      var already = nosCaptured(list);
+
+      cap.innerHTML =
+        '<div class="ncl">' +
+          '<div class="nct">Capture this semester</div>' +
+          '<div class="ncs">' + esc(CURRENT_TERM) + ' · overall <b>' + CURRENT_OVERALL.toFixed(1) + '%</b> · 6 courses</div>' +
+        '</div>' +
+        '<button class="btn solid ncbtn" id="nosCapBtn">' + (already ? "Update snapshot" : "Capture") + '</button>';
+
+      var sorted = nosSorted(list);
+      countEl.textContent = sorted.length;
+
+      if (!sorted.length) {
+        listEl.innerHTML = '<div class="nos-empty">No snapshots yet. Capture this semester to start a record.</div>';
+      } else {
+        var html = "";
+        sorted.forEach(function (s, i) {
+          var prev = sorted[i + 1]; // older term
+          var deltaStr = "", deltaCls = "";
+          if (prev && typeof prev.overall === "number") {
+            var d = s.overall - prev.overall;
+            var sign = d > 0 ? "+" : (d < 0 ? "−" : "±");
+            deltaCls = d > 0.05 ? " up" : (d < -0.05 ? " down" : "");
+            deltaStr = sign + Math.abs(d).toFixed(1) + " vs previous";
+          } else {
+            deltaStr = "First recorded term";
+          }
+          var courseRows = (s.courses || []).map(function (c) {
+            return '<div class="snap-c">' +
+              '<span class="scn">' + esc(c.name) + '</span>' +
+              '<span class="scl">' + esc(c.ltr || "") + '</span>' +
+              '<span class="scg">' + (typeof c.grade === "number" ? c.grade.toFixed(1) + "%" : "—") + '</span>' +
+            '</div>';
+          }).join("");
+          html +=
+            '<div class="snap" data-i="' + i + '">' +
+              '<div class="snap-head">' +
+                '<div>' +
+                  '<div class="sh-term">' + esc(s.label || s.term) + '</div>' +
+                  '<div class="sh-when">Captured ' + esc(nosFmtDate(s.captured)) + '</div>' +
+                '</div>' +
+                '<div>' +
+                  '<div class="sh-grade">' + s.overall.toFixed(1) + '<span class="pct">%</span></div>' +
+                  '<div class="sh-delta' + deltaCls + '">' + esc(deltaStr) + '</div>' +
+                '</div>' +
+                '<div class="sh-acts">' +
+                  '<button class="btn" data-nos-view="' + i + '">View</button>' +
+                  '<button class="btn" data-nos-del="' + i + '">Delete</button>' +
+                '</div>' +
+              '</div>' +
+              '<div class="snap-courses collapsed">' + courseRows + '</div>' +
+            '</div>';
+        });
+        listEl.innerHTML = html;
+      }
+    }
+
+    (function wireNostalgia() {
+      var screen = $("#screen-nostalgia");
+      if (!screen) return;
+      screen.addEventListener("click", function (e) {
+        var t = e.target;
+        var capBtn = t.closest && t.closest("#nosCapBtn");
+        if (capBtn) {
+          var list = nosSeed();
+          var snap = nosCurrentSnapshot();
+          var idx = -1;
+          list.forEach(function (s, i) { if (s.term === snap.term) idx = i; });
+          if (idx >= 0) list[idx] = snap; else list.push(snap);
+          nosStore(list);
+          renderNostalgia();
+          return;
+        }
+        var viewBtn = t.closest && t.closest("[data-nos-view]");
+        if (viewBtn) {
+          var snapCard = viewBtn.closest(".snap");
+          var courses = snapCard && snapCard.querySelector(".snap-courses");
+          if (courses) {
+            var open = courses.classList.toggle("collapsed");
+            viewBtn.textContent = open ? "View" : "Hide";
+          }
+          return;
+        }
+        var delBtn = t.closest && t.closest("[data-nos-del]");
+        if (delBtn) {
+          var di = Number(delBtn.getAttribute("data-nos-del"));
+          var current = nosSorted(nosSeed());
+          var victim = current[di];
+          if (victim) {
+            var stored = nosLoad() || [];
+            stored = stored.filter(function (s) { return s.term !== victim.term; });
+            nosStore(stored);
+            renderNostalgia();
+          }
+          return;
+        }
+      });
+    })();
+
+    // ============================================================
     // INIT
     // ============================================================
+    renderNostalgia();
     renderOverviewChart();
     renderOverviewCourses();
     renderRail();

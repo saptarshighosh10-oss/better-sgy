@@ -719,6 +719,64 @@
   .goverlay .oacts{margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
 
   /* ============================================================
+     NOSTALGIA — grade snapshots
+  ============================================================ */
+  .nos-capture{padding:26px 28px;display:flex;align-items:center;gap:22px;flex-wrap:wrap;}
+  .nos-capture .ncbody{min-width:0;flex:1 1 280px;}
+  .nos-capture .nclab{font-size:13px;font-weight:600;letter-spacing:0.01em;text-transform:uppercase;color:var(--ink3);}
+  .nos-capture .ncterm{margin-top:7px;font-size:22px;font-weight:600;letter-spacing:-0.02em;line-height:1.15;}
+  .nos-capture .ncsub{margin-top:5px;font-size:14px;color:var(--ink3);letter-spacing:-0.012em;}
+  .nos-capture .ncact{margin-left:auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+
+  .nos-grid{margin-top:26px;display:grid;grid-template-columns:repeat(2,1fr);gap:18px;}
+  @media (max-width:760px){ .nos-grid{grid-template-columns:1fr;} }
+  .snapcard{
+    background:var(--paper);border:1px solid var(--hair);border-radius:22px;overflow:hidden;
+    display:flex;flex-direction:column;
+    box-shadow:0 1px 2px rgba(0,0,0,0.04),0 8px 28px rgba(0,0,0,0.05);
+  }
+  .snapcard .schead{padding:22px 24px 18px;}
+  .snapcard .scterm{font-size:19px;font-weight:600;letter-spacing:-0.02em;line-height:1.15;}
+  .snapcard .scdate{margin-top:4px;font-size:13px;color:var(--ink3);letter-spacing:-0.012em;}
+  .snapcard .scgradeline{margin-top:16px;display:flex;align-items:baseline;gap:8px;}
+  .snapcard .scgrade{font-size:42px;font-weight:600;letter-spacing:-0.035em;line-height:1;}
+  .snapcard .scpct{font-size:19px;font-weight:600;color:var(--ink3);letter-spacing:-0.025em;}
+  .snapcard .scdelta{
+    margin-left:auto;align-self:center;font-size:13px;font-weight:600;letter-spacing:-0.012em;
+    display:inline-flex;align-items:center;gap:4px;border-radius:980px;padding:4px 11px;background:var(--tile);color:var(--ink2);
+  }
+  .snapcard .scdelta.up{background:rgba(52,199,89,.14);color:#1f8f3f;}
+  .snapcard .scdelta.down{background:rgba(255,59,48,.13);color:#c4271d;}
+  .snapcard .sccourses{padding:4px 24px 6px;display:flex;flex-direction:column;}
+  .snapcard .sccourse{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--hair);}
+  .snapcard .sccourse:first-child{border-top:none;}
+  .snapcard .sccourse .ssw{width:9px;height:9px;border-radius:3px;flex:0 0 9px;}
+  .snapcard .sccourse .scn{font-size:14.5px;letter-spacing:-0.012em;color:var(--ink);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .snapcard .sccourse .scg{margin-left:auto;font-size:14px;font-weight:600;letter-spacing:-0.012em;color:var(--ink2);flex:0 0 auto;}
+  .snapcard .sccourse .scl{font-size:13px;color:var(--ink3);flex:0 0 auto;min-width:26px;text-align:right;}
+  .snapcard .scfoot{margin-top:auto;padding:14px 24px;border-top:1px solid var(--hair);display:flex;align-items:center;gap:14px;}
+  .snapcard .scfoot .grow{margin-left:auto;}
+  .snapcard .delx{
+    appearance:none;border:none;background:none;cursor:pointer;font-family:inherit;
+    font-size:14px;color:var(--ink3);letter-spacing:-0.012em;padding:2px 2px;transition:color .15s ease;
+  }
+  .snapcard .delx:hover{color:var(--red);}
+
+  /* read-only snapshot view (a sheet) */
+  .snapview .svterm{font-size:24px;font-weight:600;letter-spacing:-0.022em;}
+  .snapview .svmeta{margin-top:5px;font-size:14px;color:var(--ink3);letter-spacing:-0.012em;}
+  .snapview .svoverall{margin-top:18px;display:flex;align-items:baseline;gap:8px;}
+  .snapview .svoverall .g{font-size:46px;font-weight:600;letter-spacing:-0.035em;line-height:1;}
+  .snapview .svoverall .p{font-size:20px;font-weight:600;color:var(--ink3);letter-spacing:-0.025em;}
+  .snapview .svrows{margin-top:20px;display:flex;flex-direction:column;}
+  .snapview .svrow{display:flex;align-items:center;gap:12px;padding:13px 0;border-top:1px solid var(--hair);}
+  .snapview .svrow:first-child{border-top:none;}
+  .snapview .svrow .sw{width:10px;height:10px;border-radius:3px;flex:0 0 10px;}
+  .snapview .svrow .nm{font-size:15px;font-weight:500;letter-spacing:-0.014em;color:var(--ink);}
+  .snapview .svrow .gr{margin-left:auto;font-size:16px;font-weight:600;letter-spacing:-0.014em;}
+  .snapview .svrow .lt{font-size:14px;color:var(--ink3);min-width:30px;text-align:right;}
+
+  /* ============================================================
      EMPTY STATES
   ============================================================ */
   .emptystate{
@@ -1014,6 +1072,10 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="8" width="18" height="9" rx="4.5" stroke-width="1.6"/><path d="M8 11v3M6.5 12.5h3" stroke-width="1.6" stroke-linecap="round"/><circle cx="15.5" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="17.5" cy="14" r="1" fill="currentColor" stroke="none"/></svg>
         Games
       </button>
+      <button class="navitem" data-screen="nostalgia">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 8v4l2.5 2.5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.5 9a9 9 0 113 8.5" stroke-width="1.6" stroke-linecap="round"/><path d="M3 5v4h4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Nostalgia
+      </button>
       <button class="navitem" data-screen="settings">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3" stroke-width="1.6"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" stroke-width="1.6" stroke-linecap="round"/></svg>
         Settings
@@ -1267,6 +1329,30 @@
       </div>
     </section>
 
+    <!-- ============ NOSTALGIA ============ -->
+    <section class="screen" id="sc-nostalgia">
+      <div class="pad">
+        <div class="pagehead">
+          <h1>Nostalgia</h1>
+          <p class="sub">Capture your grades each term, then look back on where you've been.</p>
+        </div>
+
+        <div class="surface nos-capture">
+          <div class="ncbody">
+            <div class="nclab">Capture this semester</div>
+            <div class="ncterm" id="nosCaptureTerm">2025–2026 · Freshman · Semester 2</div>
+            <div class="ncsub" id="nosCaptureSub">Overall 96.2% · 6 courses</div>
+          </div>
+          <div class="ncact">
+            <span class="pill green" id="nosSaved" style="display:none;">Saved</span>
+            <button class="btn" id="nosCaptureBtn">Capture snapshot</button>
+          </div>
+        </div>
+
+        <div class="nos-grid" id="nosGrid"></div>
+      </div>
+    </section>
+
     </div><!-- /canvas -->
   </div><!-- /main -->
 </div><!-- /app -->
@@ -1306,8 +1392,20 @@
       <div class="scrow"><span class="scd">Announcements</span><span class="sck"><span class="kbd">g</span><span class="kbd plain">then</span><span class="kbd">n</span></span></div>
       <div class="scrow"><span class="scd">Materials</span><span class="sck"><span class="kbd">g</span><span class="kbd plain">then</span><span class="kbd">m</span></span></div>
       <div class="scrow"><span class="scd">Games</span><span class="sck"><span class="kbd">g</span><span class="kbd plain">then</span><span class="kbd">e</span></span></div>
+      <div class="scrow"><span class="scd">Nostalgia</span><span class="sck"><span class="kbd">g</span><span class="kbd plain">then</span><span class="kbd">h</span></span></div>
       <div class="scrow"><span class="scd">Settings</span><span class="sck"><span class="kbd">g</span><span class="kbd plain">then</span><span class="kbd">s</span></span></div>
     </div>
+  </div>
+</div>
+
+<!-- ============ SNAPSHOT VIEW ============ -->
+<div class="overlay" id="snapViewOverlay">
+  <div class="sheet snapview" role="dialog" aria-label="Snapshot">
+    <div class="sh-h">
+      <div id="snapViewHead"></div>
+      <button class="closex" id="snapViewClose" aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 6l12 12M18 6L6 18" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+    </div>
+    <div id="snapViewBody"></div>
   </div>
 </div>
 
@@ -1660,7 +1758,7 @@ else if(darkMQ.addListener) darkMQ.addListener(onOSChange); // older Safari
 /* ============================================================
    SCREEN ROUTING
 ============================================================ */
-const SCREENS = ["overview","grades","assign","cal","announce","materials","games","settings"];
+const SCREENS = ["overview","grades","assign","cal","announce","materials","games","nostalgia","settings"];
 function go(screen){
   if(!SCREENS.includes(screen)) screen = "overview";
   SCREENS.forEach(s=>{
@@ -2724,6 +2822,7 @@ const SCREEN_INDEX = [
   {screen:"announce", label:"Announcements", meta:"Teacher posts"},
   {screen:"materials",label:"Materials", meta:"Files & submissions"},
   {screen:"games",    label:"Games", meta:"Arcade"},
+  {screen:"nostalgia",label:"Nostalgia", meta:"Grade snapshots over time"},
   {screen:"settings", label:"Settings", meta:"Look & sections"},
 ];
 let palItems = [];   // current filtered results (flat)
@@ -3151,7 +3250,7 @@ const Tour = (function(){
 
 /* ---- Global keyboard shortcuts ---- */
 let gPending = false, gTimer = null;
-const G_MAP = {o:"overview", g:"grades", a:"assign", c:"cal", n:"announce", m:"materials", e:"games", s:"settings"};
+const G_MAP = {o:"overview", g:"grades", a:"assign", c:"cal", n:"announce", m:"materials", e:"games", h:"nostalgia", s:"settings"};
 document.addEventListener("keydown", e=>{
   const inField = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement && document.activeElement.tagName);
 
@@ -3252,6 +3351,155 @@ function exportFallback(){
 $("#ovExport").addEventListener("click", exportOverviewPNG);
 
 /* ============================================================
+   NOSTALGIA — grade snapshots saved to localStorage
+============================================================ */
+const NOS_KEY = "bsgy-apple-snapshots";
+// The current term this app represents (used as the snapshot identity).
+const CURRENT_TERM = {
+  id: "2025-2026-fr-s2",
+  label: "2025–2026 · Freshman · Semester 2",
+  short: "Freshman · Semester 2",
+};
+function currentSnapshotData(){
+  return {
+    id: CURRENT_TERM.id,
+    term: CURRENT_TERM.label,
+    overall: 96.2,
+    courses: COURSES.map(c=>({ name:c.name, grade:c.grade, letter:c.letter, accent:c.accent })),
+  };
+}
+function loadSnapshots(){
+  try{
+    const raw = localStorage.getItem(NOS_KEY);
+    if(raw){ const arr = JSON.parse(raw); if(Array.isArray(arr)) return arr; }
+  }catch(e){}
+  // Pre-seed one past term so the timeline is never empty.
+  const seed = [{
+    id: "2025-2026-fr-s1",
+    term: "2025–2026 · Freshman · Semester 1",
+    overall: 94.8,
+    capturedAt: new Date(2026,0,15).getTime(),   // Jan 15, 2026
+    courses: [
+      {name:"Algebra 2 / Trig", grade:95.0, letter:"A",  accent:"#5b6cff"},
+      {name:"Biology",          grade:93.5, letter:"A",  accent:"#34c759"},
+      {name:"French 1",         grade:92.0, letter:"A",  accent:"#ff9f0a"},
+      {name:"Drama",            grade:96.2, letter:"A",  accent:"#bf5af2"},
+      {name:"Literature",       grade:91.0, letter:"A−", accent:"#0a84ff"},
+      {name:"PE 9",             grade:99.0, letter:"A",  accent:"#30d158"},
+    ],
+  }];
+  try{ localStorage.setItem(NOS_KEY, JSON.stringify(seed)); }catch(e){}
+  return seed;
+}
+function saveSnapshots(arr){ try{ localStorage.setItem(NOS_KEY, JSON.stringify(arr)); }catch(e){} }
+function snapshotsSorted(){
+  return loadSnapshots().slice().sort((a,b)=> (b.capturedAt||0) - (a.capturedAt||0));
+}
+function fmtSnapDate(ms){
+  try{
+    return new Date(ms).toLocaleDateString(undefined, {month:"short", day:"numeric", year:"numeric"});
+  }catch(e){ return ""; }
+}
+function captureSnapshot(){
+  const arr = loadSnapshots();
+  const data = currentSnapshotData();
+  const now = Date.now();
+  const existing = arr.find(s=> s.id === data.id);
+  if(existing){
+    existing.term = data.term; existing.overall = data.overall;
+    existing.courses = data.courses; existing.capturedAt = now;
+  }else{
+    arr.push(Object.assign({capturedAt:now}, data));
+  }
+  saveSnapshots(arr);
+  renderNostalgia();
+  const saved = $("#nosSaved");
+  if(saved){ saved.style.display=""; setTimeout(()=>{ saved.style.display="none"; }, 2200); }
+  toast({ic:"◷",color:"#0071e3",tt: existing ? "Snapshot updated" : "Snapshot saved",
+    td: CURRENT_TERM.short+" · "+data.overall+"%", src:"Better SGY"});
+}
+function deleteSnapshot(id){
+  const arr = loadSnapshots().filter(s=> s.id !== id);
+  saveSnapshots(arr);
+  renderNostalgia();
+}
+function deltaBadge(curr, prev){
+  if(prev == null) return "";
+  const d = +(curr - prev).toFixed(1);
+  if(d === 0) return `<span class="scdelta">±0.0</span>`;
+  const cls = d > 0 ? "up" : "down";
+  const arrow = d > 0 ? "▲" : "▼";
+  return `<span class="scdelta ${cls}">${arrow} ${Math.abs(d).toFixed(1)}</span>`;
+}
+function renderNostalgia(){
+  const grid = $("#nosGrid");
+  if(!grid) return;
+  const list = snapshotsSorted();   // newest first
+  if(!list.length){
+    grid.innerHTML = `<div class="surface emptystate" style="grid-column:1/-1;">
+      <span class="esicon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 8v4l2.5 2.5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.5 9a9 9 0 113 8.5" stroke-width="1.6" stroke-linecap="round"/><path d="M3 5v4h4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <div class="estitle">No snapshots yet</div>
+      <div class="esbody">Capture this semester above to start a timeline you can look back on.</div>
+    </div>`;
+    return;
+  }
+  // chronological (oldest first) to compute deltas vs the previous term
+  const chrono = list.slice().sort((a,b)=> (a.capturedAt||0) - (b.capturedAt||0));
+  const prevById = {};
+  chrono.forEach((s,i)=>{ prevById[s.id] = i>0 ? chrono[i-1].overall : null; });
+
+  grid.innerHTML = list.map(s=>{
+    const courses = (s.courses||[]).map(c=>`
+      <div class="sccourse">
+        <span class="ssw" style="background:${esc(c.accent||"#86868b")}"></span>
+        <span class="scn">${esc(c.name)}</span>
+        <span class="scg">${c.grade}%</span>
+        <span class="scl">${esc(c.letter||"")}</span>
+      </div>`).join("");
+    return `<div class="snapcard" data-snap="${esc(s.id)}">
+      <div class="schead">
+        <div class="scterm">${esc(s.term)}</div>
+        <div class="scdate">Captured ${esc(fmtSnapDate(s.capturedAt))}</div>
+        <div class="scgradeline">
+          <span class="scgrade">${(typeof s.overall==="number"? s.overall.toFixed(1) : s.overall)}</span>
+          <span class="scpct">%</span>
+          ${deltaBadge(s.overall, prevById[s.id])}
+        </div>
+      </div>
+      <div class="sccourses">${courses}</div>
+      <div class="scfoot">
+        <button class="tlink" data-snap-view="${esc(s.id)}">View<svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 6l6 6-6 6" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button class="delx grow" data-snap-del="${esc(s.id)}">Delete</button>
+      </div>
+    </div>`;
+  }).join("");
+
+  $$("[data-snap-view]", grid).forEach(b=> b.addEventListener("click", ()=> openSnapView(b.dataset.snapView)));
+  $$("[data-snap-del]", grid).forEach(b=> b.addEventListener("click", ()=> deleteSnapshot(b.dataset.snapDel)));
+}
+function openSnapView(id){
+  const s = loadSnapshots().find(x=> x.id === id);
+  if(!s) return;
+  $("#snapViewHead").innerHTML = `<div class="svterm">${esc(s.term)}</div><div class="svmeta">Captured ${esc(fmtSnapDate(s.capturedAt))}</div>`;
+  const rows = (s.courses||[]).map(c=>`
+    <div class="svrow">
+      <span class="sw" style="background:${esc(c.accent||"#86868b")}"></span>
+      <span class="nm">${esc(c.name)}</span>
+      <span class="gr">${c.grade}%</span>
+      <span class="lt">${esc(c.letter||"")}</span>
+    </div>`).join("");
+  $("#snapViewBody").innerHTML = `
+    <div class="svoverall"><span class="g">${s.overall}</span><span class="p">% overall</span></div>
+    <div class="svrows">${rows}</div>`;
+  closeAllOverlays();
+  $("#snapViewOverlay").classList.add("show");
+}
+function closeSnapView(){ $("#snapViewOverlay").classList.remove("show"); }
+$("#snapViewClose").addEventListener("click", closeSnapView);
+$("#snapViewOverlay").addEventListener("click", e=>{ if(e.target.id==="snapViewOverlay") closeSnapView(); });
+$("#nosCaptureBtn").addEventListener("click", captureSnapshot);
+
+/* ============================================================
    CONVENTIONS — write active edition + read ?screen= / ?game=
 ============================================================ */
 try{ localStorage.setItem("bsgy-edition", "apple"); }catch(e){}
@@ -3334,6 +3582,7 @@ renderMaterialsList();
 renderMaterialDetail();
 renderSettings();
 Arcade.renderHome();
+renderNostalgia();
 go("overview");
 applyDeepLink();          // ?screen= / ?game= for the debug hub
 showWelcomeIfFirstRun();  // first-run welcome card

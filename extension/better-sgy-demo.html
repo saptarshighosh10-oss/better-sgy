@@ -5468,6 +5468,64 @@ void main() {
   .goverlay .oacts{margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
 
   /* ============================================================
+     NOSTALGIA — grade snapshots
+  ============================================================ */
+  .nos-capture{padding:26px 28px;display:flex;align-items:center;gap:22px;flex-wrap:wrap;}
+  .nos-capture .ncbody{min-width:0;flex:1 1 280px;}
+  .nos-capture .nclab{font-size:13px;font-weight:600;letter-spacing:0.01em;text-transform:uppercase;color:var(--ink3);}
+  .nos-capture .ncterm{margin-top:7px;font-size:22px;font-weight:600;letter-spacing:-0.02em;line-height:1.15;}
+  .nos-capture .ncsub{margin-top:5px;font-size:14px;color:var(--ink3);letter-spacing:-0.012em;}
+  .nos-capture .ncact{margin-left:auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+
+  .nos-grid{margin-top:26px;display:grid;grid-template-columns:repeat(2,1fr);gap:18px;}
+  @media (max-width:760px){ .nos-grid{grid-template-columns:1fr;} }
+  .snapcard{
+    background:var(--paper);border:1px solid var(--hair);border-radius:22px;overflow:hidden;
+    display:flex;flex-direction:column;
+    box-shadow:0 1px 2px rgba(0,0,0,0.04),0 8px 28px rgba(0,0,0,0.05);
+  }
+  .snapcard .schead{padding:22px 24px 18px;}
+  .snapcard .scterm{font-size:19px;font-weight:600;letter-spacing:-0.02em;line-height:1.15;}
+  .snapcard .scdate{margin-top:4px;font-size:13px;color:var(--ink3);letter-spacing:-0.012em;}
+  .snapcard .scgradeline{margin-top:16px;display:flex;align-items:baseline;gap:8px;}
+  .snapcard .scgrade{font-size:42px;font-weight:600;letter-spacing:-0.035em;line-height:1;}
+  .snapcard .scpct{font-size:19px;font-weight:600;color:var(--ink3);letter-spacing:-0.025em;}
+  .snapcard .scdelta{
+    margin-left:auto;align-self:center;font-size:13px;font-weight:600;letter-spacing:-0.012em;
+    display:inline-flex;align-items:center;gap:4px;border-radius:980px;padding:4px 11px;background:var(--tile);color:var(--ink2);
+  }
+  .snapcard .scdelta.up{background:rgba(52,199,89,.14);color:#1f8f3f;}
+  .snapcard .scdelta.down{background:rgba(255,59,48,.13);color:#c4271d;}
+  .snapcard .sccourses{padding:4px 24px 6px;display:flex;flex-direction:column;}
+  .snapcard .sccourse{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--hair);}
+  .snapcard .sccourse:first-child{border-top:none;}
+  .snapcard .sccourse .ssw{width:9px;height:9px;border-radius:3px;flex:0 0 9px;}
+  .snapcard .sccourse .scn{font-size:14.5px;letter-spacing:-0.012em;color:var(--ink);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .snapcard .sccourse .scg{margin-left:auto;font-size:14px;font-weight:600;letter-spacing:-0.012em;color:var(--ink2);flex:0 0 auto;}
+  .snapcard .sccourse .scl{font-size:13px;color:var(--ink3);flex:0 0 auto;min-width:26px;text-align:right;}
+  .snapcard .scfoot{margin-top:auto;padding:14px 24px;border-top:1px solid var(--hair);display:flex;align-items:center;gap:14px;}
+  .snapcard .scfoot .grow{margin-left:auto;}
+  .snapcard .delx{
+    appearance:none;border:none;background:none;cursor:pointer;font-family:inherit;
+    font-size:14px;color:var(--ink3);letter-spacing:-0.012em;padding:2px 2px;transition:color .15s ease;
+  }
+  .snapcard .delx:hover{color:var(--red);}
+
+  /* read-only snapshot view (a sheet) */
+  .snapview .svterm{font-size:24px;font-weight:600;letter-spacing:-0.022em;}
+  .snapview .svmeta{margin-top:5px;font-size:14px;color:var(--ink3);letter-spacing:-0.012em;}
+  .snapview .svoverall{margin-top:18px;display:flex;align-items:baseline;gap:8px;}
+  .snapview .svoverall .g{font-size:46px;font-weight:600;letter-spacing:-0.035em;line-height:1;}
+  .snapview .svoverall .p{font-size:20px;font-weight:600;color:var(--ink3);letter-spacing:-0.025em;}
+  .snapview .svrows{margin-top:20px;display:flex;flex-direction:column;}
+  .snapview .svrow{display:flex;align-items:center;gap:12px;padding:13px 0;border-top:1px solid var(--hair);}
+  .snapview .svrow:first-child{border-top:none;}
+  .snapview .svrow .sw{width:10px;height:10px;border-radius:3px;flex:0 0 10px;}
+  .snapview .svrow .nm{font-size:15px;font-weight:500;letter-spacing:-0.014em;color:var(--ink);}
+  .snapview .svrow .gr{margin-left:auto;font-size:16px;font-weight:600;letter-spacing:-0.014em;}
+  .snapview .svrow .lt{font-size:14px;color:var(--ink3);min-width:30px;text-align:right;}
+
+  /* ============================================================
      EMPTY STATES
   ============================================================ */
   .emptystate{
@@ -5763,6 +5821,10 @@ void main() {
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="8" width="18" height="9" rx="4.5" stroke-width="1.6"/><path d="M8 11v3M6.5 12.5h3" stroke-width="1.6" stroke-linecap="round"/><circle cx="15.5" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="17.5" cy="14" r="1" fill="currentColor" stroke="none"/></svg>
         Games
       </button>
+      <button class="navitem" data-screen="nostalgia">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 8v4l2.5 2.5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.5 9a9 9 0 113 8.5" stroke-width="1.6" stroke-linecap="round"/><path d="M3 5v4h4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Nostalgia
+      </button>
       <button class="navitem" data-screen="settings">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3" stroke-width="1.6"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" stroke-width="1.6" stroke-linecap="round"/></svg>
         Settings
@@ -6016,6 +6078,30 @@ void main() {
       </div>
     </section>
 
+    \x3C!-- ============ NOSTALGIA ============ -->
+    <section class="screen" id="sc-nostalgia">
+      <div class="pad">
+        <div class="pagehead">
+          <h1>Nostalgia</h1>
+          <p class="sub">Capture your grades each term, then look back on where you've been.</p>
+        </div>
+
+        <div class="surface nos-capture">
+          <div class="ncbody">
+            <div class="nclab">Capture this semester</div>
+            <div class="ncterm" id="nosCaptureTerm">2025–2026 · Freshman · Semester 2</div>
+            <div class="ncsub" id="nosCaptureSub">Overall 96.2% · 6 courses</div>
+          </div>
+          <div class="ncact">
+            <span class="pill green" id="nosSaved" style="display:none;">Saved</span>
+            <button class="btn" id="nosCaptureBtn">Capture snapshot</button>
+          </div>
+        </div>
+
+        <div class="nos-grid" id="nosGrid"></div>
+      </div>
+    </section>
+
     </div>\x3C!-- /canvas -->
   </div>\x3C!-- /main -->
 </div>\x3C!-- /app -->
@@ -6055,8 +6141,20 @@ void main() {
       <div class="scrow"><span class="scd">Announcements</span><span class="sck"><span class="kbd">g</span><span class="kbd plain">then</span><span class="kbd">n</span></span></div>
       <div class="scrow"><span class="scd">Materials</span><span class="sck"><span class="kbd">g</span><span class="kbd plain">then</span><span class="kbd">m</span></span></div>
       <div class="scrow"><span class="scd">Games</span><span class="sck"><span class="kbd">g</span><span class="kbd plain">then</span><span class="kbd">e</span></span></div>
+      <div class="scrow"><span class="scd">Nostalgia</span><span class="sck"><span class="kbd">g</span><span class="kbd plain">then</span><span class="kbd">h</span></span></div>
       <div class="scrow"><span class="scd">Settings</span><span class="sck"><span class="kbd">g</span><span class="kbd plain">then</span><span class="kbd">s</span></span></div>
     </div>
+  </div>
+</div>
+
+\x3C!-- ============ SNAPSHOT VIEW ============ -->
+<div class="overlay" id="snapViewOverlay">
+  <div class="sheet snapview" role="dialog" aria-label="Snapshot">
+    <div class="sh-h">
+      <div id="snapViewHead"></div>
+      <button class="closex" id="snapViewClose" aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 6l12 12M18 6L6 18" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+    </div>
+    <div id="snapViewBody"></div>
   </div>
 </div>
 
@@ -6409,7 +6507,7 @@ else if(darkMQ.addListener) darkMQ.addListener(onOSChange); // older Safari
 /* ============================================================
    SCREEN ROUTING
 ============================================================ */
-const SCREENS = ["overview","grades","assign","cal","announce","materials","games","settings"];
+const SCREENS = ["overview","grades","assign","cal","announce","materials","games","nostalgia","settings"];
 function go(screen){
   if(!SCREENS.includes(screen)) screen = "overview";
   SCREENS.forEach(s=>{
@@ -7473,6 +7571,7 @@ const SCREEN_INDEX = [
   {screen:"announce", label:"Announcements", meta:"Teacher posts"},
   {screen:"materials",label:"Materials", meta:"Files & submissions"},
   {screen:"games",    label:"Games", meta:"Arcade"},
+  {screen:"nostalgia",label:"Nostalgia", meta:"Grade snapshots over time"},
   {screen:"settings", label:"Settings", meta:"Look & sections"},
 ];
 let palItems = [];   // current filtered results (flat)
@@ -7900,7 +7999,7 @@ const Tour = (function(){
 
 /* ---- Global keyboard shortcuts ---- */
 let gPending = false, gTimer = null;
-const G_MAP = {o:"overview", g:"grades", a:"assign", c:"cal", n:"announce", m:"materials", e:"games", s:"settings"};
+const G_MAP = {o:"overview", g:"grades", a:"assign", c:"cal", n:"announce", m:"materials", e:"games", h:"nostalgia", s:"settings"};
 document.addEventListener("keydown", e=>{
   const inField = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement && document.activeElement.tagName);
 
@@ -8001,6 +8100,155 @@ function exportFallback(){
 $("#ovExport").addEventListener("click", exportOverviewPNG);
 
 /* ============================================================
+   NOSTALGIA — grade snapshots saved to localStorage
+============================================================ */
+const NOS_KEY = "bsgy-apple-snapshots";
+// The current term this app represents (used as the snapshot identity).
+const CURRENT_TERM = {
+  id: "2025-2026-fr-s2",
+  label: "2025–2026 · Freshman · Semester 2",
+  short: "Freshman · Semester 2",
+};
+function currentSnapshotData(){
+  return {
+    id: CURRENT_TERM.id,
+    term: CURRENT_TERM.label,
+    overall: 96.2,
+    courses: COURSES.map(c=>({ name:c.name, grade:c.grade, letter:c.letter, accent:c.accent })),
+  };
+}
+function loadSnapshots(){
+  try{
+    const raw = localStorage.getItem(NOS_KEY);
+    if(raw){ const arr = JSON.parse(raw); if(Array.isArray(arr)) return arr; }
+  }catch(e){}
+  // Pre-seed one past term so the timeline is never empty.
+  const seed = [{
+    id: "2025-2026-fr-s1",
+    term: "2025–2026 · Freshman · Semester 1",
+    overall: 94.8,
+    capturedAt: new Date(2026,0,15).getTime(),   // Jan 15, 2026
+    courses: [
+      {name:"Algebra 2 / Trig", grade:95.0, letter:"A",  accent:"#5b6cff"},
+      {name:"Biology",          grade:93.5, letter:"A",  accent:"#34c759"},
+      {name:"French 1",         grade:92.0, letter:"A",  accent:"#ff9f0a"},
+      {name:"Drama",            grade:96.2, letter:"A",  accent:"#bf5af2"},
+      {name:"Literature",       grade:91.0, letter:"A−", accent:"#0a84ff"},
+      {name:"PE 9",             grade:99.0, letter:"A",  accent:"#30d158"},
+    ],
+  }];
+  try{ localStorage.setItem(NOS_KEY, JSON.stringify(seed)); }catch(e){}
+  return seed;
+}
+function saveSnapshots(arr){ try{ localStorage.setItem(NOS_KEY, JSON.stringify(arr)); }catch(e){} }
+function snapshotsSorted(){
+  return loadSnapshots().slice().sort((a,b)=> (b.capturedAt||0) - (a.capturedAt||0));
+}
+function fmtSnapDate(ms){
+  try{
+    return new Date(ms).toLocaleDateString(undefined, {month:"short", day:"numeric", year:"numeric"});
+  }catch(e){ return ""; }
+}
+function captureSnapshot(){
+  const arr = loadSnapshots();
+  const data = currentSnapshotData();
+  const now = Date.now();
+  const existing = arr.find(s=> s.id === data.id);
+  if(existing){
+    existing.term = data.term; existing.overall = data.overall;
+    existing.courses = data.courses; existing.capturedAt = now;
+  }else{
+    arr.push(Object.assign({capturedAt:now}, data));
+  }
+  saveSnapshots(arr);
+  renderNostalgia();
+  const saved = $("#nosSaved");
+  if(saved){ saved.style.display=""; setTimeout(()=>{ saved.style.display="none"; }, 2200); }
+  toast({ic:"◷",color:"#0071e3",tt: existing ? "Snapshot updated" : "Snapshot saved",
+    td: CURRENT_TERM.short+" · "+data.overall+"%", src:"Better SGY"});
+}
+function deleteSnapshot(id){
+  const arr = loadSnapshots().filter(s=> s.id !== id);
+  saveSnapshots(arr);
+  renderNostalgia();
+}
+function deltaBadge(curr, prev){
+  if(prev == null) return "";
+  const d = +(curr - prev).toFixed(1);
+  if(d === 0) return \`<span class="scdelta">±0.0</span>\`;
+  const cls = d > 0 ? "up" : "down";
+  const arrow = d > 0 ? "▲" : "▼";
+  return \`<span class="scdelta \${cls}">\${arrow} \${Math.abs(d).toFixed(1)}</span>\`;
+}
+function renderNostalgia(){
+  const grid = $("#nosGrid");
+  if(!grid) return;
+  const list = snapshotsSorted();   // newest first
+  if(!list.length){
+    grid.innerHTML = \`<div class="surface emptystate" style="grid-column:1/-1;">
+      <span class="esicon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 8v4l2.5 2.5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.5 9a9 9 0 113 8.5" stroke-width="1.6" stroke-linecap="round"/><path d="M3 5v4h4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <div class="estitle">No snapshots yet</div>
+      <div class="esbody">Capture this semester above to start a timeline you can look back on.</div>
+    </div>\`;
+    return;
+  }
+  // chronological (oldest first) to compute deltas vs the previous term
+  const chrono = list.slice().sort((a,b)=> (a.capturedAt||0) - (b.capturedAt||0));
+  const prevById = {};
+  chrono.forEach((s,i)=>{ prevById[s.id] = i>0 ? chrono[i-1].overall : null; });
+
+  grid.innerHTML = list.map(s=>{
+    const courses = (s.courses||[]).map(c=>\`
+      <div class="sccourse">
+        <span class="ssw" style="background:\${esc(c.accent||"#86868b")}"></span>
+        <span class="scn">\${esc(c.name)}</span>
+        <span class="scg">\${c.grade}%</span>
+        <span class="scl">\${esc(c.letter||"")}</span>
+      </div>\`).join("");
+    return \`<div class="snapcard" data-snap="\${esc(s.id)}">
+      <div class="schead">
+        <div class="scterm">\${esc(s.term)}</div>
+        <div class="scdate">Captured \${esc(fmtSnapDate(s.capturedAt))}</div>
+        <div class="scgradeline">
+          <span class="scgrade">\${(typeof s.overall==="number"? s.overall.toFixed(1) : s.overall)}</span>
+          <span class="scpct">%</span>
+          \${deltaBadge(s.overall, prevById[s.id])}
+        </div>
+      </div>
+      <div class="sccourses">\${courses}</div>
+      <div class="scfoot">
+        <button class="tlink" data-snap-view="\${esc(s.id)}">View<svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 6l6 6-6 6" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button class="delx grow" data-snap-del="\${esc(s.id)}">Delete</button>
+      </div>
+    </div>\`;
+  }).join("");
+
+  $$("[data-snap-view]", grid).forEach(b=> b.addEventListener("click", ()=> openSnapView(b.dataset.snapView)));
+  $$("[data-snap-del]", grid).forEach(b=> b.addEventListener("click", ()=> deleteSnapshot(b.dataset.snapDel)));
+}
+function openSnapView(id){
+  const s = loadSnapshots().find(x=> x.id === id);
+  if(!s) return;
+  $("#snapViewHead").innerHTML = \`<div class="svterm">\${esc(s.term)}</div><div class="svmeta">Captured \${esc(fmtSnapDate(s.capturedAt))}</div>\`;
+  const rows = (s.courses||[]).map(c=>\`
+    <div class="svrow">
+      <span class="sw" style="background:\${esc(c.accent||"#86868b")}"></span>
+      <span class="nm">\${esc(c.name)}</span>
+      <span class="gr">\${c.grade}%</span>
+      <span class="lt">\${esc(c.letter||"")}</span>
+    </div>\`).join("");
+  $("#snapViewBody").innerHTML = \`
+    <div class="svoverall"><span class="g">\${s.overall}</span><span class="p">% overall</span></div>
+    <div class="svrows">\${rows}</div>\`;
+  closeAllOverlays();
+  $("#snapViewOverlay").classList.add("show");
+}
+function closeSnapView(){ $("#snapViewOverlay").classList.remove("show"); }
+$("#snapViewClose").addEventListener("click", closeSnapView);
+$("#snapViewOverlay").addEventListener("click", e=>{ if(e.target.id==="snapViewOverlay") closeSnapView(); });
+$("#nosCaptureBtn").addEventListener("click", captureSnapshot);
+
+/* ============================================================
    CONVENTIONS — write active edition + read ?screen= / ?game=
 ============================================================ */
 try{ localStorage.setItem("bsgy-edition", "apple"); }catch(e){}
@@ -8083,6 +8331,7 @@ renderMaterialsList();
 renderMaterialDetail();
 renderSettings();
 Arcade.renderHome();
+renderNostalgia();
 go("overview");
 applyDeepLink();          // ?screen= / ?game= for the debug hub
 showWelcomeIfFirstRun();  // first-run welcome card
@@ -9075,6 +9324,68 @@ showWelcomeIfFirstRun();  // first-run welcome card
   }
 
   /* ============================================================
+     9 · NOSTALGIA (grade snapshots)
+     calm, hairline cards; color only for the up/down delta signal.
+     ============================================================ */
+  .nos-capture {
+    display: flex; align-items: center; justify-content: space-between; gap: 20px;
+    padding: 20px 22px; border: 1px solid var(--hair); border-radius: var(--radius);
+    background: var(--paper); margin-bottom: 8px; flex-wrap: wrap;
+  }
+  .nos-capture .ncl { min-width: 0; }
+  .nos-capture .nct { font-size: 14px; font-weight: 600; color: var(--ink); letter-spacing: -0.01em; }
+  .nos-capture .ncs { font-size: 12.5px; color: var(--ink-3); font-weight: 450; margin-top: 4px; }
+  .nos-capture .ncs b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .nos-capture .ncbtn { flex: none; }
+
+  .nos-hint {
+    margin: 14px 2px 0; font-size: 12px; color: var(--ink-4); font-weight: 450; letter-spacing: 0.004em;
+  }
+
+  .nos-empty {
+    border: 1px dashed var(--hair-strong); border-radius: var(--radius);
+    padding: 34px 22px; text-align: center; color: var(--ink-4);
+    font-size: 13px; font-weight: 450;
+  }
+
+  .snap {
+    border: 1px solid var(--hair); border-radius: var(--radius);
+    background: var(--paper); margin-bottom: 12px; overflow: hidden;
+  }
+  .snap-head {
+    display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 20px;
+    padding: 18px 22px;
+  }
+  .snap-head .sh-term { font-size: 15px; font-weight: 600; color: var(--ink); letter-spacing: -0.012em; }
+  .snap-head .sh-when { font-size: 12px; color: var(--ink-4); font-weight: 450; margin-top: 3px; }
+  .snap-head .sh-grade {
+    text-align: right; font-size: 22px; font-weight: 600; color: var(--ink);
+    letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1;
+  }
+  .snap-head .sh-grade .pct { font-size: 14px; color: var(--ink-4); font-weight: 500; }
+  .snap-head .sh-delta {
+    margin-top: 4px; font-size: 12px; font-weight: 500; color: var(--ink-4);
+    font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right;
+  }
+  .snap-head .sh-delta.up { color: var(--signal-up); }
+  .snap-head .sh-delta.down { color: var(--signal-miss); }
+  .snap-head .sh-acts { display: flex; align-items: center; gap: 8px; }
+
+  .snap-courses {
+    border-top: 1px solid var(--hair);
+    display: flex; flex-wrap: wrap; gap: 4px 0;
+    padding: 6px 0;
+  }
+  .snap-courses.collapsed { display: none; }
+  .snap-c {
+    display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 16px;
+    width: 100%; padding: 11px 22px;
+  }
+  .snap-c .scn { font-size: 13.5px; font-weight: 500; color: var(--ink); letter-spacing: -0.008em; }
+  .snap-c .scl { font-size: 12px; color: var(--ink-4); font-weight: 450; min-width: 30px; text-align: right; }
+  .snap-c .scg { font-size: 13.5px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; min-width: 54px; text-align: right; }
+
+  /* ============================================================
      ADDED · GLOBAL SEARCH (⌘K command palette)
      ============================================================ */
   .ovl {
@@ -9538,6 +9849,10 @@ showWelcomeIfFirstRun();  // first-run welcome card
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 12h4M9 10v4"/><circle cx="15.5" cy="11" r="0.6" fill="currentColor"/><circle cx="17.5" cy="13" r="0.6" fill="currentColor"/><rect x="2.5" y="6.5" width="19" height="11" rx="4"/></svg>
           Games
         </div>
+        <div class="nav-item" data-screen="nostalgia">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l3 2"/></svg>
+          Nostalgia
+        </div>
         <div class="nav-item" data-screen="settings">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 0 1-4 0v-.1A1.6 1.6 0 0 0 6.6 19l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 3 13H3a2 2 0 0 1 0-4h.1A1.6 1.6 0 0 0 4.6 6.4l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 11 3v0a2 2 0 0 1 4 0v.1A1.6 1.6 0 0 0 17.4 4.6l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A1.6 1.6 0 0 0 21 11h0a2 2 0 0 1 0 4z"/></svg>
           Settings
@@ -9829,6 +10144,21 @@ showWelcomeIfFirstRun();  // first-run welcome card
         </div>
       </section>
 
+      \x3C!-- ===================== 9 · NOSTALGIA ===================== -->
+      <section class="screen" id="screen-nostalgia">
+        <div class="canvas">
+          <div class="page-head">
+            <h1 class="ptitle">Nostalgia</h1>
+            <span class="psub">Grade snapshots, term by term</span>
+          </div>
+
+          <div class="nos-capture" id="nosCapture"></div>
+
+          <div class="section-head"><h2>Past terms</h2><span class="count" id="nosCount">0</span></div>
+          <div id="nosList"></div>
+        </div>
+      </section>
+
     </main>
   </div>
 
@@ -9863,7 +10193,7 @@ showWelcomeIfFirstRun();  // first-run welcome card
       </div>
       <div class="help-body">
         <div class="help-row"><span class="hl">Search</span><span class="hk"><kbd id="helpSearchKey">⌘K</kbd></span></div>
-        <div class="help-row"><span class="hl">Go to screen</span><span class="hk"><kbd>g</kbd><span style="color:var(--ink-4)">then</span><kbd>o g a c n m e s</kbd></span></div>
+        <div class="help-row"><span class="hl">Go to screen</span><span class="hk"><kbd>g</kbd><span style="color:var(--ink-4)">then</span><kbd>o g a c n m e y s</kbd></span></div>
         <div class="help-row"><span class="hl">Overview</span><span class="hk"><kbd>g</kbd><kbd>o</kbd></span></div>
         <div class="help-row"><span class="hl">Grades</span><span class="hk"><kbd>g</kbd><kbd>g</kbd></span></div>
         <div class="help-row"><span class="hl">Assignments</span><span class="hk"><kbd>g</kbd><kbd>a</kbd></span></div>
@@ -9871,6 +10201,7 @@ showWelcomeIfFirstRun();  // first-run welcome card
         <div class="help-row"><span class="hl">Announcements</span><span class="hk"><kbd>g</kbd><kbd>n</kbd></span></div>
         <div class="help-row"><span class="hl">Materials</span><span class="hk"><kbd>g</kbd><kbd>m</kbd></span></div>
         <div class="help-row"><span class="hl">Games</span><span class="hk"><kbd>g</kbd><kbd>e</kbd></span></div>
+        <div class="help-row"><span class="hl">Nostalgia</span><span class="hk"><kbd>g</kbd><kbd>y</kbd></span></div>
         <div class="help-row"><span class="hl">Settings</span><span class="hk"><kbd>g</kbd><kbd>s</kbd></span></div>
         <div class="help-row"><span class="hl">This help</span><span class="hk"><kbd>?</kbd></span></div>
         <div class="help-row"><span class="hl">Close overlays</span><span class="hk"><kbd>Esc</kbd></span></div>
@@ -11593,6 +11924,7 @@ showWelcomeIfFirstRun();  // first-run welcome card
       { id: "announcements", name: "Announcements", sub: "Teacher feed",               key: "n" },
       { id: "materials",     name: "Materials",     sub: "Files and submissions",      key: "m" },
       { id: "games",         name: "Games",         sub: "A quiet break",              key: "e" },
+      { id: "nostalgia",     name: "Nostalgia",     sub: "Grade snapshots",            key: "y" },
       { id: "settings",      name: "Settings",      sub: "Better SGY",                 key: "s" }
     ];
     var SCREEN_BY_KEY = {}; SCREENS.forEach(function (s) { SCREEN_BY_KEY[s.key] = s.id; });
@@ -11606,6 +11938,7 @@ showWelcomeIfFirstRun();  // first-run welcome card
       materials:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
       games:         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 12h4M9 10v4"/><circle cx="15.5" cy="11" r="0.6" fill="currentColor"/><circle cx="17.5" cy="13" r="0.6" fill="currentColor"/><rect x="2.5" y="6.5" width="19" height="11" rx="4"/></svg>',
       settings:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 4v2M12 18v2M4 12h2M18 12h2M6 6l1.5 1.5M16.5 16.5L18 18M18 6l-1.5 1.5M7.5 16.5L6 18"/></svg>',
+      nostalgia:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l3 2"/></svg>',
       assignment:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>',
       announcement:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l16-6v14L3 13z"/><path d="M7 12v5a2 2 0 0 0 2 2h1"/></svg>',
       material:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>'
@@ -12118,8 +12451,185 @@ showWelcomeIfFirstRun();  // first-run welcome card
     })();
 
     // ============================================================
+    // ADDED · NOSTALGIA (grade snapshots)
+    // Capture the current term's grades to localStorage and look
+    // back at past terms. Calm, monochrome; the only color is the
+    // up/down delta vs the previous term.
+    // ============================================================
+    var NOS_KEY = "bsgy-halo-snapshots";
+
+    // The current term, derived from canonical data.
+    var CURRENT_TERM = "2025–2026 · Freshman · Semester 2";
+    var CURRENT_OVERALL = 96.2;
+
+    function nosLoad() {
+      try { var v = JSON.parse(localStorage.getItem(NOS_KEY)); return Array.isArray(v) ? v : null; }
+      catch (e) { return null; }
+    }
+    function nosStore(list) {
+      try { localStorage.setItem(NOS_KEY, JSON.stringify(list)); } catch (e) {}
+    }
+
+    // Pre-seed one past snapshot the first time the screen is used.
+    function nosSeed() {
+      var existing = nosLoad();
+      if (existing) return existing;
+      var seeded = [{
+        term: "2025–2026 · Freshman · Semester 1",
+        label: "Freshman · Semester 1",
+        captured: "2026-01-15",
+        overall: 94.8,
+        courses: [
+          { name: "Algebra 2 / Trig", grade: 95.0, ltr: "A" },
+          { name: "Biology",          grade: 93.5, ltr: "A" },
+          { name: "French 1",         grade: 92.0, ltr: "A" },
+          { name: "Drama",            grade: 96.2, ltr: "A" },
+          { name: "Literature",       grade: 91.0, ltr: "A−" },
+          { name: "PE 9",             grade: 99.0, ltr: "A" }
+        ]
+      }];
+      nosStore(seeded);
+      return seeded;
+    }
+
+    function nosCurrentSnapshot() {
+      return {
+        term: CURRENT_TERM,
+        label: "Freshman · Semester 2",
+        captured: TODAY_ISO,
+        overall: CURRENT_OVERALL,
+        courses: COURSES.map(function (c) {
+          return { name: c.name, grade: c.grade, ltr: c.ltr };
+        })
+      };
+    }
+
+    function nosFmtDate(iso) {
+      var p = String(iso).split("-");
+      if (p.length !== 3) return iso;
+      var d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+      if (isNaN(d.getTime())) return iso;
+      return MONTHS_SHORT[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear();
+    }
+
+    // newest first, by captured date
+    function nosSorted(list) {
+      return list.slice().sort(function (a, b) {
+        return String(b.captured).localeCompare(String(a.captured));
+      });
+    }
+
+    function nosCaptured(list) {
+      return list.some(function (s) { return s.term === CURRENT_TERM; });
+    }
+
+    function renderNostalgia() {
+      var cap = $("#nosCapture"), listEl = $("#nosList"), countEl = $("#nosCount");
+      if (!cap || !listEl) return;
+      var list = nosSeed();
+      var already = nosCaptured(list);
+
+      cap.innerHTML =
+        '<div class="ncl">' +
+          '<div class="nct">Capture this semester</div>' +
+          '<div class="ncs">' + esc(CURRENT_TERM) + ' · overall <b>' + CURRENT_OVERALL.toFixed(1) + '%</b> · 6 courses</div>' +
+        '</div>' +
+        '<button class="btn solid ncbtn" id="nosCapBtn">' + (already ? "Update snapshot" : "Capture") + '</button>';
+
+      var sorted = nosSorted(list);
+      countEl.textContent = sorted.length;
+
+      if (!sorted.length) {
+        listEl.innerHTML = '<div class="nos-empty">No snapshots yet. Capture this semester to start a record.</div>';
+      } else {
+        var html = "";
+        sorted.forEach(function (s, i) {
+          var prev = sorted[i + 1]; // older term
+          var deltaStr = "", deltaCls = "";
+          if (prev && typeof prev.overall === "number") {
+            var d = s.overall - prev.overall;
+            var sign = d > 0 ? "+" : (d < 0 ? "−" : "±");
+            deltaCls = d > 0.05 ? " up" : (d < -0.05 ? " down" : "");
+            deltaStr = sign + Math.abs(d).toFixed(1) + " vs previous";
+          } else {
+            deltaStr = "First recorded term";
+          }
+          var courseRows = (s.courses || []).map(function (c) {
+            return '<div class="snap-c">' +
+              '<span class="scn">' + esc(c.name) + '</span>' +
+              '<span class="scl">' + esc(c.ltr || "") + '</span>' +
+              '<span class="scg">' + (typeof c.grade === "number" ? c.grade.toFixed(1) + "%" : "—") + '</span>' +
+            '</div>';
+          }).join("");
+          html +=
+            '<div class="snap" data-i="' + i + '">' +
+              '<div class="snap-head">' +
+                '<div>' +
+                  '<div class="sh-term">' + esc(s.label || s.term) + '</div>' +
+                  '<div class="sh-when">Captured ' + esc(nosFmtDate(s.captured)) + '</div>' +
+                '</div>' +
+                '<div>' +
+                  '<div class="sh-grade">' + s.overall.toFixed(1) + '<span class="pct">%</span></div>' +
+                  '<div class="sh-delta' + deltaCls + '">' + esc(deltaStr) + '</div>' +
+                '</div>' +
+                '<div class="sh-acts">' +
+                  '<button class="btn" data-nos-view="' + i + '">View</button>' +
+                  '<button class="btn" data-nos-del="' + i + '">Delete</button>' +
+                '</div>' +
+              '</div>' +
+              '<div class="snap-courses collapsed">' + courseRows + '</div>' +
+            '</div>';
+        });
+        listEl.innerHTML = html;
+      }
+    }
+
+    (function wireNostalgia() {
+      var screen = $("#screen-nostalgia");
+      if (!screen) return;
+      screen.addEventListener("click", function (e) {
+        var t = e.target;
+        var capBtn = t.closest && t.closest("#nosCapBtn");
+        if (capBtn) {
+          var list = nosSeed();
+          var snap = nosCurrentSnapshot();
+          var idx = -1;
+          list.forEach(function (s, i) { if (s.term === snap.term) idx = i; });
+          if (idx >= 0) list[idx] = snap; else list.push(snap);
+          nosStore(list);
+          renderNostalgia();
+          return;
+        }
+        var viewBtn = t.closest && t.closest("[data-nos-view]");
+        if (viewBtn) {
+          var snapCard = viewBtn.closest(".snap");
+          var courses = snapCard && snapCard.querySelector(".snap-courses");
+          if (courses) {
+            var open = courses.classList.toggle("collapsed");
+            viewBtn.textContent = open ? "View" : "Hide";
+          }
+          return;
+        }
+        var delBtn = t.closest && t.closest("[data-nos-del]");
+        if (delBtn) {
+          var di = Number(delBtn.getAttribute("data-nos-del"));
+          var current = nosSorted(nosSeed());
+          var victim = current[di];
+          if (victim) {
+            var stored = nosLoad() || [];
+            stored = stored.filter(function (s) { return s.term !== victim.term; });
+            nosStore(stored);
+            renderNostalgia();
+          }
+          return;
+        }
+      });
+    })();
+
+    // ============================================================
     // INIT
     // ============================================================
+    renderNostalgia();
     renderOverviewChart();
     renderOverviewCourses();
     renderRail();
@@ -12758,6 +13268,48 @@ showWelcomeIfFirstRun();  // first-run welcome card
   .pingbtn:hover{transform:translateY(-1px);background:var(--paper-2)}
 
   /* ============================================================
+     NOSTALGIA — grade snapshots over time
+     ============================================================ */
+  .capcard{padding:18px 20px;margin-bottom:8px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+  .capcard .capico{width:52px;height:52px;border-radius:16px;flex:none;display:grid;place-items:center;
+        font-size:26px;background:var(--softfill)}
+  .capcard .captx{flex:1;min-width:200px}
+  .capcard .capt{font-size:17px;font-weight:800;letter-spacing:-.01em}
+  .capcard .caps{font-size:13px;color:var(--ink-2);font-weight:600;margin-top:2px}
+  .snaps{display:flex;flex-direction:column;gap:14px;margin-top:6px}
+  .snap{padding:16px 18px;position:relative;overflow:hidden}
+  .snap:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--peach)}
+  .snap .stop{display:flex;align-items:center;gap:13px;flex-wrap:wrap}
+  .snap .smeta{flex:1;min-width:0}
+  .snap .sterm{font-size:16px;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+  .snap .scap{font-size:12.5px;color:var(--ink-2);font-weight:600;margin-top:2px}
+  .snap .sov{display:flex;flex-direction:column;align-items:flex-end;flex:none}
+  .snap .sov .g{font-size:26px;font-weight:800;line-height:1;letter-spacing:-.02em}
+  .snap .sov .g .pct{font-size:13px;color:var(--ink-3);font-weight:700}
+  .snap .sdelta{font-size:12px;font-weight:800;margin-top:3px}
+  .snap .sdelta.upd{color:var(--sage)}
+  .snap .sdelta.downd{color:var(--rose)}
+  .snap .sdelta.flatd{color:var(--ink-2)}
+  .snap .saside{font-size:13px;color:var(--ink-2);font-weight:600;font-style:italic;margin-top:10px;line-height:1.45}
+  .snap .scourses{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+  .snapchip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;
+        padding:4px 10px;border-radius:14px;background:var(--paper-2);color:var(--ink-2)}
+  .snapchip .dot{width:8px;height:8px;border-radius:50%;background:var(--dot,var(--peach))}
+  .snapchip .sg{color:var(--ink);font-weight:800}
+  .snap .sfoot{display:flex;gap:9px;margin-top:14px;flex-wrap:wrap}
+  .snap .now-tag{position:absolute;top:13px;right:15px;font-size:10.5px;font-weight:800;color:#fff;
+        background:var(--sage);padding:3px 10px;border-radius:12px}
+  .snapview{margin-top:14px}
+  .snapview .svrow{display:flex;align-items:center;gap:13px;padding:12px 16px;margin-bottom:9px}
+  .snapview .svrow:before{content:"";position:absolute}
+  .snapview .sve{width:38px;height:38px;border-radius:13px;flex:none;display:grid;place-items:center;font-size:19px;background:var(--soft,var(--softfill))}
+  .snapview .svm{flex:1;min-width:0}
+  .snapview .svn{font-size:14.5px;font-weight:800}
+  .snapview .svg2{font-size:18px;font-weight:800;flex:none;letter-spacing:-.02em}
+  .snapview .svg2 .pct{font-size:11px;color:var(--ink-3);font-weight:700}
+  .snapview .svlt{font-size:12px;font-weight:800;color:var(--ink-2);flex:none;width:34px;text-align:right}
+
+  /* ============================================================
      GLOBAL SEARCH + SHORTCUTS OVERLAYS (warm rounded)
      ============================================================ */
   .ovl{position:fixed;inset:0;z-index:80;display:none;align-items:flex-start;justify-content:center;
@@ -13000,6 +13552,7 @@ showWelcomeIfFirstRun();  // first-run welcome card
         <div class="shrow"><div class="sk"><kbd>g</kbd><kbd>c</kbd></div><div class="sd">go to calendar</div></div>
         <div class="shrow"><div class="sk"><kbd>g</kbd><kbd>n</kbd></div><div class="sd">go to announcements</div></div>
         <div class="shrow"><div class="sk"><kbd>g</kbd><kbd>m</kbd></div><div class="sd">go to materials</div></div>
+        <div class="shrow"><div class="sk"><kbd>g</kbd><kbd>t</kbd></div><div class="sd">go to nostalgia</div></div>
         <div class="shrow"><div class="sk"><kbd>g</kbd><kbd>e</kbd></div><div class="sd">go to games</div></div>
         <div class="shrow"><div class="sk"><kbd>g</kbd><kbd>s</kbd></div><div class="sd">go to settings</div></div>
         <div class="shrow"><div class="sk"><kbd>?</kbd></div><div class="sd">this list</div></div>
@@ -13328,6 +13881,7 @@ const NAVITEMS = [
   ['cal','📅','Calendar'],
   ['ann','📣','Announcements'],
   ['mat','📂','Materials'],
+  ['nostalgia','📸','Nostalgia'],
   ['games','🎮','Games'],
   ['set','⚙️','Settings'],
 ];
@@ -13356,10 +13910,10 @@ function go(screen){
 function renderScreen(){
   const m = $('#main');
   const r = {overview:viewOverview, grades:viewGrades, assign:viewAssign, cal:viewCalendar,
-             ann:viewAnnouncements, mat:viewMaterials, games:viewGames, set:viewSettings}[state.screen];
+             ann:viewAnnouncements, mat:viewMaterials, nostalgia:viewNostalgia, games:viewGames, set:viewSettings}[state.screen];
   m.innerHTML = \`<section class="screen show">\${r()}</section>\`;
   ({overview:wireOverview, grades:wireGrades, assign:wireAssign, cal:wireCalendar,
-    ann:wireAnnouncements, mat:wireMaterials, games:wireGames, set:wireSettings}[state.screen])();
+    ann:wireAnnouncements, mat:wireMaterials, nostalgia:wireNostalgia, games:wireGames, set:wireSettings}[state.screen])();
 }
 
 /* ============================================================
@@ -13907,6 +14461,158 @@ function wireMaterials(){
     renderMatPanel();
   });
   renderMatPanel();
+}
+
+/* ============================================================
+   6.4 · NOSTALGIA — grade snapshots over time
+   capture the current term into localStorage, look back at past ones.
+   key: bsgy-forge-snapshots. each snapshot is term + overall + 6 courses.
+   ============================================================ */
+const SNAP_KEY = 'bsgy-forge-snapshots';
+// the term we're living in right now (matches MOCKUP_DATA)
+const CUR_TERM = { id:'2025-2026-fr-s2', label:'freshman · semester 2', year:'2025–2026' };
+// pre-seeded past term: freshman · semester 1 (captured jan 2026)
+const SEED_SNAPSHOT = {
+  id:'2025-2026-fr-s1', term:'freshman · semester 1', year:'2025–2026',
+  capturedAt:'Jan 2026', captured:1737000000000, overall:94.8, seed:true,
+  courses:[
+    {id:'alg', name:'Algebra 2 / Trig', short:'Algebra 2/Trig', emoji:'📐', accent:'#5aa9e6', soft:'#e3f0fb', grade:95.0, ltr:'A'},
+    {id:'bio', name:'Biology',          short:'Biology',        emoji:'🧬', accent:'#4fb286', soft:'#e6f7ef', grade:93.5, ltr:'A'},
+    {id:'fre', name:'French 1',         short:'French 1',       emoji:'🥐', accent:'#ffb454', soft:'#fff1d6', grade:92.0, ltr:'A'},
+    {id:'dra', name:'Drama',            short:'Drama',          emoji:'🎭', accent:'#9b87f2', soft:'#ece7ff', grade:96.2, ltr:'A'},
+    {id:'lit', name:'Literature',       short:'Literature',     emoji:'📚', accent:'#ef6a9b', soft:'#ffe4ef', grade:91.0, ltr:'A−'},
+    {id:'pe',  name:'PE 9',             short:'PE 9',           emoji:'🏃', accent:'#4fb286', soft:'#e6f7ef', grade:99.0, ltr:'A'},
+  ],
+};
+function loadSnapshots(){
+  let arr = [];
+  try{ const raw = JSON.parse(localStorage.getItem(SNAP_KEY)); if(Array.isArray(raw)) arr = raw; }catch(e){}
+  // pre-seed the past term once, if the store has never been touched
+  if(localStorage.getItem(SNAP_KEY)===null){
+    arr = [SEED_SNAPSHOT];
+    saveSnapshots(arr);
+  }
+  return arr;
+}
+function saveSnapshots(arr){ try{ localStorage.setItem(SNAP_KEY, JSON.stringify(arr)); }catch(e){} }
+let SNAPSHOTS = loadSnapshots();
+let snapViewing = null; // id of the snapshot currently expanded for read-only view
+
+// build a snapshot object off the CURRENT term + the live courses
+function currentSnapshot(){
+  return {
+    id:CUR_TERM.id, term:CUR_TERM.label, year:CUR_TERM.year,
+    capturedAt:\`\${MONTH_ABBR[NOW_MONTH]} \${NOW_YEAR}\`, captured:Date.now(),
+    overall:96.2,
+    courses:COURSES.map(c => ({id:c.id, name:c.name, short:c.short, emoji:c.emoji,
+      accent:c.accent, soft:c.soft, grade:c.grade, ltr:c.ltr})),
+  };
+}
+function alreadyCaptured(){ return SNAPSHOTS.some(s => s.id===CUR_TERM.id); }
+// snapshots sorted newest first by capture time
+function snapsSorted(){ return [...SNAPSHOTS].sort((a,b)=>(b.captured||0)-(a.captured||0)); }
+
+function captureNow(){
+  const snap = currentSnapshot();
+  const i = SNAPSHOTS.findIndex(s => s.id===snap.id);
+  const updating = i>=0;
+  if(updating) SNAPSHOTS[i] = snap; else SNAPSHOTS.push(snap);
+  saveSnapshots(SNAPSHOTS);
+  toast({ic:'📸', tt: updating ? 'snapshot updated' : 'snapshot saved',
+    ts:\`\${snap.term} · \${snap.overall}%\`});
+  renderScreen();
+}
+function deleteSnap(id){
+  SNAPSHOTS = SNAPSHOTS.filter(s => s.id!==id);
+  saveSnapshots(SNAPSHOTS);
+  if(snapViewing===id) snapViewing=null;
+  toast({ic:'🗑️', tt:'snapshot deleted', ts:'gone. you can always recapture.'});
+  renderScreen();
+}
+
+// a dry one-liner comparing this snapshot's overall to the previous (older) term
+function deltaAside(snap, prev){
+  if(!prev) return "first one on record. nothing to look back on yet.";
+  const d = +(snap.overall - prev.overall).toFixed(1);
+  const a = Math.abs(d);
+  const rough = a<0.1 ? 'about flat' : (a<1 ? \`about \${a} of a point\` : \`about \${a} point\${a===1?'':'s'}\`);
+  if(a<0.1) return \`basically flat since \${prev.term}.\`;
+  return d>0 ? \`up \${rough} since \${prev.term}.\` : \`down \${rough} since \${prev.term}.\`;
+}
+
+function snapCard(snap, prevSnap){
+  const isCur = snap.id===CUR_TERM.id;
+  const delta = (() => {
+    if(!prevSnap) return '';
+    const d = +(snap.overall - prevSnap.overall).toFixed(1);
+    if(Math.abs(d)<0.1) return \`<div class="sdelta flatd">→ flat vs last term</div>\`;
+    const cls = d>0 ? 'upd' : 'downd';
+    const arrow = d>0 ? '▲' : '▼';
+    return \`<div class="sdelta \${cls}">\${arrow} \${d>0?'+':''}\${d} vs last term</div>\`;
+  })();
+  const chips = snap.courses.map(c =>
+    \`<span class="snapchip" style="--dot:\${c.accent}"><span class="dot"></span>\${esc(c.short)} <span class="sg">\${c.grade}</span></span>\`
+  ).join('');
+  const viewing = snapViewing===snap.id;
+  const detail = viewing ? \`<div class="snapview">\${snap.courses.map(c =>
+      \`<div class="card svrow" style="--soft:\${c.soft}">
+        <div class="sve">\${c.emoji}</div>
+        <div class="svm"><div class="svn">\${esc(c.name)}</div></div>
+        <div class="svg2">\${c.grade}<span class="pct">%</span></div>
+        <div class="svlt">\${esc(c.ltr)}</div>
+      </div>\`).join('')}</div>\` : '';
+  return \`<div class="card snap">
+    \${isCur?'<span class="now-tag">this term</span>':''}
+    <div class="stop">
+      <div class="smeta">
+        <div class="sterm">\${esc(snap.term)}</div>
+        <div class="scap">\${esc(snap.year)} · captured \${esc(snap.capturedAt)}</div>
+      </div>
+      <div class="sov"><div class="g">\${snap.overall}<span class="pct">%</span></div>\${delta}</div>
+    </div>
+    <div class="scourses">\${chips}</div>
+    <div class="saside">\${esc(deltaAside(snap, prevSnap))}</div>
+    <div class="sfoot">
+      <button class="btn ghost" data-viewsnap="\${esc(snap.id)}">\${viewing?'hide':'view'}</button>
+      <button class="btn ghost" data-delsnap="\${esc(snap.id)}">delete</button>
+    </div>
+    \${detail}
+  </div>\`;
+}
+
+function viewNostalgia(){
+  const sorted = snapsSorted();
+  const captured = alreadyCaptured();
+  const capLine = captured
+    ? "you already grabbed this term. tap recapture if your grades moved."
+    : "freeze this term so future-you can see where things stood. takes a second.";
+  const list = sorted.length
+    ? sorted.map((s,i) => snapCard(s, sorted[i+1])).join('')
+    : \`<div class="emptynote">no snapshots yet. capture this term above and it lands here.</div>\`;
+  return \`
+    <div class="pagehd"><h1>Nostalgia</h1><span class="when">a snapshot of each term, kept for later</span></div>
+    <p class="lead">grades change all the time. this keeps a little photo of where you stood at the end of each term.</p>
+    <div class="card capcard">
+      <div class="capico">📸</div>
+      <div class="captx">
+        <div class="capt">capture this term</div>
+        <div class="caps">\${CUR_TERM.year} · \${CUR_TERM.label} · overall 96.2%</div>
+      </div>
+      <button class="btn primary" id="capbtn">\${captured?'recapture':'capture'} 📸</button>
+    </div>
+    <p class="lead" style="margin:10px 0 4px">\${capLine}</p>
+    <div class="sechd"><h2>Past terms</h2><span class="sub">newest first</span></div>
+    <div class="snaps">\${list}</div>
+    <div class="bubble tail small" style="margin-top:18px;max-width:430px">nothing here leaves your browser. it's just for you to look back on 🙂</div>\`;
+}
+function wireNostalgia(){
+  const cap = $('#capbtn'); if(cap) cap.onclick = captureNow;
+  $$('#main [data-viewsnap]').forEach(b => b.onclick = () => {
+    const id = b.dataset.viewsnap;
+    snapViewing = (snapViewing===id) ? null : id;
+    renderScreen();
+  });
+  $$('#main [data-delsnap]').forEach(b => b.onclick = () => deleteSnap(b.dataset.delsnap));
 }
 
 /* ============================================================
@@ -14657,7 +15363,7 @@ function firePing(){
    ============================================================ */
 const SCREEN_ALIAS = {            // convention id -> internal id
   overview:'overview', grades:'grades', assignments:'assign', calendar:'cal',
-  announcements:'ann', materials:'mat', games:'games', settings:'set',
+  announcements:'ann', materials:'mat', nostalgia:'nostalgia', games:'games', settings:'set',
 };
 function resolveScreen(id){ return SCREEN_ALIAS[id] || (NAVITEMS.some(n=>n[0]===id) ? id : null); }
 
@@ -14670,7 +15376,7 @@ function buildSearchIndex(){
   const idx = [];
   // screens
   const SCREEN_HINTS = {overview:'the home greeting',grades:'per-class gradebook',assign:'to-do, missing, done',
-    cal:'due dates by month',ann:'teacher posts',mat:'files & submissions',games:'a little break',set:'make it yours'};
+    cal:'due dates by month',ann:'teacher posts',mat:'files & submissions',nostalgia:'grade snapshots over time',games:'a little break',set:'make it yours'};
   NAVITEMS.forEach(([k,ic,label]) => idx.push({
     group:'screens', icon:ic, nm:label, sub:SCREEN_HINTS[k]||'', kind:'screen', screen:k
   }));
@@ -14779,7 +15485,7 @@ function openShortcuts(){ closeSearch(); $('#shovl').classList.add('show'); }
 function closeShortcuts(){ const o=$('#shovl'); if(o) o.classList.remove('show'); }
 function shortcutsOpen(){ return $('#shovl') && $('#shovl').classList.contains('show'); }
 
-const GKEYS = {o:'overview', g:'grades', a:'assign', c:'cal', n:'ann', m:'mat', e:'games', s:'set'};
+const GKEYS = {o:'overview', g:'grades', a:'assign', c:'cal', n:'ann', m:'mat', t:'nostalgia', e:'games', s:'set'};
 let gArmed = false, gTimer = 0;
 
 function isTyping(t){
@@ -15239,7 +15945,7 @@ wireGlobalKeys();
      ============================================================ */
   .nav{
     display:grid;
-    grid-template-columns:repeat(8,1fr);
+    grid-template-columns:repeat(9,1fr);
     border-bottom:3px solid var(--ink);
     margin-bottom:4px;
   }
@@ -16140,12 +16846,130 @@ wireGlobalKeys();
   body.compact .stat{ padding:13px 18px 14px; }
 
   /* ============================================================
+     NOSTALGIA — The Archive. Capture block + ruled back-issue list.
+     Strictly B&W; deltas via glyph + weight, never hue.
+     ============================================================ */
+  .capture{
+    display:grid; grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);
+    gap:var(--gut); align-items:end; border-top:var(--rule); border-bottom:var(--rule);
+    padding:22px 4px 24px;
+  }
+  .capture__head{ min-width:0; }
+  .capture__term{
+    font-family:var(--serif); font-weight:700; font-size:clamp(20px,3vw,28px);
+    line-height:1.05; letter-spacing:-.01em;
+  }
+  .capture__term em{ font-style:italic; font-weight:400; color:var(--ink-60); }
+  .capture__meta{
+    margin-top:8px; font-size:12px; color:var(--ink-60); letter-spacing:.04em;
+    font-style:italic; font-family:var(--serif);
+  }
+  .capture__side{ text-align:right; align-self:end; }
+  .capture__big{
+    font-family:var(--serif); font-weight:700; font-size:clamp(34px,6vw,52px);
+    line-height:.9; letter-spacing:-.02em; font-variant-numeric:tabular-nums;
+  }
+  .capture__big .pct{ font-size:.34em; font-style:italic; font-weight:400; color:var(--ink-60); }
+  .capture__file{
+    display:inline-block; margin-top:14px; font-family:var(--sans); font-size:10px;
+    font-weight:700; letter-spacing:.16em; text-transform:uppercase;
+    border:1px solid var(--ink); background:var(--ink); color:var(--paper);
+    padding:10px 18px 9px; cursor:pointer;
+  }
+  .capture__file:hover{ opacity:.82; }
+  .capture__note{
+    display:block; margin-top:10px; font-family:var(--serif); font-style:italic;
+    font-size:11px; color:var(--ink-45);
+  }
+
+  .archive{ border-top:var(--rule); }
+  .issue{
+    display:grid; grid-template-columns:46px minmax(0,1fr) 96px 132px;
+    gap:var(--gut); align-items:start; padding:20px 4px; border-bottom:var(--hairline);
+  }
+  .issue:last-child{ border-bottom:none; }
+  .issue__no{ font-family:var(--serif); font-style:italic; font-size:15px; color:var(--ink-30); text-align:right; }
+  .issue__main{ min-width:0; }
+  .issue__term{
+    font-family:var(--serif); font-weight:700; font-size:clamp(18px,2.3vw,22px);
+    line-height:1.12; letter-spacing:-.01em;
+  }
+  .issue__filed{
+    margin-top:5px; font-size:11px; letter-spacing:.04em; color:var(--ink-60);
+    font-style:italic; font-family:var(--serif);
+  }
+  .issue__courses{
+    margin-top:9px; font-size:12px; line-height:1.7; color:var(--ink-80);
+  }
+  .issue__courses .ic{ white-space:nowrap; }
+  .issue__courses .sep{ color:var(--ink-30); margin:0 5px; }
+  .issue__pct{
+    font-family:var(--serif); font-weight:700; font-size:clamp(22px,2.8vw,28px);
+    line-height:1; letter-spacing:-.02em; text-align:right; font-variant-numeric:tabular-nums;
+  }
+  .issue__pct .pp{ font-family:var(--sans); font-size:11px; font-weight:400; color:var(--ink-45); }
+  .issue__delta{
+    display:block; margin-top:6px; font-family:var(--sans); font-size:10px; font-weight:700;
+    letter-spacing:.1em; text-transform:uppercase; color:var(--ink-60); text-align:right;
+  }
+  .issue__delta--up,.issue__delta--down{ color:var(--ink); }
+  .issue__acts{ display:flex; flex-direction:column; gap:8px; align-items:flex-end; }
+  .iact{
+    font-family:var(--sans); font-size:9.5px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; border:1px solid var(--ink); background:var(--paper);
+    color:var(--ink); padding:7px 14px 6px; cursor:pointer; min-width:84px; text-align:center;
+  }
+  .iact:hover{ background:var(--ink); color:var(--paper); }
+  .iact--solid{ background:var(--ink); color:var(--paper); }
+  .iact--solid:hover{ opacity:.82; }
+
+  /* read-only ruled view of a saved snapshot */
+  .backissue{ border-top:var(--rule); margin-top:18px; display:none; }
+  .backissue--on{ display:block; }
+  .backissue__top{
+    display:flex; justify-content:space-between; align-items:baseline;
+    border-bottom:var(--rule); padding:14px 4px 14px; gap:16px; flex-wrap:wrap;
+  }
+  .backissue__title{
+    font-family:var(--serif); font-weight:700; font-size:clamp(20px,3vw,26px);
+    letter-spacing:-.01em;
+  }
+  .backissue__title em{ font-style:italic; font-weight:400; color:var(--ink-60); }
+  .backissue__close{
+    font-family:var(--sans); font-size:10px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink-60); border:none; background:none; cursor:pointer;
+  }
+  .backissue__close:hover{ color:var(--ink); }
+  .birow{
+    display:grid; grid-template-columns:36px minmax(0,1fr) 90px 70px;
+    gap:var(--gut); align-items:baseline; padding:14px 4px; border-bottom:var(--hairline);
+  }
+  .birow:last-child{ border-bottom:none; }
+  .birow--total{ border-top:var(--rule); border-bottom:none; }
+  .birow__idx{ font-family:var(--serif); font-style:italic; font-size:14px; color:var(--ink-30); text-align:right; }
+  .birow__name{ font-family:var(--serif); font-weight:700; font-size:17px; letter-spacing:-.01em; }
+  .birow--total .birow__name{ font-size:18px; }
+  .birow__pct{ font-family:var(--serif); font-weight:700; font-size:18px; text-align:right; font-variant-numeric:tabular-nums; }
+  .birow__pct .pp{ font-family:var(--sans); font-size:11px; font-weight:400; color:var(--ink-45); }
+  .birow__ltr{ font-family:var(--serif); font-weight:700; font-size:20px; text-align:right; }
+
+  @media (max-width:880px){
+    .capture{ grid-template-columns:1fr; align-items:start; gap:14px; }
+    .capture__side{ text-align:left; }
+    .issue{ grid-template-columns:1fr auto; }
+    .issue__no{ display:none; }
+    .issue__pct{ text-align:left; }
+    .issue__delta{ text-align:left; }
+    .issue__acts{ grid-column:1/-1; flex-direction:row; align-items:flex-start; }
+  }
+
+  /* ============================================================
      RESPONSIVE
      ============================================================ */
   @media (max-width:980px){
     .nav{ grid-template-columns:repeat(4,1fr); border-bottom:var(--rule); }
     .nav__item{ border-bottom:var(--hairline); }
-    .nav__item:nth-child(4){ border-right:none; }
+    .nav__item:nth-child(4n){ border-right:none; }
     .ledger{ grid-template-columns:1fr; }
     .ledger__rail{ border-right:none; border-bottom:var(--rule); padding-bottom:8px; }
     .ledger__body{ padding-left:0; padding-top:22px; }
@@ -16573,7 +17397,8 @@ wireGlobalKeys();
     <a class="nav__item" data-nav="announcements" href="#announcements"><span class="nav__no">05</span><span class="nav__name">Bulletins</span></a>
     <a class="nav__item" data-nav="materials" href="#materials"><span class="nav__no">06</span><span class="nav__name">Materials</span></a>
     <a class="nav__item" data-nav="arcade" href="#arcade"><span class="nav__no">07</span><span class="nav__name">Games</span></a>
-    <a class="nav__item" data-nav="settings" href="#settings"><span class="nav__no">08</span><span class="nav__name">Settings</span></a>
+    <a class="nav__item" data-nav="nostalgia" href="#nostalgia"><span class="nav__no">08</span><span class="nav__name">Nostalgia</span></a>
+    <a class="nav__item" data-nav="settings" href="#settings"><span class="nav__no">09</span><span class="nav__name">Settings</span></a>
   </nav>
 
   \x3C!-- ================================================================
@@ -17094,7 +17919,48 @@ wireGlobalKeys();
   </section>
 
   \x3C!-- ================================================================
-       SCREEN 8 — SETTINGS
+       SCREEN 8 — NOSTALGIA (the archive)
+       ================================================================ -->
+  <section class="screen" id="s-nostalgia">
+    <div class="standfirst">
+      <div class="standfirst__head">
+        <span class="label standfirst__kicker">The Archive</span>
+        <h2>Back <em>issues</em>.</h2>
+      </div>
+      <p class="standfirst__intro">File the term as it stands and shelve it. The figures keep moving; the archive does not. Read an old issue when you want to remember where the line was.</p>
+    </div>
+
+    <div class="capture">
+      <div class="capture__head">
+        <div class="capture__term">Capture this term — <em>2025–2026 · Freshman · Semester 2</em></div>
+        <div class="capture__meta">Six courses on the page · the figure as printed today</div>
+      </div>
+      <div class="capture__side">
+        <div class="capture__big" id="nos-current">96.2<span class="pct">%</span></div>
+        <button class="capture__file" id="nos-capture" type="button">File this term</button>
+        <span class="capture__note" id="nos-capture-note">Re-filing overwrites the standing issue.</span>
+      </div>
+    </div>
+
+    <div class="sechead"><h3>The Archive</h3><span class="label count" id="nos-count">—</span></div>
+    <div class="archive" id="nos-archive"></div>
+
+    <div class="backissue" id="nos-backissue" aria-label="Saved snapshot">
+      <div class="backissue__top">
+        <span class="backissue__title" id="nos-bi-title">—</span>
+        <button class="backissue__close" id="nos-bi-close" type="button">Close ×</button>
+      </div>
+      <div id="nos-bi-rows"></div>
+    </div>
+
+    <section class="closing" aria-label="In closing">
+      <p class="closing__line">A term is a line, then a number, then a memory. The archive keeps the number so the line can keep moving.</p>
+      <p class="closing__byline">Filed locally · nothing leaves the page</p>
+    </section>
+  </section>
+
+  \x3C!-- ================================================================
+       SCREEN 9 — SETTINGS
        ================================================================ -->
   <section class="screen" id="s-settings">
     <div class="standfirst">
@@ -17134,6 +18000,7 @@ wireGlobalKeys();
         <div class="toggle" data-toggle="nav-announcements"><div><div class="toggle__name">Bulletins</div><div class="toggle__desc">Faculty notices, newest first.</div></div><span class="switch switch--on">On</span></div>
         <div class="toggle" data-toggle="nav-materials"><div><div class="toggle__name">Materials</div><div class="toggle__desc">Files, links, and submissions.</div></div><span class="switch switch--on">On</span></div>
         <div class="toggle" data-toggle="nav-arcade"><div><div class="toggle__name">Games</div><div class="toggle__desc">Four word games for the idle minute.</div></div><span class="switch switch--on">On</span></div>
+        <div class="toggle" data-toggle="nav-nostalgia"><div><div class="toggle__name">Nostalgia</div><div class="toggle__desc">Term snapshots, filed and shelved.</div></div><span class="switch switch--on">On</span></div>
         <div class="toggle" data-toggle="compact"><div><div class="toggle__name">Compact density</div><div class="toggle__desc">Tighten the rules and rows.</div></div><span class="switch switch--off">Off</span></div>
       </div>
     </div>
@@ -17214,10 +18081,10 @@ wireGlobalKeys();
       <button class="help__close" id="help-close" type="button">Close ×</button>
     </div>
     <div class="help__grp">Navigation</div>
-    <div class="help__row"><span class="help__what">Go to a section</span><span class="help__keys"><span class="key">g</span><span class="then">then</span><span class="key">o g a c n m e s</span></span></div>
+    <div class="help__row"><span class="help__what">Go to a section</span><span class="help__keys"><span class="key">g</span><span class="then">then</span><span class="key">o g a c n m e r s</span></span></div>
     <div class="help__row"><span class="help__what">Overview · Grades · Assignments</span><span class="help__keys"><span class="key">g o</span><span class="key">g g</span><span class="key">g a</span></span></div>
     <div class="help__row"><span class="help__what">Calendar · Bulletins · Materials</span><span class="help__keys"><span class="key">g c</span><span class="key">g n</span><span class="key">g m</span></span></div>
-    <div class="help__row"><span class="help__what">Games · Settings</span><span class="help__keys"><span class="key">g e</span><span class="key">g s</span></span></div>
+    <div class="help__row"><span class="help__what">Games · Nostalgia · Settings</span><span class="help__keys"><span class="key">g e</span><span class="key">g r</span><span class="key">g s</span></span></div>
     <div class="help__grp">Commands</div>
     <div class="help__row"><span class="help__what">Open search</span><span class="help__keys"><span class="key" id="help-cmdk">⌘K</span></span></div>
     <div class="help__row"><span class="help__what">This help card</span><span class="help__keys"><span class="key">?</span></span></div>
@@ -17508,7 +18375,7 @@ wireGlobalKeys();
     comments:{},                     /* material id -> [comments] */
     arcadeBest:{ typing:0, anagram:0, ttt:'', search:0 }, /* typing=WPM, anagram=streak, ttt=W-D-L, search=fastest sec */
     settings:{ compact:false, notify:true, themeWob:false, contrast:false, appearance:'light', sfx:false,
-               nav:{ overview:true, grades:true, assignments:true, calendar:true, announcements:true, materials:true, arcade:true } }
+               nav:{ overview:true, grades:true, assignments:true, calendar:true, announcements:true, materials:true, arcade:true, nostalgia:true } }
   };
   var state;
   try { state = Object.assign({}, defaults, JSON.parse(localStorage.getItem(LS_KEY)||'{}')); }
@@ -17540,7 +18407,7 @@ wireGlobalKeys();
   /* ============================================================
      NAV / SCREENS
      ============================================================ */
-  var SCREENS = ['overview','grades','assignments','calendar','announcements','materials','arcade','settings'];
+  var SCREENS = ['overview','grades','assignments','calendar','announcements','materials','arcade','nostalgia','settings'];
   function showScreen(name){
     if(SCREENS.indexOf(name)<0) name='overview';
     if(name!=='settings' && !state.settings.nav[name]) { name = SCREENS.filter(function(s){return s==='settings'||state.settings.nav[s];})[0] || 'overview'; }
@@ -18939,8 +19806,9 @@ wireGlobalKeys();
      ADDED — COMMAND PALETTE (⌘K) + KEYBOARD SHORTCUTS + HELP
      ============================================================ */
   var SCREEN_LABEL = { overview:'Overview', grades:'Grades', assignments:'Assignments',
-    calendar:'Calendar', announcements:'Bulletins', materials:'Materials', arcade:'Games', settings:'Settings' };
-  var SCREEN_KEY = { o:'overview', g:'grades', a:'assignments', c:'calendar', n:'announcements', m:'materials', e:'arcade', s:'settings' };
+    calendar:'Calendar', announcements:'Bulletins', materials:'Materials', arcade:'Games',
+    nostalgia:'Nostalgia', settings:'Settings' };
+  var SCREEN_KEY = { o:'overview', g:'grades', a:'assignments', c:'calendar', n:'announcements', m:'materials', e:'arcade', r:'nostalgia', s:'settings' };
   var IS_MAC = /Mac|iPhone|iPad/.test(navigator.platform||navigator.userAgent||'');
 
   /* fix the ⌘K affordance label to match platform */
@@ -19131,7 +19999,7 @@ wireGlobalKeys();
         kicker:'In Closing', head:'You are <em>set</em>.',
         body:['Keep this card to hand. The whole key sits one keystroke away under <span class="key">?</span>, and this guide can be replayed any time from <strong>Settings → The Reader’s Guide</strong>.'],
         sheet:[
-          ['Go to a section', [['g'],['then','o g a c n m e s']]],
+          ['Go to a section', [['g'],['then','o g a c n m e r s']]],
           ['Open search', [['⌘K']]],
           ['Shortcuts help', [['?']]],
           ['Close any overlay', [['Esc']]]
@@ -19379,6 +20247,187 @@ wireGlobalKeys();
   })();
 
   /* ============================================================
+     NOSTALGIA — the archive. Term snapshots filed to localStorage,
+     read back as ruled back issues. Strictly B&W; deltas via glyphs.
+     ============================================================ */
+  var NOSTALGIA = (function(){
+    var NS_KEY = 'bsgy-slate-snapshots';
+    var CURRENT = {
+      id:'fr-s2',
+      term:'Freshman · Semester 2',
+      year:'2025–2026',
+      overall:96.2,
+      courses:[
+        { name:'Algebra 2 / Trig', pct:97.4, ltr:'A' },
+        { name:'Biology',          pct:96.7, ltr:'A' },
+        { name:'French 1',         pct:96.5, ltr:'A' },
+        { name:'Drama',            pct:90.3, ltr:'A−' },
+        { name:'Literature',       pct:94.1, ltr:'A' },
+        { name:'PE 9',             pct:99.1, ltr:'A' }
+      ]
+    };
+    /* pre-seed: one past issue, filed Jan 2026 */
+    var SEED = [{
+      id:'fr-s1',
+      term:'Freshman · Semester 1',
+      year:'2025–2026',
+      overall:94.8,
+      filed:'January 14, 2026',
+      courses:[
+        { name:'Algebra 2 / Trig', pct:95.0, ltr:'A' },
+        { name:'Biology',          pct:93.5, ltr:'A' },
+        { name:'French 1',         pct:92.0, ltr:'A' },
+        { name:'Drama',            pct:96.2, ltr:'A' },
+        { name:'Literature',       pct:91.0, ltr:'A−' },
+        { name:'PE 9',             pct:99.0, ltr:'A' }
+      ]
+    }];
+
+    var openId = null;
+
+    function load(){
+      var raw=null;
+      try{ raw = localStorage.getItem(NS_KEY); }catch(e){}
+      if(raw){
+        try{ var parsed = JSON.parse(raw); if(Array.isArray(parsed)) return parsed; }catch(e){}
+      }
+      /* first run — seed and persist */
+      saveAll(SEED.slice());
+      return SEED.slice();
+    }
+    function saveAll(list){ try{ localStorage.setItem(NS_KEY, JSON.stringify(list)); }catch(e){} }
+
+    /* newest first: by filed timestamp if present, else keep insertion */
+    function sorted(list){
+      return list.slice().sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
+    }
+
+    function todayFiled(){
+      var d=new Date();
+      return MONTH_NAMES[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear();
+    }
+
+    function capture(){
+      var list = load();
+      var existing = null;
+      for(var i=0;i<list.length;i++){ if(list[i].id===CURRENT.id){ existing=list[i]; break; } }
+      var entry = {
+        id: CURRENT.id,
+        term: CURRENT.term,
+        year: CURRENT.year,
+        overall: CURRENT.overall,
+        filed: todayFiled(),
+        ts: Date.now(),
+        courses: CURRENT.courses.map(function(c){ return { name:c.name, pct:c.pct, ltr:c.ltr }; })
+      };
+      if(existing){
+        for(var k in entry){ existing[k]=entry[k]; }
+      } else {
+        list.push(entry);
+      }
+      saveAll(list);
+      render();
+      if(state.settings.notify){
+        pushPing({ glyph:'※', lead:(existing?'Re-filed':'Filed')+' · '+CURRENT.term, sub:CURRENT.overall.toFixed(1)+'% · added to the archive' });
+      }
+    }
+
+    function del(id){
+      var list = load().filter(function(s){ return s.id!==id; });
+      saveAll(list);
+      if(openId===id){ openId=null; closeView(); }
+      render();
+    }
+
+    function deltaGlyph(now, prev){
+      if(prev==null) return '';
+      var d = +(now - prev).toFixed(1);
+      if(d>0) return '<span class="issue__delta issue__delta--up">▲ '+d.toFixed(1)+' pts</span>';
+      if(d<0) return '<span class="issue__delta issue__delta--down">▼ '+Math.abs(d).toFixed(1)+' pts</span>';
+      return '<span class="issue__delta">— level</span>';
+    }
+
+    function courseSummary(courses){
+      return courses.map(function(c){
+        return '<span class="ic">'+esc(c.name)+' '+c.pct.toFixed(1)+'</span>';
+      }).join('<span class="sep">·</span>');
+    }
+
+    function render(){
+      var box=$('#nos-archive'); if(!box) return;
+      var list = sorted(load());
+      $('#nos-count').textContent = list.length+(list.length===1?' issue on file':' issues on file');
+      box.innerHTML='';
+      if(!list.length){
+        box.appendChild(el('div','empty','No issues filed yet. Capture this term to start the archive.'));
+        return;
+      }
+      list.forEach(function(s, i){
+        /* delta vs the next-older issue in the list (chronological neighbour) */
+        var older = list[i+1];
+        var delta = older ? deltaGlyph(s.overall, older.overall) : '<span class="issue__delta">earliest on file</span>';
+        var row = el('div','issue');
+        row.innerHTML =
+          '<div class="issue__no">No.&nbsp;'+(list.length-i)+'</div>'+
+          '<div class="issue__main">'+
+            '<div class="issue__term">'+esc(s.term)+'</div>'+
+            '<div class="issue__filed">'+esc(s.year||'')+' · filed '+esc(s.filed||'—')+'</div>'+
+            '<div class="issue__courses">'+courseSummary(s.courses)+'</div>'+
+          '</div>'+
+          '<div><div class="issue__pct">'+s.overall.toFixed(1)+'<span class="pp">%</span></div>'+delta+'</div>'+
+          '<div class="issue__acts">'+
+            '<button class="iact iact--solid" data-view="'+esc(s.id)+'" type="button">View</button>'+
+            '<button class="iact" data-del="'+esc(s.id)+'" type="button">Delete</button>'+
+          '</div>';
+        box.appendChild(row);
+      });
+    }
+
+    function viewIssue(id){
+      var list = load();
+      var s=null; for(var i=0;i<list.length;i++){ if(list[i].id===id){ s=list[i]; break; } }
+      if(!s) return;
+      openId = id;
+      $('#nos-bi-title').innerHTML = esc(s.term)+' <em>— '+esc(s.year||'')+', filed '+esc(s.filed||'—')+'</em>';
+      var rows=$('#nos-bi-rows'); rows.innerHTML='';
+      s.courses.forEach(function(c, i){
+        var r=el('div','birow');
+        r.innerHTML =
+          '<div class="birow__idx">'+(i+1)+'</div>'+
+          '<div class="birow__name">'+esc(c.name)+'</div>'+
+          '<div class="birow__pct">'+c.pct.toFixed(1)+'<span class="pp">%</span></div>'+
+          '<div class="birow__ltr">'+esc(c.ltr)+'</div>';
+        rows.appendChild(r);
+      });
+      var tot=el('div','birow birow--total');
+      tot.innerHTML =
+        '<div class="birow__idx"></div>'+
+        '<div class="birow__name">Overall</div>'+
+        '<div class="birow__pct">'+s.overall.toFixed(1)+'<span class="pp">%</span></div>'+
+        '<div class="birow__ltr"></div>';
+      rows.appendChild(tot);
+      $('#nos-backissue').classList.add('backissue--on');
+      $('#nos-backissue').scrollIntoView({ behavior:'smooth', block:'nearest' });
+    }
+    function closeView(){ openId=null; var bi=$('#nos-backissue'); if(bi) bi.classList.remove('backissue--on'); }
+
+    function init(){
+      load();           /* ensures seed is written on first run */
+      render();
+      var cap=$('#nos-capture'); if(cap) cap.addEventListener('click', capture);
+      var arch=$('#nos-archive');
+      if(arch) arch.addEventListener('click', function(e){
+        var v=e.target.closest('[data-view]');
+        if(v){ viewIssue(v.getAttribute('data-view')); return; }
+        var d=e.target.closest('[data-del]');
+        if(d){ del(d.getAttribute('data-del')); return; }
+      });
+      var cl=$('#nos-bi-close'); if(cl) cl.addEventListener('click', closeView);
+    }
+    return { init:init };
+  })();
+
+  /* ============================================================
      BOOT
      ============================================================ */
   /* MOCKUP_CONVENTIONS: declare the active edition on load */
@@ -19393,6 +20442,7 @@ wireGlobalKeys();
   renderMaterials();
   renderSettings();
   ARCADE.init();
+  NOSTALGIA.init();
   renderBestScores();
   renderSfxSwitch();
 

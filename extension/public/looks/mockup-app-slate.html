@@ -1,11 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>
-/* Better SGY: mirror this look's edition into chrome.storage so the extension
-   shell reopens straight to it on the next load. Additive; harmless on demo. */
-(function(){ try { if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) chrome.storage.local.set({ "bsgy-edition": "slate" }); } catch(e){} })();
-</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Cdefs%3E%3ClinearGradient id=%27sgy%27 x1=%270%27 y1=%270%27 x2=%270%27 y2=%271%27%3E%3Cstop offset=%270%27 stop-color=%27%237c6cfc%27/%3E%3Cstop offset=%271%27 stop-color=%27%235b3df0%27/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27url(%23sgy)%27/%3E%3Cpath d=%27M9 20.5L16 11L23 20.5%27 fill=%27none%27 stroke=%27white%27 stroke-width=%273.2%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
@@ -1535,7 +1530,7 @@
       <span class="sep">/</span>
       <span class="ctx">Semester&nbsp;2</span>
       <span class="sep">/</span>
-      <span class="ctx">Overall <strong>96.2%</strong></span>
+      <span class="ctx">Overall <strong id="ctxOverall">96.2%</strong></span>
       <span class="sep">/</span>
       <span class="ctx">GPA <strong>3.94</strong></span>
     </div>
@@ -1562,9 +1557,9 @@
     <section class="hero">
       <div class="hero__figure">
         <span class="label hero__kicker">Cumulative Average</span>
-        <div class="hero__number">96.2<span class="pct">%</span></div>
+        <div class="hero__number" id="ovOverall">96.2<span class="pct">%</span></div>
         <div class="hero__caption">
-          <span>Weighted across six courses, semester to date</span>
+          <span id="ovHeroCaption">Weighted across six courses, semester to date</span>
         </div>
       </div>
       <div class="hero__verdict">
@@ -1589,8 +1584,8 @@
       </div>
       <div class="stat">
         <span class="label stat__label">Missing</span>
-        <div class="stat__value">2</div>
-        <div class="stat__sub">Across two courses</div>
+        <div class="stat__value" id="ovMissingStat">2</div>
+        <div class="stat__sub" id="ovMissingSub">Across two courses</div>
       </div>
       <div class="stat">
         <span class="label stat__label">Best Class</span>
@@ -1605,7 +1600,7 @@
         <span class="figure__range">Semester 2 · weekly · 88–100% scale</span>
       </div>
 
-      <svg class="plate" viewBox="0 0 960 360" preserveAspectRatio="xMidYMid meet" role="img"
+      <svg class="plate" id="ovPlate" viewBox="0 0 960 360" preserveAspectRatio="xMidYMid meet" role="img"
            aria-label="Line chart of overall term average rising from 94.2 percent in February to 96.2 percent in June">
         <!-- horizontal gridlines: 88,90,92,94,96,98,100 -->
         <line class="grid" x1="90" y1="300" x2="912" y2="300"/>
@@ -1662,18 +1657,20 @@
         </g>
         <text class="axistitle axislabel--x" x="501" y="346">Week of the term</text>
 
-        <!-- overall series -->
-        <polyline class="series" points="90,165.7 207.4,157 324.9,150.5 442.3,141.8 559.7,135.3 677.1,128.8 794.6,126.7 912,122.3"/>
-        <!-- open dots for prior weeks, filled dot for the current week -->
-        <circle class="dot-open" cx="90" cy="165.7" r="3.2"/>
-        <circle class="dot-open" cx="207.4" cy="157" r="3.2"/>
-        <circle class="dot-open" cx="324.9" cy="150.5" r="3.2"/>
-        <circle class="dot-open" cx="442.3" cy="141.8" r="3.2"/>
-        <circle class="dot-open" cx="559.7" cy="135.3" r="3.2"/>
-        <circle class="dot-open" cx="677.1" cy="128.8" r="3.2"/>
-        <circle class="dot-open" cx="794.6" cy="126.7" r="3.2"/>
-        <circle class="dot-fill" cx="912" cy="122.3" r="4"/>
-        <text class="axislabel" x="900" y="113" text-anchor="end" style="fill:#000">96.2%</text>
+        <!-- overall series (repainted by renderOverviewPlate when live data present) -->
+        <g id="ovPlateSeries">
+          <polyline class="series" points="90,165.7 207.4,157 324.9,150.5 442.3,141.8 559.7,135.3 677.1,128.8 794.6,126.7 912,122.3"/>
+          <!-- open dots for prior weeks, filled dot for the current week -->
+          <circle class="dot-open" cx="90" cy="165.7" r="3.2"/>
+          <circle class="dot-open" cx="207.4" cy="157" r="3.2"/>
+          <circle class="dot-open" cx="324.9" cy="150.5" r="3.2"/>
+          <circle class="dot-open" cx="442.3" cy="141.8" r="3.2"/>
+          <circle class="dot-open" cx="559.7" cy="135.3" r="3.2"/>
+          <circle class="dot-open" cx="677.1" cy="128.8" r="3.2"/>
+          <circle class="dot-open" cx="794.6" cy="126.7" r="3.2"/>
+          <circle class="dot-fill" cx="912" cy="122.3" r="4"/>
+          <text class="axislabel" x="900" y="113" text-anchor="end" style="fill:#000">96.2%</text>
+        </g>
       </svg>
 
       <figcaption class="figure__caption">
@@ -1688,9 +1685,9 @@
     <section aria-label="Your courses">
       <div class="sechead">
         <h3>Your Courses</h3>
-        <span class="label count">Six entries · Semester 2</span>
+        <span class="label count" id="ovCourseCount">Six entries · Semester 2</span>
       </div>
-      <div class="clist">
+      <div class="clist" id="ovClist">
 
         <article class="course" data-course="alg" role="link" tabindex="0" aria-label="Open Algebra 2 / Trig grades">
           <div class="course__idx">01</div>
@@ -2283,27 +2280,7 @@
   var el = function(tag, cls, html){ var n=document.createElement(tag); if(cls)n.className=cls; if(html!=null)n.innerHTML=html; return n; };
   function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
 
-  /* ── Better SGY live-data bridge ──────────────────────────────────────────
-     Real extension build: this look is served from chrome-extension://, so
-     chrome.storage.local holds the user's scraped grades under 'bsgy_live'
-     (+ announcements under 'bs_announcements_cache'). Demo build (opaque blob)
-     and file:// preview have no chrome API → return null → baked sample data
-     below is used unchanged. Never throws. */
-  async function bsgyReadLive(){
-    try{
-      if(typeof chrome==='undefined'||!chrome.storage||!chrome.storage.local) return null;
-      const r = await chrome.storage.local.get(['bsgy_live','bs_announcements_cache']);
-      const live = r && r.bsgy_live;
-      if(!live || !Array.isArray(live.courses) || live.courses.length===0) return null;
-      live.announcements = Array.isArray(r.bs_announcements_cache) ? r.bs_announcements_cache : [];
-      return live;
-    }catch(_){ return null; }
-  }
-
   /* ---------- DATA MODEL (from MOCKUP_DATA.md) ---------- */
-  /* var (reassignable): bsgyApplyLive() may rebuild COURSES / HISTORY /
-     GRADEBOOK / DOCKET / BULLETINS from real scraped data before first paint.
-     With no live data these keep their exact sample values. */
   var COURSES = [
     { id:'alg', name:'Algebra 2 / Trig', teacher:'Mr. Stubbs', per:'P1', subject:'Math', grade:97.4, ltr:'A', trend:'up', missing:0 },
     { id:'bio', name:'Biology', teacher:'Ms. Carrington', per:'P2', subject:'Science', grade:96.7, ltr:'A', trend:'flat', missing:1 },
@@ -2617,7 +2594,7 @@
     var rail=$('#grade-rail'); rail.innerHTML='';
     COURSES.forEach(function(c){
       var it=el('div','railitem'+(c.id===state.gradeCourse?' railitem--active':''));
-      it.innerHTML = '<span class="rname">'+esc(c.name)+'</span><span class="rmeta">'+esc(c.teacher)+' · '+(c.grade==null?'—':c.grade.toFixed(1)+'%')+' '+esc(c.ltr)+'</span>';
+      it.innerHTML = '<span class="rname">'+esc(c.name)+'</span><span class="rmeta">'+esc(c.teacher)+' · '+c.grade.toFixed(1)+'% '+esc(c.ltr)+'</span>';
       it.setAttribute('role','button'); it.setAttribute('tabindex','0');
       it.addEventListener('click', function(){ state.gradeCourse=c.id; renderGrades(); });
       it.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); state.gradeCourse=c.id; renderGrades(); } });
@@ -2640,7 +2617,7 @@
     var missTag = c.missing>0 ? ' · <span class="tag" style="vertical-align:1px">'+c.missing+' Missing</span>' : '';
     snap.innerHTML =
       '<div><span class="label">'+esc(c.name)+' · '+esc(c.teacher)+' · '+esc(c.per)+'</span>'+
-        '<div class="snapshot__num">'+(c.grade==null?'—':c.grade.toFixed(1))+'<span class="pct">%</span></div></div>'+
+        '<div class="snapshot__num">'+c.grade.toFixed(1)+'<span class="pct">%</span></div></div>'+
       '<div class="snapshot__side"><div class="snapshot__letter">'+esc(c.ltr)+'</div>'+
         '<div class="snapshot__caption">'+esc(gb.snap)+missTag+'</div></div>';
     body.appendChild(snap);
@@ -2653,13 +2630,11 @@
     body.appendChild(ch1);
     var cats=el('div','cats');
     gb.cats.forEach(function(row){
-      var hasAvg = (typeof row[2]==='number');
-      var avg = !hasAvg ? '' : (row[2]===100 ? '100' : row[2].toFixed(1));
-      var weight = (typeof row[1]==='number') ? row[1]+'%' : '';
+      var avg = (row[2]===100) ? '100' : row[2].toFixed(1);
       cats.appendChild(el('div','cat',
         '<div class="cat__name">'+esc(row[0])+'</div>'+
-        '<div class="cat__weight">'+weight+'</div>'+
-        '<div class="cat__avg">'+(hasAvg?avg+'<span class="pp">%</span>':'—')+'</div>'));
+        '<div class="cat__weight">'+row[1]+'%</div>'+
+        '<div class="cat__avg">'+avg+'<span class="pp">%</span></div>'));
     });
     body.appendChild(cats);
 
@@ -2749,7 +2724,7 @@
       if(k===7) s+='<circle class="dot-fill" cx="'+cx+'" cy="'+cy+'" r="4"/>';
       else s+='<circle class="dot-open" cx="'+cx+'" cy="'+cy+'" r="3"/>';
     }
-    s+='<text class="axislabel" x="712" y="'+(sc.y(main[7])-9).toFixed(1)+'" text-anchor="end" style="fill:currentColor">'+(c.grade==null?'—':c.grade.toFixed(1)+'%')+'</text>';
+    s+='<text class="axislabel" x="712" y="'+(sc.y(main[7])-9).toFixed(1)+'" text-anchor="end" style="fill:currentColor">'+c.grade.toFixed(1)+'%</text>';
     /* hover dot + invisible hit targets */
     s+='<circle class="dot-hover" r="4.6"/>';
     for(var h=0;h<8;h++){
@@ -2806,7 +2781,7 @@
       var sw = active
         ? '<svg class="legend__swatch" viewBox="0 0 34 10" aria-hidden="true"><line x1="0" y1="5" x2="34" y2="5" stroke="currentColor" stroke-width="2.2"/><circle cx="17" cy="5" r="2.6" fill="currentColor"/></svg>'
         : '<svg class="legend__swatch" viewBox="0 0 34 10" aria-hidden="true"><line x1="0" y1="5" x2="34" y2="5" stroke="currentColor" stroke-width="1" opacity="0.32"/></svg>';
-      row.innerHTML = sw + '<span class="legend__name">'+esc(lc.name)+'</span><span class="legend__val">'+(lc.grade==null?'—':lc.grade.toFixed(1)+'%')+'</span>';
+      row.innerHTML = sw + '<span class="legend__name">'+esc(lc.name)+'</span><span class="legend__val">'+lc.grade.toFixed(1)+'%</span>';
       row.setAttribute('role','button'); row.setAttribute('tabindex','0');
       if(active){
         row.title='Selected course';
@@ -2954,7 +2929,7 @@
 
       var inner='<span class="cell__date">'+cell.d+'</span>';
       dayEv.slice(0,2).forEach(function(e){
-        var cn=courseById[e.c]||{name:'',teacher:'',per:''};
+        var cn=courseById[e.c];
         inner+='<div class="calnote"><span class="cn-course">'+esc(cn.name)+'</span>'+esc(e.t)+'</div>';
       });
       if(dayEv.length>2) inner+='<div class="cell__count">+'+(dayEv.length-2)+' more</div>';
@@ -2989,7 +2964,7 @@
     $('#day-strip-date').textContent=MONTH_NAMES[calView.m]+' '+d+', '+calView.y;
     var rows=$('#day-strip-rows'); rows.innerHTML='';
     ev.forEach(function(e){
-      var c=courseById[e.c]||{name:'',teacher:'',per:''};
+      var c=courseById[e.c];
       rows.appendChild(el('div','day-strip__row',
         '<div><div class="day-strip__title">'+esc(e.t)+'</div>'+
         '<span class="day-strip__course">'+esc(c.name)+' · '+esc(c.teacher)+'</span></div>'+
@@ -4005,7 +3980,7 @@
     });
     /* courses -> grades */
     COURSES.forEach(function(c){
-      idx.push({ kind:'Course', name:c.name, sub:[c.teacher, c.per, (c.grade==null?'—':c.grade.toFixed(1)+'%')+' '+c.ltr].filter(Boolean).join(' · '),
+      idx.push({ kind:'Course', name:c.name, sub:c.teacher+' · '+c.per+' · '+c.grade.toFixed(1)+'% '+c.ltr,
         where:'Grades', go:function(){ state.gradeCourse=c.id; renderGrades(); showScreen('grades'); } });
     });
     /* assignments (docket) */
@@ -4339,7 +4314,6 @@
     function skip(){ markSeen(); shut(); }
 
     function maybeShowFirstRun(){
-      try{ if(typeof chrome!=="undefined" && chrome.storage && chrome.storage.local) return; }catch(e){}
       var seen; try{ seen=localStorage.getItem(WELCOME_KEY); }catch(e){ seen='1'; }
       if(seen) return;
       open(true);
@@ -4619,202 +4593,176 @@
   })();
 
   /* ============================================================
-     LIVE DATA — rebuild the sample arrays from real scraped grades.
-     Called once, before first paint, only when bsgyReadLive() returned
-     a non-null payload. Every cosmetic field the real data lacks
-     (trend, per, history shape) is filled from safe defaults / templates;
-     the look's structure, classes and copy are untouched. Never throws.
+     LIVE DATA INJECTION (chrome.storage.local 'bsgy_live')
+     Contract: { overall:number, term:string,
+       courses:[{ name, teacher, pct, letter, trend('up'|'flat'|'down'), missing }] }
+     Overrides the OVERVIEW screen only. Falls back to the sample
+     data on ANY failure or when chrome.storage is unavailable
+     (plain file:// demo). Everything is wrapped in try/catch so a
+     failure can never blank the page.
      ============================================================ */
-  function bsgyApplyLive(LIVE){
-    try{
-      if(!LIVE || !Array.isArray(LIVE.courses) || !LIVE.courses.length) return;
-
-      /* ---- COURSES (built purely from LIVE; no stale/padding rows) ---- */
-      var newCourses = LIVE.courses.map(function(lc, i){
-        var tmpl = COURSES[i % COURSES.length] || {};
-        var nm = String(lc.name||'').trim() || ('Course '+(i+1));
-        var pct = (typeof lc.pct==='number' && isFinite(lc.pct)) ? lc.pct : null;
-        return {
-          id:'c'+i,
-          name:nm,
-          teacher:String(lc.teacher||'').trim(),
-          per:'',                                /* period not scraped */
-          subject:tmpl.subject||'',              /* cosmetic accent — cycle palette */
-          grade:pct,                             /* null → no-grade state */
-          ltr:String(lc.letter||'').trim() || (pct==null?'—':''),
-          trend:'flat',                          /* no trend in payload */
-          missing:(typeof lc.missing==='number' && lc.missing>0) ? lc.missing : 0,
-          _assignments:Array.isArray(lc.assignments)?lc.assignments:[]
-        };
-      });
-      COURSES = newCourses;
-
-      /* rebuild the existing courseById map in place (closure keeps the ref) */
-      for(var k in courseById){ if(Object.prototype.hasOwnProperty.call(courseById,k)) delete courseById[k]; }
-      COURSES.forEach(function(c){ courseById[c.id]=c; });
-
-      /* ---- HISTORY — flat series at each course's pct + flat overall ---- */
-      var n = WEEK_LABELS.length;
-      function flat(v){ var a=[]; var fill=(typeof v==='number'&&isFinite(v))?v:88; for(var j=0;j<n;j++) a.push(fill); return a; }
-      var newHist = { overall:flat(typeof LIVE.overall==='number'?LIVE.overall:null) };
-      COURSES.forEach(function(c){ newHist[c.id]=flat(c.grade); });
-      HISTORY = newHist;
-
-      /* ---- GRADEBOOK — per-course categories + assignment rows ---- */
-      var STATUS_MAP = { missing:'missing', due:'due', late:'missing' };
-      var newGb = {};
-      COURSES.forEach(function(c){
-        var asg = c._assignments||[];
-        /* derive categories from the assignments present (no weights scraped) */
-        var seen = [];
-        asg.forEach(function(a){ var cat=String(a.category||'').trim()||'Other'; if(seen.indexOf(cat)<0) seen.push(cat); });
-        var cats = seen.map(function(cat){ return [cat, '', '']; }); /* weight/avg blank → render shows '%' only when numeric */
-        var rows = asg.map(function(a){
-          var name=String(a.name||'').trim()||'Assignment';
-          var cat=String(a.category||'').trim()||'Other';
-          var score=String(a.score!=null?a.score:'').trim();
-          var max=String(a.max!=null?a.max:'').trim();
-          var scoreText = (score!==''||max!=='') ? (score!==''?score:'—')+' / '+(max!==''?max:'—') : '—';
-          var due=String(a.due||'').trim();
-          var status = a.missing ? 'missing' : (STATUS_MAP[String(a.status||'').toLowerCase()]||false);
-          var pct = null;
-          var sn=parseFloat(score), mx=parseFloat(max);
-          if(isFinite(sn)&&isFinite(mx)&&mx>0) pct=Math.round((sn/mx)*100);
-          return [name, cat, due, scoreText, pct, status];
-        });
-        newGb[c.id] = {
-          snap: (c.grade==null?'No grade posted':'Current standing'),
-          cats: cats.length?cats:[['—','','']],
-          rows: rows,
-          closeLine: (rows.length? 'The current ledger for '+c.name+'.' : 'No assignments on record yet for '+c.name+'.'),
-          closeBy: [c.name, c.teacher].filter(Boolean).join(' · ')
-        };
-      });
-      GRADEBOOK = newGb;
-
-      /* keep state.gradeCourse pointing at a real course */
-      if(!courseById[state.gradeCourse]) state.gradeCourse = COURSES[0] ? COURSES[0].id : state.gradeCourse;
-
-      /* ---- DOCKET — flatten live assignments into the cross-course agenda ---- */
-      var newDocket = [];
-      COURSES.forEach(function(c){
-        (c._assignments||[]).forEach(function(a){
-          var status = String(a.status||'').toLowerCase();
-          var grp, sort;
-          if(a.missing || status==='missing' || status==='late'){ grp='missing'; sort=1; }
-          else if(status==='due'){ grp='due'; sort=0; }
-          else if(status==='graded' || status==='done' || status==='complete'){ grp='done'; sort=3; }
-          else { grp='upcoming'; sort=2; }
-          var due=String(a.due||'').trim();
-          var dueText = due || (grp==='done'?'Filed':grp==='missing'?'Not submitted':'Scheduled');
-          newDocket.push({ title:String(a.name||'').trim()||'Assignment', course:c.id, due:dueText, status:grp, sort:sort });
-        });
-      });
-      DOCKET = newDocket;
-
-      /* ---- BULLETINS — from LIVE.announcements (slate renders plain text) ---- */
-      if(Array.isArray(LIVE.announcements)){
-        var byName = {};
-        COURSES.forEach(function(c){ if(c.name) byName[c.name.toLowerCase()]=c.id; });
-        var newBull = LIVE.announcements.map(function(an, i){
-          var cn=String(an.courseName||'').trim();
-          var cid = byName[cn.toLowerCase()] || (COURSES[0]?COURSES[0].id:'');
-          var body = String(an.body!=null?an.body:'').trim();
-          return {
-            id:String(an.id!=null?an.id:('an'+i)),
-            course:cid,
-            teacher:String(an.author||'').trim() || cn,
-            date:String(an.timeText||'').trim(),
-            time:String(an.timeText||'').trim(),
-            head:(cn||'Notice'),
-            body:body
-          };
-        });
-        BULLETINS = newBull;
-      }
-
-      /* ---- OVERVIEW (static HTML) — patch the data-bearing nodes in place.
-             Structure/classes/copy untouched; only numbers + names swapped. ---- */
-      bsgyPatchOverview(LIVE);
-    }catch(_){ /* malformed payload → leave whatever rebuilt + sample fallbacks */ }
+  function bsgyValidLive(d){
+    return d && typeof d === "object"
+      && typeof d.overall === "number"
+      && Array.isArray(d.courses) && d.courses.length > 0;
+  }
+  /* synthesize a short rising/flat/falling series that ENDS at `pct` */
+  function bsgySpark(pct, trend){
+    var end = (typeof pct === "number") ? pct : 95;
+    var d = trend === "up" ? 2.0 : trend === "down" ? -2.0 : 0;
+    return [end-d, end-d*0.7, end-d*0.45, end-d*0.25, end-d*0.12, end-d*0.04, end];
+  }
+  /* mini sparkline (viewBox 0 0 120 34) — map pct (88..100) to y (30..4) */
+  function bsgyMiniY(pct){
+    var p = (typeof pct === "number") ? pct : 95;
+    if(p < 88) p = 88; if(p > 100) p = 100;
+    return Math.round((30 - (p - 88) / 12 * 26) * 10) / 10;
+  }
+  function bsgyMiniPolyline(series){
+    var n = series.length;
+    var xs = [];
+    for(var i=0;i<n;i++){ xs.push(Math.round((2 + (118-2) * (i/(n-1)))*10)/10); }
+    var pts = [];
+    for(var j=0;j<n;j++){ pts.push(xs[j] + "," + bsgyMiniY(series[j])); }
+    return { points: pts.join(" "), lastX: xs[n-1], lastY: bsgyMiniY(series[n-1]) };
+  }
+  /* big Fig.1 plate — map pct (88..100) to y (300..40), x evenly across 90..912 */
+  function bsgyPlateY(pct){
+    var p = (typeof pct === "number") ? pct : 95;
+    if(p < 88) p = 88; if(p > 100) p = 100;
+    return Math.round((300 - (p - 88) / 12 * 260) * 100) / 100;
   }
 
-  /* Rewrite the static Overview screen's figures from LIVE. Guarded; any
-     missing node is simply skipped so a partial payload never throws. */
-  function bsgyPatchOverview(LIVE){
+  /* rebuild the OVERVIEW course rows from COURSES + HISTORY (the rows
+     are otherwise static HTML; this repaints them with live data) */
+  function renderOverviewCourses(){
+    var list = $('#ovClist'); if(!list) return;
+    list.innerHTML = '';
+    COURSES.forEach(function(c, i){
+      var idx = (i+1 < 10 ? '0' : '') + (i+1);
+      var trend = (c.trend === 'up' || c.trend === 'down') ? c.trend : 'flat';
+      var word = TREND_WORD[trend] || TREND_WORD.flat;
+      var aria = trend === 'up' ? 'Trending up' : trend === 'down' ? 'Declining' : 'Flat';
+      var sp = bsgyMiniPolyline(HISTORY[c.id] || bsgySpark(c.grade, trend));
+      var missHtml = (c.missing > 0)
+        ? '<span class="tag">' + c.missing + ' Missing</span>'
+        : '<span class="note-clean">no missing work</span>';
+      var per = c.per || '';
+      var subject = c.subject || '';
+      var metaMid = (per || subject) ? (esc(per) + (per && subject ? ' · ' : '') + esc(subject)) : '';
+      var art = el('article','course');
+      art.setAttribute('data-course', c.id);
+      art.setAttribute('role','link');
+      art.setAttribute('tabindex','0');
+      art.setAttribute('aria-label','Open ' + c.name + ' grades');
+      art.innerHTML =
+        '<div class="course__idx">' + idx + '</div>' +
+        '<div class="course__main">' +
+          '<div class="course__name">' + esc(c.name) + '</div>' +
+          '<div class="course__meta"><span class="course__teacher">' + esc(c.teacher || '') + '</span>' +
+            (metaMid ? '<span class="sep">·</span><span>' + metaMid + '</span>' : '') +
+            '<span class="sep">·</span>' + missHtml + '</div>' +
+        '</div>' +
+        '<div class="course__trend">' +
+          '<svg viewBox="0 0 120 34" preserveAspectRatio="none" role="img" aria-label="' + aria + '">' +
+            '<polyline points="' + sp.points + '" fill="none" stroke="#000" stroke-width="1.5"/>' +
+            '<circle cx="' + sp.lastX + '" cy="' + sp.lastY + '" r="2.4" fill="#000"/></svg>' +
+          '<span class="trend__word">' + esc(word) + '</span>' +
+        '</div>' +
+        '<div class="course__pct">' + (Math.round(c.grade*10)/10) + '<span class="pp">%</span></div>' +
+        '<div class="course__letter"><span class="ltr">' + esc(c.ltr || '') + '</span></div>';
+      list.appendChild(art);
+    });
+    bindOverview();   /* re-wire click/keyboard handlers on the new rows */
+  }
+
+  /* repaint Fig.1 (overall series, dots, current-value label) from HISTORY.overall */
+  function renderOverviewPlate(){
+    var g = $('#ovPlateSeries'); if(!g) return;
+    var s = HISTORY.overall || [];
+    if(!s.length) return;
+    var X0 = 90, X1 = 912, n = s.length;
+    var xs = [];
+    for(var i=0;i<n;i++){ xs.push(Math.round((X0 + (X1-X0) * (i/(n-1)))*100)/100); }
+    var pts = [], dots = '';
+    for(var j=0;j<n;j++){
+      var y = bsgyPlateY(s[j]);
+      pts.push(xs[j] + ',' + y);
+      if(j < n-1) dots += '<circle class="dot-open" cx="' + xs[j] + '" cy="' + y + '" r="3.2"/>';
+      else dots += '<circle class="dot-fill" cx="' + xs[j] + '" cy="' + y + '" r="4"/>';
+    }
+    var last = Math.round(s[n-1]*10)/10;
+    var lastY = bsgyPlateY(s[n-1]);
+    g.innerHTML =
+      '<polyline class="series" points="' + pts.join(' ') + '"/>' +
+      dots +
+      '<text class="axislabel" x="900" y="' + (lastY - 9) + '" text-anchor="end" style="fill:#000">' + last + '%</text>';
+  }
+
+  function bsgyApplyLive(){
     try{
-      var overall = (typeof LIVE.overall==='number' && isFinite(LIVE.overall)) ? LIVE.overall : null;
-      var term = String(LIVE.term||'').trim();
+      if(!(window.chrome && chrome.storage && chrome.storage.local && chrome.storage.local.get)) return;
+      chrome.storage.local.get("bsgy_live", function(res){
+        try{
+          var live = res && res.bsgy_live;
+          if(!bsgyValidLive(live)) return;   /* invalid → keep sample data */
 
-      /* hero cumulative number */
-      var heroNum=$('#s-overview .hero__number');
-      if(heroNum) heroNum.innerHTML = (overall==null?'—':esc(overall.toFixed(1)))+'<span class="pct">%</span>';
+          /* rebuild COURSES contents in place (mutate; other screens read it too) */
+          var built = live.courses.map(function(c, i){
+            var id = "lc" + i;
+            var nm = String(c.name == null ? ("Course " + (i+1)) : c.name);
+            var pct = (typeof c.pct === "number") ? c.pct : 0;
+            var trend = (c.trend === "up" || c.trend === "down" || c.trend === "flat") ? c.trend : "flat";
+            var miss = (typeof c.missing === "number" && c.missing >= 0) ? c.missing : 0;
+            HISTORY[id] = bsgySpark(pct, trend);
+            return {
+              id:id,
+              name:nm,
+              teacher:String(c.teacher == null ? "" : c.teacher),
+              per:"", subject:"",
+              grade:pct,
+              ltr:String(c.letter == null ? "" : c.letter),
+              trend:trend,
+              missing:miss
+            };
+          });
+          COURSES.length = 0;
+          built.forEach(function(c){ COURSES.push(c); });
+          courseById = {}; COURSES.forEach(function(c){ courseById[c.id] = c; });
+          HISTORY.overall = bsgySpark(typeof live.overall === "number" ? live.overall : 0, "up");
 
-      /* masthead overall % + term context */
-      var mhCtx=$$('.masthead__context .ctx');
-      mhCtx.forEach(function(node){
-        var strong=node.querySelector('strong');
-        if(strong && /overall/i.test(node.textContent)) strong.textContent = (overall==null?'—':overall.toFixed(1)+'%');
-        if(!node.querySelector('strong') && term && /semester|term|quarter|trimester/i.test(node.textContent)) node.textContent = term;
+          /* hero + masthead overall % */
+          var ov = (typeof live.overall === "number") ? live.overall : null;
+          var ovRound = (ov != null) ? (Math.round(ov*10)/10) : null;
+          var ovEl = $("#ovOverall");
+          if(ovEl && ovRound != null) ovEl.innerHTML = ovRound + '<span class="pct">%</span>';
+          var ctx = $("#ctxOverall"); if(ctx && ovRound != null) ctx.textContent = ovRound + "%";
+
+          /* term / context lines + course count */
+          var nC = COURSES.length;
+          var courseWord = nC + " course" + (nC === 1 ? "" : "s");
+          var cap = $("#ovHeroCaption");
+          if(cap) cap.textContent = "Weighted across " + courseWord + (live.term ? (", " + live.term) : ", semester to date");
+          var cnt = $("#ovCourseCount");
+          if(cnt) cnt.textContent = courseWord + (live.term ? (" · " + live.term) : "");
+
+          /* total missing flag */
+          var totalMissing = COURSES.reduce(function(s,c){ return s + (c.missing||0); }, 0);
+          var missStat = $("#ovMissingStat");
+          if(missStat) missStat.textContent = totalMissing;
+          var missSub = $("#ovMissingSub");
+          if(missSub){
+            var nCourses = COURSES.filter(function(c){ return (c.missing||0) > 0; }).length;
+            missSub.textContent = totalMissing === 0 ? "Nothing outstanding"
+              : ("Across " + nCourses + " course" + (nCourses === 1 ? "" : "s"));
+          }
+
+          /* repaint overview pieces with live data */
+          renderOverviewCourses();
+          renderOverviewPlate();
+        }catch(e){ /* keep sample data already on screen */ }
       });
-
-      /* stats row: Due Today / Missing / Best Class derive from live courses */
-      var dueCount=0, missCount=0;
-      COURSES.forEach(function(c){
-        missCount += (c.missing||0);
-        (c._assignments||[]).forEach(function(a){ if(String(a.status||'').toLowerCase()==='due' && !a.missing) dueCount++; });
-      });
-      var best=null;
-      COURSES.forEach(function(c){ if(c.grade!=null && (best==null || c.grade>best.grade)) best=c; });
-      var stats=$$('#s-overview .stats .stat');
-      stats.forEach(function(st){
-        var lab=(st.querySelector('.stat__label')||{}).textContent||'';
-        var val=st.querySelector('.stat__value');
-        var sub=st.querySelector('.stat__sub');
-        if(/due today/i.test(lab) && val){ val.textContent=String(dueCount); }
-        else if(/^missing/i.test(lab) && val){ val.textContent=String(missCount); }
-        else if(/best class/i.test(lab) && val && best){
-          val.innerHTML = esc(best.grade.toFixed(1))+'<span class="unit">%</span>';
-          if(sub) sub.textContent = [best.name, best.teacher].filter(Boolean).join(' · ');
-        }
-      });
-
-      /* course list — rebuild rows from COURSES inside the existing .clist */
-      var clist=$('#s-overview .clist');
-      if(clist){
-        clist.innerHTML='';
-        COURSES.forEach(function(c, i){
-          var num=('0'+(i+1)).slice(-2);
-          var missTxt = c.missing>0
-            ? '<span class="tag">'+c.missing+' Missing</span>'
-            : '<span class="note-clean">no missing work</span>';
-          var metaParts = [];
-          if(c.teacher) metaParts.push('<span class="course__teacher">'+esc(c.teacher)+'</span>');
-          var pg = c.subject ? (c.per?esc(c.per)+' · ':'')+esc(c.subject) : (c.per?esc(c.per):'');
-          var meta = metaParts.join('');
-          if(pg){ meta += (meta?'<span class="sep">·</span>':'')+'<span>'+pg+'</span>'; }
-          meta += (meta?'<span class="sep">·</span>':'')+missTxt;
-          var pctHtml = (c.grade==null) ? '—' : esc(c.grade.toFixed(1))+'<span class="pp">%</span>';
-          var art=el('article','course');
-          art.setAttribute('data-course', c.id);
-          art.setAttribute('role','link'); art.setAttribute('tabindex','0');
-          art.setAttribute('aria-label','Open '+c.name+' grades');
-          art.innerHTML =
-            '<div class="course__idx">'+num+'</div>'+
-            '<div class="course__main">'+
-              '<div class="course__name">'+esc(c.name)+'</div>'+
-              '<div class="course__meta">'+meta+'</div>'+
-            '</div>'+
-            '<div class="course__trend">'+
-              '<svg viewBox="0 0 120 34" preserveAspectRatio="none" role="img" aria-label="Steady"><polyline points="2,17 22,16 42,18 62,16 82,17 102,16 118,17" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="118" cy="17" r="2.4" fill="currentColor"/></svg>'+
-              '<span class="trend__word">Steady →</span>'+
-            '</div>'+
-            '<div class="course__pct">'+pctHtml+'</div>'+
-            '<div class="course__letter"><span class="ltr">'+esc(c.ltr||'')+'</span></div>';
-          clist.appendChild(art);
-        });
-      }
-    }catch(_){ /* overview stays as-is on any failure */ }
+    }catch(e){ /* chrome.storage missing/blocked → sample data stays */ }
   }
 
   /* ============================================================
@@ -4823,14 +4771,6 @@
   /* MOCKUP_CONVENTIONS: declare the active edition on load */
   try{ localStorage.setItem('bsgy-edition','slate'); }catch(e){}
 
-  /* Gate first paint on live data: when present, rebuild every data array
-     before any render runs; when null, boot exactly as before. */
-  bsgyReadLive().then(function(LIVE){
-    if(LIVE) bsgyApplyLive(LIVE);
-    bsgyBoot();
-  });
-
-  function bsgyBoot(){
   applyBodyClasses();
   bindOverview();
   renderGrades();
@@ -4852,6 +4792,10 @@
   })();
   var bootScreen = QS.screen && SCREENS.indexOf(QS.screen)>=0 ? QS.screen : state.screen;
   showScreen(bootScreen);
+
+  /* override OVERVIEW with real injected grades if present (async; sample
+     data is already rendered above so any failure leaves the sample in place) */
+  bsgyApplyLive();
   if(QS.game){
     showScreen('arcade');
     if(QS.game==='daily') ARCADE.openDaily();
@@ -4860,7 +4804,6 @@
 
   /* No auto-launch — the guided tour only auto-runs in the Apple edition.
      It stays available here via Settings → "Take the tour". */
-  }
 })();
 </script>
 </body>

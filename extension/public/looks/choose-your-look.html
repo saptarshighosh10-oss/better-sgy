@@ -750,9 +750,8 @@
 
   function choose(id){
     try { localStorage.setItem("bsgy-edition", id); } catch(e){}
-    // Mirror the choice into chrome.storage so the extension content-script shell
-    // remembers it across reloads (and updates the host iframe via onChanged).
-    try { if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) chrome.storage.local.set({ "bsgy-edition": id }); } catch(e){}
+    // record the chosen edition for the extension (guarded — only if chrome.storage exists)
+    try { if (window.chrome && chrome.storage && chrome.storage.local && chrome.storage.local.set) chrome.storage.local.set({ "bsgy-edition": id }); } catch(e){}
     window.location.href = "./mockup-app-" + id + ".html";
   }
 

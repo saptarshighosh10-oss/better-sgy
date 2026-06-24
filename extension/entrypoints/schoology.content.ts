@@ -53,35 +53,15 @@ async function reportChanges(prev: SchoologyData | null, next: SchoologyData) {
 async function writeLiveData(data: SchoologyData) {
   // Demo builds (wxt --mode demo) must not seed live data — keep the sample look.
   if (import.meta.env.MODE === 'demo') return;
-  // Keep per-course assignment lists bounded so chrome.storage stays small.
-  const MAX_ASSIGN_PER_COURSE = 60;
   try {
     const courses = (data.courses ?? []).map((c) => {
       const { letter, percent } = parseGradeString(c.grade);
       let missing = 0;
-      const assignments: Array<{
-        name: string; score: string; max: string; due: string;
-        status: string; missing: boolean; category: string;
-      }> = [];
       try {
         for (const cat of c.categories ?? []) {
-          for (const a of cat.assignments ?? []) {
-            const isMiss = isMissing(a);
-            if (isMiss) missing++;
-            if (assignments.length < MAX_ASSIGN_PER_COURSE) {
-              assignments.push({
-                name: a.name,
-                score: a.score ?? '',
-                max: a.maxGrade ?? '',
-                due: a.dueDate ?? '',
-                status: a.status ?? '',
-                missing: isMiss,
-                category: cat.name ?? '',
-              });
-            }
-          }
+          for (const a of cat.assignments ?? []) if (isMissing(a)) missing++;
         }
-      } catch { /* assignments/missing are cosmetic — never break the save tail */ }
+      } catch { /* missing count is cosmetic */ }
       return {
         name: c.name,
         teacher: c.teacher || '',
@@ -89,16 +69,13 @@ async function writeLiveData(data: SchoologyData) {
         letter,
         trend: 'flat' as const,
         missing,
-        assignments,
       };
     });
     const graded = courses.map((c) => c.pct).filter((p): p is number => typeof p === 'number');
     const overall = graded.length ? graded.reduce((s, p) => s + p, 0) / graded.length : null;
-    // v2 adds per-course `assignments`. The looks read this key for grades and
-    // read 'bs_announcements_cache' directly for the announcements feed.
+    // Contract the bundled looks read (see "LIVE DATA INJECTION" in each look):
+    //   { overall:number, term:string, courses:[{name,teacher,pct,letter,trend,missing}] }
     const live = {
-      v: 2,
-      scrapedAt: data.scrapedAt ?? Date.now(),
       overall,
       term: data.gradingPeriod || '',
       courses,

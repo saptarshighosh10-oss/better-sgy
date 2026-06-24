@@ -1,11 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>
-/* Better SGY: mirror this look's edition into chrome.storage so the extension
-   shell reopens straight to it on the next load. Additive; harmless on demo. */
-(function(){ try { if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) chrome.storage.local.set({ "bsgy-edition": "halo" }); } catch(e){} })();
-</script>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Cdefs%3E%3ClinearGradient id=%27sgy%27 x1=%270%27 y1=%270%27 x2=%270%27 y2=%271%27%3E%3Cstop offset=%270%27 stop-color=%27%237c6cfc%27/%3E%3Cstop offset=%271%27 stop-color=%27%235b3df0%27/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27url(%23sgy)%27/%3E%3Cpath d=%27M9 20.5L16 11L23 20.5%27 fill=%27none%27 stroke=%27white%27 stroke-width=%273.2%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
@@ -1546,12 +1541,12 @@
           <section class="ov-hero">
             <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;">
               <div>
-                <p class="lede">Overall grade</p>
+                <p class="lede" id="ovEyebrow">Overall grade</p>
                 <div class="grade">
-                  <div class="num">96.2<span class="pct">%</span></div>
-                  <div class="across">across 6 courses</div>
+                  <div class="num" id="ovOverall">96.2<span class="pct">%</span></div>
+                  <div class="across" id="ovCoursesMeta">across 6 courses</div>
                 </div>
-                <div class="status"><span class="dot"></span> Trending up</div>
+                <div class="status" id="ovSubln"><span class="dot"></span> Trending up</div>
               </div>
               <button class="btn" id="ovExport" data-export-hide>
                 <span id="ovExportLabel">Save image</span>
@@ -1562,7 +1557,7 @@
           <section class="chart" aria-label="Overall grade over time" style="margin-bottom:40px;">
             <div class="chart-head">
               <span class="chart-title">Overall grade over time</span>
-              <span class="chart-now up">96.2% now</span>
+              <span class="chart-now up" id="ovNow">96.2% now</span>
             </div>
             <svg id="ovChart" viewBox="0 0 740 180" role="img" aria-label="Line chart of overall grade, 94.2 percent rising to 96.2 percent"></svg>
             <p class="chart-cap">Tracked since install.</p>
@@ -1575,7 +1570,7 @@
             <div class="stat"><div class="label">Best class</div><div class="value">PE&nbsp;9</div><div class="sub">99.1%</div></div>
           </section>
 
-          <div class="section-head"><h2>Courses</h2><span class="count">6</span></div>
+          <div class="section-head"><h2>Courses</h2><span class="count" id="ovCount">6</span></div>
 
           <section class="panel" id="ovCourses" aria-label="Courses"></section>
 
@@ -1939,26 +1934,6 @@
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
     }); };
 
-    /* ── Better SGY live-data bridge ──────────────────────────────────────────
-       Real extension build: this look is served from chrome-extension://, so
-       chrome.storage.local holds the user's scraped grades under 'bsgy_live'
-       (+ announcements under 'bs_announcements_cache'). Demo build (opaque blob)
-       and file:// preview have no chrome API → return null → baked sample data
-       below is used unchanged. Never throws. */
-    async function bsgyReadLive(){
-      try{
-        if(typeof chrome==='undefined'||!chrome.storage||!chrome.storage.local) return null;
-        const r = await chrome.storage.local.get(['bsgy_live','bs_announcements_cache']);
-        const live = r && r.bsgy_live;
-        if(!live || !Array.isArray(live.courses) || live.courses.length===0) return null;
-        live.announcements = Array.isArray(r.bs_announcements_cache) ? r.bs_announcements_cache : [];
-        return live;
-      }catch(_){ return null; }
-    }
-    /* Null-safe grade formatter. Numbers → "97.4" exactly like before
-       (so the baked sample path is byte-identical); null/undefined → "—". */
-    function bsgyPct(v){ return (typeof v === "number" && isFinite(v)) ? v.toFixed(1) : "—"; }
-
     var COURSES = [
       { id: "alg", name: "Algebra 2 / Trig", teacher: "Mr. Stubbs", per: "P1", grade: 97.4, ltr: "A", trend: "up", missing: 0 },
       { id: "bio", name: "Biology", teacher: "Ms. Carrington", per: "P2", grade: 96.7, ltr: "A", trend: "flat", missing: 1 },
@@ -2263,7 +2238,7 @@
           '<div class="who"><div class="cname">' + esc(c.name) + flag + '</div><div class="teacher">' + esc(c.teacher) + ' · ' + c.per + '</div></div>' +
           '<div class="spark">' + spark(HIST[c.id], up) + '</div>' +
           '<div class="trend' + (up ? " up" : "") + '">' + trendWord(c.trend) + '</div>' +
-          '<div class="gradecell"><div class="pct">' + bsgyPct(c.grade) + '%</div><div class="letter">' + c.ltr + '</div></div>';
+          '<div class="gradecell"><div class="pct">' + c.grade.toFixed(1) + '%</div><div class="letter">' + c.ltr + '</div></div>';
         wrap.appendChild(a);
       });
     }
@@ -2288,7 +2263,7 @@
         b.setAttribute("data-grade", c.id);
         b.innerHTML = '<div class="rn">' + esc(c.name) + flag + '</div>' +
           '<div class="rt">' + esc(c.teacher) + '</div>' +
-          '<div class="rg">' + bsgyPct(c.grade) + '% · ' + c.ltr + '</div>';
+          '<div class="rg">' + c.grade.toFixed(1) + '% · ' + c.ltr + '</div>';
         rail.appendChild(b);
       });
     }
@@ -2358,14 +2333,14 @@
       html += '<div class="gb-snapshot">';
       html += '  <div class="left">';
       html += '    <div class="gbteacher">' + esc(c.name) + ' · ' + esc(c.teacher) + ' · ' + c.per + '</div>';
-      html += '    <div class="gbgrade">' + bsgyPct(c.grade) + '<span class="pct">%</span></div>';
+      html += '    <div class="gbgrade">' + c.grade.toFixed(1) + '<span class="pct">%</span></div>';
       html += '    <div class="gbsub">Letter ' + c.ltr + ' · ' + trendTxt + (c.missing ? ' · ' + c.missing + ' missing' : '') + '</div>';
       html += '  </div>';
       html += '  <div class="spark" style="width:120px;height:36px;">' + spark(HIST[curGrade], sparkUp).replace('width="84" height="28" viewBox="0 0 84 28"', 'width="120" height="36" viewBox="0 0 120 36"') + '</div>';
       html += '</div>';
 
       html += '<section class="chart" id="gbChart" aria-label="Course grade over time" style="margin-bottom:28px;">';
-      html += '  <div class="chart-head"><span class="chart-title">' + esc(c.name) + ' · grade over time</span><span class="chart-now' + (c.trend === "up" ? " up" : "") + '">' + bsgyPct(c.grade) + '% now</span></div>';
+      html += '  <div class="chart-head"><span class="chart-title">' + esc(c.name) + ' · grade over time</span><span class="chart-now' + (c.trend === "up" ? " up" : "") + '">' + c.grade.toFixed(1) + '% now</span></div>';
       html += '  <svg id="gbSvg" viewBox="0 0 700 200" role="img" aria-label="Line chart of ' + esc(c.name) + ' grade across semester 2">' + ch.svg + '</svg>';
       html += '  <div class="chart-legend" id="gbLegend" aria-label="Courses">' + ch.legend + '</div>';
       html += '</section>';
@@ -2591,9 +2566,8 @@
     // ============================================================
     var starred = load("starred", { 0: false, 3: false }); // default none
     function initials(name) {
-      var p = String(name == null ? "" : name).replace(/^(Mr|Ms|Mrs|Mme|Coach|M)\.?\s+/i, "").split(/\s+/).filter(Boolean);
-      if (!p.length) return "—";
-      return ((p[0][0] || "") + (p[1] ? p[1][0] : "")).toUpperCase() || "—";
+      var p = name.replace(/^(Mr|Ms|Mrs|Mme|Coach|M)\.?\s+/i, "").split(/\s+/);
+      return (p[0][0] + (p[1] ? p[1][0] : "")).toUpperCase();
     }
     function renderAnn() {
       var list = $("#annList");
@@ -2606,12 +2580,10 @@
       }
       ANN.forEach(function (a) {
         var c = byId[a.cid];
-        var cname = c ? c.name : (a._course || "");
-        var avInit = a.who ? initials(a.who) : "—";
         var art = el("article", "ann");
         art.innerHTML =
-          '<div class="av">' + avInit + '</div>' +
-          '<div><div class="meta"><span class="who">' + esc(a.who) + '</span> · ' + esc(cname) + ' · ' + esc(a.time) + '</div>' +
+          '<div class="av">' + initials(a.who) + '</div>' +
+          '<div><div class="meta"><span class="who">' + esc(a.who) + '</span> · ' + esc(c.name) + ' · ' + esc(a.time) + '</div>' +
           '<div class="atitle">' + esc(a.title) + '</div>' +
           '<div class="snip">' + esc(a.body) + '</div></div>' +
           '<button class="star' + (starred[a.id] ? " on" : "") + '" data-id="' + a.id + '" aria-label="Star">' + STAR + '</button>';
@@ -3659,7 +3631,7 @@
       COURSES.forEach(function (c) {
         if (match(c.name + " " + c.teacher)) {
           items.push({ kind: "Course", ic: SCREEN_IC.grades, label: c.name,
-            sub: c.teacher + " · " + bsgyPct(c.grade) + "% " + c.ltr,
+            sub: c.teacher + " · " + c.grade.toFixed(1) + "% " + c.ltr,
             action: function () { selectGrade(c.id); goScreen("grades"); } });
         }
       });
@@ -3675,10 +3647,9 @@
       // Announcements
       ANN.forEach(function (a) {
         var c = byId[a.cid];
-        var cn = c ? c.name : (a._course || "");
-        if (match(a.title + " " + a.who + " " + cn + " " + a.body)) {
+        if (match(a.title + " " + a.who + " " + c.name + " " + a.body)) {
           items.push({ kind: "Announcement", ic: SCREEN_IC.announcement, label: a.title,
-            sub: a.who + " · " + cn,
+            sub: a.who + " · " + c.name,
             action: function () { goScreen("announcements"); } });
         }
       });
@@ -3899,11 +3870,6 @@
     function markWelcomed() { try { localStorage.setItem(WELCOME_KEY, "1"); } catch (e) {} }
 
     function startTour(fromReplay) {
-      // Auto first-run welcome/tour is suppressed in the REAL extension build
-      // (chrome.storage.local exists). Manual "take the tour" calls pass
-      // fromReplay=true and are never blocked. In the demo (blob:) and file://
-      // preview chrome is undefined, so this guard is a no-op.
-      if (!fromReplay) { try { if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) return; } catch (e) {} }
       // close other overlays so the tour owns the screen
       closeSearch(); closeHelp();
       tourActive = true;
@@ -4348,177 +4314,86 @@
     })();
 
     // ============================================================
-    // Better SGY · apply real scraped grades (guarded; no-op on demo/file)
-    // Rebuilds the look's data arrays from LIVE using the baked sample only
-    // as a STYLE TEMPLATE for cosmetic fields the real data lacks. Every
-    // access is guarded so a malformed payload can't throw during render.
+    // LIVE DATA OVERRIDE (chrome.storage.local key "bsgy_live")
+    // Populates ONLY the OVERVIEW screen from real injected grades.
+    // Falls back to sample data if chrome.storage is absent/invalid.
     // ============================================================
-    function bsgyApplyLive(LIVE) {
+    function bsgyValidLive(d) {
+      return d && typeof d === "object" && typeof d.overall === "number" &&
+             Array.isArray(d.courses) && d.courses.length > 0;
+    }
+    function bsgySpark(pct, trend) {
+      var end = (typeof pct === "number") ? pct : 95;
+      var d = trend === "up" ? 2.0 : trend === "down" ? -2.0 : 0;
+      return [end - d, end - d * 0.7, end - d * 0.45, end - d * 0.25,
+              end - d * 0.12, end - d * 0.04, end];
+    }
+    function bsgyApplyLive() {
       try {
-        if (!LIVE || !Array.isArray(LIVE.courses) || !LIVE.courses.length) return;
-
-        var slugged = {};
-        function slugify(s, i) {
-          var base = String(s == null ? "" : s).toLowerCase()
-            .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-          if (!base) base = "c" + i;
-          var id = base, k = 2;
-          while (slugged[id]) { id = base + "-" + (k++); }
-          slugged[id] = true;
-          return id;
-        }
-        // initials from teacher name (first + last word); fallback to course name
-        function initialsFrom(teacher, courseName) {
-          var src = (teacher && String(teacher).trim()) ? teacher : courseName;
-          var p = String(src == null ? "" : src)
-            .replace(/^(Mr|Ms|Mrs|Mme|Coach|M|Dr|Prof|Professor)\.?\s+/i, "")
-            .trim().split(/\s+/).filter(Boolean);
-          if (!p.length) return "—";
-          var a = p[0][0] || "";
-          var b = p.length > 1 ? (p[p.length - 1][0] || "") : "";
-          return (a + b).toUpperCase() || "—";
-        }
-
-        // ---- COURSES (purely from LIVE; sample used only as style template) ----
-        var newCourses = LIVE.courses.map(function (lc, i) {
-          var name = (lc && lc.name) ? String(lc.name) : ("Course " + (i + 1));
-          var teacher = (lc && lc.teacher) ? String(lc.teacher) : "";
-          var pct = (lc && typeof lc.pct === "number" && isFinite(lc.pct)) ? lc.pct : null;
-          var letter = (lc && lc.letter) ? String(lc.letter) : "";
-          var missing = (lc && typeof lc.missing === "number" && lc.missing > 0) ? lc.missing : 0;
-          return {
-            id: slugify(name, i),
-            name: name,
-            teacher: teacher,
-            per: "",
-            grade: pct,                 // number | null → bsgyPct() renders "—"
-            ltr: letter,
-            trend: "flat",
-            missing: missing,
-            _initials: initialsFrom(teacher, name),
-            _assign: (lc && Array.isArray(lc.assignments)) ? lc.assignments : []
-          };
-        });
-
-        // reassign module-level data (declared with var, so reassignable)
-        COURSES = newCourses;
-        byId = {};
-        COURSES.forEach(function (c) { byId[c.id] = c; });
-
-        // ---- HISTORY: flat series at each course's pct + flat overall ----
-        var overall = (typeof LIVE.overall === "number" && isFinite(LIVE.overall)) ? LIVE.overall : null;
-        var flatN = (HIST && HIST.overall && HIST.overall.length) ? HIST.overall.length : 8;
-        function flat(v) {
-          var num = (typeof v === "number" && isFinite(v)) ? v
-                  : (overall != null ? overall : 90);
-          var a = []; for (var i = 0; i < flatN; i++) a.push(num); return a;
-        }
-        var newHist = { overall: flat(overall) };
-        COURSES.forEach(function (c) { newHist[c.id] = flat(c.grade); });
-        HIST = newHist;
-
-        // ---- GRADEBOOK rows from LIVE assignments ----
-        var newGB = {};
-        COURSES.forEach(function (c) {
-          var rows = (c._assign || []).map(function (a) {
-            a = a || {};
-            var score = "";
-            var sc = (a.score == null ? "" : String(a.score));
-            var mx = (a.max == null ? "" : String(a.max));
-            if (sc !== "" && mx !== "") score = sc + "/" + mx;
-            else if (sc !== "") score = sc;
-            else if (mx !== "") score = "—/" + mx;
-            var miss = !!a.missing;
-            var pct = miss ? "Missing" : (a.status ? String(a.status) : "");
-            return {
-              name: a.name ? String(a.name) : "Assignment",
-              cat: a.category ? String(a.category) : "",
-              date: a.due ? String(a.due) : "",
-              score: score,
-              pct: pct,
-              miss: miss
-            };
-          });
-          newGB[c.id] = { cats: [], rows: rows };
-        });
-        GB = newGB;
-
-        // ---- cross-course agenda (ASN) + calendar from LIVE assignments ----
-        var newAsn = [];
-        COURSES.forEach(function (c) {
-          (c._assign || []).forEach(function (a) {
-            a = a || {};
-            var miss = !!a.missing;
-            var hasScore = (a.score != null && String(a.score) !== "");
-            var state = miss ? "missing" : (hasScore ? "done" : "upcoming");
-            var score = hasScore && a.max != null && String(a.max) !== ""
-              ? (String(a.score) + "/" + String(a.max))
-              : (hasScore ? String(a.score) : "");
-            newAsn.push({
-              title: a.name ? String(a.name) : "Assignment",
-              cid: c.id,
-              due: a.due ? String(a.due) : "",
-              state: state,
-              score: score
+        if (!(window.chrome && chrome.storage && chrome.storage.local && chrome.storage.local.get)) return;
+        chrome.storage.local.get("bsgy_live", function (res) {
+          try {
+            var live = res && res.bsgy_live;
+            if (!bsgyValidLive(live)) return;
+            var PALETTE = ["#5b6cff", "#34c759", "#ff9f0a", "#bf5af2", "#0a84ff", "#30d158", "#ff375f", "#64d2ff"];
+            var totalMissing = 0;
+            var built = live.courses.map(function (c, i) {
+              c = (c && typeof c === "object") ? c : {};
+              var id = "lc" + i;
+              var nm = String(c.name == null ? ("Course " + (i + 1)) : c.name);
+              var tch = String(c.teacher == null ? "" : c.teacher);
+              var pct = (typeof c.pct === "number") ? c.pct : 0;
+              var trend = (c.trend === "up" || c.trend === "down" || c.trend === "flat") ? c.trend : "flat";
+              var miss = (typeof c.missing === "number" && c.missing >= 0) ? c.missing : 0;
+              totalMissing += miss;
+              HIST[id] = bsgySpark(pct, trend);
+              return {
+                id: id, name: nm, teacher: tch, per: "P" + (i + 1),
+                grade: pct, ltr: String(c.letter == null ? "" : c.letter),
+                trend: trend, missing: miss, accent: PALETTE[i % PALETTE.length]
+              };
             });
-          });
+            // mutate COURSES in place (it is captured by render fns)
+            COURSES.length = 0;
+            built.forEach(function (c) { COURSES.push(c); });
+            byId = {}; COURSES.forEach(function (c) { byId[c.id] = c; });
+            // synthesized rising overall series ending at the live overall
+            HIST.overall = bsgySpark(typeof live.overall === "number" ? live.overall : 0, "up");
+
+            var ov = (typeof live.overall === "number" ? live.overall : 0);
+            var ovStr = ov.toFixed(1);
+            var nC = COURSES.length;
+
+            var elOverall = $("#ovOverall");
+            if (elOverall) elOverall.innerHTML = ovStr + '<span class="pct">%</span>';
+            var elMeta = $("#ovCoursesMeta");
+            if (elMeta) elMeta.textContent = "across " + nC + " course" + (nC === 1 ? "" : "s");
+            var elCount = $("#ovCount");
+            if (elCount) elCount.textContent = String(nC);
+            var elNow = $("#ovNow");
+            if (elNow) elNow.textContent = ovStr + "% now";
+            var elSub = $("#ovSubln");
+            if (elSub) {
+              elSub.innerHTML = '<span class="dot"></span> ' +
+                (totalMissing > 0
+                  ? (totalMissing + " missing assignment" + (totalMissing === 1 ? "" : "s"))
+                  : "All caught up");
+            }
+            var elEye = $("#ovEyebrow");
+            if (elEye && typeof live.term === "string" && live.term) {
+              elEye.textContent = "Overall grade · " + live.term;
+            }
+
+            renderOverviewChart();
+            renderOverviewCourses();
+          } catch (e) { /* keep sample render */ }
         });
-        ASN = newAsn;
-        // calendar events are date-keyed off the sample dataset; with live data
-        // we have no reliable ISO dates → clear so the month renders empty (no throw).
-        EVENTS = {};
-
-        // ---- ANNOUNCEMENTS from LIVE (plain text body; look escapes it) ----
-        var la = Array.isArray(LIVE.announcements) ? LIVE.announcements : [];
-        ANN = la.map(function (a, i) {
-          a = a || {};
-          return {
-            id: i,
-            who: a.author ? String(a.author) : "",
-            cid: null,                  // resolved at render via _course
-            _course: a.courseName ? String(a.courseName) : "",
-            time: a.timeText ? String(a.timeText) : "",
-            title: a.courseName ? String(a.courseName) : "Announcement",
-            body: a.body ? String(a.body) : ""
-          };
-        });
-
-        // ---- header / sidebar / term labels ----
-        var pctText = (overall != null) ? overall.toFixed(1) : "—";
-        var nCourses = COURSES.length;
-        var heroNum = $(".ov-hero .grade .num");
-        if (heroNum) heroNum.innerHTML = pctText + '<span class="pct">%</span>';
-        var heroAcross = $(".ov-hero .grade .across");
-        if (heroAcross) heroAcross.textContent = "across " + nCourses + (nCourses === 1 ? " course" : " courses");
-        var chartNow = $(".chart-now");
-        if (chartNow) chartNow.textContent = pctText + "% now";
-        var ovCount = $(".section-head .count");
-        if (ovCount) ovCount.textContent = String(nCourses);
-        var sideMeta = $(".side-id .meta");
-        if (sideMeta) sideMeta.textContent = "Student · " + pctText + "%";
-        if (LIVE.term) {
-          var sideCtx = $(".side-id .ctx");
-          if (sideCtx) sideCtx.textContent = String(LIVE.term);
-          var gradesSub = $("#screen-grades .psub");
-          if (gradesSub) gradesSub.textContent = String(LIVE.term) + " · " + nCourses + (nCourses === 1 ? " course" : " courses");
-        }
-
-        // keep the grades screen pointed at a course that exists
-        if (!byId[curGrade] && COURSES[0]) curGrade = COURSES[0].id;
-
-        // nostalgia "current term" reflects live values
-        if (LIVE.term) CURRENT_TERM = String(LIVE.term);
-        if (overall != null) CURRENT_OVERALL = overall;
-      } catch (e) { /* malformed payload → leave baked sample data in place */ }
+      } catch (e) { /* keep sample render */ }
     }
 
     // ============================================================
     // INIT
     // ============================================================
-    (async function bsgyInit() {
-      var LIVE = await bsgyReadLive();   // null on demo (blob) + file:// preview
-      if (LIVE) bsgyApplyLive(LIVE);     // fully guarded; baked data stays put if null
-
     renderNostalgia();
     renderOverviewChart();
     renderOverviewCourses();
@@ -4534,7 +4409,9 @@
     applyTheme();
     // default assignments filter highlight
     $$("#asnSeg button").forEach(function (b) { b.classList.toggle("on", b.getAttribute("data-filter") === asnFilter); });
-    })();
+
+    // Override OVERVIEW with real injected grade data (async; sample already shown).
+    bsgyApplyLive();
 
     // ============================================================
     // ADDED · MOCKUP CONVENTIONS — active edition + deep linking

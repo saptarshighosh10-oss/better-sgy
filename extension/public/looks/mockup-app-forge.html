@@ -1,11 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>
-/* Better SGY: mirror this look's edition into chrome.storage so the extension
-   shell reopens straight to it on the next load. Additive; harmless on demo. */
-(function(){ try { if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) chrome.storage.local.set({ "bsgy-edition": "forge" }); } catch(e){} })();
-</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Cdefs%3E%3ClinearGradient id=%27sgy%27 x1=%270%27 y1=%270%27 x2=%270%27 y2=%271%27%3E%3Cstop offset=%270%27 stop-color=%27%237c6cfc%27/%3E%3Cstop offset=%271%27 stop-color=%27%235b3df0%27/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27url(%23sgy)%27/%3E%3Cpath d=%27M9 20.5L16 11L23 20.5%27 fill=%27none%27 stroke=%27white%27 stroke-width=%273.2%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
@@ -930,27 +925,10 @@ function nowTime(){ return NOW.toLocaleTimeString([], {hour:'numeric',minute:'2-
 // 1 -> "st", 2 -> "nd", etc.
 function ordinal(n){ const s=['th','st','nd','rd'], v=n%100; return s[(v-20)%10]||s[v]||s[0]; }
 
-/* ── Better SGY live-data bridge ──────────────────────────────────────────
-   Real extension build: this look is served from chrome-extension://, so
-   chrome.storage.local holds the user's scraped grades under 'bsgy_live'
-   (+ announcements under 'bs_announcements_cache'). Demo build (opaque blob)
-   and file:// preview have no chrome API → return null → baked sample data
-   below is used unchanged. Never throws. */
-async function bsgyReadLive(){
-  try{
-    if(typeof chrome==='undefined'||!chrome.storage||!chrome.storage.local) return null;
-    const r = await chrome.storage.local.get(['bsgy_live','bs_announcements_cache']);
-    const live = r && r.bsgy_live;
-    if(!live || !Array.isArray(live.courses) || live.courses.length===0) return null;
-    live.announcements = Array.isArray(r.bs_announcements_cache) ? r.bs_announcements_cache : [];
-    return live;
-  }catch(_){ return null; }
-}
-
 /* ============================================================
    DATA — courses + history straight from MOCKUP_DATA.md.
    ============================================================ */
-let COURSES = [
+const COURSES = [
   {id:'alg', name:'Algebra 2 / Trig', short:'Algebra 2/Trig', teacher:'Mr. Stubbs', per:'P1', subject:'Math',
    emoji:'📐', accent:'#5aa9e6', soft:'#e3f0fb', grade:97.4, ltr:'A', trend:'up', missing:0},
   {id:'bio', name:'Biology', short:'Biology', teacher:'Ms. Carrington', per:'P2', subject:'Science',
@@ -966,14 +944,12 @@ let COURSES = [
 ];
 const byId = id => COURSES.find(c => c.id === id);
 
-/* Overall % + term label shown across screens. Default to the baked sample
-   values; bsgyApplyLive() overwrites them in place when real data is present. */
-let OVERALL = 96.2;            // numeric average across classes
-let OVERALL_TXT = '96.2';     // pre-formatted string used in render strings
-let TERM_TXT = 'Semester 2';  // short term label where shown
-let CLASS_COUNT = 6;          // number of classes (for "across N classes")
+// live-injection holders (set by bsgyApplyLive when chrome.storage has real data)
+let LIVE_OVERALL = null;   // number | null
+let LIVE_TERM = null;      // string | null
+let LIVE_ON = false;       // true once real data replaces the sample
 
-let HISTORY = {
+const HISTORY = {
   overall:[94.2,94.6,94.9,95.3,95.6,95.9,96.0,96.2],
   alg:[92.0,93.0,94.0,95.0,95.5,96.3,97.0,97.4],
   bio:[96.0,96.4,96.2,96.8,96.5,96.9,96.6,96.7],
@@ -990,7 +966,7 @@ const WEEKS = (() => {
   return labels;
 })();
 
-let GRADEBOOK = {
+const GRADEBOOK = {
   alg:{cats:[['Tests',40,96.8],['Quizzes',25,97.5],['Homework',20,98.9],['Participation',15,100]],
     asg:[
       {nm:'HW 7.3 problems', cat:'Homework', date:'due today', score:'—/10', pct:'—', status:'due'},
@@ -1296,7 +1272,7 @@ const OV_SAY = {
 };
 function overallChartSVG(){
   const h=HISTORY.overall, n=h.length;
-  return `<svg viewBox="0 0 600 220" role="img" aria-label="overall grade rising to ${OVERALL_TXT} over semester 2">
+  return `<svg viewBox="0 0 600 220" role="img" aria-label="overall grade rising to 96.2 over semester 2">
     ${[17.5,70.33,122.67,175].map(y=>`<line class="grid" x1="50" y1="${y}" x2="580" y2="${y}"/>`).join('')}
     <text class="axy" x="42" y="20.5" text-anchor="end">100</text>
     <text class="axy" x="42" y="73.5" text-anchor="end">96</text>
@@ -1307,37 +1283,40 @@ function overallChartSVG(){
     <circle cx="${xmap(n-1,n).toFixed(1)}" cy="${ymap(h[n-1]).toFixed(2)}" r="5.5" fill="#4fb286"/>
     <circle cx="${xmap(n-1,n).toFixed(1)}" cy="${ymap(h[n-1]).toFixed(2)}" r="10" fill="#4fb286" opacity="0.16"/>
     <rect x="503" y="44" width="74" height="20" rx="10" fill="var(--ink)"/>
-    <text class="endlabel" x="540" y="58" text-anchor="middle" fill="#fff">now: ${OVERALL_TXT}%</text>
+    <text class="endlabel" x="540" y="58" text-anchor="middle" fill="#fff">now: 96.2%</text>
   </svg>`;
 }
 function viewOverview(){
   const cards = COURSES.map(c => {
-    const s = OV_SAY[c.id];
+    const s = OV_SAY[c.id] || bsgyCardSay(c);
     return `<div class="course" data-course="${c.id}" style="--dot:${c.accent};--soft:${c.soft}">
       <div class="crow">
         <div class="emoji">${c.emoji}</div>
-        <div class="cmeta"><div class="nm">${esc(c.name)}</div><div class="tc">${esc(c.teacher)} · ${c.per}</div></div>
+        <div class="cmeta"><div class="nm">${esc(c.name)}</div><div class="tc">${esc(c.teacher)}${c.per?(' · '+c.per):''}</div></div>
         ${sparkFor(c.id)}
         <div class="grade"><div class="g">${c.grade}<span class="pct">%</span></div><div class="lt">${c.ltr}</div></div>
       </div>
       <div class="say"><div class="q">${s.q}</div><p>${s.html}</p></div>
     </div>`;
   }).join('');
+  const ovNum = (LIVE_ON && typeof LIVE_OVERALL==='number') ? bsgyFmt(LIVE_OVERALL) : '96.2';
+  const whenLine = (LIVE_ON && LIVE_TERM) ? (esc(LIVE_TERM)+' · checked just now') : '2025–2026 · Freshman year · Semester 2 · checked just now';
+  const classCount = COURSES.length;
   return `
     <div class="hello"><div>
       <h1>Hey, here's where things are at</h1>
-      <div class="when">2025–2026 · Freshman year · Semester 2 · checked just now</div>
+      <div class="when">${whenLine}</div>
     </div>
     <button class="exportbtn" id="exportbtn" title="save this page as an image">🖼️ save as image</button>
     </div>
     <div class="hero">
       <div class="score">
         <span class="tag">on track ✶</span>
-        <div class="big">${OVERALL_TXT}<span class="pct">%</span></div>
-        <div class="cap">average across ${CLASS_COUNT} classes</div>
+        <div class="big">${ovNum}<span class="pct">%</span></div>
+        <div class="cap">average across ${classCount} ${classCount===1?'class':'classes'}</div>
       </div>
       <div class="herobub">
-        <div class="bubble tail"><span class="hl">${OVERALL_TXT}%</span> across all six classes. that's a really strong spot to be in.</div>
+        <div class="bubble tail"><span class="hl">${ovNum}%</span> across all ${classCount} ${classCount===1?'class':'classes'}. that's a really strong spot to be in.</div>
         <div class="bubble small">couple little things i want to point out, but nothing to stress about.</div>
       </div>
     </div>
@@ -1858,7 +1837,7 @@ function currentSnapshot(){
   return {
     id:CUR_TERM.id, term:CUR_TERM.label, year:CUR_TERM.year,
     capturedAt:`${MONTH_ABBR[NOW_MONTH]} ${NOW_YEAR}`, captured:Date.now(),
-    overall:OVERALL,
+    overall:96.2,
     courses:COURSES.map(c => ({id:c.id, name:c.name, short:c.short, emoji:c.emoji,
       accent:c.accent, soft:c.soft, grade:c.grade, ltr:c.ltr})),
   };
@@ -1951,7 +1930,7 @@ function viewNostalgia(){
       <div class="capico">📸</div>
       <div class="captx">
         <div class="capt">capture this term</div>
-        <div class="caps">${CUR_TERM.year} · ${CUR_TERM.label} · overall ${OVERALL_TXT}%</div>
+        <div class="caps">${CUR_TERM.year} · ${CUR_TERM.label} · overall 96.2%</div>
       </div>
       <button class="btn primary" id="capbtn">${captured?'recapture':'capture'} 📸</button>
     </div>
@@ -3211,134 +3190,92 @@ try{ localStorage.setItem('bsgy-edition','forge'); }catch(e){}
   }catch(e){}
 })();
 
-/* ── Better SGY: rebuild the data arrays from real scraped grades ──────────
-   Called once, before first paint, only when bsgyReadLive() returned a live
-   payload. Sample arrays above act purely as a STYLE TEMPLATE for cosmetic
-   fields the scrape doesn't carry (accent/soft/emoji palette, etc). Fully
-   guarded: any malformed field falls back to a safe default; never throws. */
-function bsgyApplyLive(LIVE){
+applyTheme();
+renderNav();
+renderScreen();
+wireGlobalKeys();
+
+/* ============================================================
+   LIVE DATA INJECTION (real grades from chrome.storage.local)
+   The extension writes key "bsgy_live":
+     { overall:number, term:string, courses:[{name,teacher,pct,letter,trend,missing}] }
+   Everything is wrapped in try/catch so a failure NEVER blanks the
+   page — we simply keep the sample data already rendered above.
+   ============================================================ */
+function bsgyValidLive(d){
+  return d && typeof d==="object" && typeof d.overall==="number"
+      && Array.isArray(d.courses) && d.courses.length>0;
+}
+function bsgyFmt(n){
+  if(typeof n!=="number" || !isFinite(n)) return "0";
+  return (Math.round(n*10)/10).toString();
+}
+// synthesize an 8-point rising/falling spark ending exactly at pct, leaning by trend
+function bsgySpark(pct,trend){
+  const end=(typeof pct==="number" && isFinite(pct))?pct:95;
+  const d=trend==="up"?2:trend==="down"?-2:0;
+  return [end-d,end-d*0.7,end-d*0.45,end-d*0.25,end-d*0.12,end-d*0.04,end-d*0.01,end];
+}
+// build a friendly note for a live course (replaces the hardcoded OV_SAY entries)
+function bsgyCardSay(c){
+  const miss=(typeof c.missing==="number")?c.missing:0;
+  if(c.trend==="up"){
+    return {q:'💬', html:'<span class="up">trending up</span> 📈'+(miss>0
+      ?(' but there '+(miss===1?'is ':'are ')+'<span class="miss">'+miss+' missing assignment'+(miss===1?'':'s')+'</span> to clear.')
+      :'<span class="add">nothing missing here — keep it going.</span>')};
+  }
+  if(c.trend==="down"){
+    return {q:'💬', html:'this one has <span class="wave">slipped a little</span> lately'+(miss>0
+      ?(' and there '+(miss===1?'is ':'are ')+'<span class="miss">'+miss+' missing assignment'+(miss===1?'':'s')+'</span>.')
+      :'.<span class="add">nothing missing though, so a good week brings it back.</span>')};
+  }
+  return {q:'💬', html:'holding <span class="hl">steady</span>'+(miss>0
+    ?(' — '+'<span class="miss">'+miss+' missing assignment'+(miss===1?'':'s')+'</span> worth a look.')
+    :'.<span class="add">all caught up, nothing missing.</span>')};
+}
+function bsgyApplyLive(){
   try{
-    if(!LIVE || !Array.isArray(LIVE.courses) || LIVE.courses.length===0) return;
-    // cosmetic palette borrowed from the sample courses, cycled by index
-    const PAL = [
-      {emoji:'📐', accent:'#5aa9e6', soft:'#e3f0fb'},
-      {emoji:'🧬', accent:'#4fb286', soft:'#e6f7ef'},
-      {emoji:'🥐', accent:'#ffb454', soft:'#fff1d6'},
-      {emoji:'🎭', accent:'#9b87f2', soft:'#ece7ff'},
-      {emoji:'📚', accent:'#ef6a9b', soft:'#ffe4ef'},
-      {emoji:'🏃', accent:'#4fb286', soft:'#e6f7ef'},
-    ];
-    const slug = (s,i) => {
-      const base = String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'').slice(0,8);
-      return (base || 'c') + (i+1);
-    };
-    const num = v => (typeof v==='number' && isFinite(v)) ? v : null;
-
-    // ── courses ──────────────────────────────────────────────────────────
-    const newCourses = LIVE.courses.map((lc, i) => {
-      const pal = PAL[i % PAL.length];
-      const pct = num(lc && lc.pct);
-      const nm  = String((lc && lc.name) || 'Course');
-      return {
-        id: slug(nm, i),
-        name: nm,
-        short: nm,
-        teacher: String((lc && lc.teacher) || ''),
-        per: '',
-        subject: '',
-        emoji: pal.emoji,
-        accent: pal.accent,
-        soft: pal.soft,
-        grade: pct===null ? '—' : pct,
-        ltr: String((lc && lc.letter) || ''),
-        trend: 'flat',
-        missing: num(lc && lc.missing) || 0,
-        _pctNum: pct===null ? 95 : pct,   // numeric anchor for chart/spark math
-      };
+    if(!(window.chrome && chrome.storage && chrome.storage.local && chrome.storage.local.get)) return;
+    chrome.storage.local.get("bsgy_live", function(res){
+      try{
+        const live = res && res.bsgy_live;
+        if(!bsgyValidLive(live)) return;  // invalid → keep sample data
+        const PALETTE  = ["#5aa9e6","#4fb286","#ffb454","#9b87f2","#ef6a9b","#5b6cff","#ff375f","#64d2ff"];
+        const SOFT     = ["#e3f0fb","#e6f7ef","#fff1d6","#ece7ff","#ffe4ef","#eef0ff","#ffe1e9","#e2f6ff"];
+        const EMOJI    = ["📘","🧪","🌍","🎭","📚","📐","🎨","🎵"];
+        const built = live.courses.map(function(c,i){
+          const id="lc"+i;
+          const nm=String(c.name==null?("Course "+(i+1)):c.name);
+          const pct=(typeof c.pct==="number" && isFinite(c.pct))?c.pct:0;
+          const trend=(c.trend==="up"||c.trend==="down"||c.trend==="flat")?c.trend:"flat";
+          const miss=(typeof c.missing==="number" && isFinite(c.missing))?Math.max(0,Math.round(c.missing)):0;
+          HISTORY[id]=bsgySpark(pct,trend);
+          return {
+            id:id, name:nm, short:nm,
+            teacher:String(c.teacher==null?"":c.teacher), per:"", subject:"",
+            emoji:EMOJI[i%EMOJI.length], accent:PALETTE[i%PALETTE.length], soft:SOFT[i%SOFT.length],
+            grade:Math.round(pct*10)/10, ltr:String(c.letter==null?"":c.letter), trend:trend, missing:miss
+          };
+        });
+        // swap in the live courses (mutate the const array in place)
+        COURSES.length=0; built.forEach(function(c){ COURSES.push(c); });
+        // synthesized rising overall series ending at the real overall %
+        HISTORY.overall=bsgySpark(typeof live.overall==="number"?live.overall:0,"up");
+        LIVE_OVERALL=live.overall;
+        LIVE_TERM=(typeof live.term==="string" && live.term.trim())?live.term.trim():null;
+        LIVE_ON=true;
+        // repaint ONLY if the overview is the current screen; otherwise it
+        // will reflect live data the next time it is rendered.
+        if(state.screen==='overview'){ renderScreen(); }
+      }catch(e){ /* swallow → keep sample data */ }
     });
-    COURSES = newCourses;
-
-    // ── history / trend: flat series at each course's pct (+ flat overall) ─
-    const flat = v => [v,v,v,v,v,v,v,v];
-    const ov = num(LIVE.overall);
-    HISTORY = { overall: flat(ov===null ? 0 : ov) };
-    COURSES.forEach(c => { HISTORY[c.id] = flat(c._pctNum); });
-
-    // ── per-course assignments (grades screen) ─────────────────────────────
-    GRADEBOOK = {};
-    LIVE.courses.forEach((lc, i) => {
-      const c = COURSES[i];
-      const rows = Array.isArray(lc && lc.assignments) ? lc.assignments : [];
-      const asg = rows.map(a => {
-        const miss = !!(a && a.missing);
-        const rawStatus = String((a && a.status) || '');
-        const status = miss ? 'missing' : (/due/i.test(rawStatus) ? 'due' : 'graded');
-        const score = String((a && a.score)!=null ? a.score : '—');
-        const max   = String((a && a.max)!=null ? a.max : '');
-        return {
-          nm: String((a && a.name) || 'Assignment'),
-          cat: String((a && a.category) || ''),
-          date: String((a && a.due) || ''),
-          score: max ? `${score}/${max}` : score,
-          pct: '—',           // scrape carries raw score/max, not a derived %
-          status,
-        };
-      });
-      GRADEBOOK[c.id] = { cats: [], asg, note: '' };
-      // every course must have a GRADE_CHART entry (aside string) so grades render
-      GRADE_CHART[c.id] = { refs: [], aside: '' };
-      OV_SAY[c.id] = { q:'💬', html:'' };
-    });
-
-    // ── announcements feed ────────────────────────────────────────────────
-    const anns = Array.isArray(LIVE.announcements) ? LIVE.announcements : [];
-    if(anns.length){
-      ANNOUNCEMENTS = anns.map(a => {
-        // attach to a course by name when possible, else the first course
-        const match = COURSES.find(c => c.name === (a && a.courseName)) || COURSES[0];
-        return {
-          cid: match ? match.id : (COURSES[0] && COURSES[0].id),
-          who: String((a && a.author) || (a && a.courseName) || ''),
-          tm: String((a && a.timeText) || ''),
-          star: false,
-          msg: String((a && a.body) || ''),
-        };
-      });
-    } else {
-      ANNOUNCEMENTS = [];
-    }
-
-    // ── term label + overall % ─────────────────────────────────────────────
-    if(typeof LIVE.term==='string' && LIVE.term.trim()) TERM_TXT = LIVE.term.trim();
-    CLASS_COUNT = COURSES.length;
-    if(ov!==null){ OVERALL = ov; OVERALL_TXT = (Math.round(ov*10)/10).toString(); }
-    else { OVERALL = null; OVERALL_TXT = '—'; }
-
-    // keep state pointing at a course that actually exists
-    if(!byId(state.gradeCourse) && COURSES[0]) state.gradeCourse = COURSES[0].id;
-  }catch(_){ /* malformed payload → leave sample data in place */ }
+  }catch(e){ /* swallow → keep sample data */ }
 }
-
-(async function bsgyBoot(){
-  const LIVE = await bsgyReadLive();   // null on demo blob + file:// preview
-  if(LIVE) bsgyApplyLive(LIVE);        // non-null → rebuild from real grades
-  applyTheme();
-  renderNav();
-  renderScreen();
-  wireGlobalKeys();
-  maybeAutoWelcome();
-})();
-// first-run welcome/tour auto-runs ONLY in the demo (opaque blob:) and file://
-// preview, where `chrome.storage.local` is absent. In the real extension build
-// it is suppressed — the user lands straight on the dashboard. The manual
-// "take the tour" control (settings + ? overlay) still works in every build.
-function maybeAutoWelcome(){
-  // real extension build → never auto-show; go straight to the dashboard.
-  try{ if(typeof chrome!=="undefined" && chrome.storage && chrome.storage.local) return; }catch(e){}
-  // demo / file:// preview → auto-run once per browser (WELCOME_KEY).
-  try{ if(localStorage.getItem(WELCOME_KEY)) return; }catch(e){}
-  startTour();
-}
+// async: runs AFTER the synchronous initial render above, so the page is
+// never blank even if chrome.storage is slow / undefined.
+bsgyApplyLive();
+// no auto-launch — the guided tour only auto-runs in the apple edition.
+// it stays available here via settings → "take the tour".
 </script>
 </body>
 </html>

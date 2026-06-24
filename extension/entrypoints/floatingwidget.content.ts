@@ -24,7 +24,7 @@ export default defineContentScript({
     const CARD_THEMES: Record<string, CardTheme> = {
       default: { bg: '#0e0e12', text: '#f5f5f7', card: '#1c1c1e', border: 'rgba(255,255,255,0.1)',  primary: '#3b82f6', fresh: '#34c759', failed: '#ff3b30', muted: 'rgba(235,235,245,0.45)' },
       apple:   { bg: '#ffffff', text: '#1d1d1f', card: '#f5f5f7', border: 'rgba(0,0,0,0.08)',        primary: '#0a84ff', fresh: '#34c759', failed: '#ff3b30', muted: '#6e6e73' },
-      halo:    { bg: '#0e1413', text: '#e8efed', card: '#16201d', border: 'rgba(255,255,255,0.09)',  primary: '#16a394', fresh: '#34c759', failed: '#ff6b6b', muted: 'rgba(232,239,237,0.5)' },
+      halo:    { bg: '#eef5ff', text: '#1c2c40', card: '#ffffff', border: 'rgba(74,127,208,0.12)',    primary: '#4a7fd0', fresh: '#34c759', failed: '#ff6b6b', muted: '#6e87a6' },
       slate:   { bg: '#ffffff', text: '#1a1a1a', card: '#f3f3f1', border: 'rgba(0,0,0,0.12)',        primary: '#1a1a1a', fresh: '#2f7d32', failed: '#b00020', muted: '#6b6b6b' },
       forge:   { bg: '#241c16', text: '#f5ece1', card: '#322820', border: 'rgba(255,255,255,0.09)',  primary: '#e07a3c', fresh: '#5cb85c', failed: '#e5533c', muted: 'rgba(245,236,225,0.5)' },
       carbon:  { bg: '#1f150d', text: '#f3e9da', card: '#241a12', border: 'rgba(255,255,255,0.08)',  primary: '#d68a3c', fresh: '#8fae6b', failed: '#c96a4e', muted: '#8a7860' },
@@ -181,7 +181,29 @@ export default defineContentScript({
             heroNumColor: t.text,
             eyebrowTransform: 'none',
           };
-        default: // 'default' and 'halo' keep their current look
+        case 'halo': // Cloud — soft sky + clouds, airy and rounded
+          return {
+            panelBg: 'rgba(243,248,255,0.9)',
+            panelBackdrop: 'saturate(160%) blur(26px)',
+            panelBorderL: '1px solid rgba(74,127,208,0.14)',
+            panelShadow: '-14px 0 54px rgba(74,127,208,0.2)',
+            pillRadius: '999px',
+            pillBg: 'rgba(255,255,255,0.92)',
+            pillBackdrop: 'saturate(160%) blur(16px)',
+            pillShadow: '0 2px 10px rgba(74,127,208,0.16),0 14px 34px -10px rgba(74,127,208,0.28)',
+            pillBorder: 'inset 0 0 0 1px rgba(74,127,208,0.12)',
+            markBg: 'linear-gradient(160deg,#8fd0f5,#4a7fd0)',
+            markRadius: '12px',
+            markColor: '#ffffff',
+            cardRadius: '20px',
+            cardBg: '#ffffff',
+            cardBorder: '1px solid rgba(74,127,208,0.10)',
+            cardShadow: '0 2px 10px rgba(74,127,208,0.10)',
+            rowStripe: true,
+            heroNumColor: '#4a7fd0',
+            eyebrowTransform: 'none',
+          };
+        default: // 'default' fallback
           return {
             panelBg: t.bg,
             panelBackdrop: 'none',

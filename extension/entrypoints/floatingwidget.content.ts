@@ -59,6 +59,182 @@ export default defineContentScript({
     const lookIcon = () => LOOK_ICON[curLook] ?? LOOK_ICON.default;
     let theme: CardTheme = { ...CARD_THEMES.default };
 
+    // ── Per-look SKIN — the visual "material" each look adopts from its mockup ──
+    // These describe surface/material, corner radii, header treatment, row styling,
+    // accent shapes and shadows so the card faithfully matches its portable-widget
+    // MOCKUP. The render* helpers below branch off `curLook` via skin().
+    type Skin = {
+      // panel surface
+      panelBg: string;            // background (may be gradient/blur paint)
+      panelBackdrop: string;      // backdrop-filter (frosted looks)
+      panelBorderL: string;       // leading-edge border treatment
+      panelShadow: string;        // panel drop shadow
+      // pill (button)
+      pillRadius: string;
+      pillBg: string;
+      pillBackdrop: string;
+      pillShadow: string;
+      pillBorder: string;         // box-shadow ring used as a border
+      markBg: string;             // mark/badge background paint
+      markRadius: string;
+      markColor: string;          // ink color inside the mark
+      // cards / rows
+      cardRadius: string;
+      cardBg: string;
+      cardBorder: string;         // CSS border for cards (or 'none')
+      cardShadow: string;
+      rowStripe: boolean;         // colored leading stripe per activity row
+      // hero
+      heroNumColor: string;
+      // misc
+      eyebrowTransform: string;   // text-transform for eyebrow/section labels
+    };
+    function skin(): Skin {
+      const t = theme;
+      switch (curLook) {
+        case 'apple':
+          return {
+            panelBg: 'rgba(255,255,255,0.86)',
+            panelBackdrop: 'saturate(180%) blur(28px)',
+            panelBorderL: '1px solid rgba(0,0,0,0.08)',
+            panelShadow: '-12px 0 50px rgba(0,0,0,0.22)',
+            pillRadius: '980px',
+            pillBg: '#ffffff',
+            pillBackdrop: 'none',
+            pillShadow: '0 1px 2px rgba(0,0,0,0.05),0 10px 34px rgba(0,0,0,0.16)',
+            pillBorder: 'inset 0 0 0 1px rgba(0,0,0,0.08)',
+            markBg: 'linear-gradient(150deg,#0071e3,#5b6cff)',
+            markRadius: '9px',
+            markColor: '#ffffff',
+            cardRadius: '18px',
+            cardBg: '#ffffff',
+            cardBorder: '1px solid rgba(0,0,0,0.045)',
+            cardShadow: '0 1px 2px rgba(0,0,0,0.03),0 6px 20px rgba(0,0,0,0.04)',
+            rowStripe: true,
+            heroNumColor: t.text,
+            eyebrowTransform: 'uppercase',
+          };
+        case 'slate':
+          return {
+            panelBg: '#ffffff',
+            panelBackdrop: 'none',
+            panelBorderL: '3px solid #000',
+            panelShadow: '-8px 0 0 #000, -10px 0 30px rgba(0,0,0,0.18)',
+            pillRadius: '0px',
+            pillBg: '#ffffff',
+            pillBackdrop: 'none',
+            pillShadow: '5px 5px 0 #000',
+            pillBorder: 'inset 0 0 0 2px #000',
+            markBg: '#000000',
+            markRadius: '0px',
+            markColor: '#ffffff',
+            cardRadius: '0px',
+            cardBg: '#ffffff',
+            cardBorder: '1px solid #000',
+            cardShadow: 'none',
+            rowStripe: false,
+            heroNumColor: t.text,
+            eyebrowTransform: 'uppercase',
+          };
+        case 'forge':
+          return {
+            panelBg: `${t.bg} radial-gradient(circle at 12% 4%,rgba(255,180,84,0.12),transparent 42%),radial-gradient(circle at 96% 0%,rgba(155,135,242,0.10),transparent 40%)`,
+            panelBackdrop: 'none',
+            panelBorderL: '1.5px solid #ece0cd',
+            panelShadow: '-18px 0 60px rgba(80,50,15,0.32)',
+            pillRadius: '30px',
+            pillBg: '#fffdf9',
+            pillBackdrop: 'none',
+            pillShadow: '0 14px 34px -14px rgba(120,80,30,0.55),0 3px 0 rgba(214,140,70,0.16)',
+            pillBorder: 'inset 0 0 0 1.5px #ece0cd',
+            markBg: 'radial-gradient(circle at 35% 30%,#ffd98a,#ff9d5c)',
+            markRadius: '50%',
+            markColor: '#ffffff',
+            cardRadius: '16px',
+            cardBg: '#fffdf9',
+            cardBorder: '1.5px solid #ece0cd',
+            cardShadow: '0 6px 16px -16px rgba(120,80,30,0.5)',
+            rowStripe: true,
+            heroNumColor: t.text,
+            eyebrowTransform: 'lowercase',
+          };
+        case 'carbon':
+          // Woody walnut + honey-amber, fully rounded, organic. Leaves added separately.
+          return {
+            panelBg: `${t.bg} radial-gradient(circle at 14% 6%,rgba(214,138,60,0.14),transparent 44%),radial-gradient(circle at 92% 2%,rgba(143,174,107,0.10),transparent 40%)`,
+            panelBackdrop: 'none',
+            panelBorderL: '1.5px solid rgba(214,138,60,0.28)',
+            panelShadow: '-18px 0 60px rgba(40,24,8,0.45)',
+            pillRadius: '999px',
+            pillBg: 'linear-gradient(160deg,#2a1d12,#241a12)',
+            pillBackdrop: 'none',
+            pillShadow: '0 14px 34px -12px rgba(20,12,4,0.65),0 3px 0 rgba(143,174,107,0.18)',
+            pillBorder: 'inset 0 0 0 1.5px rgba(214,138,60,0.3)',
+            markBg: 'radial-gradient(circle at 35% 30%,#f0b566,#d68a3c)',
+            markRadius: '50%',
+            markColor: '#241a12',
+            cardRadius: '20px',
+            cardBg: '#2a1d12',
+            cardBorder: '1.5px solid rgba(214,138,60,0.18)',
+            cardShadow: '0 8px 22px -16px rgba(20,12,4,0.7)',
+            rowStripe: false,
+            heroNumColor: t.text,
+            eyebrowTransform: 'none',
+          };
+        default: // 'default' and 'halo' keep their current look
+          return {
+            panelBg: t.bg,
+            panelBackdrop: 'none',
+            panelBorderL: 'none',
+            panelShadow: '-4px 0 32px rgba(0,0,0,0.3)',
+            pillRadius: lookId().radius + 'px',
+            pillBg: t.bg,
+            pillBackdrop: 'none',
+            pillShadow: '0 6px 28px rgba(0,0,0,0.5),0 0 0 1.5px rgba(255,255,255,0.1)',
+            pillBorder: 'none',
+            markBg: t.primary || t.text,
+            markRadius: curLook === 'halo' ? '11px' : '9px',
+            markColor: t.bg,
+            cardRadius: '16px',
+            cardBg: t.card,
+            cardBorder: 'none',
+            cardShadow: 'none',
+            rowStripe: false,
+            heroNumColor: t.text,
+            eyebrowTransform: 'uppercase',
+          };
+      }
+    }
+
+    // A stable per-course accent color for the activity-row stripe (Apple/Forge).
+    const ROW_ACCENTS = ['#5b6cff', '#34c759', '#ff9f0a', '#bf5af2', '#0a84ff', '#30d158'];
+    const accentFor = (key: string) => {
+      let h = 0;
+      for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0;
+      return ROW_ACCENTS[h % ROW_ACCENTS.length];
+    };
+
+    // Carbon's signature: small leaves sprouting from the top edge of a surface,
+    // each with a slightly different sway phase/base tilt so they don't move in
+    // lockstep. Returns an absolutely-positioned overlay (parent must be relative).
+    function carbonLeavesHtml(): string {
+      if (curLook !== 'carbon') return '';
+      const leaf = (cx: number, base: number, delay: number, scale: number, dark: boolean) => {
+        const fill = dark ? '#6f8f4e' : '#8fae6b';
+        return `<span class="bs-leaf" style="position:absolute;left:${cx}px;top:-13px;width:18px;height:20px;--leaf-base:${base}deg;animation-delay:${delay}s;transform:scale(${scale});">
+          <svg viewBox="0 0 24 28" width="18" height="20" style="display:block;overflow:visible;">
+            <path d="M12 28 C2 18 2 6 12 0 C22 6 22 18 12 28 Z" fill="${fill}"/>
+            <path d="M12 26 L12 4" stroke="rgba(40,24,8,0.35)" stroke-width="1" fill="none"/>
+          </svg>
+        </span>`;
+      };
+      return `<div aria-hidden="true" style="position:absolute;left:14px;right:14px;top:0;height:0;pointer-events:none;z-index:1;">
+        ${leaf(8, -18, 0, 0.9, false)}
+        ${leaf(34, 6, 0.7, 1, true)}
+        ${leaf(58, -8, 1.4, 0.85, false)}
+      </div>`;
+    }
+
     // ── Button — a compact rounded-rectangle "grade card" ──────────────────────
     const btn = document.createElement('button');
     btn.id = 'bs-float-btn';
@@ -73,8 +249,11 @@ export default defineContentScript({
       boxShadow: '0 6px 28px rgba(0,0,0,0.5),0 0 0 1.5px rgba(255,255,255,0.1)',
       overflow: 'hidden',
     });
-    btn.onmouseenter = () => { btn.style.transform = 'translateY(-3px) scale(1.03)'; btn.style.boxShadow = '0 12px 36px rgba(0,0,0,0.55),0 0 0 1.5px rgba(255,255,255,0.18)'; };
-    btn.onmouseleave = () => { btn.style.transform = 'none'; btn.style.boxShadow = '0 6px 28px rgba(0,0,0,0.5),0 0 0 1.5px rgba(255,255,255,0.1)'; };
+    // Hover/press lift. Shadow tracks the current look's skin (set in loadTheme),
+    // so we don't clobber it with the dark-default ring; we just lift on hover.
+    const restShadow = () => { const s = skin(); return s.pillBorder === 'none' ? s.pillShadow : `${s.pillShadow},${s.pillBorder}`; };
+    btn.onmouseenter = () => { btn.style.transform = 'translateY(-3px) scale(1.03)'; };
+    btn.onmouseleave = () => { btn.style.transform = 'none'; btn.style.boxShadow = restShadow(); };
     btn.onmousedown = () => { btn.style.transform = 'scale(0.96)'; };
     btn.onmouseup   = () => { btn.style.transform = 'translateY(-3px) scale(1.03)'; };
     document.body.appendChild(btn);
@@ -151,6 +330,8 @@ export default defineContentScript({
     document.body.appendChild(panel);
 
     // Shimmer keyframe (panel lives in the page, not the extension's GlobalStyles).
+    // Also: Carbon's leaf-sway keyframes — a gentle, continuous sine-like wiggle so
+    // the leaves sprouting from the card edge sway like they're in a light breeze.
     const skelStyle = document.createElement('style');
     skelStyle.textContent = `
       @keyframes bsSkelFW { 0% { background-position:-180% 0; } 100% { background-position:180% 0; } }
@@ -159,7 +340,16 @@ export default defineContentScript({
         background-image: linear-gradient(90deg, rgba(128,128,128,0) 0%, rgba(128,128,128,0.16) 20%, rgba(128,128,128,0.28) 50%, rgba(128,128,128,0.16) 80%, rgba(128,128,128,0) 100%);
         background-size: 180% 100%; background-repeat: no-repeat;
         opacity: 0.55; animation: bsSkelFW 1.4s ease-in-out infinite;
-      }`;
+      }
+      @keyframes bsLeafSway {
+        0%   { transform: rotate(var(--leaf-base,0deg)); }
+        25%  { transform: rotate(calc(var(--leaf-base,0deg) + 7deg)); }
+        50%  { transform: rotate(var(--leaf-base,0deg)); }
+        75%  { transform: rotate(calc(var(--leaf-base,0deg) - 6deg)); }
+        100% { transform: rotate(var(--leaf-base,0deg)); }
+      }
+      .bs-leaf { transform-origin: 50% 100%; animation: bsLeafSway 4.2s ease-in-out infinite; will-change: transform; }
+      @media (prefers-reduced-motion: reduce) { .bs-leaf { animation: none; } }`;
     (document.head ?? document.documentElement).appendChild(skelStyle);
 
     // ── State + toggle ────────────────────────────────────────────────────────
@@ -246,7 +436,7 @@ export default defineContentScript({
       const avg = pcts.length ? pcts.reduce((s,p) => s+p, 0)/pcts.length : null;
       const latest = changes.find(e => e.kind === 'grade') as Extract<ChangeEvent,{kind:'grade'}> | undefined;
       const hasDrop = changes.some(e => e.kind === 'grade' && e.delta < 0);
-      const accent = theme.primary || theme.text;
+      const s = skin();
 
       // Small delta chip (▲/▼) shown only when there's a recent grade move.
       const deltaChip = latest ? `
@@ -255,21 +445,27 @@ export default defineContentScript({
           ${latest.delta>=0?'▲':'▼'}${Math.abs(latest.delta).toFixed(1)}
         </span>` : '';
 
+      // Slate divides mark from text with a thin rule and uppercases the label.
+      const slate = curLook === 'slate';
+      const gradesLabel = slate ? 'GRADES' : (curLook === 'forge' ? 'grades' : 'GRADES');
+
       btn.innerHTML = `
+        ${carbonLeavesHtml()}
         <span style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;flex-shrink:0;
-          border-radius:${curLook==='slate'?'5px':curLook==='apple'||curLook==='halo'?'11px':'9px'};background:${accent};color:${theme.bg};">
+          border-radius:${s.markRadius};background:${s.markBg};color:${s.markColor};box-shadow:${slate?'none':'0 1px 2px rgba(0,0,0,.14)'};">
           ${lookIcon()}
         </span>
+        ${slate ? `<span style="width:1px;align-self:stretch;background:rgba(0,0,0,0.15);margin:2px 0;"></span>` : ''}
         <span style="display:flex;flex-direction:column;gap:3px;align-items:flex-start;line-height:1;">
           <span style="font-size:18px;font-weight:750;font-variant-numeric:tabular-nums;line-height:1;color:${theme.text};">
             ${avg !== null ? avg.toFixed(1)+'%' : '—'}
           </span>
           <span style="display:flex;align-items:center;gap:5px;">
-            <span style="font-size:9px;font-weight:600;letter-spacing:0.05em;color:${theme.muted};line-height:1;">GRADES</span>
+            <span style="font-size:9px;font-weight:600;letter-spacing:${slate?'0.16em':'0.05em'};text-transform:${s.eyebrowTransform};color:${theme.muted};line-height:1;">${gradesLabel}</span>
             ${deltaChip}
           </span>
         </span>
-        ${hasDrop ? `<span style="position:absolute;top:-3px;right:-3px;width:12px;height:12px;border-radius:50%;background:${theme.failed};border:2.5px solid ${theme.bg};"></span>` : ''}
+        ${hasDrop ? `<span style="position:absolute;top:-3px;right:-3px;width:12px;height:12px;border-radius:50%;background:${theme.failed};border:2.5px solid ${theme.bg};z-index:2;"></span>` : ''}
       `;
       btn.style.position = 'fixed';
     }
@@ -305,40 +501,124 @@ export default defineContentScript({
     type Announcement = Awaited<ReturnType<typeof loadCachedAnnouncements>>[number];
     type Watch = Awaited<ReturnType<typeof loadWatchStatus>>;
 
-    const sectionLabelHtml = (txt: string) =>
-      `<div style="font-size:11px;font-weight:600;letter-spacing:0.04em;color:${theme.muted};margin:28px 2px 10px;text-transform:uppercase;">${txt}</div>`;
+    const sectionLabelHtml = (txt: string) => {
+      const tr = skin().eyebrowTransform;
+      const shown = tr === 'lowercase' ? txt.toLowerCase() : txt;
+      return `<div style="font-size:11px;font-weight:${curLook==='slate'||curLook==='forge'?'700':'600'};letter-spacing:${curLook==='slate'?'0.2em':'0.04em'};color:${theme.muted};margin:28px 2px 10px;text-transform:${tr};">${shown}</div>`;
+    };
 
     // Big overall-average number + "checked N ago" subtitle at the top of the panel.
+    // Per-look: Slate is a serif masthead with a kicker + italic %, Forge wraps the
+    // number in a cream card with an "on track" tag, Carbon a warm walnut figure,
+    // Apple/default a clean large number.
     function renderHeroHtml(avg: number | null, count: number, watch: Watch): string {
       const t = theme;
+      const s = skin();
+      const numStr = avg !== null ? avg.toFixed(1) : '—';
+      const sub = `Overall average · ${count} course${count===1?'':'s'}${watch ? ` · checked ${ago(watch.ts)}` : ''}`;
+      const closeBtn = `<button id="bs-close" style="all:unset;cursor:pointer;font-size:18px;color:${t.muted};line-height:1;padding:4px 6px;">✕</button>`;
+
+      if (curLook === 'slate') {
+        return `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:3px solid #000;">
+              <span style="font-family:inherit;font-weight:700;font-size:24px;letter-spacing:-0.025em;color:${t.text};">${esc(lookId().eyebrow)}</span>
+              <button id="bs-close" style="all:unset;cursor:pointer;font-family:inherit;font-size:24px;color:${t.muted};line-height:1;">✕</button>
+            </div>
+            <div style="padding:0 2px 16px;border-bottom:1px solid #000;margin-bottom:6px;">
+              <span style="display:block;font-family:Helvetica,Arial,sans-serif;font-size:10px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:${t.muted};margin-bottom:8px;">Overall Average</span>
+              <div style="font-weight:700;font-size:72px;line-height:0.84;letter-spacing:-0.04em;font-variant-numeric:tabular-nums;color:${t.text};">
+                ${numStr}<span style="font-size:0.28em;font-weight:400;font-style:italic;color:${t.muted};margin-left:0.08em;">${avg!==null?'%':''}</span>
+              </div>
+              <div style="font-style:italic;font-size:13px;line-height:1.5;color:${t.text};margin-top:13px;">${sub}</div>
+            </div>`;
+      }
+
+      if (curLook === 'forge') {
+        return `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+              <span style="font-size:13px;font-weight:800;color:${t.text};">${esc(lookId().eyebrow)}</span>
+              ${closeBtn}
+            </div>
+            <div style="position:relative;background:${s.cardBg};border:${s.cardBorder};border-radius:20px;padding:16px 18px;box-shadow:${s.cardShadow};">
+              <span style="position:absolute;top:-10px;right:14px;background:${t.fresh};color:#fff;font-size:11px;font-weight:800;padding:3px 11px;border-radius:18px;box-shadow:0 5px 12px -3px rgba(79,178,134,0.55);transform:rotate(3deg);">on track ✶</span>
+              <div style="font-size:46px;font-weight:800;line-height:1;letter-spacing:-0.03em;color:${t.text};">
+                ${numStr}<span style="font-size:20px;color:${t.muted};">${avg!==null?'%':''}</span>
+              </div>
+              <div style="font-size:12.5px;color:${t.muted};font-weight:700;margin-top:6px;">${sub}</div>
+            </div>`;
+      }
+
+      if (curLook === 'carbon') {
+        return `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+              <span style="font-size:11px;font-weight:600;letter-spacing:0.05em;color:${t.muted};">${esc(lookId().eyebrow)}</span>
+              ${closeBtn}
+            </div>
+            <div style="position:relative;background:${s.cardBg};border:${s.cardBorder};border-radius:24px;padding:18px 20px;box-shadow:${s.cardShadow};overflow:visible;">
+              ${carbonLeavesHtml()}
+              <div style="font-size:48px;font-weight:700;letter-spacing:-0.02em;line-height:1;font-variant-numeric:tabular-nums;color:${t.text};">
+                ${numStr}<span style="font-size:22px;font-weight:500;color:${t.muted};">${avg!==null?'%':''}</span>
+              </div>
+              <div style="font-size:12px;color:${t.muted};margin-top:8px;">${sub}</div>
+            </div>`;
+      }
+
+      // Apple / Cloud / default
       return `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
-            <span style="font-size:11px;font-weight:600;letter-spacing:${curLook==='slate'?'0.16em':'0.05em'};color:${t.muted};">${lookId().eyebrow}</span>
-            <button id="bs-close" style="all:unset;cursor:pointer;font-size:18px;color:${t.muted};line-height:1;padding:4px 6px;">✕</button>
+            <span style="font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:${s.eyebrowTransform};color:${t.muted};">${esc(lookId().eyebrow)}</span>
+            ${closeBtn}
           </div>
           <div style="padding:0 2px;">
-            <div style="font-size:48px;font-weight:700;letter-spacing:-0.02em;line-height:1;font-variant-numeric:tabular-nums;color:${t.text};">
-              ${avg !== null ? avg.toFixed(1) : '—'}<span style="font-size:22px;font-weight:500;color:${t.muted};">${avg !== null ? '%' : ''}</span>
+            <div style="font-size:${curLook==='apple'?'58px':'48px'};font-weight:${curLook==='apple'?'600':'700'};letter-spacing:-0.03em;line-height:1;font-variant-numeric:tabular-nums;color:${s.heroNumColor};">
+              ${numStr}<span style="font-size:22px;font-weight:500;color:${t.muted};">${avg !== null ? '%' : ''}</span>
             </div>
-            <div style="font-size:12px;color:${t.muted};margin-top:8px;">Overall average · ${count} course${count===1?'':'s'}${watch ? ` · checked ${ago(watch.ts)}` : ''}</div>
+            <div style="font-size:12px;color:${t.muted};margin-top:8px;">${sub}</div>
           </div>`;
     }
 
     // One row in the "Recent activity" list (grade move / graded / new item).
+    // Styling adopts the active look's mockup: Apple/Forge get a colored leading
+    // stripe (and Forge a soft emoji-ish dot), Slate renders ruled serif "briefs"
+    // with a black "New" tag, the rest stay clean.
     function renderActivityRowHtml(e: ChangeEvent, last: boolean): string {
       const t = theme;
+      const s = skin();
+      const courseKey = e.kind === 'grade' ? e.course : e.course;
+      const accent = accentFor(courseKey);
       const title = e.kind === 'grade' ? esc(e.course) : esc(e.name);
       const sub = e.kind === 'grade' ? `${e.oldPct?.toFixed(1)} → ${e.newPct?.toFixed(1)}% · ${ago(e.ts)}`
         : e.kind === 'graded' ? `Graded · ${esc(e.course)} · ${ago(e.ts)}`
         : `New · ${esc(e.course)} · ${ago(e.ts)}`;
       const endColor = e.kind === 'grade' ? (e.delta >= 0 ? t.fresh : t.failed) : t.text;
+      const isNew = e.kind === 'new-assignment';
       const end = e.kind === 'grade' ? `${e.delta >= 0 ? '+' : ''}${e.delta.toFixed(1)}%`
         : e.kind === 'graded' && e.pct !== null ? `${e.pct.toFixed(0)}%` : '';
-      return `<div style="display:flex;align-items:center;gap:10px;padding:13px 16px;${last?'':'border-bottom:1px solid '+t.border};">
+
+      // ── Slate: ruled serif "brief" ──
+      if (curLook === 'slate') {
+        const endHtml = isNew
+          ? `<span style="font-size:9px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;border:1px solid #000;background:#000;color:#fff;padding:3px 7px 2px;line-height:1.2;">New</span>`
+          : end ? `<span style="font-family:inherit;font-weight:700;font-size:15px;color:${endColor};font-variant-numeric:tabular-nums;">${end}</span>` : '';
+        return `<div style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:12px 16px;${last?'':'border-bottom:1px solid rgba(0,0,0,0.15)'};">
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:700;font-size:15px;line-height:1.2;letter-spacing:-0.01em;color:${t.text};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${title}</div>
+              <div style="font-family:Helvetica,Arial,sans-serif;font-size:10.5px;letter-spacing:0.03em;color:${t.muted};margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${sub}</div>
+            </div>
+            ${endHtml ? `<div style="flex-shrink:0;text-align:right;white-space:nowrap;">${endHtml}</div>` : ''}
+          </div>`;
+      }
+
+      // ── Apple / Forge / Carbon: leading colored stripe ──
+      const stripe = s.rowStripe || curLook === 'carbon'
+        ? `<span style="width:3px;align-self:stretch;border-radius:3px;flex-shrink:0;background:${accent};"></span>`
+        : '';
+      const endHtml = isNew
+        ? `<span style="font-size:11px;font-weight:600;color:${theme.primary};background:${theme.primary}1a;border-radius:999px;padding:3px 9px;flex-shrink:0;">New</span>`
+        : end ? `<span style="font-size:13px;font-weight:600;color:${endColor};flex-shrink:0;font-variant-numeric:tabular-nums;">${end}</span>` : '';
+      return `<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;${last?'':'border-bottom:1px solid '+t.border};">
+          ${stripe}
           <div style="flex:1;min-width:0;">
-            <div style="font-size:13px;font-weight:500;color:${t.text};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${title}</div>
+            <div style="font-size:${curLook==='forge'?'13.5px':'14px'};font-weight:${curLook==='forge'?'800':'500'};letter-spacing:-0.01em;color:${t.text};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${title}</div>
             <div style="font-size:11px;color:${t.muted};margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${sub}</div>
           </div>
-          ${end ? `<span style="font-size:13px;font-weight:600;color:${endColor};flex-shrink:0;font-variant-numeric:tabular-nums;">${end}</span>` : ''}
+          ${endHtml}
         </div>`;
     }
 
@@ -383,23 +663,32 @@ export default defineContentScript({
         const label = c.name.length > 16 ? c.name.slice(0, 16) + '…' : c.name;
         return `<button class="bs-course-tab" data-course="${esc(c.name)}" style="all:unset;cursor:pointer;font-size:11px;white-space:nowrap;padding-bottom:5px;flex-shrink:0;font-weight:${active?'600':'400'};color:${active?t.text:t.muted};border-bottom:2px solid ${active?t.text:'transparent'};">${esc(label)}</button>`;
       }).join('');
+      const s = skin();
+      const border = s.cardBorder === 'none' ? '' : `border:${s.cardBorder};`;
+      const shadow = s.cardShadow === 'none' ? '' : `box-shadow:${s.cardShadow};`;
       return `
         ${sectionLabelHtml('Grade over time')}
         <div style="display:flex;gap:16px;overflow-x:auto;padding:0 2px 2px;margin-bottom:12px;">${courseTabs}</div>
-        <div style="border-radius:16px;background:${t.card};padding:16px 16px 12px;">
+        <div style="border-radius:${s.cardRadius};background:${s.cardBg};${border}${shadow}padding:16px 16px 12px;">
           <div style="display:flex;align-items:baseline;justify-content:space-between;">
-            <span style="font-size:13px;font-weight:500;color:${t.text};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(selCourse.name)}</span>
-            <span style="font-size:13px;font-weight:600;color:${t.text};font-variant-numeric:tabular-nums;flex-shrink:0;">${parseGradeString(selCourse.grade).percent?.toFixed(1) ?? '—'}%</span>
+            <span style="font-size:13px;font-weight:${curLook==='slate'||curLook==='forge'?'700':'500'};color:${t.text};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(selCourse.name)}</span>
+            <span style="font-size:13px;font-weight:700;color:${t.text};font-variant-numeric:tabular-nums;flex-shrink:0;">${parseGradeString(selCourse.grade).percent?.toFixed(1) ?? '—'}%</span>
           </div>
           ${trendSvg(computeSemesterTrend(selCourse))}
         </div>`;
     }
 
-    // A rounded "card" list: rows when non-empty, otherwise a centered hint.
+    // A "card" list: rows when non-empty, otherwise a centered hint. Surface
+    // (radius/border/shadow) follows the active look's skin so the card matches
+    // its mockup — Apple's soft white tile, Slate's hard black box, Forge's cream
+    // card, Carbon's rounded walnut panel.
     function renderListCardHtml(rowsHtml: string, emptyText: string): string {
       const t = theme;
+      const s = skin();
       const body = rowsHtml || `<div style="padding:22px 16px;font-size:13px;color:${t.muted};text-align:center;line-height:1.5;">${emptyText}</div>`;
-      return `<div style="border-radius:16px;overflow:hidden;background:${t.card};">${body}</div>`;
+      const border = s.cardBorder === 'none' ? '' : `border:${s.cardBorder};`;
+      const shadow = s.cardShadow === 'none' ? '' : `box-shadow:${s.cardShadow};`;
+      return `<div style="border-radius:${s.cardRadius};overflow:hidden;background:${s.cardBg};${border}${shadow}">${body}</div>`;
     }
 
     // "Card look" picker: a "Match site" pill + one swatch per look. Selecting a
@@ -501,15 +790,29 @@ export default defineContentScript({
       curLook = look;
       theme = { ...CARD_THEMES[look] ?? CARD_THEMES.default };
       const id = lookId();
-      btn.style.background = theme.bg;
+      const s = skin();
+      // ── Pill (button) surface, per the look's mockup material ──
+      btn.style.background = s.pillBg;
       btn.style.color = theme.text;
       btn.style.fontFamily = id.font;
-      btn.style.borderRadius = id.radius + 'px';
-      panel.style.background = theme.bg;
+      btn.style.borderRadius = s.pillRadius;
+      btn.style.boxShadow = s.pillBorder === 'none' ? s.pillShadow : `${s.pillShadow},${s.pillBorder}`;
+      (btn.style as CSSStyleDeclaration).backdropFilter = s.pillBackdrop;
+      (btn.style as unknown as { webkitBackdropFilter: string }).webkitBackdropFilter = s.pillBackdrop;
+      // Carbon's leaves sprout past the pill edge, so it can't clip its overflow.
+      btn.style.overflow = curLook === 'carbon' ? 'visible' : 'hidden';
+      // ── Panel surface ──
+      panel.style.background = s.panelBg;
       panel.style.color = theme.text;
       panel.style.fontFamily = id.font;
-      // Apple & Cloud round the panel's leading edge like a phone; the rest stay square.
-      panel.style.borderTopLeftRadius = panel.style.borderBottomLeftRadius = id.soft ? '26px' : '0px';
+      panel.style.boxShadow = s.panelShadow;
+      (panel.style as CSSStyleDeclaration).backdropFilter = s.panelBackdrop;
+      (panel.style as unknown as { webkitBackdropFilter: string }).webkitBackdropFilter = s.panelBackdrop;
+      panel.style.borderLeft = s.panelBorderL === 'none' ? '' : s.panelBorderL;
+      // Apple/Cloud round the panel's leading edge like a phone; Carbon rounds it
+      // organically; Slate stays hard-square; the rest stay square.
+      const panelLeadRadius = curLook === 'carbon' ? '26px' : (id.soft ? '26px' : '0px');
+      panel.style.borderTopLeftRadius = panel.style.borderBottomLeftRadius = panelLeadRadius;
       void renderBtn();
       if (isOpen) void renderPanel();
     }

@@ -451,7 +451,198 @@
       var elNow = $("#ovNow");
       if (elNow) elNow.textContent = ovStr + "% now";
       if ($("#ovChart")) renderOverviewChart();
+      updateGpaPlanner();
     }
+
+    // ============================================================
+    // GPA PLANNER
+    // ============================================================
+    // Standard unweighted 4.0 mapping from a percent grade.
+    function gpaPoints(pct) {
+      if (pct == null || isNaN(pct)) return 0;
+      if (pct >= 93) return 4.0;
+      if (pct >= 90) return 3.7;
+      if (pct >= 87) return 3.3;
+      if (pct >= 83) return 3.0;
+      if (pct >= 80) return 2.7;
+      if (pct >= 77) return 2.3;
+      if (pct >= 73) return 2.0;
+      if (pct >= 70) return 1.7;
+      if (pct >= 67) return 1.3;
+      if (pct >= 63) return 1.0;
+      if (pct >= 60) return 0.7;
+      return 0.0;
+    }
+    // Letter label for a percent (for the per-row readout).
+    function gpaLetter(pct) {
+      if (pct == null || isNaN(pct)) return "—";
+      if (pct >= 93) return "A";
+      if (pct >= 90) return "A−";
+      if (pct >= 87) return "B+";
+      if (pct >= 83) return "B";
+      if (pct >= 80) return "B−";
+      if (pct >= 77) return "C+";
+      if (pct >= 73) return "C";
+      if (pct >= 70) return "C−";
+      if (pct >= 67) return "D+";
+      if (pct >= 63) return "D";
+      if (pct >= 60) return "D−";
+      return "F";
+    }
+    // course id -> projected percent (what-if override). Empty = use actual grade.
+    var gpaWhatIf = {};
+    // Effective projected percent for a course (override or live actual grade).
+    function gpaProjPct(c) {
+      return (c.id in gpaWhatIf) ? gpaWhatIf[c.id] : c.grade;
+    }
+    // Mean of per-course GPA points (equal weight per course).
+    function computeGPA() {
+      if (!COURSES.length) return 0;
+      var sum = 0;
+      COURSES.forEach(function (c) { sum += gpaPoints(gpaProjPct(c)); });
+      return sum / COURSES.length;
+    }
+    // Smallest uniform % every course would need (capped 0..100) to reach a
+    // target GPA, found by scanning candidate percents. null if unreachable
+    // even at 100% (i.e. target above 4.0 * ... ), or already met.
+    function gpaUniformNeeded(target) {
+      var n = COURSES.length; if (!n) return null;
+      // need average points >= target; pts is a step function of percent.
+      // candidate percents are the lower edges of each band.
+      var bands = [60, 63, 67, 70, 73, 77, 80, 83, 87, 90, 93];
+      for (var i = 0; i < bands.length; i++) {
+        if (gpaPoints(bands[i]) >= target - 1e-9) return bands[i];
+      }
+      return null; // not reachable (target > 4.0)
+    }
+
+    function renderGpaPlanner() {
+      var wrap = $("#gpaCourses");
+      if (!wrap) return;
+      wrap.innerHTML = "";
+      COURSES.forEach(function (c) {
+        var row = el("div", "gpa-row");
+        row.setAttribute("data-gpa", c.id);
+        var proj = gpaProjPct(c);
+        row.innerHTML =
+          '<div class="gpa-cname">' + esc(c.name) +
+            '<span class="gpa-edited" data-edited style="display:none">edited</span></div>' +
+          '<div class="gpa-stepper">' +
+            '<span class="gpa-step" data-step="-1" role="button" aria-label="Lower projected grade">−</span>' +
+            '<input class="gpa-pinput" type="number" min="0" max="100" step="0.5" inputmode="decimal" ' +
+              'value="' + (Math.round(proj * 10) / 10) + '" aria-label="' + esc(c.name) + ' projected grade percent">' +
+            '<span class="gpa-step" data-step="1" role="button" aria-label="Raise projected grade">+</span>' +
+          '</div>' +
+          '<div class="gpa-pts">' +
+            '<span class="gpa-ltr" data-ltr>' + gpaLetter(proj) + '</span>' +
+            '<span class="gpa-num" data-pts>' + gpaPoints(proj).toFixed(1) + '</span>' +
+          '</div>';
+        wrap.appendChild(row);
+      });
+      var meta = $("#gpaCountMeta");
+      if (meta) meta.textContent = COURSES.length + " course" + (COURSES.length === 1 ? "" : "s");
+      updateGpaPlanner();
+    }
+
+    // Refresh GPA displays WITHOUT re-rendering inputs (preserves focus while typing).
+    function updateGpaPlanner() {
+      var gpa = computeGPA();
+      var gStr = gpa.toFixed(2);
+      var elV = $("#gpaValue"); if (elV) elV.textContent = gStr;
+      var elTile = $("#ovGpaTile"); if (elTile) elTile.textContent = gStr;
+      // per-row letter + points readouts
+      COURSES.forEach(function (c) {
+        var row = $('.gpa-row[data-gpa="' + c.id + '"]');
+        if (!row) return;
+        var proj = gpaProjPct(c);
+        var ltr = row.querySelector("[data-ltr]");
+        var pts = row.querySelector("[data-pts]");
+        var ed = row.querySelector("[data-edited]");
+        if (ltr) ltr.textContent = gpaLetter(proj);
+        if (pts) pts.textContent = gpaPoints(proj).toFixed(1);
+        if (ed) ed.style.display = (c.id in gpaWhatIf) ? "" : "none";
+        // Sync a non-overridden, unfocused input to its live actual grade
+        // (e.g. when the grade calculator changed it). Never touch a focused
+        // field, so typing keeps focus.
+        var pin = row.querySelector(".gpa-pinput");
+        if (pin && !(c.id in gpaWhatIf) && document.activeElement !== pin) {
+          pin.value = (Math.round(proj * 10) / 10);
+        }
+      });
+      updateGpaTarget();
+    }
+
+    function updateGpaTarget() {
+      var msg = $("#gpaTargetMsg"); if (!msg) return;
+      var inp = $("#gpaTargetInput");
+      var raw = inp ? inp.value.trim() : "";
+      msg.classList.remove("good");
+      if (raw === "") {
+        msg.innerHTML = "Enter a target to see what it would take.";
+        return;
+      }
+      var target = parseFloat(raw);
+      if (isNaN(target)) { msg.innerHTML = "Enter a number between 0 and 4."; return; }
+      if (target > 4) { msg.innerHTML = "A 4.0 is the maximum on this scale."; return; }
+      if (target < 0) target = 0;
+      var cur = computeGPA();
+      if (cur >= target - 1e-9) {
+        msg.classList.add("good");
+        msg.innerHTML = "You’re already there — projected GPA is <span class=\"gpa-strong\">" +
+          cur.toFixed(2) + "</span>, at or above your <span class=\"gpa-strong\">" + target.toFixed(2) + "</span> target.";
+        return;
+      }
+      var need = gpaUniformNeeded(target);
+      if (need == null) {
+        msg.innerHTML = "A <span class=\"gpa-strong\">" + target.toFixed(2) +
+          "</span> isn’t reachable on a 4.0 scale.";
+        return;
+      }
+      msg.innerHTML = "To reach a <span class=\"gpa-strong\">" + target.toFixed(2) +
+        "</span> GPA you’d need to average about <span class=\"gpa-strong\">" + need +
+        "%</span> across all " + COURSES.length + " courses (each worth a " +
+        gpaPoints(need).toFixed(1) + ").";
+    }
+
+    (function gpaPlannerWire() {
+      var courses = $("#gpaCourses");
+      if (courses) {
+        // typing in a per-course projected % -> live update displays only
+        courses.addEventListener("input", function (e) {
+          var inp = e.target.closest(".gpa-pinput"); if (!inp) return;
+          var row = inp.closest(".gpa-row"); if (!row) return;
+          var id = row.getAttribute("data-gpa");
+          var raw = inp.value.trim();
+          if (raw === "") { delete gpaWhatIf[id]; updateGpaPlanner(); return; }
+          var v = parseFloat(raw);
+          if (isNaN(v)) return;
+          v = Math.max(0, Math.min(100, v));
+          gpaWhatIf[id] = v;
+          updateGpaPlanner();
+        });
+        // +/- steppers
+        courses.addEventListener("click", function (e) {
+          var btn = e.target.closest(".gpa-step"); if (!btn) return;
+          var row = btn.closest(".gpa-row"); if (!row) return;
+          var id = row.getAttribute("data-gpa");
+          var c = byId[id]; if (!c) return;
+          var base = gpaProjPct(c);
+          var v = Math.max(0, Math.min(100, base + parseInt(btn.getAttribute("data-step"), 10)));
+          gpaWhatIf[id] = v;
+          var pin = row.querySelector(".gpa-pinput");
+          if (pin) pin.value = (Math.round(v * 10) / 10);
+          updateGpaPlanner();
+        });
+      }
+      var tgt = $("#gpaTargetInput");
+      if (tgt) tgt.addEventListener("input", updateGpaTarget);
+      var reset = $("#gpaReset");
+      if (reset) reset.addEventListener("click", function () {
+        gpaWhatIf = {};
+        var t = $("#gpaTargetInput"); if (t) t.value = "";
+        renderGpaPlanner(); // safe: rebuilds rows from actual grades, no input focused
+      });
+    })();
     function catAvgText(v) {
       if (v == null) return "—";
       return (v % 1 === 0 ? v : v.toFixed(1)) + "%";
@@ -2729,6 +2920,8 @@
 
             renderOverviewChart();
             renderOverviewCourses();
+            gpaWhatIf = {};
+            renderGpaPlanner();
           } catch (e) { /* keep sample render */ }
         });
       } catch (e) { /* keep sample render */ }
@@ -2740,6 +2933,7 @@
     renderNostalgia();
     renderOverviewChart();
     renderOverviewCourses();
+    renderGpaPlanner();
     renderRail();
     renderGradePane();
     renderAsn();

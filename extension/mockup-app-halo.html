@@ -681,6 +681,118 @@
   .stat .value.miss { color: var(--signal-miss); }
   .stat .sub { margin-top: 6px; font-size: 12px; color: var(--ink-3); font-weight: 450; }
 
+  /* ---- GPA planner — soft cloud card ---- */
+  .gpa-planner {
+    position: relative; overflow: hidden;
+    margin-bottom: 40px;
+    border: 1px solid var(--hair);
+    border-radius: var(--radius);
+    background: var(--paper-2);
+    padding: 0;
+  }
+  .gpa-planner::before {
+    content: ""; position: absolute; pointer-events: none; inset: 0;
+    background: radial-gradient(120% 90% at 82% -25%, var(--halo-card) 0%, transparent 55%);
+    mix-blend-mode: var(--halo-blend);
+  }
+  .gpa-planner > * { position: relative; }
+  .gpa-top {
+    display: grid; grid-template-columns: minmax(0, 200px) 1fr; gap: 26px;
+    align-items: stretch;
+    padding: 22px 24px; border-bottom: 1px solid var(--hair);
+  }
+  .gpa-dial {
+    border: 1px solid var(--cov-glass-edge);
+    border-radius: var(--radius-sm);
+    background: linear-gradient(150deg, var(--signal-up-soft), transparent 70%);
+    padding: 16px 18px; display: flex; flex-direction: column; justify-content: center;
+  }
+  .gpa-dial-num {
+    font-size: 40px; font-weight: 650; letter-spacing: -0.03em; line-height: 1;
+    color: var(--signal-up); font-variant-numeric: tabular-nums;
+  }
+  .gpa-dial-cap {
+    margin-top: 8px; font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--ink-4);
+  }
+  .gpa-dial-sub { margin-top: 3px; font-size: 12px; color: var(--ink-3); font-weight: 450; }
+
+  .gpa-target { display: flex; flex-direction: column; justify-content: center; }
+  .gpa-target-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--ink-4); margin-bottom: 9px;
+  }
+  .gpa-target-row { display: flex; align-items: center; gap: 10px; }
+  .gpa-tinput {
+    width: 110px; font-family: inherit; font-size: 16px; font-weight: 600;
+    color: var(--ink); background: var(--paper); font-variant-numeric: tabular-nums;
+    border: 1px solid var(--hair-strong); border-radius: var(--radius-sm);
+    padding: 9px 12px; -moz-appearance: textfield;
+  }
+  .gpa-tinput::placeholder { color: var(--ink-4); font-weight: 450; }
+  .gpa-tinput:focus { outline: none; border-color: var(--signal-up); box-shadow: 0 0 0 3px var(--signal-up-soft); }
+  .gpa-btn {
+    font-family: inherit; font-size: 13px; font-weight: 500; color: var(--ink-3);
+    background: var(--paper); border: 1px solid var(--hair-strong);
+    border-radius: var(--radius-sm); padding: 9px 14px; cursor: pointer;
+    transition: background 130ms ease, color 130ms ease, border-color 130ms ease;
+  }
+  .gpa-btn:hover { background: var(--paper-3); color: var(--ink); border-color: var(--cov-glass-edge); }
+  .gpa-target-msg {
+    margin: 11px 0 0; font-size: 13px; line-height: 1.5; color: var(--ink-3); font-weight: 450;
+  }
+  .gpa-target-msg .gpa-strong { color: var(--ink); font-weight: 600; }
+  .gpa-target-msg.good { color: var(--signal-up); }
+  .gpa-target-msg.good .gpa-strong { color: var(--signal-up); }
+
+  .gpa-courses { padding: 6px 8px; }
+  .gpa-row {
+    display: grid; grid-template-columns: 1fr auto auto; align-items: center;
+    gap: 18px; padding: 12px 16px; border-bottom: 1px solid var(--hair);
+  }
+  .gpa-row:last-child { border-bottom: none; }
+  .gpa-row .gpa-cname {
+    font-size: 14px; font-weight: 550; color: var(--ink); letter-spacing: -0.01em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
+  }
+  .gpa-row .gpa-cname .gpa-edited {
+    margin-left: 8px; font-size: 10px; font-weight: 600; letter-spacing: 0.05em;
+    text-transform: uppercase; color: var(--signal-up); vertical-align: middle;
+  }
+  .gpa-stepper { display: inline-flex; align-items: center; gap: 4px; }
+  .gpa-step {
+    width: 26px; height: 28px; display: inline-flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 500; line-height: 1; color: var(--ink-3);
+    background: var(--paper); border: 1px solid var(--hair-strong);
+    border-radius: 7px; cursor: pointer; user-select: none;
+    transition: background 120ms ease, color 120ms ease;
+  }
+  .gpa-step:hover { background: var(--paper-3); color: var(--ink); }
+  .gpa-pinput {
+    width: 62px; text-align: center; font-family: inherit; font-size: 14px; font-weight: 600;
+    color: var(--ink); background: var(--paper); font-variant-numeric: tabular-nums;
+    border: 1px solid var(--hair-strong); border-radius: 7px; padding: 6px 4px;
+    -moz-appearance: textfield;
+  }
+  .gpa-pinput:focus { outline: none; border-color: var(--signal-up); box-shadow: 0 0 0 3px var(--signal-up-soft); }
+  .gpa-pinput::-webkit-outer-spin-button, .gpa-pinput::-webkit-inner-spin-button,
+  .gpa-tinput::-webkit-outer-spin-button, .gpa-tinput::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .gpa-pts {
+    min-width: 100px; text-align: right; font-size: 13px; color: var(--ink-3);
+    font-weight: 450; font-variant-numeric: tabular-nums;
+  }
+  .gpa-pts .gpa-ltr { font-weight: 650; color: var(--ink); margin-right: 7px; }
+  .gpa-pts .gpa-num { color: var(--ink-4); }
+  .gpa-foot {
+    margin: 0; padding: 13px 24px 15px; font-size: 12px; color: var(--ink-4); font-weight: 450;
+    border-top: 1px solid var(--hair);
+  }
+  @media (max-width: 640px) {
+    .gpa-top { grid-template-columns: 1fr; }
+    .gpa-row { grid-template-columns: 1fr auto; }
+    .gpa-pts { grid-column: 1 / -1; text-align: left; }
+  }
+
   .course {
     display: grid;
     grid-template-columns: 1fr auto auto auto;
@@ -2021,10 +2133,32 @@
           </section>
 
           <section class="stats" aria-label="Summary">
-            <div class="stat"><div class="label">GPA estimate</div><div class="value">3.94</div><div class="sub">Weighted, 4.0 scale</div></div>
+            <div class="stat"><div class="label">GPA estimate</div><div class="value" id="ovGpaTile">3.94</div><div class="sub">Unweighted, 4.0 scale</div></div>
             <div class="stat"><div class="label">Due today</div><div class="value">2</div><div class="sub">Assignments</div></div>
             <div class="stat"><div class="label">Missing</div><div class="value miss">2</div><div class="sub">In 2 courses</div></div>
             <div class="stat"><div class="label">Best class</div><div class="value">PE&nbsp;9</div><div class="sub">99.1%</div></div>
+          </section>
+
+          <div class="section-head"><h2>GPA planner</h2><span class="count" id="gpaCountMeta">6 courses</span></div>
+
+          <section class="gpa-planner" id="gpaPlanner" aria-label="GPA planner">
+            <div class="gpa-top">
+              <div class="gpa-dial">
+                <div class="gpa-dial-num" id="gpaValue">3.94</div>
+                <div class="gpa-dial-cap">Projected GPA</div>
+                <div class="gpa-dial-sub" id="gpaSub">unweighted · 4.0 scale</div>
+              </div>
+              <div class="gpa-target">
+                <label class="gpa-target-label" for="gpaTargetInput">Target GPA</label>
+                <div class="gpa-target-row">
+                  <input type="number" id="gpaTargetInput" class="gpa-tinput" min="0" max="4" step="0.05" placeholder="e.g. 4.00" inputmode="decimal" aria-label="Target GPA">
+                  <button class="gpa-btn" id="gpaReset" type="button">Reset</button>
+                </div>
+                <p class="gpa-target-msg" id="gpaTargetMsg">Enter a target to see what it would take.</p>
+              </div>
+            </div>
+            <div class="gpa-courses" id="gpaCourses"></div>
+            <p class="gpa-foot">What-if grades stay in sync with the grade calculator. Each course is weighted equally.</p>
           </section>
 
           <div class="section-head"><h2>Courses</h2><span class="count" id="ovCount">6</span></div>
@@ -2810,7 +2944,198 @@
       var elNow = $("#ovNow");
       if (elNow) elNow.textContent = ovStr + "% now";
       if ($("#ovChart")) renderOverviewChart();
+      updateGpaPlanner();
     }
+
+    // ============================================================
+    // GPA PLANNER
+    // ============================================================
+    // Standard unweighted 4.0 mapping from a percent grade.
+    function gpaPoints(pct) {
+      if (pct == null || isNaN(pct)) return 0;
+      if (pct >= 93) return 4.0;
+      if (pct >= 90) return 3.7;
+      if (pct >= 87) return 3.3;
+      if (pct >= 83) return 3.0;
+      if (pct >= 80) return 2.7;
+      if (pct >= 77) return 2.3;
+      if (pct >= 73) return 2.0;
+      if (pct >= 70) return 1.7;
+      if (pct >= 67) return 1.3;
+      if (pct >= 63) return 1.0;
+      if (pct >= 60) return 0.7;
+      return 0.0;
+    }
+    // Letter label for a percent (for the per-row readout).
+    function gpaLetter(pct) {
+      if (pct == null || isNaN(pct)) return "—";
+      if (pct >= 93) return "A";
+      if (pct >= 90) return "A−";
+      if (pct >= 87) return "B+";
+      if (pct >= 83) return "B";
+      if (pct >= 80) return "B−";
+      if (pct >= 77) return "C+";
+      if (pct >= 73) return "C";
+      if (pct >= 70) return "C−";
+      if (pct >= 67) return "D+";
+      if (pct >= 63) return "D";
+      if (pct >= 60) return "D−";
+      return "F";
+    }
+    // course id -> projected percent (what-if override). Empty = use actual grade.
+    var gpaWhatIf = {};
+    // Effective projected percent for a course (override or live actual grade).
+    function gpaProjPct(c) {
+      return (c.id in gpaWhatIf) ? gpaWhatIf[c.id] : c.grade;
+    }
+    // Mean of per-course GPA points (equal weight per course).
+    function computeGPA() {
+      if (!COURSES.length) return 0;
+      var sum = 0;
+      COURSES.forEach(function (c) { sum += gpaPoints(gpaProjPct(c)); });
+      return sum / COURSES.length;
+    }
+    // Smallest uniform % every course would need (capped 0..100) to reach a
+    // target GPA, found by scanning candidate percents. null if unreachable
+    // even at 100% (i.e. target above 4.0 * ... ), or already met.
+    function gpaUniformNeeded(target) {
+      var n = COURSES.length; if (!n) return null;
+      // need average points >= target; pts is a step function of percent.
+      // candidate percents are the lower edges of each band.
+      var bands = [60, 63, 67, 70, 73, 77, 80, 83, 87, 90, 93];
+      for (var i = 0; i < bands.length; i++) {
+        if (gpaPoints(bands[i]) >= target - 1e-9) return bands[i];
+      }
+      return null; // not reachable (target > 4.0)
+    }
+
+    function renderGpaPlanner() {
+      var wrap = $("#gpaCourses");
+      if (!wrap) return;
+      wrap.innerHTML = "";
+      COURSES.forEach(function (c) {
+        var row = el("div", "gpa-row");
+        row.setAttribute("data-gpa", c.id);
+        var proj = gpaProjPct(c);
+        row.innerHTML =
+          '<div class="gpa-cname">' + esc(c.name) +
+            '<span class="gpa-edited" data-edited style="display:none">edited</span></div>' +
+          '<div class="gpa-stepper">' +
+            '<span class="gpa-step" data-step="-1" role="button" aria-label="Lower projected grade">−</span>' +
+            '<input class="gpa-pinput" type="number" min="0" max="100" step="0.5" inputmode="decimal" ' +
+              'value="' + (Math.round(proj * 10) / 10) + '" aria-label="' + esc(c.name) + ' projected grade percent">' +
+            '<span class="gpa-step" data-step="1" role="button" aria-label="Raise projected grade">+</span>' +
+          '</div>' +
+          '<div class="gpa-pts">' +
+            '<span class="gpa-ltr" data-ltr>' + gpaLetter(proj) + '</span>' +
+            '<span class="gpa-num" data-pts>' + gpaPoints(proj).toFixed(1) + '</span>' +
+          '</div>';
+        wrap.appendChild(row);
+      });
+      var meta = $("#gpaCountMeta");
+      if (meta) meta.textContent = COURSES.length + " course" + (COURSES.length === 1 ? "" : "s");
+      updateGpaPlanner();
+    }
+
+    // Refresh GPA displays WITHOUT re-rendering inputs (preserves focus while typing).
+    function updateGpaPlanner() {
+      var gpa = computeGPA();
+      var gStr = gpa.toFixed(2);
+      var elV = $("#gpaValue"); if (elV) elV.textContent = gStr;
+      var elTile = $("#ovGpaTile"); if (elTile) elTile.textContent = gStr;
+      // per-row letter + points readouts
+      COURSES.forEach(function (c) {
+        var row = $('.gpa-row[data-gpa="' + c.id + '"]');
+        if (!row) return;
+        var proj = gpaProjPct(c);
+        var ltr = row.querySelector("[data-ltr]");
+        var pts = row.querySelector("[data-pts]");
+        var ed = row.querySelector("[data-edited]");
+        if (ltr) ltr.textContent = gpaLetter(proj);
+        if (pts) pts.textContent = gpaPoints(proj).toFixed(1);
+        if (ed) ed.style.display = (c.id in gpaWhatIf) ? "" : "none";
+        // Sync a non-overridden, unfocused input to its live actual grade
+        // (e.g. when the grade calculator changed it). Never touch a focused
+        // field, so typing keeps focus.
+        var pin = row.querySelector(".gpa-pinput");
+        if (pin && !(c.id in gpaWhatIf) && document.activeElement !== pin) {
+          pin.value = (Math.round(proj * 10) / 10);
+        }
+      });
+      updateGpaTarget();
+    }
+
+    function updateGpaTarget() {
+      var msg = $("#gpaTargetMsg"); if (!msg) return;
+      var inp = $("#gpaTargetInput");
+      var raw = inp ? inp.value.trim() : "";
+      msg.classList.remove("good");
+      if (raw === "") {
+        msg.innerHTML = "Enter a target to see what it would take.";
+        return;
+      }
+      var target = parseFloat(raw);
+      if (isNaN(target)) { msg.innerHTML = "Enter a number between 0 and 4."; return; }
+      if (target > 4) { msg.innerHTML = "A 4.0 is the maximum on this scale."; return; }
+      if (target < 0) target = 0;
+      var cur = computeGPA();
+      if (cur >= target - 1e-9) {
+        msg.classList.add("good");
+        msg.innerHTML = "You’re already there — projected GPA is <span class=\"gpa-strong\">" +
+          cur.toFixed(2) + "</span>, at or above your <span class=\"gpa-strong\">" + target.toFixed(2) + "</span> target.";
+        return;
+      }
+      var need = gpaUniformNeeded(target);
+      if (need == null) {
+        msg.innerHTML = "A <span class=\"gpa-strong\">" + target.toFixed(2) +
+          "</span> isn’t reachable on a 4.0 scale.";
+        return;
+      }
+      msg.innerHTML = "To reach a <span class=\"gpa-strong\">" + target.toFixed(2) +
+        "</span> GPA you’d need to average about <span class=\"gpa-strong\">" + need +
+        "%</span> across all " + COURSES.length + " courses (each worth a " +
+        gpaPoints(need).toFixed(1) + ").";
+    }
+
+    (function gpaPlannerWire() {
+      var courses = $("#gpaCourses");
+      if (courses) {
+        // typing in a per-course projected % -> live update displays only
+        courses.addEventListener("input", function (e) {
+          var inp = e.target.closest(".gpa-pinput"); if (!inp) return;
+          var row = inp.closest(".gpa-row"); if (!row) return;
+          var id = row.getAttribute("data-gpa");
+          var raw = inp.value.trim();
+          if (raw === "") { delete gpaWhatIf[id]; updateGpaPlanner(); return; }
+          var v = parseFloat(raw);
+          if (isNaN(v)) return;
+          v = Math.max(0, Math.min(100, v));
+          gpaWhatIf[id] = v;
+          updateGpaPlanner();
+        });
+        // +/- steppers
+        courses.addEventListener("click", function (e) {
+          var btn = e.target.closest(".gpa-step"); if (!btn) return;
+          var row = btn.closest(".gpa-row"); if (!row) return;
+          var id = row.getAttribute("data-gpa");
+          var c = byId[id]; if (!c) return;
+          var base = gpaProjPct(c);
+          var v = Math.max(0, Math.min(100, base + parseInt(btn.getAttribute("data-step"), 10)));
+          gpaWhatIf[id] = v;
+          var pin = row.querySelector(".gpa-pinput");
+          if (pin) pin.value = (Math.round(v * 10) / 10);
+          updateGpaPlanner();
+        });
+      }
+      var tgt = $("#gpaTargetInput");
+      if (tgt) tgt.addEventListener("input", updateGpaTarget);
+      var reset = $("#gpaReset");
+      if (reset) reset.addEventListener("click", function () {
+        gpaWhatIf = {};
+        var t = $("#gpaTargetInput"); if (t) t.value = "";
+        renderGpaPlanner(); // safe: rebuilds rows from actual grades, no input focused
+      });
+    })();
     function catAvgText(v) {
       if (v == null) return "—";
       return (v % 1 === 0 ? v : v.toFixed(1)) + "%";
@@ -5088,6 +5413,8 @@
 
             renderOverviewChart();
             renderOverviewCourses();
+            gpaWhatIf = {};
+            renderGpaPlanner();
           } catch (e) { /* keep sample render */ }
         });
       } catch (e) { /* keep sample render */ }
@@ -5099,6 +5426,7 @@
     renderNostalgia();
     renderOverviewChart();
     renderOverviewCourses();
+    renderGpaPlanner();
     renderRail();
     renderGradePane();
     renderAsn();

@@ -39,7 +39,9 @@ export default defineConfig({
       {
         // pdf.js worker, the Versions gallery prototypes, and — the primary UI now —
         // the bundled "looks" (chooser + 5 editions) the content script iframes in.
-        resources: ['pdf.worker.min.mjs', 'models/*.html', 'looks/*.html'],
+        // looks/*.js: MV3 blocks inline <script> on extension pages (script-src 'self'),
+        // so each look's scripts are externalized to sibling .js files that must load.
+        resources: ['pdf.worker.min.mjs', 'models/*.html', 'looks/*.html', 'looks/*.js'],
         matches: ['https://*.schoology.com/*'],
       },
     ],

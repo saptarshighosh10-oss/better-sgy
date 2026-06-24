@@ -995,8 +995,8 @@
 
     var EDITION_NAMES = {apple:"Apple", halo:"Cloud", slate:"Slate", forge:"Friendly", carbon:"Carbon"};
     var FORM_NAMES    = {overview:"Overview", app:"Full app", portable:"Portable widget"};
-    // Carbon only ships the full-app file (no overview/portable variants yet).
-    var ONLY_APP = {carbon:true};
+    // All editions now ship overview + portable variants.
+    var ONLY_APP = {};
 
     var current = {edition:"apple", form:"overview"};
     var frame = null;          // the live iframe element
@@ -1034,7 +1034,6 @@
     }
 
     function loadCurrent(){
-      if(!inView) return;          // stay light until visible
       var src = srcFor(current);
       ensureFrame();
       frame.setAttribute("title", "Live preview: " + label(current));
@@ -1072,6 +1071,7 @@
 
     function pick(kind, value){
       if(kind === "form" && ONLY_APP[current.edition] && value !== "app") return;
+      inView = true;
       current[kind] = value;
       if(kind === "edition"){
         setPressed(segEdition, "data-edition", value);
@@ -1111,22 +1111,7 @@
 
     syncFormAvailability();
     updateLinks();
-
-    // lazy: only build/load the iframe once the gallery is near the viewport
-    if(!("IntersectionObserver" in window)){
-      inView = true; loadCurrent();
-    } else {
-      var gio = new IntersectionObserver(function(entries){
-        entries.forEach(function(en){
-          if(en.isIntersecting){
-            inView = true;
-            loadCurrent();
-            gio.disconnect();
-          }
-        });
-      }, {rootMargin:"200px 0px"});
-      gio.observe(stage);
-    }
+    loadCurrent();   // load the default preview immediately
   })();
 })();
 </script>

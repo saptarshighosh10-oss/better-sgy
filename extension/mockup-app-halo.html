@@ -4,76 +4,135 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Cdefs%3E%3ClinearGradient id=%27sgy%27 x1=%270%27 y1=%270%27 x2=%270%27 y2=%271%27%3E%3Cstop offset=%270%27 stop-color=%27%237c6cfc%27/%3E%3Cstop offset=%271%27 stop-color=%27%235b3df0%27/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27url(%23sgy)%27/%3E%3Cpath d=%27M9 20.5L16 11L23 20.5%27 fill=%27none%27 stroke=%27white%27 stroke-width=%273.2%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
-<title>Better SGY · HALO</title>
+<title>Better SGY · COVENANT</title>
 <style>
   /* ============================================================
-     HALO — calm, minimal, signal-only.
-     Color is reserved for meaning: green = upward trend,
-     red = missing work. Everything else is quiet grayscale.
+     COVENANT — Halo alien-tech identity.
+     Smooth curved holographic surfaces, glowing plasma energy,
+     amethyst/royal-purple + electric plasma-cyan, with brass/gold
+     ceremonial ornamentation. Color carries meaning AND atmosphere:
+     plasma-blue/needler-purple = good, hazard-amber = missing work.
+     LIGHT = "active camo / hard light": a paler, cooler alien hologram.
+     DARK  = a Covenant interior glowing against near-black (showpiece).
      ============================================================ */
 
   :root {
-    --paper:        #fcfcfb;
-    --paper-2:      #f6f6f4;
-    --paper-3:      #f0f0ed;
-    --ink:          #14140f;
-    --ink-2:        #3a3a35;
-    --ink-3:        #6c6c64;
-    --ink-4:        #9a9a91;
-    --hair:         rgba(0,0,0,0.07);
-    --hair-strong:  rgba(0,0,0,0.11);
+    /* LIGHT — active-camo / hard-light: cool pearlescent violet glass,
+       still unmistakably alien, never washed out. */
+    --paper:        #f4f2fb;   /* faint violet-white hard-light field   */
+    --paper-2:      #ece8f8;   /* recessed holographic panel            */
+    --paper-3:      #e2dcf4;   /* pressed / active holo surface         */
+    --ink:          #221a3d;   /* deep indigo ink                       */
+    --ink-2:        #423667;
+    --ink-3:        #645690;
+    --ink-4:        #9387bd;
+    --hair:         rgba(123,92,255,0.16);
+    --hair-strong:  rgba(123,92,255,0.28);
 
-    --signal-up:    #2f8f5b;
-    --signal-up-soft: rgba(47,143,91,0.10);
-    --signal-miss:  #c0392b;
-    --signal-miss-soft: rgba(192,57,43,0.08);
+    /* status colors as plasma — plasma-blue good, hazard-amber missing */
+    --signal-up:        #2a86c9;          /* plasma-blue                  */
+    --signal-up-soft:   rgba(54,150,224,0.12);
+    --signal-miss:      #c77a1a;          /* hazard-amber                 */
+    --signal-miss-soft: rgba(199,122,26,0.12);
 
     --radius:       14px;
     --radius-sm:    9px;
     --sidebar:      240px;
     --content-max:  820px;
 
-    /* toast keeps an inverted (dark) surface in light mode */
-    --toast-bg:     var(--ink);
-    --toast-fg:     var(--paper);
-    --toast-fg-2:   rgba(252,252,251,0.78);
-    --toast-fg-3:   rgba(252,252,251,0.55);
-    --knob-shadow:  rgba(0,0,0,0.15);
-    --brand-ink:    #14140f;
-    --brand-mute:   #9a9a91;
-    --spark-mute:   #9a9a91;
+    /* toast keeps an inverted (deep-violet) surface in light mode */
+    --toast-bg:     #2a1f54;
+    --toast-fg:     #efeaff;
+    --toast-fg-2:   rgba(239,234,255,0.80);
+    --toast-fg-3:   rgba(239,234,255,0.58);
+    --knob-shadow:  rgba(50,30,120,0.22);
+    --brand-ink:    #6e54e8;
+    --brand-mute:   #9387bd;
+    --spark-mute:   #9387bd;
+
+    /* ---- COVENANT energy palette (shared accents) ---- */
+    --cov-amethyst:  #7b5cff;   /* royal-purple / needler plasma         */
+    --cov-plasma:    #2a86c9;   /* electric plasma-blue/cyan             */
+    --cov-cyan:      #36d6ff;   /* bright plasma-cyan highlight          */
+    --cov-gold:      #c79a3e;   /* brass / gold ceremonial ornament      */
+    --cov-gold-soft: rgba(199,154,62,0.42);
+    --cov-glass:     rgba(123,92,255,0.05);   /* holo panel tint         */
+    --cov-glass-edge: rgba(123,92,255,0.30);  /* glowing holo edge       */
+
+    /* ---- holographic / plasma luminosity layer (light) ----
+       Cooler, softer "hard-light" glows — present but restrained. */
+    --halo-core:    rgba(123,92,255,0.20);    /* plasma emanation core    */
+    --halo-edge:    rgba(123,92,255,0.00);
+    --halo-warm:    rgba(54,214,255,0.16);     /* plasma-cyan counterlight */
+    --halo-warm-edge: rgba(54,214,255,0.00);
+    --halo-ambient: rgba(123,92,255,0.10);     /* page-level violet wash   */
+    --halo-ambient-2: rgba(54,214,255,0.07);
+    --halo-card:    rgba(123,92,255,0.12);     /* glow behind key panels   */
+    --halo-card-edge: rgba(123,92,255,0.00);
+    /* plasma projection ring around the overall grade */
+    --ring-glow:    rgba(123,92,255,0.62);
+    --ring-glow-2:  rgba(54,214,255,0.55);     /* cyan crown               */
+    --ring-track:   rgba(123,92,255,0.10);
+    --ring-halo:    rgba(123,92,255,0.26);     /* soft outer bloom         */
+    --signal-glow:  rgba(54,150,224,0.42);     /* aura around plasma dot   */
+    --halo-blend:   normal;
   }
 
   /* ============================================================
-     DARK THEME — near-black paper, light ink, same strict
-     monochrome + signal-only-color discipline. Signal greens/reds
-     are nudged brighter so they stay legible on dark.
+     DARK THEME — the Covenant showpiece. Near-black space-violet
+     interiors with holographic violet glass and emitted plasma
+     light. Saturated amethyst/cyan auras read as genuine glow.
      ============================================================ */
   html[data-theme="dark"] {
-    --paper:        #0e0e0c;
-    --paper-2:      #161614;
-    --paper-3:      #201f1c;
-    --ink:          #f2f1ec;
-    --ink-2:        #cfcec8;
-    --ink-3:        #9a9a92;
-    --ink-4:        #6e6e66;
-    --hair:         rgba(255,255,255,0.09);
-    --hair-strong:  rgba(255,255,255,0.16);
+    --paper:        #07060f;   /* near-black indigo void                 */
+    --paper-2:      #100c22;   /* holographic panel surface             */
+    --paper-3:      #19123a;   /* raised / active holo surface          */
+    --ink:          #ede9ff;   /* luminous lavender-white text          */
+    --ink-2:        #c5bbf2;
+    --ink-3:        #8f82c9;
+    --ink-4:        #6a5e9c;
+    --hair:         rgba(123,92,255,0.20);
+    --hair-strong:  rgba(123,92,255,0.36);
 
-    --signal-up:        #4cc285;
-    --signal-up-soft:   rgba(76,194,133,0.14);
-    --signal-miss:      #e5675a;
-    --signal-miss-soft: rgba(229,103,90,0.14);
+    --signal-up:        #4cc9ff;          /* bright plasma-cyan           */
+    --signal-up-soft:   rgba(76,201,255,0.16);
+    --signal-miss:      #ffb24d;          /* hazard-amber                 */
+    --signal-miss-soft: rgba(255,178,77,0.16);
 
-    /* toast surface flips to a light-on-dark card that reads in dark */
-    --toast-bg:     #232320;
-    --toast-fg:     #f2f1ec;
-    --toast-fg-2:   rgba(242,241,236,0.74);
-    --toast-fg-3:   rgba(242,241,236,0.50);
-    --knob-shadow:  rgba(0,0,0,0.5);
-    --brand-ink:    #f2f1ec;
-    --brand-mute:   #6e6e66;
-    --spark-mute:   #6e6e66;
+    /* toast = glowing holo card on the void */
+    --toast-bg:     #160f33;
+    --toast-fg:     #ede9ff;
+    --toast-fg-2:   rgba(237,233,255,0.78);
+    --toast-fg-3:   rgba(237,233,255,0.54);
+    --knob-shadow:  rgba(0,0,0,0.6);
+    --brand-ink:    #b9a6ff;
+    --brand-mute:   #6a5e9c;
+    --spark-mute:   #6a5e9c;
+
+    /* ---- COVENANT energy palette (dark accents) ---- */
+    --cov-amethyst:  #9d82ff;
+    --cov-plasma:    #4cc9ff;
+    --cov-cyan:      #6fe6ff;
+    --cov-gold:      #e6c062;
+    --cov-gold-soft: rgba(230,192,98,0.42);
+    --cov-glass:     rgba(123,92,255,0.08);
+    --cov-glass-edge: rgba(157,130,255,0.45);
+
+    /* ---- plasma luminosity layer (dark — this is where it sings) ---- */
+    --halo-core:    rgba(157,130,255,0.40);
+    --halo-edge:    rgba(157,130,255,0.00);
+    --halo-warm:    rgba(76,201,255,0.24);     /* plasma-cyan counterlight */
+    --halo-warm-edge: rgba(76,201,255,0.00);
+    --halo-ambient: rgba(123,92,255,0.18);
+    --halo-ambient-2: rgba(60,170,255,0.14);
+    --halo-card:    rgba(157,130,255,0.22);
+    --halo-card-edge: rgba(157,130,255,0.00);
+    --ring-glow:    rgba(178,150,255,0.98);
+    --ring-glow-2:  rgba(111,230,255,0.92);    /* cyan crown               */
+    --ring-track:   rgba(157,130,255,0.14);
+    --ring-halo:    rgba(140,110,255,0.55);
+    --signal-glow:  rgba(76,201,255,0.85);
+    --halo-blend:   screen;
   }
 
   * { box-sizing: border-box; }
@@ -91,7 +150,50 @@
   body {
     line-height: 1.5;
     letter-spacing: -0.006em;
+    position: relative;
   }
+
+  /* ============================================================
+     COVENANT — ambient plasma field. A fixed, behind-everything
+     light field: layered violet + plasma-cyan radial pools that
+     suggest a glowing alien interior without touching layout or
+     interactivity. Performant — static gradients, no blur filters,
+     pointer-events: none.
+     ============================================================ */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(720px 540px at 80% -10%,
+        var(--halo-ambient) 0%, transparent 62%),
+      radial-gradient(600px 480px at 4% 108%,
+        var(--halo-ambient-2) 0%, transparent 60%),
+      radial-gradient(900px 700px at 50% 130%,
+        var(--halo-core) 0%, transparent 55%);
+    mix-blend-mode: var(--halo-blend);
+    opacity: 0.9;
+  }
+  /* a faint Covenant hard-light scanline veil — barely-there energy grid */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      var(--cov-glass) 0px,
+      var(--cov-glass) 1px,
+      transparent 1px,
+      transparent 4px);
+    opacity: 0.4;
+    mix-blend-mode: var(--halo-blend);
+  }
+  /* keep real content above the ambient field */
+  .app { position: relative; z-index: 1; }
 
   /* ============================================================
      APP SHELL — quiet sidebar + content
@@ -108,19 +210,53 @@
     top: 0;
     align-self: start;
     height: 100vh;
-    border-right: 1px solid var(--hair);
-    background: var(--paper);
+    border-right: 1px solid var(--cov-glass-edge);
+    background:
+      linear-gradient(180deg, var(--cov-glass) 0%, transparent 28%),
+      var(--paper);
     display: flex;
     flex-direction: column;
     padding: 26px 16px 18px;
+    position: sticky;
+    overflow: hidden;
   }
+  /* glowing Covenant seam down the sidebar's inner edge */
+  .sidebar::after {
+    content: "";
+    position: absolute;
+    top: 0; right: -1px; bottom: 0;
+    width: 1px;
+    background: linear-gradient(180deg,
+      transparent 0%,
+      var(--cov-glass-edge) 18%,
+      var(--cov-amethyst) 50%,
+      var(--cov-glass-edge) 82%,
+      transparent 100%);
+    box-shadow: 0 0 10px 0 var(--ring-halo);
+    pointer-events: none;
+    opacity: 0.7;
+  }
+  /* ornate curved Covenant glyph — a subtle hard-light motif */
+  .cov-glyph {
+    position: absolute;
+    left: 50%; bottom: 78px;
+    width: 168px; height: 168px;
+    transform: translateX(-50%);
+    pointer-events: none;
+    opacity: 0.5;
+    mix-blend-mode: var(--halo-blend);
+    z-index: 0;
+  }
+  .cov-glyph svg { width: 100%; height: 100%; display: block; }
+  .sidebar > * { position: relative; z-index: 1; }
   .side-brand {
     display: flex;
     align-items: center;
     gap: 10px;
     padding: 0 8px 22px;
   }
-  .side-brand .mark { width: 22px; height: 22px; display: block; }
+  .side-brand .mark { width: 22px; height: 22px; display: block;
+    filter: drop-shadow(0 0 5px var(--ring-halo)); }
   .side-brand .mark circle[stroke] { stroke: var(--brand-ink); }
   .side-brand .mark circle[fill] { fill: var(--brand-ink); }
   .side-foot .dotmark circle[stroke] { stroke: var(--brand-mute); }
@@ -130,23 +266,37 @@
     letter-spacing: 0.01em; color: var(--ink);
   }
 
-  /* student identity */
+  /* student identity — a holographic Covenant ID panel */
   .side-id {
     margin: 0 8px 20px;
     padding: 12px;
-    border: 1px solid var(--hair);
+    border: 1px solid var(--cov-glass-edge);
     border-radius: var(--radius-sm);
-    background: var(--paper-2);
+    background:
+      linear-gradient(135deg, var(--cov-glass) 0%, transparent 70%),
+      var(--paper-2);
+    box-shadow: inset 0 0 18px -8px var(--ring-halo);
+    position: relative;
+    overflow: hidden;
+  }
+  .side-id::before {
+    content: "";
+    position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+    background: linear-gradient(180deg, var(--cov-cyan), var(--cov-amethyst));
+    box-shadow: 0 0 8px 0 var(--ring-halo);
+    opacity: 0.85;
   }
   .side-id .who {
     display: flex; align-items: center; gap: 10px;
   }
   .side-id .avatar {
     width: 30px; height: 30px; border-radius: 50%;
-    background: var(--ink); color: var(--paper);
+    background: radial-gradient(circle at 35% 30%, var(--cov-amethyst), #3a1f8c);
+    color: #fff;
     display: grid; place-items: center;
     font-size: 12px; font-weight: 600; letter-spacing: 0.02em;
     flex: none;
+    box-shadow: 0 0 0 1px var(--cov-glass-edge), 0 0 12px -2px var(--ring-halo);
   }
   .side-id .nm {
     font-size: 13px; font-weight: 600; color: var(--ink);
@@ -189,10 +339,26 @@
     letter-spacing: 0.01em;
   }
   .nav-item.active {
-    background: var(--paper-3);
+    background:
+      linear-gradient(90deg, var(--cov-glass) 0%, transparent 80%),
+      var(--paper-3);
     color: var(--ink);
+    position: relative;
+    box-shadow: inset 0 0 0 1px var(--cov-glass-edge),
+                inset 0 0 16px -6px var(--ring-halo);
   }
-  .nav-item.active svg { opacity: 1; }
+  .nav-item.active svg { opacity: 1; color: var(--cov-amethyst);
+    filter: drop-shadow(0 0 5px var(--ring-halo)); }
+  /* a plasma energy bar on the active tab — emitted hard light */
+  .nav-item.active::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 16%; bottom: 16%;
+    width: 3px; border-radius: 3px;
+    background: linear-gradient(180deg, var(--cov-cyan), var(--cov-amethyst));
+    box-shadow: 0 0 10px 1px var(--ring-halo), 0 0 4px 0 var(--cov-cyan);
+    opacity: 0.95;
+  }
 
   .side-foot {
     margin-top: auto;
@@ -249,10 +415,14 @@
   .section-head .count { font-size: 13px; color: var(--ink-4); font-weight: 450; }
 
   .panel {
-    border: 1px solid var(--hair);
+    border: 1px solid var(--cov-glass-edge);
     border-radius: var(--radius);
     overflow: hidden;
-    background: var(--paper);
+    background:
+      linear-gradient(180deg, var(--cov-glass) 0%, transparent 22%),
+      var(--paper);
+    box-shadow: inset 0 1px 0 0 var(--cov-glass),
+                0 0 24px -16px var(--ring-halo);
   }
 
   /* flag — only red in lists */
@@ -289,9 +459,13 @@
     padding: 7px 13px;
     transition: background 130ms ease, border-color 130ms ease;
   }
-  .btn:hover { background: var(--paper-2); }
-  .btn.solid { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-  .btn.solid:hover { background: #000; }
+  .btn:hover { background: var(--paper-2); border-color: var(--cov-glass-edge); }
+  .btn.solid {
+    background: linear-gradient(135deg, var(--cov-amethyst), #4a2fb0);
+    color: #fff; border-color: var(--cov-amethyst);
+    box-shadow: 0 0 14px -3px var(--ring-halo);
+  }
+  .btn.solid:hover { filter: brightness(1.08); }
   .icon-btn {
     appearance: none; cursor: pointer; background: var(--paper);
     border: 1px solid var(--hair); border-radius: var(--radius-sm);
@@ -364,10 +538,18 @@
   .ov-hero .grade { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
   .ov-hero .grade .num {
     font-size: 72px; font-weight: 600; letter-spacing: -0.04em;
-    line-height: 0.95; color: var(--ink);
+    line-height: 0.95;
+    /* the grade reads as a plasma holographic projection */
+    color: var(--cov-amethyst);
+    background: linear-gradient(170deg, var(--cov-cyan) 0%, var(--cov-amethyst) 60%, var(--cov-amethyst) 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 28px var(--ring-halo);
   }
   .ov-hero .grade .num .pct {
-    font-size: 32px; font-weight: 500; color: var(--ink-4); letter-spacing: -0.02em;
+    font-size: 32px; font-weight: 500; letter-spacing: -0.02em;
+    -webkit-text-fill-color: var(--ink-3); color: var(--ink-3);
+    text-shadow: none;
   }
   .ov-hero .grade .across {
     font-size: 14px; color: var(--ink-3); font-weight: 450; padding-bottom: 8px;
@@ -378,14 +560,128 @@
   }
   .ov-hero .status .dot {
     width: 7px; height: 7px; border-radius: 50%;
-    background: var(--signal-up); box-shadow: 0 0 0 4px var(--signal-up-soft);
+    background: var(--signal-up);
+    box-shadow:
+      0 0 0 4px var(--signal-up-soft),
+      0 0 10px 1px var(--signal-glow);
+  }
+
+  /* ============================================================
+     COVENANT — the overall grade as a holographic plasma projection.
+     The old stray "halo ring" that bisected the left-aligned number
+     is GONE. Now a plasma emanation pools directly behind the number
+     and a clean concentric energy ring is centered on the number
+     itself (via .cov-numwrap, which wraps only the number), so the
+     ring actually frames it instead of floating off to one side.
+     ============================================================ */
+  .ov-hero-light { position: relative; }
+
+  /* soft plasma aura pooled behind the hero — projector backwash */
+  .ov-hero-light .halo-aura {
+    position: absolute;
+    pointer-events: none;
+    left: -60px; top: -64px;
+    width: 380px; height: 320px;
+    border-radius: 50%;
+    background: radial-gradient(closest-side,
+      var(--halo-core) 0%, var(--halo-warm) 30%, var(--halo-edge) 75%);
+    mix-blend-mode: var(--halo-blend);
+    z-index: 0;
+  }
+
+  /* the number is wrapped tight so the energy ring centers ON it */
+  .halo-numwrap, .cov-numwrap {
+    position: relative; display: inline-flex; isolation: isolate;
+  }
+  .halo-numwrap .num, .cov-numwrap .num { position: relative; z-index: 2; }
+
+  /* concentric plasma energy ring — sized to the number, centered.
+     A conic crown masked to a thin band; properly framing the grade. */
+  .cov-ring {
+    position: absolute;
+    pointer-events: none;
+    z-index: 1;
+    left: 50%; top: 50%;
+    width: 156px; height: 156px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background:
+      conic-gradient(from 130deg,
+        var(--ring-glow-2) 0deg,
+        var(--ring-glow) 90deg,
+        var(--ring-track) 180deg,
+        var(--ring-glow) 270deg,
+        var(--ring-glow-2) 360deg);
+    -webkit-mask: radial-gradient(closest-side,
+        transparent 0%, transparent 72%,
+        #000 73%, #000 78%, transparent 79.5%);
+            mask: radial-gradient(closest-side,
+        transparent 0%, transparent 72%,
+        #000 73%, #000 78%, transparent 79.5%);
+    mix-blend-mode: var(--halo-blend);
+    opacity: 0.95;
+  }
+  /* the bright plasma pool behind the digits (centered emanation) */
+  .cov-ring::before {
+    content: "";
+    position: absolute; inset: 20%;
+    border-radius: 50%;
+    background: radial-gradient(closest-side,
+      var(--halo-core) 0%, transparent 78%);
+    mix-blend-mode: var(--halo-blend);
+  }
+  /* outer bloom — emitted light (box-shadow, no costly blur filter) */
+  .cov-ring::after {
+    content: "";
+    position: absolute; inset: 14%;
+    border-radius: 50%;
+    box-shadow:
+      0 0 30px 4px var(--ring-halo),
+      0 0 64px 16px var(--ring-halo);
+    opacity: 0.6;
+  }
+  /* two ceremonial brass tick-marks on the ring (Covenant ornament) */
+  .cov-ring i {
+    position: absolute; left: 50%; top: 50%;
+    width: 10px; height: 2px; border-radius: 2px;
+    background: var(--cov-gold);
+    box-shadow: 0 0 6px 0 var(--cov-gold-soft);
+    transform-origin: -68px 50%;
+  }
+  .cov-ring i:nth-child(1) { transform: translate(68px,-1px) rotate(0deg); }
+  .cov-ring i:nth-child(2) { transform: translate(68px,-1px) rotate(180deg); }
+
+  @media (max-width: 560px) {
+    .cov-ring { width: 124px; height: 124px; }
+    .cov-ring i { transform-origin: -54px 50%; }
+    .cov-ring i:nth-child(1) { transform: translate(54px,-1px) rotate(0deg); }
+    .cov-ring i:nth-child(2) { transform: translate(54px,-1px) rotate(180deg); }
+    .ov-hero-light .halo-aura { width: 300px; height: 260px; }
   }
 
   .stats {
     display: grid; grid-template-columns: repeat(4, 1fr);
-    border: 1px solid var(--hair); border-radius: var(--radius);
-    overflow: hidden; background: var(--paper); margin-bottom: 8px;
+    border: 1px solid var(--cov-glass-edge); border-radius: var(--radius);
+    overflow: hidden;
+    background:
+      linear-gradient(180deg, var(--cov-glass) 0%, transparent 30%),
+      var(--paper);
+    margin-bottom: 8px;
+    position: relative;
+    box-shadow: 0 0 26px -16px var(--ring-halo);
   }
+  /* a faint luminous wash that grazes the top edge of the summary
+     card — light catching the rim, not a fill */
+  #screen-overview .stats::before {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+    inset: 0;
+    background: radial-gradient(120% 90% at 80% -30%,
+      var(--halo-card) 0%, transparent 55%);
+    mix-blend-mode: var(--halo-blend);
+  }
+  .stat { position: relative; }
   .stat { padding: 20px 20px 18px; border-right: 1px solid var(--hair); }
   .stat:last-child { border-right: none; }
   .stat .label {
@@ -439,10 +735,27 @@
 
   /* ---------- line chart (shared, monochrome) ---------- */
   .chart {
-    border: 1px solid var(--hair);
+    border: 1px solid var(--cov-glass-edge);
     border-radius: var(--radius);
-    background: var(--paper);
+    background:
+      linear-gradient(180deg, var(--cov-glass) 0%, transparent 26%),
+      var(--paper);
     padding: 20px 22px 16px;
+    position: relative;
+    box-shadow: 0 0 28px -16px var(--ring-halo);
+  }
+  /* ambient glow pooled BEHIND the chart card — only on overview,
+     where this is a "thing that matters." Non-clipping, decorative. */
+  #screen-overview .chart::before {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+    z-index: -1;
+    left: -8%; right: 4%; top: -24%; bottom: -32%;
+    border-radius: 50%;
+    background: radial-gradient(closest-side,
+      var(--halo-card) 0%, var(--halo-card-edge) 70%);
+    mix-blend-mode: var(--halo-blend);
   }
   .chart .chart-head {
     display: flex; align-items: baseline; justify-content: space-between;
@@ -467,13 +780,18 @@
   .chart .ylab,
   .chart .xlab     { fill: var(--ink-4); font-size: 11px; font-weight: 500;
                      font-family: inherit; letter-spacing: 0.01em; }
-  .chart .line     { fill: none; stroke: var(--ink); stroke-width: 1.8;
-                     stroke-linecap: round; stroke-linejoin: round; }
+  .chart .line     { fill: none; stroke: var(--cov-amethyst); stroke-width: 1.8;
+                     stroke-linecap: round; stroke-linejoin: round;
+                     filter: drop-shadow(0 0 4px var(--ring-halo)); }
   .chart .ref      { fill: none; stroke: var(--ink-4); stroke-width: 1.2;
                      stroke-linecap: round; stroke-linejoin: round; opacity: 0.32; }
   .chart .endpt    { fill: var(--ink); }
   .chart .seg-up   { stroke: var(--signal-up); }
-  .chart .endpt-up { fill: var(--signal-up); }
+  /* the live endpoint glows — a tiny luminous bead at "now" */
+  .chart .endpt-up {
+    fill: var(--signal-up);
+    filter: drop-shadow(0 0 5px var(--signal-glow));
+  }
   .chart .endpt-miss { fill: var(--signal-miss); }
 
   .chart-legend {
@@ -503,7 +821,11 @@
     transition: background 130ms ease, border-color 130ms ease;
   }
   .rail-item:hover { background: var(--paper-2); }
-  .rail-item.on { background: var(--paper-3); border-color: var(--hair); }
+  .rail-item.on {
+    background: linear-gradient(90deg, var(--cov-glass) 0%, transparent 70%), var(--paper-3);
+    border-color: var(--cov-glass-edge);
+    box-shadow: inset 2px 0 0 0 var(--cov-amethyst), inset 0 0 14px -6px var(--ring-halo);
+  }
   .rail-item .rn {
     display: flex; align-items: center; gap: 7px;
     font-size: 13.5px; font-weight: 550; color: var(--ink); letter-spacing: -0.01em;
@@ -519,13 +841,17 @@
 
   .gb-snapshot {
     display: flex; align-items: flex-end; justify-content: space-between; gap: 20px;
-    padding: 22px; border: 1px solid var(--hair); border-radius: var(--radius);
+    padding: 22px; border: 1px solid var(--cov-glass-edge); border-radius: var(--radius);
     margin-bottom: 28px; flex-wrap: wrap;
+    background: linear-gradient(180deg, var(--cov-glass) 0%, transparent 28%), var(--paper);
+    box-shadow: 0 0 26px -16px var(--ring-halo);
   }
   .gb-snapshot .left .gbteacher { font-size: 12.5px; color: var(--ink-3); font-weight: 450; }
   .gb-snapshot .left .gbgrade {
-    font-size: 44px; font-weight: 600; letter-spacing: -0.03em; color: var(--ink); line-height: 1;
+    font-size: 44px; font-weight: 600; letter-spacing: -0.03em; line-height: 1;
     margin-top: 6px;
+    color: var(--cov-amethyst);
+    text-shadow: 0 0 22px var(--ring-halo);
   }
   .gb-snapshot .left .gbgrade .pct { font-size: 22px; color: var(--ink-4); font-weight: 500; }
   .gb-snapshot .left .gbsub { font-size: 12.5px; color: var(--ink-3); font-weight: 450; margin-top: 6px; }
@@ -539,7 +865,9 @@
   .cat .cn { font-size: 13.5px; font-weight: 550; color: var(--ink); }
   .cat .cw { font-size: 12px; color: var(--ink-4); font-weight: 450; margin-top: 2px; }
   .cat .bar { width: 130px; height: 4px; border-radius: 999px; background: var(--paper-3); overflow: hidden; }
-  .cat .bar span { display: block; height: 100%; background: var(--ink-3); border-radius: 999px; }
+  .cat .bar span { display: block; height: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, var(--cov-amethyst), var(--cov-cyan));
+    box-shadow: 0 0 8px -1px var(--ring-halo); }
   .cat .cavg { font-size: 13.5px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; min-width: 54px; text-align: right; }
 
   .arow {
@@ -830,9 +1158,12 @@
   .game-card:hover { background: var(--paper-2); transform: translateY(-1px); }
   .game-card .gc-ic {
     width: 42px; height: 42px; border-radius: 11px; flex: none;
-    border: 1px solid var(--hair); background: var(--paper-2);
-    display: grid; place-items: center; color: var(--ink-2);
+    border: 1px solid var(--cov-glass-edge);
+    background: linear-gradient(135deg, var(--cov-glass), var(--paper-2));
+    display: grid; place-items: center; color: var(--cov-amethyst);
+    box-shadow: inset 0 0 14px -6px var(--ring-halo);
   }
+  .game-card .gc-ic svg { filter: drop-shadow(0 0 4px var(--ring-halo)); }
   .game-card .gc-ic svg { width: 22px; height: 22px; }
   .game-card .gc-name { font-size: 15px; font-weight: 600; color: var(--ink); letter-spacing: -0.012em; }
   .game-card .gc-desc { font-size: 12.5px; color: var(--ink-3); font-weight: 450; margin-top: 2px; }
@@ -940,7 +1271,11 @@
     transition: background 130ms ease, border-color 130ms ease, transform 90ms ease;
   }
   .light-cell:hover { transform: translateY(-1px); }
-  .light-cell.on { background: var(--ink); border-color: var(--ink); }
+  .light-cell.on {
+    background: radial-gradient(circle at 40% 35%, var(--cov-cyan), var(--cov-amethyst));
+    border-color: var(--cov-amethyst);
+    box-shadow: 0 0 14px -2px var(--ring-halo);
+  }
 
   /* ---- Dodge (canvas) ---- */
   .dodge-wrap { padding: 12px; }
@@ -1393,7 +1728,17 @@
     body.printing-overview .screen { display: none !important; }
     body.printing-overview #screen-overview { display: block !important; }
     body.printing-overview .canvas { max-width: none; padding: 0; }
-    html[data-theme="dark"] body.printing-overview { background: #fff; }
+    /* printing: flatten the plasma glow so it reads as ink on white */
+    body.printing-overview, html[data-theme="dark"] body.printing-overview {
+      background: #fff;
+    }
+    body.printing-overview .ov-hero .grade .num {
+      -webkit-text-fill-color: var(--ink); color: var(--ink);
+      background: none; text-shadow: none;
+    }
+    body.printing-overview .cov-ring,
+    body.printing-overview body::before,
+    body.printing-overview body::after { display: none !important; }
   }
 
   /* ---------- mobile ---------- */
@@ -1455,6 +1800,25 @@
          SIDEBAR — persistent quiet chrome
          ============================================================ -->
     <aside class="sidebar">
+      <!-- decorative Covenant hard-light glyph (purely ornamental) -->
+      <div class="cov-glyph" aria-hidden="true">
+        <svg viewBox="0 0 100 100" fill="none">
+          <defs>
+            <linearGradient id="covg" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="var(--cov-cyan)"/>
+              <stop offset="1" stop-color="var(--cov-amethyst)"/>
+            </linearGradient>
+          </defs>
+          <g stroke="url(#covg)" stroke-width="1.4" stroke-linecap="round">
+            <circle cx="50" cy="50" r="34" opacity="0.55"/>
+            <circle cx="50" cy="50" r="24" opacity="0.4"/>
+            <path d="M50 16 C30 30 30 70 50 84 C70 70 70 30 50 16Z" opacity="0.7"/>
+            <path d="M16 50 C30 38 70 38 84 50 C70 62 30 62 16 50Z" opacity="0.5"/>
+            <path d="M50 28 C42 40 42 60 50 72 C58 60 58 40 50 28Z" opacity="0.85"/>
+          </g>
+          <circle cx="50" cy="50" r="4" fill="var(--cov-cyan)" opacity="0.9"/>
+        </svg>
+      </div>
       <div class="side-brand">
         <svg class="mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <circle cx="12" cy="12" r="8.4" stroke="#14140f" stroke-width="1.4"/>
@@ -1523,7 +1887,7 @@
       <div class="side-foot">
         <span style="display:inline-flex;align-items:center;gap:8px;">
           <svg class="dotmark" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.4" stroke="#9a9a91" stroke-width="1.4"/><circle cx="12" cy="12" r="2.1" fill="#9a9a91"/></svg>
-          HALO
+          COVENANT
         </span>
         <span>Updated today</span>
       </div>
@@ -1540,10 +1904,14 @@
           <div id="welcomeSlot"></div>
           <section class="ov-hero">
             <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;">
-              <div>
+              <div class="ov-hero-light">
+                <span class="halo-aura" aria-hidden="true"></span>
                 <p class="lede" id="ovEyebrow">Overall grade</p>
                 <div class="grade">
-                  <div class="num" id="ovOverall">96.2<span class="pct">%</span></div>
+                  <div class="cov-numwrap">
+                    <span class="cov-ring" aria-hidden="true"><i></i><i></i></span>
+                    <div class="num" id="ovOverall">96.2<span class="pct">%</span></div>
+                  </div>
                   <div class="across" id="ovCoursesMeta">across 6 courses</div>
                 </div>
                 <div class="status" id="ovSubln"><span class="dot"></span> Trending up</div>

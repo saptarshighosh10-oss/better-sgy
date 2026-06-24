@@ -13,20 +13,26 @@
      ============================================================ */
 
   :root{
-    --ink:#000;
-    --paper:#fff;
-    --ink-80:rgba(0,0,0,.80);
-    --ink-60:rgba(0,0,0,.60);
-    --ink-45:rgba(0,0,0,.45);
-    --ink-30:rgba(0,0,0,.30);
-    --ink-15:rgba(0,0,0,.15);
-    --ink-08:rgba(0,0,0,.08);
-    --hair:rgba(0,0,0,.85);
+    /* DAY EDITION — warm rag-paper white, near-black ink (true ink is never pure #000) */
+    --ink:#14110d;
+    --paper:#f4f1e9;
+    --ink-80:rgba(20,17,13,.80);
+    --ink-60:rgba(20,17,13,.60);
+    --ink-45:rgba(20,17,13,.45);
+    --ink-30:rgba(20,17,13,.30);
+    --ink-15:rgba(20,17,13,.16);
+    --ink-08:rgba(20,17,13,.07);
+    --hair:rgba(20,17,13,.85);
     --serif:Georgia,"Times New Roman",serif;
     --sans:Helvetica,"Helvetica Neue",Arial,system-ui,sans-serif;
     --gut:24px;
     --rule:1px solid var(--ink);
     --hairline:1px solid var(--ink-15);
+    /* newsprint substrate — fibre fleck + faint vertical laid lines + edge vignette */
+    --news-fleck:rgba(20,17,13,.05);
+    --news-fleck2:rgba(20,17,13,.035);
+    --news-tint:rgba(120,96,60,.05);
+    --edition-word:"Day Edition";
   }
 
   *{box-sizing:border-box;margin:0;padding:0;}
@@ -40,9 +46,30 @@
     -webkit-font-smoothing:antialiased;
     text-rendering:optimizeLegibility;
     padding:clamp(18px,4vw,56px);
+    position:relative;
   }
 
-  .page{ max-width:1180px; margin:0 auto; }
+  /* ============================================================
+     NEWSPRINT SUBSTRATE — pressman's paper, not a flat fill.
+     Fixed, behind everything, purely decorative.  Stacks:
+       1. ink-fibre fleck (two radial speckle fields)
+       2. faint vertical "laid lines" of the paper mould
+       3. a warm press-tint wash + corner foxing vignette
+     ============================================================ */
+  body::before{
+    content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+    background:
+      radial-gradient(circle at 20% 35%, var(--news-fleck) 0 .6px, transparent 1.2px),
+      radial-gradient(circle at 72% 68%, var(--news-fleck2) 0 .5px, transparent 1.1px),
+      radial-gradient(circle at 48% 88%, var(--news-fleck) 0 .5px, transparent 1px),
+      repeating-linear-gradient(90deg, var(--news-fleck2) 0 1px, transparent 1px 4px),
+      radial-gradient(125% 95% at 50% 40%, transparent 58%, var(--news-tint) 100%);
+    background-size:7px 7px, 9px 9px, 11px 11px, 4px 100%, 100% 100%;
+    mix-blend-mode:multiply; opacity:.9;
+  }
+  /* keep main content above the press substrate (z:0) without disturbing
+     the fixed overlays, which carry their own higher z-index */
+  .page{ position:relative; z-index:1; max-width:1180px; margin:0 auto; }
 
   /* small-caps label utility */
   .label{
@@ -64,29 +91,56 @@
   /* ============================================================
      MASTHEAD — persistent editorial chrome
      ============================================================ */
-  .masthead{ border-top:3px solid var(--ink); padding-top:10px; }
+  /* MASTHEAD — the nameplate. Heavy top rule, then a thick/thin "Scotch"
+     double-rule frames the title, with an engraved ornament centred over it. */
+  .masthead{
+    border-top:3px solid var(--ink);
+    box-shadow:0 2px 0 -1px var(--paper), 0 3px 0 -1px var(--ink); /* thick + hairline */
+    padding-top:10px;
+  }
   .masthead__topline{
     display:flex; justify-content:space-between; align-items:baseline;
     gap:16px; font-size:10.5px; font-weight:700;
     letter-spacing:.24em; text-transform:uppercase; color:var(--ink-60);
   }
   .masthead__topline .edition{ color:var(--ink); }
+  /* live edition flag (Day / Late), set decoratively below the topline,
+     just above the nameplate — never collides with the centred kicker */
+  .masthead__topline{ position:relative; }
+  .masthead__topline::after{
+    content:var(--edition-word); position:absolute; left:50%; top:calc(100% + 7px);
+    transform:translateX(-50%); white-space:nowrap;
+    font-size:9px; letter-spacing:.36em; color:var(--ink-45); pointer-events:none;
+  }
   .masthead__title{
     font-family:var(--serif); font-weight:700;
-    font-size:clamp(28px,5.2vw,52px); line-height:.96;
-    letter-spacing:-.02em; margin:12px 0 12px;
+    font-size:clamp(30px,5.6vw,58px); line-height:.96;
+    letter-spacing:-.02em; margin:14px 0 8px; text-align:center;
+    position:relative; text-shadow:0 1px 0 var(--ink-08); /* faint press-bleed */
   }
   .masthead__title em{ font-style:italic; font-weight:400; }
+  /* Scotch rule: thick line, thin line, with a fleuron centred over the gap */
+  .masthead__title::before{
+    content:""; display:block; height:4px; margin:0 0 12px;
+    border-top:3px solid var(--ink); border-bottom:1px solid var(--ink);
+  }
+  .masthead__title::after{
+    content:"❦"; position:absolute; top:-9px; left:50%; transform:translateX(-50%);
+    background:var(--paper); padding:0 14px; font-size:15px; color:var(--ink-80);
+    font-style:normal;
+  }
 
-  /* identity line */
+  /* DATELINE — small-caps identity strip beneath the nameplate, centred,
+     framed by hairline rules like a broadsheet's volume/price line. */
   .masthead__context{
-    display:flex; flex-wrap:wrap; gap:0 18px; align-items:baseline;
-    border-top:var(--rule); border-bottom:var(--rule); padding:8px 0;
-    font-size:12px; letter-spacing:.05em;
+    display:flex; flex-wrap:wrap; gap:0 18px; align-items:baseline; justify-content:center;
+    border-top:var(--rule); border-bottom:var(--rule); padding:9px 0 8px;
+    font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+    font-weight:700;
   }
   .masthead__context .sep{ color:var(--ink-30); }
-  .masthead__context .ctx{ color:var(--ink-80); }
-  .masthead__context .ctx strong{ font-weight:700; color:var(--ink); }
+  .masthead__context .ctx{ color:var(--ink-60); }
+  .masthead__context .ctx strong{ font-weight:700; color:var(--ink); letter-spacing:.02em; }
 
   /* ============================================================
      RULED NAV — 7 sections, acts like a table of contents
@@ -173,7 +227,14 @@
     font-size:clamp(22px,3.4vw,34px); line-height:1.08; letter-spacing:-.01em;
   }
   .hero__verdict p{
-    margin-top:14px; font-size:13px; line-height:1.6; color:var(--ink-80); max-width:38ch;
+    margin-top:14px; font-family:var(--serif); font-size:14px; line-height:1.62;
+    color:var(--ink-80); max-width:40ch; text-align:justify; hyphens:auto;
+  }
+  /* DROP CAP — the leading paragraph opens with an engraved initial */
+  .hero__verdict p::first-letter{
+    float:left; font-family:var(--serif); font-weight:700;
+    font-size:3.1em; line-height:.72; padding:6px 8px 0 0; margin-top:3px;
+    color:var(--ink);
   }
 
   /* ============================================================
@@ -241,7 +302,7 @@
   }
   .figure__captext{
     font-family:var(--serif); font-style:italic; font-size:13.5px; line-height:1.5;
-    color:var(--ink-80); max-width:60ch;
+    color:var(--ink-80); max-width:60ch; text-align:justify; hyphens:auto;
   }
   .figure__captext .figure__lead{ font-style:normal; font-weight:700; color:var(--ink); letter-spacing:.02em; }
   .figure__legend{ align-self:start; }
@@ -345,12 +406,22 @@
     color:var(--ink-60); font-style:italic; font-family:var(--serif);
   }
   .colophon{
-    margin-top:40px; border-top:3px solid var(--ink); padding-top:10px;
+    margin-top:40px; border-top:3px solid var(--ink);
+    box-shadow:0 2px 0 -1px var(--paper), 0 3px 0 -1px var(--ink);
+    padding-top:14px;
     display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px 24px;
     font-size:10px; font-weight:700; letter-spacing:.22em; text-transform:uppercase;
     color:var(--ink-45);
   }
   .colophon .mark{ color:var(--ink); }
+  /* "-30-" — the pressman's traditional end-of-copy mark, centred above the colophon */
+  .colophon::before{
+    content:"— 30 —"; position:absolute; left:50%; top:-15px; transform:translateX(-50%);
+    background:var(--paper); padding:0 12px; letter-spacing:.3em;
+    font-family:var(--serif); font-weight:400; font-style:italic; font-size:12px;
+    text-transform:none; color:var(--ink-45);
+  }
+  .colophon{ position:relative; }
 
   /* ============================================================
      LEDGER (Grades) — two-column gradebook
@@ -924,7 +995,7 @@
     position:absolute; inset:0; background:rgba(255,255,255,.92);
     display:flex; align-items:center; justify-content:center; z-index:8;
   }
-  body.theme-wob .goverlay{ background:rgba(0,0,0,.92); }
+  body.theme-wob .goverlay{ background:rgba(16,14,9,.93); }
   .goverlay__card{
     border:2px solid var(--ink); background:var(--paper); box-shadow:6px 6px 0 var(--ink);
     padding:28px 32px 30px; text-align:center; max-width:340px;
@@ -949,17 +1020,37 @@
 
   /* ANAGRAM rack tonal fill inverts cleanly via vars; word-search grays as well.
      Only the static card diagrams use hard #000/#fff strokes — invert for dark. */
-  body.theme-wob .gcard__diag svg [stroke="#000"]{ stroke:#fff; }
-  body.theme-wob .gcard__diag svg [fill="#000"]{ fill:#fff; }
-  body.theme-wob .gcard__diag svg [fill="#fff"]{ fill:#000; }
+  body.theme-wob .gcard__diag svg [stroke="#000"]{ stroke:#ece3d2; }
+  body.theme-wob .gcard__diag svg [fill="#000"]{ fill:#ece3d2; }
+  body.theme-wob .gcard__diag svg [fill="#fff"]{ fill:#16140f; }
 
-  /* THEME — white on black (strictly monochrome, ink/paper swapped) */
-  body.theme-wob{ --ink:#fff; --paper:#000;
-    --ink-80:rgba(255,255,255,.80); --ink-60:rgba(255,255,255,.60);
-    --ink-45:rgba(255,255,255,.45); --ink-30:rgba(255,255,255,.30);
-    --ink-15:rgba(255,255,255,.15); --ink-08:rgba(255,255,255,.08);
-    --hair:rgba(255,255,255,.85);
+  /* ============================================================
+     NIGHT / LATE EDITION — the inverted broadsheet.
+     Not pure white-on-black: a deep charcoal newsprint carrying
+     warm cream ink, with inverted hairline rules. The masthead
+     still commands the page.  Reached via body.theme-wob, which
+     the appearance toggle (Dark / Auto-after-dusk) applies.
+     ============================================================ */
+  body.theme-wob{
+    --ink:#ece3d2;            /* warm cream ink */
+    --paper:#16140f;          /* deep charcoal newsprint */
+    --ink-80:rgba(236,227,210,.82); --ink-60:rgba(236,227,210,.60);
+    --ink-45:rgba(236,227,210,.42); --ink-30:rgba(236,227,210,.26);
+    --ink-15:rgba(236,227,210,.16); --ink-08:rgba(236,227,210,.075);
+    --hair:rgba(236,227,210,.85);
+    /* night substrate: cream flecks, laid lines, cool press wash */
+    --news-fleck:rgba(236,227,210,.05);
+    --news-fleck2:rgba(236,227,210,.03);
+    --news-tint:rgba(60,72,96,.12);
+    --edition-word:"Late Edition";
   }
+  /* the charcoal carries a faint warm gradient, like a lamp over newsprint */
+  body.theme-wob{
+    background:
+      radial-gradient(140% 110% at 50% 0%, #1d1a13 0%, var(--paper) 62%, #100e09 100%);
+    background-attachment:fixed;
+  }
+  body.theme-wob::before{ mix-blend-mode:screen; opacity:1; }
   body.theme-wob .plate .grid{ stroke:var(--ink-15); }
   body.theme-wob .plate .axis,
   body.theme-wob .plate .tick,
@@ -969,21 +1060,22 @@
   body.theme-wob .plate .dot-fill,
   body.theme-wob .plate .dot-hover{ fill:var(--ink); }
   body.theme-wob svg polyline[stroke="#000"],
-  body.theme-wob svg line[stroke="#000"]{ stroke:#fff; }
-  body.theme-wob svg circle[fill="#000"]{ fill:#fff; }
-  body.theme-wob svg text[style*="fill:#000"]{ fill:#fff !important; }
+  body.theme-wob svg line[stroke="#000"]{ stroke:#ece3d2; }
+  body.theme-wob svg circle[fill="#000"]{ fill:#ece3d2; }
+  body.theme-wob svg text[style*="fill:#000"]{ fill:#ece3d2 !important; }
   body.theme-wob .figtip,
   body.theme-wob .ping{ box-shadow:5px 5px 0 var(--ink); }
-  /* reversed: text sitting on an ink fill must read as paper (now black) */
-  body.theme-wob .nav__item--on .nav__no{ color:rgba(0,0,0,.5); }
+  /* reversed: text sitting on a cream-ink fill must read as the charcoal paper */
+  body.theme-wob .nav__item--on .nav__no{ color:rgba(22,20,15,.55); }
   body.theme-wob .cell--today .calnote .cn-course,
-  body.theme-wob .cell--today .cell__count{ color:rgba(0,0,0,.7); }
-  body.theme-wob .style--active .style__desc{ color:rgba(0,0,0,.65); }
-  body.theme-wob .cell--today .calnote{ border-top-color:rgba(0,0,0,.6); }
+  body.theme-wob .cell--today .cell__count{ color:rgba(22,20,15,.72); }
+  body.theme-wob .style--active .style__desc{ color:rgba(22,20,15,.66); }
+  body.theme-wob .cell--today .calnote{ border-top-color:rgba(22,20,15,.6); }
+  /* the nameplate fleuron & end-mark backings track the night paper */
 
   /* THEME — high contrast hairlines */
-  body.contrast{ --ink-15:rgba(0,0,0,.42); --hairline:1px solid rgba(0,0,0,.42); }
-  body.contrast.theme-wob{ --ink-15:rgba(255,255,255,.42); --hairline:1px solid rgba(255,255,255,.42); }
+  body.contrast{ --ink-15:rgba(20,17,13,.42); --hairline:1px solid rgba(20,17,13,.42); }
+  body.contrast.theme-wob{ --ink-15:rgba(236,227,210,.42); --hairline:1px solid rgba(236,227,210,.42); }
 
   /* DENSITY — compact */
   body.compact .course{ padding:13px 4px; }
@@ -1499,6 +1591,7 @@
   @media print{
     /* force monochrome regardless of dark theme */
     body, body.theme-wob{ --ink:#000; --paper:#fff; background:#fff; color:#000; padding:0; }
+    body::before, body.theme-wob::before{ display:none !important; } /* no newsprint texture in print */
     .nav, .colophon, .ping-dock, .ov-scrim, .mh-search,
     #export-overview, .course__trend{ display:none !important; }
     /* print only the overview */

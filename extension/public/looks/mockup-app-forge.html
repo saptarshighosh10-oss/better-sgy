@@ -820,6 +820,170 @@
     .hero{flex-direction:column}.herobub{max-width:100%}
     .calgrid{gap:5px}.day{padding:5px}
   }
+
+  /* ============================================================
+     ✦ CHATTY FRIEND DECOR ✦  (purely decorative — pseudo-elements only)
+     A friend who has WAY too much to say. Handwritten margin asides,
+     little arrows, doodly squiggles, sticky-note voice, grade commentary.
+     No markup added, no JS touched — hooks only onto existing classes.
+     ============================================================ */
+  :root{
+    --scrawl: "Bradley Hand","Segoe Print","Comic Sans MS","Chalkboard SE",
+              "Marker Felt",cursive;
+    --scrawl-ink:#c2562f;     /* warm red-pencil margin ink */
+    --scrawl-ink2:#9b87f2;    /* grape ink, second voice */
+    --scrawl-sage:#3f9a72;    /* approving green ink */
+    --tape:rgba(255,207,77,.5);
+  }
+  html[data-theme="dark"]{
+    --scrawl-ink:#ff9b7a;
+    --scrawl-ink2:#bdaaff;
+    --scrawl-sage:#7cd0a7;
+    --tape:rgba(255,207,77,.32);
+  }
+  /* respect folks who'd rather not see the wiggle */
+  @media (prefers-reduced-motion:no-preference){
+    .friendnote-anim{animation:friendwiggle 4s ease-in-out infinite}
+  }
+  @keyframes friendwiggle{0%,100%{transform:rotate(var(--r,-3deg))}
+    50%{transform:rotate(calc(var(--r,-3deg) + 1.4deg))}}
+  @keyframes scrawlin{from{opacity:0;transform:translateY(4px) rotate(var(--r,-3deg))}
+    to{opacity:1;transform:rotate(var(--r,-3deg))}}
+
+  /* shared look for every handwritten scrawl this section spawns */
+  .hero,.score,.gradehero,.gh-g,.sechd,.outro,.sidefoot,.sticky,
+  .emptynote,.govl .gbox,.welcome,.snap,.bestpanel,.gcard{position:relative}
+
+  /* ---- OVERVIEW: big-score gets a doodly "showoff" aside + circle ---- */
+  .score::after{
+    content:"hey hey, look at that ✶";
+    position:absolute;left:-6px;top:-28px;
+    font-family:var(--scrawl);font-size:14.5px;font-weight:700;
+    color:var(--scrawl-ink);transform:rotate(-5deg);white-space:nowrap;
+    text-shadow:0 1px 0 var(--paper);pointer-events:none;
+  }
+  .score .big::after{
+    content:"↑ proud of you";
+    position:absolute;left:calc(100% + 10px);bottom:6px;
+    font-family:var(--scrawl);font-size:13px;font-weight:700;
+    color:var(--scrawl-sage);transform:rotate(4deg);white-space:nowrap;pointer-events:none;
+  }
+  @media(max-width:900px){.score .big::after{display:none}}
+
+  /* a little hand-drawn squiggle underline under section titles */
+  .sechd h2::after{
+    content:"";position:absolute;left:0;right:-6px;bottom:-4px;height:7px;
+    background:
+      radial-gradient(circle at 6px 5px,transparent 4px,var(--peach) 4px,var(--peach) 5px,transparent 5.5px) 0 0/14px 8px repeat-x;
+    opacity:.5;pointer-events:none;
+  }
+  .sechd{padding-bottom:2px}
+
+
+  /* ---- GRADES: speech-bubble commentary riding the big grade number ---- */
+  .gradehero .gh-g::before{
+    content:"ooh. showoff. 😄";
+    position:absolute;right:0;top:-30px;
+    font-family:var(--scrawl);font-size:13.5px;font-weight:700;
+    color:var(--scrawl-ink);transform:rotate(-4deg);white-space:nowrap;
+    text-shadow:0 1px 0 var(--paper);pointer-events:none;
+  }
+  /* the friendly arrow that points down at the grade */
+  .gradehero .gh-g::after{
+    content:"↘";position:absolute;right:-2px;top:-6px;
+    font-size:18px;color:var(--scrawl-ink);transform:rotate(8deg);
+    opacity:.75;pointer-events:none;
+  }
+  @media(max-width:560px){.gradehero .gh-g::before,.gradehero .gh-g::after{display:none}}
+
+  /* sprinkle a hand-drawn star doodle in the corner of every course card */
+  .course::after{
+    content:"✦";position:absolute;top:9px;right:13px;font-size:13px;
+    color:var(--scrawl-ink2);opacity:.4;transform:rotate(12deg);
+    pointer-events:none;transition:opacity .15s,transform .15s;
+  }
+  .course:hover::after{opacity:.85;transform:rotate(-6deg) scale(1.25)}
+
+  /* ---- OUTRO snack note: turn it into a torn sticky w/ tape + scrawl ---- */
+  .outro::before{
+    content:"p.s.";position:absolute;left:14px;top:-13px;
+    font-family:var(--scrawl);font-size:14px;font-weight:700;color:var(--scrawl-ink);
+    background:var(--paper);padding:0 6px;transform:rotate(-3deg);pointer-events:none;
+  }
+  .outro::after{
+    content:"";position:absolute;right:18px;top:-9px;width:46px;height:17px;
+    background:var(--tape);transform:rotate(6deg);border-radius:2px;
+    box-shadow:0 1px 3px -1px rgba(120,80,30,.3);pointer-events:none;
+  }
+
+  /* ---- SIDEBAR footer: a doodled arrow + cheer ---- */
+  .sidefoot::after{
+    content:"you got this →";position:absolute;left:14px;bottom:-19px;
+    font-family:var(--scrawl);font-size:12.5px;font-weight:700;
+    color:var(--scrawl-sage);transform:rotate(-2deg);white-space:nowrap;pointer-events:none;
+  }
+  .sidefoot{margin-bottom:18px}
+
+  /* ---- STICKY note (calendar): a curled corner + push-pin doodle ---- */
+  .sticky::before{
+    content:"📍";position:absolute;left:50%;top:-12px;transform:translateX(-50%) rotate(-8deg);
+    font-size:17px;pointer-events:none;filter:drop-shadow(0 2px 1px rgba(0,0,0,.18));
+  }
+  .sticky::after{
+    content:"";position:absolute;right:0;bottom:0;width:22px;height:22px;
+    background:linear-gradient(135deg,transparent 50%,rgba(120,80,30,.16) 50%);
+    border-bottom-right-radius:18px;pointer-events:none;
+  }
+
+  /* ---- EMPTY STATES get an encouraging scribble ---- */
+  .emptynote::after{
+    content:"nothing here — go enjoy your day ✶";
+    display:block;margin-top:8px;font-family:var(--scrawl);font-size:14px;
+    font-weight:700;color:var(--scrawl-sage);transform:rotate(-1.5deg);
+  }
+
+  /* ---- WELCOME card: a little hand-scrawled "← that's me" ---- */
+  .welcome::after{
+    content:"← that's me 👋";position:absolute;left:50px;bottom:-18px;
+    font-family:var(--scrawl);font-size:12.5px;font-weight:700;
+    color:var(--scrawl-ink2);transform:rotate(-3deg);white-space:nowrap;pointer-events:none;
+  }
+  .welcome{margin-bottom:30px}
+
+  /* ---- NOSTALGIA snaps: a wistful margin sigh ---- */
+  .snap::after{
+    content:"remember this? 🥹";position:absolute;right:14px;bottom:9px;
+    font-family:var(--scrawl);font-size:12px;font-weight:700;
+    color:var(--scrawl-ink2);opacity:.65;transform:rotate(2deg);
+    white-space:nowrap;pointer-events:none;
+  }
+
+  /* ---- ARCADE: cheer over the best-scores panel + game cards ---- */
+  .bestpanel::before{
+    content:"flex on 'em 🏆";position:absolute;right:14px;top:-14px;
+    font-family:var(--scrawl);font-size:13px;font-weight:700;color:var(--scrawl-ink);
+    background:var(--paper);padding:0 5px;transform:rotate(3deg);pointer-events:none;
+  }
+  .gcard::after{
+    content:"go on, one round 😏";position:absolute;left:78px;bottom:6px;
+    font-family:var(--scrawl);font-size:11.5px;font-weight:700;color:var(--scrawl-ink2);
+    opacity:0;transform:translateY(3px) rotate(-2deg);transition:opacity .16s,transform .16s;
+    pointer-events:none;white-space:nowrap;
+  }
+  .gcard:hover::after{opacity:.85;transform:rotate(-2deg)}
+  @media(max-width:560px){.gcard::after{display:none}}
+
+  /* ---- WIN overlay: a celebratory confetti scrawl ---- */
+  .govl .gbox::before{
+    content:"yesss! 🎉";position:absolute;left:50%;top:-16px;transform:translateX(-50%) rotate(-4deg);
+    font-family:var(--scrawl);font-size:15px;font-weight:700;color:var(--scrawl-ink);
+    background:var(--card);padding:0 8px;pointer-events:none;
+  }
+
+  /* keep the chatter from crowding small screens */
+  @media(max-width:840px){
+    .sidefoot::after,.score::after{display:none}
+  }
 </style>
 </head>
 <body>

@@ -116,13 +116,25 @@
   *{box-sizing:border-box;margin:0;padding:0;}
   html{-webkit-text-size-adjust:100%;}
 
-  /* The canvas reads as a warm wood plank in SOLID color — a soft warm
-     light from the top over a flat walnut base (no grain/fibre lines). */
+  /* The canvas reads as a real walnut plank: warm overhead light, a flat
+     wood base, then fine vertical fibre lines + softer wide grain bands so
+     the surface looks sawn, not painted. Tuned subtle so text stays crisp. */
   body{
     color:var(--ink);
     background:var(--wood-0);
     background-image:
-      radial-gradient(120% 70% at 50% -8%, rgba(214,138,60,.10), transparent 56%),
+      /* warm top light (lacquer sheen) */
+      radial-gradient(120% 70% at 50% -8%, rgba(214,138,60,.12), transparent 56%),
+      /* fine fibre lines — close-packed vertical grain */
+      repeating-linear-gradient(94deg,
+        transparent 0 7px,
+        var(--grain) 7px 8px,
+        transparent 8px 17px),
+      /* broad cathedral bands — the wide flowing figure of the plank */
+      repeating-linear-gradient(91deg,
+        rgba(120,86,48,0.00) 0 60px,
+        var(--grain) 60px 62px,
+        rgba(120,86,48,0.00) 62px 150px),
       linear-gradient(180deg, var(--wood-1), var(--wood-0) 70%);
     background-attachment:fixed;
     -webkit-font-smoothing:antialiased;
@@ -134,11 +146,47 @@
   }
   a{color:inherit;}
 
-  /* select surfaces (hero, sidebar) — SOLID warm wood, no grain lines.
-     Each surface keeps its own flat base color/fill; no line texture. */
-  .grainwood{
-    background-image:none;
+  /* Reusable wood-grain skin for premium surfaces (hero, etc): a flowing
+     plain-sawn figure built from layered repeating gradients. Sits over the
+     surface's own base color so it tints rather than replaces it. */
+  .grainwood{ position:relative; isolation:isolate; }
+  .grainwood::before{
+    content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+    border-radius:inherit;
+    opacity:.9;
+    background:
+      /* tight fibres */
+      repeating-linear-gradient(92deg,
+        rgba(40,24,10,0.00) 0 5px,
+        rgba(40,24,10,0.14) 5px 6px,
+        rgba(40,24,10,0.00) 6px 13px),
+      /* warm grain highlight ribbons */
+      repeating-linear-gradient(92deg,
+        rgba(232,168,91,0.00) 0 24px,
+        rgba(232,168,91,0.07) 24px 26px,
+        rgba(232,168,91,0.00) 26px 70px),
+      /* the wide cathedral curve of plain-sawn wood */
+      radial-gradient(160% 60% at 12% 50%,
+        rgba(40,24,10,0.22), transparent 45%),
+      radial-gradient(150% 70% at 120% 50%,
+        rgba(40,24,10,0.18), transparent 50%);
+    mix-blend-mode:overlay;
   }
+  :root[data-theme="light"] .grainwood::before{
+    mix-blend-mode:multiply;opacity:.55;
+    background:
+      repeating-linear-gradient(92deg,
+        rgba(120,80,30,0.00) 0 5px,
+        rgba(120,80,30,0.10) 5px 6px,
+        rgba(120,80,30,0.00) 6px 13px),
+      repeating-linear-gradient(92deg,
+        rgba(180,120,50,0.00) 0 24px,
+        rgba(180,120,50,0.07) 24px 26px,
+        rgba(180,120,50,0.00) 26px 70px),
+      radial-gradient(160% 60% at 12% 50%, rgba(120,80,30,0.14), transparent 45%),
+      radial-gradient(150% 70% at 120% 50%, rgba(120,80,30,0.10), transparent 50%);
+  }
+  .grainwood > *{ position:relative; z-index:1; }
 
   /* shared soft, natural drop shadow (like a tile resting on a board) */
   :root{ --shadow:0 1px 1px rgba(20,12,4,.30), 0 16px 34px rgba(20,12,4,.36); }
@@ -149,17 +197,74 @@
   ============================================================ */
   .app{display:flex;min-height:100vh;}
 
-  /* ---- Sidebar — a vertical walnut rail ---- */
+  /* ---- Sidebar — a vertical walnut rail, sawn with the grain running
+     top-to-bottom like a real plank stood on end. A carved bevel on the
+     right edge + a faint tree silhouette growing up from the foot. ---- */
   .side{
     width:268px;flex:0 0 268px;
     border-right:1px solid var(--line);
     background:var(--side-bg);
     display:flex;flex-direction:column;
     position:sticky;top:0;height:100vh;
+    overflow:hidden;
+    background-image:
+      /* vertical fibre lines (grain runs down the rail) */
+      repeating-linear-gradient(178deg,
+        rgba(20,12,4,0.00) 0 6px,
+        rgba(20,12,4,0.22) 6px 7px,
+        rgba(20,12,4,0.00) 7px 15px),
+      /* broad vertical figure bands */
+      repeating-linear-gradient(180deg,
+        rgba(120,86,48,0.00) 0 70px,
+        rgba(120,86,48,0.10) 70px 73px,
+        rgba(120,86,48,0.00) 73px 170px),
+      /* carved bevel of warm light down the inner edge */
+      linear-gradient(90deg, rgba(232,168,91,.06), transparent 22%),
+      linear-gradient(180deg, var(--side-bg), var(--side-bg));
   }
+  :root[data-theme="light"] .side{
+    background-image:
+      repeating-linear-gradient(178deg,
+        rgba(150,110,60,0.00) 0 6px,
+        rgba(150,110,60,0.10) 6px 7px,
+        rgba(150,110,60,0.00) 7px 15px),
+      repeating-linear-gradient(180deg,
+        rgba(150,110,60,0.00) 0 70px,
+        rgba(150,110,60,0.07) 70px 73px,
+        rgba(150,110,60,0.00) 73px 170px),
+      linear-gradient(90deg, rgba(184,108,31,.05), transparent 22%),
+      linear-gradient(180deg, var(--side-bg), var(--side-bg));
+  }
+  /* carved seam where the rail meets the main board */
+  .side::after{
+    content:"";position:absolute;top:0;right:0;bottom:0;width:3px;pointer-events:none;z-index:3;
+    background:linear-gradient(90deg, transparent, rgba(20,12,4,.5));
+    box-shadow:inset 1px 0 0 rgba(232,168,91,.10);
+  }
+  :root[data-theme="light"] .side::after{
+    background:linear-gradient(90deg, transparent, rgba(120,80,30,.16));
+    box-shadow:inset 1px 0 0 rgba(255,250,240,.6);
+  }
+  /* faint tree/branch silhouette growing up from the foot of the rail */
+  .side-tree{
+    position:absolute;left:0;right:0;bottom:0;height:340px;pointer-events:none;z-index:0;
+    opacity:.5;
+    color:#e8a85b;
+    -webkit-mask-image:linear-gradient(180deg, transparent, #000 55%);
+            mask-image:linear-gradient(180deg, transparent, #000 55%);
+  }
+  .side-tree svg{position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);width:240px;height:auto;display:block;}
+  :root[data-theme="light"] .side-tree{ opacity:.32; color:#9c6a2a; }
+  /* growth-ring motif faintly stamped behind the brand mark */
+  .side-rings{
+    position:absolute;top:-40px;right:-50px;width:200px;height:200px;pointer-events:none;z-index:0;
+    opacity:.4;color:#e8a85b;
+  }
+  :root[data-theme="light"] .side-rings{ opacity:.28;color:#b07a30; }
   .brand{
     padding:26px 24px 18px;
     display:flex;align-items:center;gap:12px;
+    position:relative;z-index:2;
   }
   .brand .mark{
     width:36px;height:36px;border-radius:11px;
@@ -174,6 +279,7 @@
     margin:6px 16px 8px;padding:14px 12px;
     display:flex;align-items:center;gap:12px;
     border-radius:16px;
+    position:relative;z-index:2;
   }
   .who .av{
     width:44px;height:44px;border-radius:14px;flex:0 0 44px;
@@ -186,7 +292,7 @@
   .who .meta .n{font-size:15px;font-weight:600;letter-spacing:-0.01em;line-height:1.2;}
   .who .meta .s{font-size:13px;color:var(--ink3);letter-spacing:-0.005em;line-height:1.3;margin-top:1px;}
 
-  .nav{padding:8px 16px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;}
+  .nav{padding:8px 16px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;position:relative;z-index:2;}
   .nav .navlab{
     font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;
     color:var(--ink3);padding:14px 12px 6px;
@@ -207,14 +313,25 @@
     min-width:20px;height:20px;padding:0 6px;
     display:inline-flex;align-items:center;justify-content:center;letter-spacing:0;
   }
+  /* active = a honey-lacquered slot carved into the rail: amber wash, a
+     warm top sheen and a soft inner shadow so it reads as recessed wood. */
   .navitem.active{
-    background:linear-gradient(180deg,rgba(214,138,60,.18),rgba(214,138,60,.10));
+    background:linear-gradient(180deg,rgba(214,138,60,.22),rgba(214,138,60,.11));
     color:var(--link);
-    box-shadow:inset 0 0 0 1px rgba(214,138,60,.22);
+    box-shadow:
+      inset 0 0 0 1px rgba(214,138,60,.30),
+      inset 0 1px 0 rgba(255,235,200,.18),
+      inset 0 -2px 6px rgba(40,24,10,.30);
+  }
+  :root[data-theme="light"] .navitem.active{
+    box-shadow:
+      inset 0 0 0 1px rgba(184,108,31,.30),
+      inset 0 1px 0 rgba(255,255,255,.5),
+      inset 0 -2px 6px rgba(150,110,60,.16);
   }
   .navitem.active svg{opacity:1;}
 
-  .side .foot{margin-top:auto;padding:16px 22px 20px;border-top:1px solid var(--hair);}
+  .side .foot{margin-top:auto;padding:16px 22px 20px;border-top:1px solid var(--hair);position:relative;z-index:2;background:linear-gradient(180deg,transparent,var(--side-bg) 40%);}
   .side .foot .sync{font-size:12.5px;color:var(--ink3);letter-spacing:-0.005em;display:flex;align-items:center;gap:7px;}
   .side .foot .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(143,174,107,.18);}
 
@@ -229,7 +346,9 @@
     backdrop-filter:saturate(150%) blur(18px);
     -webkit-backdrop-filter:saturate(150%) blur(18px);
     border-bottom:1px solid var(--line);
+    box-shadow:0 1px 0 rgba(232,168,91,.08), 0 2px 8px rgba(20,12,4,.18);
   }
+  :root[data-theme="light"] .topbar{ box-shadow:0 1px 0 rgba(255,255,255,.5), 0 3px 10px rgba(120,80,30,.08); }
   .topbar .menubtn{
     display:none;appearance:none;border:none;background:none;cursor:pointer;padding:6px;border-radius:8px;
   }
@@ -257,6 +376,28 @@
   .pagehead h1{font-family:var(--serif);font-size:clamp(36px,5vw,50px);font-weight:600;letter-spacing:-0.012em;line-height:1.02;}
   .pagehead .sub{margin-top:9px;font-size:18px;color:var(--ink2);letter-spacing:-0.004em;}
 
+  /* Engraved / carved-into-wood headings: a dark groove below + a thin warm
+     highlight above, so the serif display type looks chiselled into the plank.
+     Dark mode reads as a deep gouge; light mode as a fine debossed cut. */
+  .pagehead h1,
+  .topbar .ttl,
+  .b-hero .huge,
+  .b-hero .name,
+  .tile .big{
+    text-shadow:
+      0 1px 0 rgba(255,235,200,.10),
+      0 -1px 0 rgba(20,12,4,.45),
+      0 2px 3px rgba(20,12,4,.30);
+  }
+  :root[data-theme="light"] .pagehead h1,
+  :root[data-theme="light"] .topbar .ttl,
+  :root[data-theme="light"] .b-hero .huge,
+  :root[data-theme="light"] .tile .big{
+    text-shadow:
+      0 1px 0 rgba(255,255,255,.7),
+      0 -1px 0 rgba(120,80,30,.22);
+  }
+
   .btn{
     appearance:none;border:none;cursor:pointer;font-family:inherit;
     font-size:15px;font-weight:600;letter-spacing:-0.006em;
@@ -282,18 +423,33 @@
   .tlink .chev{transition:transform .18s ease;}
   .tlink:hover .chev{transform:translateX(2px);}
 
-  /* Every panel is a "bento cell": warm paper, soft inset rim, real shadow. */
+  /* Every panel is a "bento cell": warm paper, soft inset rim, real shadow.
+     A whisper of vertical grain on the face + a thin lacquered top edge so
+     each cell reads as a planed block of wood rather than flat card stock. */
   .surface{
-    background:var(--paper);
+    position:relative;
+    background:
+      repeating-linear-gradient(91deg,
+        rgba(120,86,48,0.00) 0 9px,
+        var(--grain) 9px 10px,
+        rgba(120,86,48,0.00) 10px 22px),
+      var(--paper);
     border:1px solid var(--hair);
     border-radius:22px;
-    box-shadow:var(--shadow), inset 0 1px 0 rgba(255,235,200,.04);
+    box-shadow:var(--shadow), inset 0 1px 0 rgba(255,235,200,.06), inset 0 0 0 1px rgba(232,168,91,.04);
   }
   .tile{
-    background:var(--tile);border-radius:22px;padding:24px 26px;
+    position:relative;
+    background:
+      repeating-linear-gradient(91deg,
+        rgba(120,86,48,0.00) 0 9px,
+        var(--grain) 9px 10px,
+        rgba(120,86,48,0.00) 10px 22px),
+      var(--tile);
+    border-radius:22px;padding:24px 26px;
     border:1px solid var(--hair);
     display:flex;flex-direction:column;
-    box-shadow:inset 0 1px 0 rgba(255,235,200,.05);
+    box-shadow:inset 0 1px 0 rgba(255,235,200,.06), inset 0 0 0 1px rgba(232,168,91,.03);
   }
   .tile .lab{font-size:13px;color:var(--ink2);font-weight:600;letter-spacing:0.02em;text-transform:uppercase;}
   .tile .big{margin-top:14px;font-family:var(--serif);font-size:46px;font-weight:600;letter-spacing:-0.018em;line-height:1;}
@@ -382,14 +538,25 @@
     padding:30px 32px;display:flex;flex-direction:column;
   }
   :root[data-theme="light"] .b-hero{ background:linear-gradient(155deg,#f6ead2,#efe0c4 72%); }
+  /* warm lacquer sheen + faint concentric GROWTH RINGS radiating from the
+     top-right corner, as if the tile is cut across a section of the trunk. */
   .b-hero::after{
-    content:"";position:absolute;inset:0;pointer-events:none;
+    content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
     background:
-      radial-gradient(90% 70% at 88% 0%, rgba(232,168,91,.28), transparent 60%);
-    mix-blend-mode:screen;opacity:.8;
+      radial-gradient(90% 70% at 88% 0%, rgba(232,168,91,.28), transparent 60%),
+      repeating-radial-gradient(circle at 100% -6%,
+        rgba(232,168,91,0.00) 0 26px,
+        rgba(232,168,91,0.10) 26px 28px,
+        rgba(232,168,91,0.00) 28px 54px);
+    mix-blend-mode:screen;opacity:.85;
   }
   :root[data-theme="light"] .b-hero::after{ mix-blend-mode:multiply;opacity:.5;
-    background:radial-gradient(90% 70% at 88% 0%, rgba(214,138,60,.22), transparent 62%); }
+    background:
+      radial-gradient(90% 70% at 88% 0%, rgba(214,138,60,.22), transparent 62%),
+      repeating-radial-gradient(circle at 100% -6%,
+        rgba(150,100,40,0.00) 0 26px,
+        rgba(150,100,40,0.09) 26px 28px,
+        rgba(150,100,40,0.00) 28px 54px); }
   .b-hero .eyebrow{position:relative;z-index:1;font-size:12.5px;font-weight:700;letter-spacing:0.10em;text-transform:uppercase;color:var(--ink3);}
   .b-hero .huge{position:relative;z-index:1;margin-top:auto;font-family:var(--serif);font-size:clamp(72px,9vw,116px);font-weight:600;letter-spacing:-0.03em;line-height:.9;}
   .b-hero .huge .pct{font-size:.36em;font-weight:600;color:var(--ink3);vertical-align:.5em;margin-left:4px;}
@@ -1165,6 +1332,25 @@
 
   <!-- ============ SIDEBAR ============ -->
   <aside class="side" id="side">
+    <!-- decorative-only wood motifs (no JS hooks) -->
+    <div class="side-rings" aria-hidden="true">
+      <svg viewBox="0 0 200 200" fill="none" stroke="currentColor">
+        <circle cx="155" cy="45" r="24" stroke-width="1.4"/>
+        <circle cx="155" cy="45" r="44" stroke-width="1.2"/>
+        <circle cx="155" cy="45" r="66" stroke-width="1"/>
+        <circle cx="155" cy="45" r="90" stroke-width="0.8"/>
+      </svg>
+    </div>
+    <div class="side-tree" aria-hidden="true">
+      <svg viewBox="0 0 240 300" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M120 300 L120 150" stroke-width="6"/>
+        <path d="M120 196 C108 178 92 170 74 168 M120 196 C104 184 96 168 96 150" stroke-width="3.5"/>
+        <path d="M120 178 C134 162 152 156 170 156 M120 178 C140 168 150 150 152 132" stroke-width="3.5"/>
+        <path d="M120 158 C110 142 96 134 82 132 M120 152 C132 138 146 132 158 132" stroke-width="2.6"/>
+        <path d="M96 150 C86 140 76 138 68 140 M152 132 C162 122 172 122 180 126" stroke-width="2"/>
+        <path d="M120 138 C120 122 122 108 128 96 M120 144 C112 130 104 122 96 118" stroke-width="2"/>
+      </svg>
+    </div>
     <div class="brand">
       <span class="mark">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 7.5L12 4l8 3.5v9L12 20l-8-3.5v-9z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 4v16M4 7.5l8 3.5 8-3.5" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>

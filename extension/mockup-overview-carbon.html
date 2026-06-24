@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Cdefs%3E%3ClinearGradient id=%27sgy%27 x1=%270%27 y1=%270%27 x2=%270%27 y2=%271%27%3E%3Cstop offset=%270%27 stop-color=%27%23e8a85b%27/%3E%3Cstop offset=%271%27 stop-color=%27%23c0752b%27/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27url(%23sgy)%27/%3E%3Cpath d=%27M9 20.5L16 11L23 20.5%27 fill=%27none%27 stroke=%27white%27 stroke-width=%273.2%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
+<title>Better SGY — Overview · CARBON</title>
+<style>
+  /* ============================================================
+     CARBON — "Bento + Wood" edition · Overview preview.
+     A warm natural-material system: walnut / teak / oak browns,
+     cream paper surfaces, honey-amber accent. Modular bento tiles
+     with clear rhythm. Dark-first (deep espresso wood). Sample
+     student "Alex Mercer", same six courses + grades as the app.
+     Self-contained, static, no build step, no external assets.
+  ============================================================ */
+  :root, :root[data-theme="dark"]{
+    --ink:#f3e9da;          /* warm parchment text */
+    --ink2:#bda98c;         /* aged oak */
+    --ink3:#8a7860;         /* dim teak */
+    --line:rgba(196,160,110,0.16);
+    --hair:rgba(196,160,110,0.10);
+    --paper:#241a12;        /* dark walnut card */
+    --tile:#2c2017;         /* slightly lifted wood */
+    --blue:#d68a3c;         /* HONEY-AMBER accent (the "wood lacquer") */
+    --link:#e0a45a;
+    --green:#8fae6b;        /* sage / moss */
+    --orange:#e0954a;       /* amber */
+    --red:#c96a4e;          /* terracotta */
+    --hover:rgba(196,160,110,0.07);
+    --track:rgba(196,160,110,0.16);
+    --band-fill:rgba(214,138,60,0.10);
+    /* base wood for the whole canvas */
+    --wood-0:#160e08;
+    --wood-1:#1f150d;
+    /* course accents — warm, natural-pigment palette (on-theme) */
+    --c-alg:#d68a3c;   /* amber  */
+    --c-bio:#8fae6b;   /* moss   */
+    --c-fr:#e0b35a;    /* honey  */
+    --c-dra:#b07cc4;   /* heather */
+    --c-lit:#7fa9b0;   /* slate-teal */
+    --c-pe:#8fae6b;    /* moss   */
+    /* display serif vs body sans pairing */
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua","URW Palladio L",Charter,Georgia,"Times New Roman",serif;
+    --sans:-apple-system,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-family:var(--sans);
+    color-scheme:dark;
+    --shadow:0 1px 1px rgba(20,12,4,.30), 0 16px 34px rgba(20,12,4,.36);
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{-webkit-text-size-adjust:100%;}
+
+  /* The canvas reads as a warm wood plank: a soft warm light from the
+     top over a flat walnut base. */
+  body{
+    color:var(--ink);
+    background:var(--wood-0);
+    background-image:
+      radial-gradient(120% 70% at 50% -8%, rgba(214,138,60,.10), transparent 56%),
+      linear-gradient(180deg, var(--wood-1), var(--wood-0) 70%);
+    background-attachment:fixed;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    text-rendering:optimizeLegibility;
+    font-size:17px;
+    line-height:1.5;
+    letter-spacing:-0.006em;
+  }
+  a{color:inherit;}
+
+  .wrap{max-width:1120px;margin:0 auto;padding:46px 32px 96px;}
+
+  /* ---- page lead ---- */
+  .lead{margin-bottom:34px;display:flex;align-items:center;gap:14px;}
+  .lead .mark{
+    width:40px;height:40px;border-radius:12px;flex:0 0 40px;
+    background:linear-gradient(150deg,#e8a85b,#c0752b);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 3px 10px rgba(160,90,20,.40), inset 0 1px 0 rgba(255,235,200,.4);
+  }
+  .lead .lt{font-family:var(--serif);font-size:21px;font-weight:600;letter-spacing:-0.01em;line-height:1.1;}
+  .lead .lt span{color:var(--ink3);font-style:italic;font-weight:500;}
+  .lead .ls{font-size:13px;color:var(--ink3);letter-spacing:-0.004em;margin-top:2px;}
+
+  /* ---- buttons / links ---- */
+  .btn{
+    appearance:none;border:none;cursor:pointer;font-family:inherit;
+    font-size:15px;font-weight:600;letter-spacing:-0.006em;
+    background:linear-gradient(180deg,#e09a48,#c0752b);
+    color:#2a1a0a;
+    padding:10px 19px;border-radius:13px;
+    box-shadow:0 2px 8px rgba(160,90,20,.30), inset 0 1px 0 rgba(255,235,200,.4);
+    transition:filter .18s ease,transform .12s ease;
+    display:inline-flex;align-items:center;gap:6px;text-decoration:none;
+  }
+  .btn:hover{filter:brightness(1.05);}
+  .btn:active{transform:scale(.98);}
+  .btn.ghost{background:var(--tile);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line);}
+  .btn.sm{padding:8px 15px;font-size:14px;border-radius:11px;}
+  .tlink{
+    font-size:15px;color:var(--link);text-decoration:none;letter-spacing:-0.006em;font-weight:600;
+    display:inline-flex;align-items:center;gap:3px;cursor:pointer;background:none;border:none;font-family:inherit;
+  }
+  .tlink:hover{text-decoration:underline;text-underline-offset:3px;}
+  .tlink .chev{transition:transform .18s ease;}
+  .tlink:hover .chev{transform:translateX(2px);}
+
+  /* every panel is a "bento cell": warm paper, soft inset rim, real shadow */
+  .surface{
+    background:var(--paper);
+    border:1px solid var(--hair);
+    border-radius:22px;
+    box-shadow:var(--shadow), inset 0 1px 0 rgba(255,235,200,.04);
+  }
+  .tile{
+    background:var(--tile);border-radius:22px;padding:24px 26px;
+    border:1px solid var(--hair);
+    display:flex;flex-direction:column;
+    box-shadow:inset 0 1px 0 rgba(255,235,200,.05);
+  }
+  .tile .lab{font-size:13px;color:var(--ink2);font-weight:600;letter-spacing:0.02em;text-transform:uppercase;}
+  .tile .big{margin-top:14px;font-family:var(--serif);font-size:46px;font-weight:600;letter-spacing:-0.018em;line-height:1;}
+  .tile .big.sm{font-size:30px;}
+  .tile .big.warn{color:var(--orange);}
+  .tile .note{margin-top:8px;font-size:13px;color:var(--ink3);letter-spacing:-0.004em;}
+
+  /* ============================================================
+     BENTO GRID — hero + stats + trend + due/missing
+  ============================================================ */
+  .bento{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    grid-auto-rows:minmax(96px,auto);
+    gap:18px;
+    margin-bottom:8px;
+  }
+  .bento > *{ min-width:0; }
+
+  /* hero overall-grade tile — 2x2, wood-faced */
+  .b-hero{
+    grid-column:span 2;grid-row:span 2;
+    position:relative;overflow:hidden;
+    border-radius:24px;border:1px solid var(--line);
+    background:linear-gradient(155deg,#3a2a17,#241811 72%);
+    box-shadow:var(--shadow), inset 0 1px 0 rgba(255,235,200,.06);
+    padding:30px 32px;display:flex;flex-direction:column;
+  }
+  .b-hero::after{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(90% 70% at 88% 0%, rgba(232,168,91,.28), transparent 60%);
+    mix-blend-mode:screen;opacity:.8;
+  }
+  .b-hero .eyebrow{position:relative;z-index:1;font-size:12.5px;font-weight:700;letter-spacing:0.10em;text-transform:uppercase;color:var(--ink3);}
+  .b-hero .huge{position:relative;z-index:1;margin-top:auto;font-family:var(--serif);font-size:clamp(72px,9vw,116px);font-weight:600;letter-spacing:-0.03em;line-height:.9;}
+  .b-hero .huge .pct{font-size:.36em;font-weight:600;color:var(--ink3);vertical-align:.5em;margin-left:4px;}
+  .b-hero .subln{position:relative;z-index:1;margin-top:16px;font-size:18px;color:var(--ink2);letter-spacing:-0.006em;line-height:1.35;max-width:34ch;}
+  .b-hero .subln .ink{color:var(--ink);font-weight:600;}
+  .b-hero .ov-cta{position:relative;z-index:1;margin-top:22px;display:flex;gap:18px;align-items:center;flex-wrap:wrap;}
+
+  /* stat tiles — 1x1 */
+  .b-stat{grid-column:span 1;grid-row:span 1;justify-content:space-between;padding:20px 22px;}
+  .b-stat .big{font-size:38px;margin-top:10px;}
+  .b-stat .big.sm{font-size:26px;}
+
+  /* trend chart tile — wide, spans 4 cols */
+  .b-trend{grid-column:span 4;padding:28px 30px 24px;}
+  .trendcard .th{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .trendcard .th .tlab{font-family:var(--serif);font-size:16px;font-weight:600;letter-spacing:-0.008em;color:var(--ink);}
+  .trendcard .th .tnow{font-size:14px;color:var(--ink3);letter-spacing:-0.004em;}
+  .trendcard .th .tnow b{color:var(--ink);font-weight:700;}
+  .chart{display:block;width:100%;height:auto;margin-top:18px;overflow:visible;}
+  .chart .grid-l{stroke:var(--hair);stroke-width:1;}
+  .chart .axis-t{fill:var(--ink3);font-size:13px;letter-spacing:-0.004em;font-family:inherit;}
+  .chart .band{fill:var(--band-fill);}
+  .trendcap{margin-top:16px;font-size:13.5px;color:var(--ink3);letter-spacing:-0.004em;}
+
+  /* due-today / missing tiles spanning 2 */
+  .b-due{grid-column:span 2;padding:0;overflow:hidden;display:flex;flex-direction:column;}
+  .b-due .bdhead{padding:20px 24px 14px;display:flex;align-items:baseline;justify-content:space-between;gap:12px;}
+  .b-due .bdhead .t{font-family:var(--serif);font-size:19px;font-weight:600;letter-spacing:-0.01em;}
+  .b-due .bdhead .m{font-size:13px;color:var(--ink3);}
+  .b-due .bdrow{display:flex;align-items:center;gap:13px;padding:13px 24px;border-top:1px solid var(--hair);}
+  .b-due .bdrow .sw{width:8px;height:8px;border-radius:3px;flex:0 0 8px;}
+  .b-due .bdrow .bn{font-size:15px;font-weight:600;letter-spacing:-0.006em;}
+  .b-due .bdrow .bc{font-size:13px;color:var(--ink3);margin-top:1px;}
+  .b-due .bdrow .bp{margin-left:auto;}
+
+  .pill{
+    font-size:13px;font-weight:600;letter-spacing:-0.004em;
+    border-radius:980px;padding:4px 12px;
+    background:var(--tile);color:var(--ink2);
+    display:inline-flex;align-items:center;gap:6px;
+  }
+  .pill.orange{background:rgba(224,149,74,.18);color:var(--orange);}
+  .pill.red{background:rgba(201,106,78,.18);color:var(--red);}
+  .pill.blue{background:rgba(214,138,60,.16);color:var(--link);}
+
+  /* ============================================================
+     COURSES — section header + bento-styled gallery
+  ============================================================ */
+  .secrow{padding:60px 0 0;display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .secrow h2{font-family:var(--serif);font-size:clamp(28px,4vw,38px);font-weight:600;letter-spacing:-0.012em;line-height:1.08;}
+  .secrow .meta{font-size:16px;color:var(--ink3);letter-spacing:-0.004em;}
+
+  .gallery{margin-top:26px;display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+  .card{
+    position:relative;background:var(--paper);border:1px solid var(--hair);border-radius:22px;overflow:hidden;
+    display:flex;flex-direction:column;
+    box-shadow:var(--shadow), inset 0 1px 0 rgba(255,235,200,.04);
+    transition:transform .25s cubic-bezier(.2,.7,.2,1),box-shadow .25s ease;
+  }
+  .card:hover{transform:translateY(-3px);box-shadow:var(--shadow),0 26px 54px rgba(20,12,4,.4);}
+  .accent{height:5px;width:100%;}
+  .card .top{padding:24px 24px 18px;}
+  .card .cname{font-family:var(--serif);font-size:21px;font-weight:600;letter-spacing:-0.012em;line-height:1.14;}
+  .card .teach{margin-top:5px;font-size:14px;color:var(--ink3);letter-spacing:-0.004em;}
+  .card .gradeline{margin-top:20px;display:flex;align-items:baseline;gap:6px;}
+  .card .grade{font-family:var(--serif);font-size:46px;font-weight:600;letter-spacing:-0.02em;line-height:1;}
+  .card .gpct{font-family:var(--serif);font-size:21px;font-weight:600;color:var(--ink3);letter-spacing:-0.01em;}
+  .card .letter{margin-left:auto;align-self:center;font-size:15px;font-weight:700;color:var(--ink2);background:var(--tile);border-radius:980px;padding:5px 14px;}
+  .spark{display:block;height:44px;width:100%;margin-top:18px;}
+  .trend{margin-top:14px;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:500;color:var(--ink2);letter-spacing:-0.004em;}
+  .trend svg{display:block;}
+  .card .foot{margin-top:auto;padding:16px 24px;border-top:1px solid var(--hair);display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .card .foot a{font-size:15px;color:var(--link);text-decoration:none;font-weight:600;letter-spacing:-0.006em;display:inline-flex;align-items:center;gap:1px;}
+  .card .foot a:hover{text-decoration:underline;text-underline-offset:3px;}
+  .card .foot a .chev{transition:transform .18s ease;}
+  .card .foot a:hover .chev{transform:translateX(2px);}
+  .miss{font-size:13.5px;font-weight:600;color:var(--red);letter-spacing:-0.004em;}
+  .clean{font-size:13.5px;color:var(--ink3);letter-spacing:-0.004em;}
+
+  /* ---- export + closer ---- */
+  .ov-export{margin-top:30px;display:flex;justify-content:center;}
+  .closer{text-align:center;padding:90px 0 24px;}
+  .closer p{margin:0 auto;max-width:660px;font-family:var(--serif);font-size:clamp(24px,4vw,36px);font-weight:600;letter-spacing:-0.012em;line-height:1.15;}
+  .closer .note{margin:18px auto 0;font-family:var(--sans);font-size:16px;font-weight:400;color:var(--ink3);letter-spacing:-0.004em;}
+
+  /* ============================================================
+     RESPONSIVE — graceful collapse at iframe + tablet + phone
+  ============================================================ */
+  @media (max-width:1080px){
+    .bento{grid-template-columns:repeat(2,1fr);}
+    .b-hero{grid-column:span 2;grid-row:span 2;}
+    .b-trend{grid-column:span 2;}
+    .b-due{grid-column:span 2;}
+    .gallery{grid-template-columns:repeat(2,1fr);}
+  }
+  @media (max-width:560px){
+    .wrap{padding:30px 18px 64px;}
+    .bento{grid-template-columns:1fr;}
+    .b-hero,.b-stat,.b-trend,.b-due{grid-column:span 1;grid-row:auto;}
+    .gallery{grid-template-columns:1fr;}
+    .secrow{padding-top:48px;}
+    .closer{padding:64px 0 16px;}
+  }
+</style>
+</head>
+<body>
+  <main class="wrap">
+
+    <!-- PAGE LEAD -->
+    <div class="lead">
+      <span class="mark">
+        <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true"><path d="M9 20.5L16 11L23 20.5" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      <div>
+        <div class="lt">Better <span>SGY</span> — Overview</div>
+        <div class="ls">Alex Mercer &middot; 2025&ndash;2026 &middot; Freshman &middot; Semester 2</div>
+      </div>
+    </div>
+
+    <!-- BENTO GRID -->
+    <section class="bento">
+
+      <!-- hero: overall grade, wood-faced, 2x2 -->
+      <div class="b-hero">
+        <p class="eyebrow">2025&ndash;2026 &middot; Freshman &middot; Semester 2</p>
+        <div class="huge">96.2<span class="pct">%</span></div>
+        <p class="subln">Steady growth across six courses. <span class="ink">Two pieces of work still need tending.</span></p>
+        <div class="ov-cta">
+          <a class="btn" href="#courses">View all grades</a>
+          <a class="tlink" href="#due">See what's due <span class="chev">&rsaquo;</span></a>
+        </div>
+      </div>
+
+      <!-- stat tiles -->
+      <div class="tile b-stat"><div class="lab">GPA estimate</div><div class="big">3.94</div><div class="note">Weighted, 4.0 scale</div></div>
+      <div class="tile b-stat"><div class="lab">Due today</div><div class="big">2</div><div class="note">To turn in before dark</div></div>
+      <div class="tile b-stat"><div class="lab">Missing</div><div class="big warn">2</div><div class="note">Waiting in two courses</div></div>
+      <div class="tile b-stat"><div class="lab">Best class</div><div class="big sm">PE 9</div><div class="note">99.1% — tallest of the bunch</div></div>
+
+      <!-- grade-over-time chart tile, full width -->
+      <div class="surface trendcard b-trend">
+        <div class="th">
+          <span class="tlab">Overall grade over time</span>
+          <span class="tnow">Now <b>96.2%</b></span>
+        </div>
+        <svg class="chart" viewBox="0 0 900 280" role="img" aria-label="Overall grade rising from 94.2% to 96.2% across the semester">
+          <!-- gridlines + axis labels: 90 / 93 / 96 / 99 -->
+          <line class="grid-l" x1="56" y1="40"  x2="884" y2="40"/>
+          <line class="grid-l" x1="56" y1="110" x2="884" y2="110"/>
+          <line class="grid-l" x1="56" y1="180" x2="884" y2="180"/>
+          <line class="grid-l" x1="56" y1="250" x2="884" y2="250"/>
+          <text class="axis-t" x="14" y="44">99</text>
+          <text class="axis-t" x="14" y="114">96</text>
+          <text class="axis-t" x="14" y="184">93</text>
+          <text class="axis-t" x="14" y="254">90</text>
+          <!-- soft fill band under the curve -->
+          <path class="band" d="M56,205 L194,191 L332,168 L470,158 L608,140 L746,124 L884,116 L884,250 L56,250 Z"/>
+          <!-- the grade line: 94.2 -> 96.2 -->
+          <polyline fill="none" stroke="#d68a3c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
+            points="56,205 194,191 332,168 470,158 608,140 746,124 884,116"/>
+          <circle cx="884" cy="116" r="5.5" fill="#d68a3c"/>
+          <circle cx="884" cy="116" r="10" fill="none" stroke="#d68a3c" stroke-opacity=".3" stroke-width="2"/>
+          <!-- month ticks -->
+          <text class="axis-t" x="56"  y="276" text-anchor="middle">Feb</text>
+          <text class="axis-t" x="194" y="276" text-anchor="middle">Mar</text>
+          <text class="axis-t" x="332" y="276" text-anchor="middle">Apr</text>
+          <text class="axis-t" x="470" y="276" text-anchor="middle">May</text>
+          <text class="axis-t" x="608" y="276" text-anchor="middle">Jun</text>
+        </svg>
+        <p class="trendcap">Quietly recorded since you arrived. The line grows as new grades settle in.</p>
+      </div>
+
+      <!-- due today, spans 2 -->
+      <div class="surface b-due" id="due">
+        <div class="bdhead"><span class="t">Due today</span><span class="m">Mon, Jun 22</span></div>
+        <div class="bdrow">
+          <span class="sw" style="background:var(--c-alg);"></span>
+          <div><div class="bn">HW 7.3 problems</div><div class="bc">Algebra 2 / Trig &middot; Mr. Stubbs</div></div>
+          <span class="bp pill blue">Homework</span>
+        </div>
+        <div class="bdrow">
+          <span class="sw" style="background:var(--c-lit);"></span>
+          <div><div class="bn">Chapter 4 Response</div><div class="bc">Literature &middot; Ms. Howe</div></div>
+          <span class="bp pill blue">Homework</span>
+        </div>
+      </div>
+
+      <!-- missing work, spans 2 -->
+      <div class="surface b-due">
+        <div class="bdhead"><span class="t">Missing work</span><span class="m">2 to recover</span></div>
+        <div class="bdrow">
+          <span class="sw" style="background:var(--c-bio);"></span>
+          <div><div class="bn">Cell Energetics Lab</div><div class="bc">Biology &middot; was due Jun 19</div></div>
+          <span class="bp pill red">Missing</span>
+        </div>
+        <div class="bdrow">
+          <span class="sw" style="background:var(--c-dra);"></span>
+          <div><div class="bn">Monologue Reflection</div><div class="bc">Drama &middot; was due Jun 18</div></div>
+          <span class="bp pill red">Missing</span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- COURSES -->
+    <div class="secrow" id="courses"><h2>Your courses.</h2><div class="meta">6 courses &middot; Semester 2</div></div>
+
+    <section class="gallery">
+
+      <!-- Algebra 2 / Trig — trending up -->
+      <article class="card">
+        <div class="accent" style="background:var(--c-alg);"></div>
+        <div class="top">
+          <div class="cname">Algebra 2 / Trig</div>
+          <div class="teach">Mr. Stubbs &middot; Period 1</div>
+          <div class="gradeline"><span class="grade">97.4</span><span class="gpct">%</span><span class="letter">A</span></div>
+          <svg class="spark" viewBox="0 0 240 48" preserveAspectRatio="none" aria-hidden="true"><polyline fill="none" stroke="var(--c-alg)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="0,38 40,34 80,29 120,25 160,19 200,14 240,11"/><circle cx="240" cy="11" r="3.5" fill="var(--c-alg)"/></svg>
+          <span class="trend"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 10L6 6L8.5 8.5L12 4" fill="none" stroke="var(--green)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 4H12V7" fill="none" stroke="var(--green)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Rising this quarter</span>
+        </div>
+        <div class="foot"><a href="#">View grades <span class="chev">&rsaquo;</span></a><span class="clean">No missing work</span></div>
+      </article>
+
+      <!-- Biology — roughly flat -->
+      <article class="card">
+        <div class="accent" style="background:var(--c-bio);"></div>
+        <div class="top">
+          <div class="cname">Biology</div>
+          <div class="teach">Ms. Carrington &middot; Period 2</div>
+          <div class="gradeline"><span class="grade">96.7</span><span class="gpct">%</span><span class="letter">A</span></div>
+          <svg class="spark" viewBox="0 0 240 48" preserveAspectRatio="none" aria-hidden="true"><polyline fill="none" stroke="var(--c-bio)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="0,22 40,26 80,20 120,24 160,18 200,21 240,19"/><circle cx="240" cy="19" r="3.5" fill="var(--c-bio)"/></svg>
+          <span class="trend"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 7H12" fill="none" stroke="var(--ink3)" stroke-width="1.8" stroke-linecap="round"/></svg>Holding steady</span>
+        </div>
+        <div class="foot"><a href="#">View grades <span class="chev">&rsaquo;</span></a><span class="miss">1 missing</span></div>
+      </article>
+
+      <!-- French 1 — trending up -->
+      <article class="card">
+        <div class="accent" style="background:var(--c-fr);"></div>
+        <div class="top">
+          <div class="cname">French 1</div>
+          <div class="teach">Mme. Laurent &middot; Period 4</div>
+          <div class="gradeline"><span class="grade">96.5</span><span class="gpct">%</span><span class="letter">A</span></div>
+          <svg class="spark" viewBox="0 0 240 48" preserveAspectRatio="none" aria-hidden="true"><polyline fill="none" stroke="var(--c-fr)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="0,31 40,25 80,27 120,20 160,22 200,16 240,14"/><circle cx="240" cy="14" r="3.5" fill="var(--c-fr)"/></svg>
+          <span class="trend"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 10L6 6L8.5 8.5L12 4" fill="none" stroke="var(--green)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 4H12V7" fill="none" stroke="var(--green)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Rising this quarter</span>
+        </div>
+        <div class="foot"><a href="#">View grades <span class="chev">&rsaquo;</span></a><span class="clean">No missing work</span></div>
+      </article>
+
+      <!-- Drama — gently declining -->
+      <article class="card">
+        <div class="accent" style="background:var(--c-dra);"></div>
+        <div class="top">
+          <div class="cname">Drama</div>
+          <div class="teach">Mr. Ellison &middot; Period 5</div>
+          <div class="gradeline"><span class="grade">90.3</span><span class="gpct">%</span><span class="letter">A&minus;</span></div>
+          <svg class="spark" viewBox="0 0 240 48" preserveAspectRatio="none" aria-hidden="true"><polyline fill="none" stroke="var(--c-dra)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="0,16 40,19 80,23 120,22 160,28 200,31 240,34"/><circle cx="240" cy="34" r="3.5" fill="var(--c-dra)"/></svg>
+          <span class="trend"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 4L6 8L8.5 5.5L12 10" fill="none" stroke="var(--orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 10H12V7" fill="none" stroke="var(--orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Slipping a little</span>
+        </div>
+        <div class="foot"><a href="#">View grades <span class="chev">&rsaquo;</span></a><span class="miss">1 missing</span></div>
+      </article>
+
+      <!-- Literature — trending up -->
+      <article class="card">
+        <div class="accent" style="background:var(--c-lit);"></div>
+        <div class="top">
+          <div class="cname">Literature</div>
+          <div class="teach">Ms. Howe &middot; Period 6</div>
+          <div class="gradeline"><span class="grade">94.1</span><span class="gpct">%</span><span class="letter">A</span></div>
+          <svg class="spark" viewBox="0 0 240 48" preserveAspectRatio="none" aria-hidden="true"><polyline fill="none" stroke="var(--c-lit)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="0,33 40,29 80,30 120,24 160,25 200,20 240,17"/><circle cx="240" cy="17" r="3.5" fill="var(--c-lit)"/></svg>
+          <span class="trend"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 10L6 6L8.5 8.5L12 4" fill="none" stroke="var(--green)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 4H12V7" fill="none" stroke="var(--green)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Rising this quarter</span>
+        </div>
+        <div class="foot"><a href="#">View grades <span class="chev">&rsaquo;</span></a><span class="clean">No missing work</span></div>
+      </article>
+
+      <!-- PE 9 — flat & high -->
+      <article class="card">
+        <div class="accent" style="background:var(--c-pe);"></div>
+        <div class="top">
+          <div class="cname">PE 9</div>
+          <div class="teach">Coach Bryant &middot; Period 7</div>
+          <div class="gradeline"><span class="grade">99.1</span><span class="gpct">%</span><span class="letter">A</span></div>
+          <svg class="spark" viewBox="0 0 240 48" preserveAspectRatio="none" aria-hidden="true"><polyline fill="none" stroke="var(--c-pe)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="0,13 40,11 80,13 120,10 160,11 200,9 240,9"/><circle cx="240" cy="9" r="3.5" fill="var(--c-pe)"/></svg>
+          <span class="trend"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 7H12" fill="none" stroke="var(--ink3)" stroke-width="1.8" stroke-linecap="round"/></svg>Steady at the top</span>
+        </div>
+        <div class="foot"><a href="#">View grades <span class="chev">&rsaquo;</span></a><span class="clean">No missing work</span></div>
+      </article>
+
+    </section>
+
+    <div class="ov-export">
+      <a class="btn ghost sm" href="#"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 4v11M8 11l4 4 4-4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 19h14" stroke-width="1.8" stroke-linecap="round"/></svg>Export dashboard</a>
+    </div>
+
+    <!-- CLOSER -->
+    <section class="closer">
+      <p>Two things to turn in. The rest is already rooted and growing on its own.</p>
+      <p class="note">Drawn fresh from Schoology a moment ago.</p>
+    </section>
+
+  </main>
+</body>
+</html>

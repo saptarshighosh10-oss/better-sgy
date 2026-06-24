@@ -27,7 +27,7 @@ export default defineContentScript({
       halo:    { bg: '#0e1413', text: '#e8efed', card: '#16201d', border: 'rgba(255,255,255,0.09)',  primary: '#16a394', fresh: '#34c759', failed: '#ff6b6b', muted: 'rgba(232,239,237,0.5)' },
       slate:   { bg: '#ffffff', text: '#1a1a1a', card: '#f3f3f1', border: 'rgba(0,0,0,0.12)',        primary: '#1a1a1a', fresh: '#2f7d32', failed: '#b00020', muted: '#6b6b6b' },
       forge:   { bg: '#241c16', text: '#f5ece1', card: '#322820', border: 'rgba(255,255,255,0.09)',  primary: '#e07a3c', fresh: '#5cb85c', failed: '#e5533c', muted: 'rgba(245,236,225,0.5)' },
-      carbon:  { bg: '#0d1320', text: '#e6ecf5', card: '#161d2e', border: 'rgba(255,255,255,0.09)',  primary: '#5b8dee', fresh: '#34c759', failed: '#ff6b6b', muted: 'rgba(230,236,245,0.5)' },
+      carbon:  { bg: '#1f150d', text: '#f3e9da', card: '#241a12', border: 'rgba(255,255,255,0.08)',  primary: '#d68a3c', fresh: '#8fae6b', failed: '#c96a4e', muted: '#8a7860' },
     };
     // Labels for the in-panel picker (Forge ships under the friendlier name).
     const LOOK_LABELS: Record<string, string> = { apple: 'Apple', halo: 'Halo', slate: 'Slate', forge: 'Friendly', carbon: 'Carbon' };

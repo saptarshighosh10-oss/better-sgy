@@ -16,8 +16,8 @@
       desc:"Warm and chatty. A plain-language note on every grade.",
       color:"#e07a3c" },
     { id:"carbon", name:"Carbon",  label:"Carbon",
-      desc:"Sleek bluish-dark. Crisp, modern, easy on the eyes.",
-      color:"#5b8dee" }
+      desc:"Warm walnut and honey-amber. Rich, woody, easy on the eyes.",
+      color:"#c8881f" }
   ];
 
   var REDUCED = window.matchMedia &&

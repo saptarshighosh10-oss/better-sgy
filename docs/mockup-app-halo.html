@@ -869,6 +869,47 @@
   .arow .apct { font-size: 13.5px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; min-width: 54px; text-align: right; }
   .arow .apct.miss { color: var(--signal-miss); }
 
+  /* ---- What-if grade calculator ---- */
+  .wi-controls { display: flex; align-items: center; gap: 8px; flex: 1; justify-content: flex-end; }
+  .wi-controls .count { margin-right: auto; }
+  .wi-flag {
+    margin-right: auto; font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+    text-transform: uppercase; color: var(--signal-up);
+    background: var(--paper-2); border: 1px solid var(--cov-glass-edge);
+    border-radius: 999px; padding: 3px 10px;
+  }
+  .btn.wi-toggle, .btn.wi-reset { font-size: 12px; padding: 6px 12px; }
+  .arow.wi-row { grid-template-columns: 1fr auto auto auto; }
+  .wi-edit { display: inline-flex; align-items: center; gap: 4px; }
+  .wi-slash { color: var(--ink-4); font-size: 13px; }
+  .wi-num {
+    width: 56px; padding: 6px 8px; text-align: right;
+    font-size: 13px; font-variant-numeric: tabular-nums;
+    color: var(--ink); background: var(--paper);
+    border: 1px solid var(--cov-glass-edge); border-radius: 8px;
+    -moz-appearance: textfield;
+  }
+  .wi-num::-webkit-outer-spin-button, .wi-num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .wi-num:focus { outline: none; border-color: var(--signal-up); box-shadow: 0 0 0 2px var(--hair); }
+  .wi-x {
+    appearance: none; cursor: pointer; width: 26px; height: 26px; line-height: 1;
+    font-size: 16px; border-radius: 8px; color: var(--ink-4);
+    background: transparent; border: 1px solid transparent;
+    transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+  }
+  .wi-x:hover { color: var(--signal-miss); background: var(--paper-2); border-color: var(--cov-glass-edge); }
+  .arow.wi-add {
+    grid-template-columns: 1fr 130px auto auto; gap: 12px;
+    background: var(--paper-2);
+  }
+  .wi-name, .wi-cat {
+    padding: 7px 10px; font-size: 13px; color: var(--ink);
+    background: var(--paper); border: 1px solid var(--cov-glass-edge); border-radius: 8px;
+  }
+  .wi-name:focus, .wi-cat:focus { outline: none; border-color: var(--signal-up); box-shadow: 0 0 0 2px var(--hair); }
+  .wi-cat { cursor: pointer; }
+  .btn.wi-addbtn { font-size: 12px; padding: 7px 14px; white-space: nowrap; }
+
   /* ============================================================
      3 · ASSIGNMENTS
      ============================================================ */
@@ -2442,6 +2483,9 @@
       }
     };
 
+    // pristine snapshot of the gradebooks for the What-if "Reset" affordance
+    var GB_ORIG = JSON.parse(JSON.stringify(GB));
+
     // cross-course assignments agenda — dates derived from real today.
     // 2 due today, 2 recently missing, several upcoming, a few done.
     var ASN = [
@@ -2670,6 +2714,7 @@
     // ============================================================
     var curGrade = "bio";
     var legendOff = {}; // course id -> hidden
+    var whatIf = {};    // course id -> What-if editing mode on/off
 
     function renderRail() {
       var rail = $("#gradeRail");
@@ -2689,6 +2734,123 @@
       selectGrade(b.getAttribute("data-grade"));
     });
     function selectGrade(id) { curGrade = id; renderRail(); renderGradePane(); }
+
+    // ============================================================
+    // WHAT-IF GRADE CALCULATOR — recalc engine
+    // ============================================================
+    // Leading category name: "Labs · not submitted" -> "Labs"
+    function catKey(name) {
+      var s = String(name == null ? "" : name);
+      var i = s.indexOf("·"); // middle dot used in the data (e.g. "Labs · not submitted")
+      if (i >= 0) s = s.slice(0, i);
+      return s.trim();
+    }
+    // Parse "96/100" or "—/10" or "0/25" -> { earned: number|null, max: number|null }
+    function parseScore(score) {
+      var s = String(score == null ? "" : score);
+      var parts = s.split("/");
+      var e = parts[0] != null ? parts[0].trim() : "";
+      var m = parts[1] != null ? parts[1].trim() : "";
+      var en = (e === "" || e === "—" || e === "-") ? null : parseFloat(e);
+      var mn = (m === "" || m === "—" || m === "-") ? null : parseFloat(m);
+      if (en != null && isNaN(en)) en = null;
+      if (mn != null && isNaN(mn)) mn = null;
+      return { earned: en, max: mn };
+    }
+    // A row is graded only with a numeric earned AND numeric max > 0.
+    function rowGraded(r) {
+      var p = parseScore(r.score);
+      return p.earned != null && p.max != null && p.max > 0;
+    }
+    function rowPct(r) {
+      var p = parseScore(r.score);
+      return (p.earned / p.max) * 100;
+    }
+    // Recompute a course's category averages (mutating gb.cats[i][2]) and its
+    // weighted course grade (mutating COURSES/byId). Returns the course grade.
+    function recomputeCourse(id) {
+      var gb = GB[id];
+      var c = byId[id];
+      var sums = {}, counts = {};
+      gb.rows.forEach(function (r) {
+        if (!rowGraded(r)) return;
+        var k = catKey(r.cat);
+        if (!(k in sums)) { sums[k] = 0; counts[k] = 0; }
+        sums[k] += rowPct(r);
+        counts[k] += 1;
+      });
+      var wTotal = 0, wAvg = 0;
+      gb.cats.forEach(function (cat) {
+        var k = catKey(cat[0]);
+        if (counts[k] > 0) {
+          var avg = sums[k] / counts[k];
+          cat[2] = avg;              // update category average shown in panel
+          wTotal += cat[1];
+          wAvg += cat[1] * avg;
+        } else {
+          cat[2] = null;             // no graded rows -> skipped / blank
+        }
+      });
+      var grade = wTotal > 0 ? (wAvg / wTotal) : 0;
+      c.grade = grade;
+      return grade;
+    }
+    function overallGrade() {
+      if (!COURSES.length) return 0;
+      var sum = 0;
+      COURSES.forEach(function (c) { sum += c.grade; });
+      return sum / COURSES.length;
+    }
+    // Live-update the Overview overall number, its "now" chart point and chart.
+    function updateOverall() {
+      var ov = overallGrade();
+      var ovStr = ov.toFixed(1);
+      if (HIST.overall && HIST.overall.length) HIST.overall[HIST.overall.length - 1] = ov;
+      var elOverall = $("#ovOverall");
+      if (elOverall) elOverall.innerHTML = ovStr + '<span class="pct">%</span>';
+      var elNow = $("#ovNow");
+      if (elNow) elNow.textContent = ovStr + "% now";
+      if ($("#ovChart")) renderOverviewChart();
+    }
+    function catAvgText(v) {
+      if (v == null) return "—";
+      return (v % 1 === 0 ? v : v.toFixed(1)) + "%";
+    }
+    // Recompute the current course and refresh only the grade DISPLAYS
+    // (snapshot, chart "now", category avgs + bars, course chart svg, overall).
+    // Leaves the assignment input fields untouched (preserves focus while typing).
+    function whatIfRecalc() {
+      var id = curGrade;
+      var grade = recomputeCourse(id);
+      var gStr = grade.toFixed(1);
+      if (HIST[id] && HIST[id].length) HIST[id][HIST[id].length - 1] = grade;
+
+      var elSnap = $("#gbSnapGrade");
+      if (elSnap) elSnap.innerHTML = gStr + '<span class="pct">%</span>';
+      var elNow = $("#gbChartNow");
+      if (elNow) elNow.textContent = gStr + "% now";
+
+      var gb = GB[id];
+      gb.cats.forEach(function (cat, i) {
+        var avgEl = $('#gbCatAvg' + i);
+        if (avgEl) avgEl.textContent = catAvgText(cat[2]);
+        var barEl = $('#gbCatBar' + i);
+        if (barEl) barEl.style.width = (cat[2] == null ? 0 : Math.max(0, Math.min(100, cat[2]))) + '%';
+      });
+
+      // re-render the course "grade over time" chart in place
+      var svg = $("#gbSvg");
+      if (svg) {
+        var ch = renderCourseChart();
+        svg.innerHTML = ch.svg;
+        var box = $("#gbChart");
+        if (box) attachHover(svg, box, HIST[id], ch.g, ch.n, "gbHpt", byId[id].name);
+      }
+
+      // rail snapshot + overall
+      renderRail();
+      updateOverall();
+    }
 
     function renderCourseChart() {
       var c = byId[curGrade];
@@ -2746,41 +2908,85 @@
       var trendTxt = c.trend === "up" ? "Trending up this quarter" : c.trend === "down" ? "Declining this quarter" : "Flat this quarter";
       var sparkUp = c.trend === "up";
 
+      var wi = !!whatIf[curGrade];
+
       var html = "";
       html += '<div class="gb-snapshot">';
       html += '  <div class="left">';
       html += '    <div class="gbteacher">' + esc(c.name) + ' · ' + esc(c.teacher) + ' · ' + c.per + '</div>';
-      html += '    <div class="gbgrade">' + c.grade.toFixed(1) + '<span class="pct">%</span></div>';
+      html += '    <div class="gbgrade" id="gbSnapGrade">' + c.grade.toFixed(1) + '<span class="pct">%</span></div>';
       html += '    <div class="gbsub">Letter ' + c.ltr + ' · ' + trendTxt + (c.missing ? ' · ' + c.missing + ' missing' : '') + '</div>';
       html += '  </div>';
       html += '  <div class="spark" style="width:120px;height:36px;">' + spark(HIST[curGrade], sparkUp).replace('width="84" height="28" viewBox="0 0 84 28"', 'width="120" height="36" viewBox="0 0 120 36"') + '</div>';
       html += '</div>';
 
       html += '<section class="chart" id="gbChart" aria-label="Course grade over time" style="margin-bottom:28px;">';
-      html += '  <div class="chart-head"><span class="chart-title">' + esc(c.name) + ' · grade over time</span><span class="chart-now' + (c.trend === "up" ? " up" : "") + '">' + c.grade.toFixed(1) + '% now</span></div>';
+      html += '  <div class="chart-head"><span class="chart-title">' + esc(c.name) + ' · grade over time</span><span class="chart-now' + (c.trend === "up" ? " up" : "") + '" id="gbChartNow">' + c.grade.toFixed(1) + '% now</span></div>';
       html += '  <svg id="gbSvg" viewBox="0 0 700 200" role="img" aria-label="Line chart of ' + esc(c.name) + ' grade across semester 2">' + ch.svg + '</svg>';
       html += '  <div class="chart-legend" id="gbLegend" aria-label="Courses">' + ch.legend + '</div>';
       html += '</section>';
 
       html += '<div class="section-head" style="margin-top:0;"><h2>Categories</h2><span class="count">Weighted</span></div>';
       html += '<div class="panel cat-list">';
-      gb.cats.forEach(function (cat) {
+      gb.cats.forEach(function (cat, i) {
         html += '<div class="cat"><div><div class="cn">' + esc(cat[0]) + '</div><div class="cw">' + cat[1] + '% of grade</div></div>' +
-          '<div class="bar"><span style="width:' + cat[2] + '%"></span></div>' +
-          '<div class="cavg">' + (cat[2] % 1 === 0 ? cat[2] : cat[2].toFixed(1)) + '%</div></div>';
+          '<div class="bar"><span id="gbCatBar' + i + '" style="width:' + (cat[2] == null ? 0 : cat[2]) + '%"></span></div>' +
+          '<div class="cavg" id="gbCatAvg' + i + '">' + catAvgText(cat[2]) + '</div></div>';
       });
       html += '</div>';
 
-      html += '<div class="section-head"><h2>Assignments</h2><span class="count">' + gb.rows.length + '</span></div>';
-      html += '<div class="panel">';
-      gb.rows.forEach(function (r) {
-        var anCls = r.miss ? " miss" : "";
-        var pctCls = r.miss ? " miss" : "";
-        html += '<div class="arow"><div><div class="an' + anCls + '">' + esc(r.name) + '</div><div class="ameta">' + esc(r.cat) + '</div></div>' +
-          '<div class="adate">' + esc(r.date) + '</div>' +
-          '<div class="ascore">' + esc(r.score) + '</div>' +
-          '<div class="apct' + pctCls + '">' + esc(r.pct) + '</div></div>';
+      // Assignments — with What-if toggle
+      html += '<div class="section-head"><h2>Assignments</h2>';
+      html += '<span class="wi-controls">';
+      if (wi) {
+        html += '<span class="wi-flag">What-if</span>';
+        html += '<button class="btn wi-reset" id="gbWiReset" type="button">Reset</button>';
+        html += '<button class="btn solid wi-toggle on" id="gbWiToggle" type="button">Done</button>';
+      } else {
+        html += '<span class="count" style="margin-right:auto;">' + gb.rows.length + '</span>';
+        html += '<button class="btn wi-toggle" id="gbWiToggle" type="button">What-if</button>';
+      }
+      html += '</span></div>';
+
+      html += '<div class="panel' + (wi ? ' wi-on' : '') + '" id="gbAsnPanel">';
+      gb.rows.forEach(function (r, i) {
+        if (wi) {
+          var p = parseScore(r.score);
+          html += '<div class="arow wi-row" data-i="' + i + '">' +
+            '<div><div class="an">' + esc(r.name) + '</div><div class="ameta">' + esc(r.cat) + '</div></div>' +
+            '<div class="adate">' + esc(r.date) + '</div>' +
+            '<div class="wi-edit">' +
+              '<input class="wi-num wi-earned" data-i="' + i + '" type="number" inputmode="decimal" step="any" min="0" aria-label="Earned points" value="' + (p.earned == null ? '' : p.earned) + '">' +
+              '<span class="wi-slash">/</span>' +
+              '<input class="wi-num wi-max" data-i="' + i + '" type="number" inputmode="decimal" step="any" min="0" aria-label="Max points" value="' + (p.max == null ? '' : p.max) + '">' +
+            '</div>' +
+            '<button class="wi-x" data-i="' + i + '" type="button" aria-label="Remove ' + esc(r.name) + '">×</button>' +
+          '</div>';
+        } else {
+          var anCls = r.miss ? " miss" : "";
+          var pctCls = r.miss ? " miss" : "";
+          html += '<div class="arow"><div><div class="an' + anCls + '">' + esc(r.name) + '</div><div class="ameta">' + esc(r.cat) + '</div></div>' +
+            '<div class="adate">' + esc(r.date) + '</div>' +
+            '<div class="ascore">' + esc(r.score) + '</div>' +
+            '<div class="apct' + pctCls + '">' + esc(r.pct) + '</div></div>';
+        }
       });
+      if (wi) {
+        html += '<div class="arow wi-add">' +
+          '<input class="wi-name" id="gbWiName" type="text" placeholder="New assignment name" aria-label="New assignment name">' +
+          '<select class="wi-cat" id="gbWiCat" aria-label="Category">';
+        gb.cats.forEach(function (cat) {
+          html += '<option value="' + esc(cat[0]) + '">' + esc(cat[0]) + '</option>';
+        });
+        html += '</select>' +
+          '<div class="wi-edit">' +
+            '<input class="wi-num" id="gbWiEarned" type="number" inputmode="decimal" step="any" min="0" placeholder="0" aria-label="Earned points">' +
+            '<span class="wi-slash">/</span>' +
+            '<input class="wi-num" id="gbWiMax" type="number" inputmode="decimal" step="any" min="0" placeholder="100" aria-label="Max points">' +
+          '</div>' +
+          '<button class="btn solid wi-addbtn" id="gbWiAdd" type="button">+ Add</button>' +
+        '</div>';
+      }
       html += '</div>';
 
       $("#gradePane").innerHTML = html;
@@ -2794,6 +3000,86 @@
         legendOff[cid] = !legendOff[cid];
         renderGradePane(); // re-render chart with toggle applied
       });
+
+      wireWhatIf();
+    }
+
+    // Wire the What-if calculator controls for the current Grades pane.
+    function wireWhatIf() {
+      var toggle = $("#gbWiToggle");
+      if (toggle) {
+        toggle.addEventListener("click", function () {
+          whatIf[curGrade] = !whatIf[curGrade];
+          renderGradePane(); // focus is on a button — safe to re-render
+        });
+      }
+      if (!whatIf[curGrade]) return;
+
+      var gb = GB[curGrade];
+
+      // Reset: restore this course's gradebook from the pristine snapshot.
+      var reset = $("#gbWiReset");
+      if (reset) {
+        reset.addEventListener("click", function () {
+          GB[curGrade] = JSON.parse(JSON.stringify(GB_ORIG[curGrade]));
+          recomputeCourse(curGrade);
+          if (HIST[curGrade] && HIST[curGrade].length) HIST[curGrade][HIST[curGrade].length - 1] = byId[curGrade].grade;
+          renderGradePane();
+          updateOverall();
+        });
+      }
+
+      // Live edits — update data + grade DISPLAYS only (keep inputs/focus intact).
+      $$("#gbAsnPanel .wi-num.wi-earned, #gbAsnPanel .wi-num.wi-max").forEach(function (inp) {
+        inp.addEventListener("input", function () {
+          var i = +this.getAttribute("data-i");
+          var row = gb.rows[i]; if (!row) return;
+          var p = parseScore(row.score);
+          var earnedEl = $('.wi-earned[data-i="' + i + '"]', $("#gbAsnPanel"));
+          var maxEl = $('.wi-max[data-i="' + i + '"]', $("#gbAsnPanel"));
+          var eVal = earnedEl && earnedEl.value.trim() !== "" ? earnedEl.value.trim() : "—";
+          var mVal = maxEl && maxEl.value.trim() !== "" ? maxEl.value.trim() : "—";
+          row.score = eVal + "/" + mVal;
+          // keep pct / miss flags coherent
+          if (rowGraded(row)) { row.pct = Math.round(rowPct(row)) + "%"; row.miss = false; }
+          else { row.pct = "Due"; row.miss = false; }
+          whatIfRecalc();
+        });
+      });
+
+      // Remove rows.
+      $$("#gbAsnPanel .wi-x").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var i = +this.getAttribute("data-i");
+          gb.rows.splice(i, 1);
+          recomputeCourse(curGrade);
+          if (HIST[curGrade] && HIST[curGrade].length) HIST[curGrade][HIST[curGrade].length - 1] = byId[curGrade].grade;
+          renderGradePane(); // focus on a button — re-render full pane
+          updateOverall();
+        });
+      });
+
+      // Add assignment.
+      var add = $("#gbWiAdd");
+      if (add) {
+        add.addEventListener("click", function () {
+          var name = ($("#gbWiName").value || "").trim() || "New assignment";
+          var cat = $("#gbWiCat").value;
+          var eRaw = ($("#gbWiEarned").value || "").trim();
+          var mRaw = ($("#gbWiMax").value || "").trim();
+          var e = eRaw === "" ? "—" : eRaw;
+          var m = mRaw === "" ? "—" : mRaw;
+          var row = { name: name, cat: cat, date: "What-if", score: e + "/" + m };
+          if (parseScore(row.score).earned != null && parseScore(row.score).max > 0) {
+            row.pct = Math.round(rowPct(row)) + "%"; row.miss = false;
+          } else { row.pct = "Due"; row.miss = false; }
+          gb.rows.push(row);
+          recomputeCourse(curGrade);
+          if (HIST[curGrade] && HIST[curGrade].length) HIST[curGrade][HIST[curGrade].length - 1] = byId[curGrade].grade;
+          renderGradePane(); // focus on a button — re-render full pane
+          updateOverall();
+        });
+      }
     }
 
     // ============================================================

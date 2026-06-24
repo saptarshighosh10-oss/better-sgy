@@ -869,6 +869,47 @@
   .arow .apct { font-size: 13.5px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; min-width: 54px; text-align: right; }
   .arow .apct.miss { color: var(--signal-miss); }
 
+  /* ---- What-if grade calculator ---- */
+  .wi-controls { display: flex; align-items: center; gap: 8px; flex: 1; justify-content: flex-end; }
+  .wi-controls .count { margin-right: auto; }
+  .wi-flag {
+    margin-right: auto; font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+    text-transform: uppercase; color: var(--signal-up);
+    background: var(--paper-2); border: 1px solid var(--cov-glass-edge);
+    border-radius: 999px; padding: 3px 10px;
+  }
+  .btn.wi-toggle, .btn.wi-reset { font-size: 12px; padding: 6px 12px; }
+  .arow.wi-row { grid-template-columns: 1fr auto auto auto; }
+  .wi-edit { display: inline-flex; align-items: center; gap: 4px; }
+  .wi-slash { color: var(--ink-4); font-size: 13px; }
+  .wi-num {
+    width: 56px; padding: 6px 8px; text-align: right;
+    font-size: 13px; font-variant-numeric: tabular-nums;
+    color: var(--ink); background: var(--paper);
+    border: 1px solid var(--cov-glass-edge); border-radius: 8px;
+    -moz-appearance: textfield;
+  }
+  .wi-num::-webkit-outer-spin-button, .wi-num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .wi-num:focus { outline: none; border-color: var(--signal-up); box-shadow: 0 0 0 2px var(--hair); }
+  .wi-x {
+    appearance: none; cursor: pointer; width: 26px; height: 26px; line-height: 1;
+    font-size: 16px; border-radius: 8px; color: var(--ink-4);
+    background: transparent; border: 1px solid transparent;
+    transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+  }
+  .wi-x:hover { color: var(--signal-miss); background: var(--paper-2); border-color: var(--cov-glass-edge); }
+  .arow.wi-add {
+    grid-template-columns: 1fr 130px auto auto; gap: 12px;
+    background: var(--paper-2);
+  }
+  .wi-name, .wi-cat {
+    padding: 7px 10px; font-size: 13px; color: var(--ink);
+    background: var(--paper); border: 1px solid var(--cov-glass-edge); border-radius: 8px;
+  }
+  .wi-name:focus, .wi-cat:focus { outline: none; border-color: var(--signal-up); box-shadow: 0 0 0 2px var(--hair); }
+  .wi-cat { cursor: pointer; }
+  .btn.wi-addbtn { font-size: 12px; padding: 7px 14px; white-space: nowrap; }
+
   /* ============================================================
      3 · ASSIGNMENTS
      ============================================================ */

@@ -45,6 +45,18 @@ export default defineContentScript({
     };
     let curLook = 'default';
     const lookId = () => LOOK_ID[curLook] ?? LOOK_ID.default;
+    // Per-look brand SYMBOL for the card badge (drawn in the badge's ink color via
+    // currentColor) — Cloud is a cloud, Carbon a carbon ring, Slate a newspaper,
+    // Friendly a smiley, Apple an apple; default is the SGY chevron mark.
+    const LOOK_ICON: Record<string, string> = {
+      default: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 16l7-9 7 9"/></svg>`,
+      apple:   `<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M17 13.5c0 3.2-2.1 6-3.9 6-.9 0-1.3-.5-2.1-.5s-1.2.5-2.1.5C7.1 19.5 5 16.7 5 13.5 5 11 6.9 9.4 8.8 9.4c1 0 1.7.6 2.2.6s1.1-.6 2.2-.6c1.9 0 3.8 1.6 3.8 4.1z"/><path d="M13.2 8.2c.7-.8 1-1.9.9-2.9-1 .1-2 .7-2.6 1.5-.6.7-1 1.8-.8 2.8 1 .1 2-.5 2.5-1.4z"/></svg>`,
+      halo:    `<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M7.5 18A4.5 4.5 0 0 1 7 9.1a5.5 5.5 0 0 1 10.5 1.2A3.6 3.6 0 0 1 17 18H7.5z"/></svg>`,
+      slate:   `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5.5" width="17" height="13" rx="1.4"/><path d="M7 9h6M7 12h6M7 15h4"/><rect x="15" y="9" width="3.2" height="6" rx=".5"/></svg>`,
+      forge:   `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"/><path d="M8.2 14.2a4.2 4.2 0 0 0 7.6 0" stroke-linecap="round"/><circle cx="9" cy="10" r="1.05" fill="currentColor" stroke="none"/><circle cx="15" cy="10" r="1.05" fill="currentColor" stroke="none"/></svg>`,
+      carbon:  `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3.6l7.3 4.2v8.4L12 20.4l-7.3-4.2V7.8z"/><circle cx="12" cy="12" r="2.1" fill="currentColor" stroke="none"/><circle cx="12" cy="3.6" r="1.4" fill="currentColor" stroke="none"/><circle cx="19.3" cy="16.2" r="1.4" fill="currentColor" stroke="none"/><circle cx="4.7" cy="16.2" r="1.4" fill="currentColor" stroke="none"/></svg>`,
+    };
+    const lookIcon = () => LOOK_ICON[curLook] ?? LOOK_ICON.default;
     let theme: CardTheme = { ...CARD_THEMES.default };
 
     // ── Button — a compact rounded-rectangle "grade card" ──────────────────────
@@ -245,8 +257,8 @@ export default defineContentScript({
 
       btn.innerHTML = `
         <span style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;flex-shrink:0;
-          border-radius:${curLook==='slate'?'5px':curLook==='apple'||curLook==='halo'?'11px':'9px'};background:${accent};color:${theme.bg};font-size:${lookId().badge.length>1?'13px':'15px'};font-weight:800;letter-spacing:0.02em;">
-          ${lookId().badge}
+          border-radius:${curLook==='slate'?'5px':curLook==='apple'||curLook==='halo'?'11px':'9px'};background:${accent};color:${theme.bg};">
+          ${lookIcon()}
         </span>
         <span style="display:flex;flex-direction:column;gap:3px;align-items:flex-start;line-height:1;">
           <span style="font-size:18px;font-weight:750;font-variant-numeric:tabular-nums;line-height:1;color:${theme.text};">

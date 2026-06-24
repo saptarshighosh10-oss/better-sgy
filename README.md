@@ -38,7 +38,7 @@ Open the Better SGY side panel → scroll to **Settings → UI style**:
 | File | What it is |
 |---|---|
 | `Better-SGY-Demo.zip` | Fake demo grades loaded in — no login needed |
-| `better-sgy-extension-1.0.0-chrome.zip` | Log into Schoology normally — shows your real grades |
+| `better-sgy-extension-1.1.0-chrome.zip` | Log into Schoology normally — shows your real grades |
 
 → [Releases page](https://github.com/saptarshighosh10-oss/better-sgy/releases)
 

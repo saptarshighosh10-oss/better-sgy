@@ -14,12 +14,18 @@ const ICONS = {
 export default defineConfig({
   modules: ['@wxt-dev/module-react'],
   browser: 'chrome',
+  // Match the exact filenames the website/docs advertise so the two builds
+  // never collide and uploading to Releases needs no renaming:
+  //   demo → Better-SGY-Demo.zip   real → better-sgy-extension-1.0.0-chrome.zip
+  zip: isDemo
+    ? { name: 'Better-SGY-Demo', artifactTemplate: '{{name}}.zip' }
+    : { name: 'better-sgy-extension' },
   manifest: {
     name: isDemo ? 'Better SGY — Demo' : 'Better SGY',
     description: isDemo
       ? 'Better SGY preloaded with sample data — try it without a Schoology account.'
       : 'A cleaner, faster dashboard for Schoology — grades, assignments, materials & calendar, redesigned. Runs locally on your device.',
-    version: '1.0.0',
+    version: '1.1.0',
     // Only ever runs on a school's own Schoology site (any *.schoology.com subdomain).
     // The background worker fetches attachments/feeds with the user's own session.
     host_permissions: [
@@ -31,7 +37,9 @@ export default defineConfig({
     // bundled from public/models/ — also web-accessible so the overlay can load them.
     web_accessible_resources: [
       {
-        resources: ['pdf.worker.min.mjs', 'models/*.html'],
+        // pdf.js worker, the Versions gallery prototypes, and — the primary UI now —
+        // the bundled "looks" (chooser + 5 editions) the content script iframes in.
+        resources: ['pdf.worker.min.mjs', 'models/*.html', 'looks/*.html'],
         matches: ['https://*.schoology.com/*'],
       },
     ],

@@ -15,7 +15,7 @@ real version after, to see your own grades.
 | File | What it is | Needs login? |
 |---|---|---|
 | **`Better-SGY-Demo.zip`** ⭐ | Fake demo grades loaded in — no login needed | No |
-| `better-sgy-extension-1.0.0-chrome.zip` | Log into Schoology normally — shows your real grades | Yes |
+| `better-sgy-extension-1.1.0-chrome.zip` | Log into Schoology normally — shows your real grades | Yes |
 
 Get them from the [Releases page](https://github.com/saptarshighosh10-oss/better-sgy/releases)
 or ask whoever shared this.
@@ -79,7 +79,7 @@ Your choice saves and carries over to the real extension if you install it too.
 
 ## The real extension — your actual grades
 
-Install `better-sgy-extension-1.0.0-chrome.zip` the same way (same four steps),
+Install `better-sgy-extension-1.1.0-chrome.zip` the same way (same four steps),
 then go to **your school's Schoology page** (e.g. `yourschool.schoology.com`) —
 the redesigned UI draws itself over your real dashboard automatically. Nothing
 on Schoology changes; Better SGY just lays a cleaner view on top, with your

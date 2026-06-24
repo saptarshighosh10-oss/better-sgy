@@ -14,7 +14,7 @@ needed. Two downloads on the [Releases page](https://github.com/saptarshighosh10
 | File | What it is |
 |---|---|
 | `Better-SGY-Demo.zip` ⭐ | Start here. The overlay with fake data — no Schoology account needed |
-| `better-sgy-extension-1.0.0-chrome.zip` | The real extension — draws over your Schoology with your actual grades |
+| `better-sgy-extension-1.1.0-chrome.zip` | The real extension — draws over your Schoology with your actual grades |
 
 **Install steps (same for both):**
 

@@ -28,6 +28,7 @@ import { detectChanges, appendChanges, type ChangeEvent } from '../lib/grade-cha
 import { saveWatchStatus } from '../lib/watch-status';
 import { cacheAnnouncements } from '../lib/announcement-cache';
 import { T, onThemeChange, getActiveTheme, getAccentColor } from '../lib/theme';
+import { parseGradeString, isMissing } from '../lib/grade-utils';
 
 // ── Change reporting & persistence ───────────────────────────────
 /**
@@ -44,6 +45,71 @@ async function reportChanges(prev: SchoologyData | null, next: SchoologyData) {
 }
 
 /**
+ * Map scraped Schoology data → the compact shape the bundled "looks" read from
+ * chrome.storage.local['bsgy_live'], and persist it. Real build only — the demo
+ * never writes this key so the looks fall back to their built-in sample data.
+ * Best-effort: every step is guarded so a bad scrape can't break the save tail.
+ */
+async function writeLiveData(data: SchoologyData) {
+  // Demo builds (wxt --mode demo) must not seed live data — keep the sample look.
+  if (import.meta.env.MODE === 'demo') return;
+  // Keep per-course assignment lists bounded so chrome.storage stays small.
+  const MAX_ASSIGN_PER_COURSE = 60;
+  try {
+    const courses = (data.courses ?? []).map((c) => {
+      const { letter, percent } = parseGradeString(c.grade);
+      let missing = 0;
+      const assignments: Array<{
+        name: string; score: string; max: string; due: string;
+        status: string; missing: boolean; category: string;
+      }> = [];
+      try {
+        for (const cat of c.categories ?? []) {
+          for (const a of cat.assignments ?? []) {
+            const isMiss = isMissing(a);
+            if (isMiss) missing++;
+            if (assignments.length < MAX_ASSIGN_PER_COURSE) {
+              assignments.push({
+                name: a.name,
+                score: a.score ?? '',
+                max: a.maxGrade ?? '',
+                due: a.dueDate ?? '',
+                status: a.status ?? '',
+                missing: isMiss,
+                category: cat.name ?? '',
+              });
+            }
+          }
+        }
+      } catch { /* assignments/missing are cosmetic — never break the save tail */ }
+      return {
+        name: c.name,
+        teacher: c.teacher || '',
+        pct: percent,
+        letter,
+        trend: 'flat' as const,
+        missing,
+        assignments,
+      };
+    });
+    const graded = courses.map((c) => c.pct).filter((p): p is number => typeof p === 'number');
+    const overall = graded.length ? graded.reduce((s, p) => s + p, 0) / graded.length : null;
+    // v2 adds per-course `assignments`. The looks read this key for grades and
+    // read 'bs_announcements_cache' directly for the announcements feed.
+    const live = {
+      v: 2,
+      scrapedAt: data.scrapedAt ?? Date.now(),
+      overall,
+      term: data.gradingPeriod || '',
+      courses,
+    };
+    await browser.storage.local.set({ bsgy_live: live });
+  } catch (err) {
+    console.error('[BS] writeLiveData failed:', err);
+  }
+}
+
+/**
  * Shared tail of both scrape paths: persist the fresh data, append history,
  * report any changes to the worker, and record fresh scrape metadata.
  */
@@ -51,6 +117,7 @@ async function saveFreshData(previous: SchoologyData | null, data: SchoologyData
   await saveGradeData(data);
   await appendGradeHistory(data.courses);
   await reportChanges(previous, data);
+  await writeLiveData(data);
   await saveScrapeMeta({
     status: 'fresh',
     scrapedAt: data.scrapedAt,

@@ -1541,12 +1541,12 @@
           <section class="ov-hero">
             <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;">
               <div>
-                <p class="lede">Overall grade</p>
+                <p class="lede" id="ovEyebrow">Overall grade</p>
                 <div class="grade">
-                  <div class="num">96.2<span class="pct">%</span></div>
-                  <div class="across">across 6 courses</div>
+                  <div class="num" id="ovOverall">96.2<span class="pct">%</span></div>
+                  <div class="across" id="ovCoursesMeta">across 6 courses</div>
                 </div>
-                <div class="status"><span class="dot"></span> Trending up</div>
+                <div class="status" id="ovSubln"><span class="dot"></span> Trending up</div>
               </div>
               <button class="btn" id="ovExport" data-export-hide>
                 <span id="ovExportLabel">Save image</span>
@@ -1557,7 +1557,7 @@
           <section class="chart" aria-label="Overall grade over time" style="margin-bottom:40px;">
             <div class="chart-head">
               <span class="chart-title">Overall grade over time</span>
-              <span class="chart-now up">96.2% now</span>
+              <span class="chart-now up" id="ovNow">96.2% now</span>
             </div>
             <svg id="ovChart" viewBox="0 0 740 180" role="img" aria-label="Line chart of overall grade, 94.2 percent rising to 96.2 percent"></svg>
             <p class="chart-cap">Tracked since install.</p>
@@ -1570,7 +1570,7 @@
             <div class="stat"><div class="label">Best class</div><div class="value">PE&nbsp;9</div><div class="sub">99.1%</div></div>
           </section>
 
-          <div class="section-head"><h2>Courses</h2><span class="count">6</span></div>
+          <div class="section-head"><h2>Courses</h2><span class="count" id="ovCount">6</span></div>
 
           <section class="panel" id="ovCourses" aria-label="Courses"></section>
 
@@ -2656,7 +2656,7 @@
         '<div class="dactions">' +
         '<button class="btn solid" id="matSubmit">Submit</button>' +
         '<button class="btn" id="matAddComment">Add comment</button>' +
-        '<a class="link-out" href="#" onclick="return false;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg> Open in Schoology</a>' +
+        '<a class="link-out" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg> Open in Schoology</a>' +
         '</div>';
 
       $("#matSubmit").addEventListener("click", function () {
@@ -4314,6 +4314,84 @@
     })();
 
     // ============================================================
+    // LIVE DATA OVERRIDE (chrome.storage.local key "bsgy_live")
+    // Populates ONLY the OVERVIEW screen from real injected grades.
+    // Falls back to sample data if chrome.storage is absent/invalid.
+    // ============================================================
+    function bsgyValidLive(d) {
+      return d && typeof d === "object" && typeof d.overall === "number" &&
+             Array.isArray(d.courses) && d.courses.length > 0;
+    }
+    function bsgySpark(pct, trend) {
+      var end = (typeof pct === "number") ? pct : 95;
+      var d = trend === "up" ? 2.0 : trend === "down" ? -2.0 : 0;
+      return [end - d, end - d * 0.7, end - d * 0.45, end - d * 0.25,
+              end - d * 0.12, end - d * 0.04, end];
+    }
+    function bsgyApplyLive() {
+      try {
+        if (!(window.chrome && chrome.storage && chrome.storage.local && chrome.storage.local.get)) return;
+        chrome.storage.local.get("bsgy_live", function (res) {
+          try {
+            var live = res && res.bsgy_live;
+            if (!bsgyValidLive(live)) return;
+            var PALETTE = ["#5b6cff", "#34c759", "#ff9f0a", "#bf5af2", "#0a84ff", "#30d158", "#ff375f", "#64d2ff"];
+            var totalMissing = 0;
+            var built = live.courses.map(function (c, i) {
+              c = (c && typeof c === "object") ? c : {};
+              var id = "lc" + i;
+              var nm = String(c.name == null ? ("Course " + (i + 1)) : c.name);
+              var tch = String(c.teacher == null ? "" : c.teacher);
+              var pct = (typeof c.pct === "number") ? c.pct : 0;
+              var trend = (c.trend === "up" || c.trend === "down" || c.trend === "flat") ? c.trend : "flat";
+              var miss = (typeof c.missing === "number" && c.missing >= 0) ? c.missing : 0;
+              totalMissing += miss;
+              HIST[id] = bsgySpark(pct, trend);
+              return {
+                id: id, name: nm, teacher: tch, per: "P" + (i + 1),
+                grade: pct, ltr: String(c.letter == null ? "" : c.letter),
+                trend: trend, missing: miss, accent: PALETTE[i % PALETTE.length]
+              };
+            });
+            // mutate COURSES in place (it is captured by render fns)
+            COURSES.length = 0;
+            built.forEach(function (c) { COURSES.push(c); });
+            byId = {}; COURSES.forEach(function (c) { byId[c.id] = c; });
+            // synthesized rising overall series ending at the live overall
+            HIST.overall = bsgySpark(typeof live.overall === "number" ? live.overall : 0, "up");
+
+            var ov = (typeof live.overall === "number" ? live.overall : 0);
+            var ovStr = ov.toFixed(1);
+            var nC = COURSES.length;
+
+            var elOverall = $("#ovOverall");
+            if (elOverall) elOverall.innerHTML = ovStr + '<span class="pct">%</span>';
+            var elMeta = $("#ovCoursesMeta");
+            if (elMeta) elMeta.textContent = "across " + nC + " course" + (nC === 1 ? "" : "s");
+            var elCount = $("#ovCount");
+            if (elCount) elCount.textContent = String(nC);
+            var elNow = $("#ovNow");
+            if (elNow) elNow.textContent = ovStr + "% now";
+            var elSub = $("#ovSubln");
+            if (elSub) {
+              elSub.innerHTML = '<span class="dot"></span> ' +
+                (totalMissing > 0
+                  ? (totalMissing + " missing assignment" + (totalMissing === 1 ? "" : "s"))
+                  : "All caught up");
+            }
+            var elEye = $("#ovEyebrow");
+            if (elEye && typeof live.term === "string" && live.term) {
+              elEye.textContent = "Overall grade · " + live.term;
+            }
+
+            renderOverviewChart();
+            renderOverviewCourses();
+          } catch (e) { /* keep sample render */ }
+        });
+      } catch (e) { /* keep sample render */ }
+    }
+
+    // ============================================================
     // INIT
     // ============================================================
     renderNostalgia();
@@ -4331,6 +4409,9 @@
     applyTheme();
     // default assignments filter highlight
     $$("#asnSeg button").forEach(function (b) { b.classList.toggle("on", b.getAttribute("data-filter") === asnFilter); });
+
+    // Override OVERVIEW with real injected grade data (async; sample already shown).
+    bsgyApplyLive();
 
     // ============================================================
     // ADDED · MOCKUP CONVENTIONS — active edition + deep linking

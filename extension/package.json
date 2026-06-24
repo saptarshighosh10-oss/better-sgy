@@ -4,11 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "wxt",
-    "build": "wxt build",
-    "build:demo": "DEMO=true wxt build --mode demo",
-    "zip": "wxt zip",
-    "zip:demo": "DEMO=true wxt zip --mode demo",
+    "dev": "npm run sync:looks && wxt",
+    "sync:looks": "node scripts/build-looks.mjs",
+    "build": "npm run sync:looks && wxt build",
+    "build:demo": "npm run sync:looks && DEMO=true wxt build --mode demo",
+    "zip": "npm run sync:looks && wxt zip",
+    "zip:demo": "npm run sync:looks && DEMO=true wxt zip --mode demo",
     "icons": "node scripts/gen-icons.mjs",
     "typecheck": "wxt prepare && tsc --noEmit"
   },

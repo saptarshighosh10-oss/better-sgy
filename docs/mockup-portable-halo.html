@@ -4,39 +4,97 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Cdefs%3E%3ClinearGradient id=%27sgy%27 x1=%270%27 y1=%270%27 x2=%270%27 y2=%271%27%3E%3Cstop offset=%270%27 stop-color=%27%237c6cfc%27/%3E%3Cstop offset=%271%27 stop-color=%27%235b3df0%27/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27url(%23sgy)%27/%3E%3Cpath d=%27M9 20.5L16 11L23 20.5%27 fill=%27none%27 stroke=%27white%27 stroke-width=%273.2%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
-<title>Better SGY · Portable widget · HALO</title>
+<title>Better SGY · Portable widget · Cloud</title>
 <style>
   /* ============================================================
-     HALO — calm, near-silent, monochrome.
-     Color is reserved for meaning: green = upward, red = down /
-     missing. Everything else is quiet grayscale.
+     CLOUD — a soft, dreamy sky identity. Airy gradients, fluffy
+     white clouds, gentle sky-blues. Color carries meaning AND mood:
+     sky-blue = upward, warm amber = down / missing.
      This file is the portable "lives on any webpage" widget,
-     shown over a faux study article.
+     shown over a faux study article — the grade card rests on a
+     soft cloud.
      ============================================================ */
 
   :root {
-    --paper:        #fcfcfb;
-    --paper-2:      #f6f6f4;
-    --paper-3:      #f0f0ed;
-    --ink:          #14140f;
-    --ink-2:        #3a3a35;
-    --ink-3:        #6c6c64;
-    --ink-4:        #9a9a91;
-    --hair:         rgba(0,0,0,0.07);
-    --hair-strong:  rgba(0,0,0,0.11);
+    /* DAY — a bright daytime sky */
+    --paper:        #f3f8ff;
+    --paper-2:      #eaf3fe;
+    --paper-3:      #def0fd;
+    --ink:          #1c3047;
+    --ink-2:        #355270;
+    --ink-3:        #5b7a99;
+    --ink-4:        #8fa9c2;
+    --hair:         rgba(74,144,217,0.15);
+    --hair-strong:  rgba(74,144,217,0.26);
 
-    --signal-up:        #2f8f5b;
-    --signal-up-soft:   rgba(47,143,91,0.10);
-    --signal-miss:      #c0392b;
-    --signal-miss-soft: rgba(192,57,43,0.08);
+    --signal-up:        #2f8fd6;   /* clear sky-blue              */
+    --signal-up-soft:   rgba(47,143,214,0.12);
+    --signal-miss:      #d98a2b;   /* warm sunlit amber           */
+    --signal-miss-soft: rgba(217,138,43,0.12);
+
+    --brand-ink:    #2f7fd0;
+    --brand-mute:   #8fa9c2;
+
+    /* CLOUD sky accents */
+    --cov-amethyst:  #4aa3e8;
+    --cov-cyan:      #8fd0f5;
+    --cov-glass:     rgba(120,180,235,0.06);
+    --cov-glass-edge: rgba(120,180,235,0.26);
+
+    /* cloud / sky luminosity (day) */
+    --halo-core:    rgba(255,255,255,0.60);
+    --halo-warm:    rgba(150,205,245,0.30);
+    --halo-edge:    rgba(255,255,255,0.00);
+    --ring-glow:    rgba(255,255,255,0.88);
+    --ring-halo:    rgba(140,195,240,0.32);
+    --signal-glow:  rgba(47,143,214,0.40);
+    --halo-blend:   normal;
 
     --radius:    14px;
     --radius-sm: 9px;
 
     --panel-w:   384px;
-    --spark-mute: #9a9a91;
-    --shadow:    0 18px 60px rgba(20,20,15,0.16), 0 2px 8px rgba(20,20,15,0.06);
-    --shadow-pill: 0 10px 34px rgba(20,20,15,0.16), 0 1px 4px rgba(20,20,15,0.08);
+    --spark-mute: #8fa9c2;
+    --shadow:    0 18px 60px rgba(30,70,120,0.20), 0 2px 10px rgba(30,70,120,0.08);
+    --shadow-pill: 0 10px 34px rgba(30,70,120,0.20), 0 1px 5px rgba(30,70,120,0.10);
+  }
+
+  /* NIGHT — a serene night sky */
+  html[data-theme="dark"] {
+    --paper:        #070b18;
+    --paper-2:      #0e1428;
+    --paper-3:      #161e3a;
+    --ink:          #e9f0ff;
+    --ink-2:        #c0cde8;
+    --ink-3:        #8497bd;
+    --ink-4:        #5b6c93;
+    --hair:         rgba(130,160,220,0.18);
+    --hair-strong:  rgba(130,160,220,0.32);
+
+    --signal-up:        #7fb8f0;
+    --signal-up-soft:   rgba(127,184,240,0.16);
+    --signal-miss:      #f0c068;
+    --signal-miss-soft: rgba(240,192,104,0.16);
+
+    --brand-ink:    #a8c6f2;
+    --brand-mute:   #5b6c93;
+
+    --cov-amethyst:  #8fbdf0;
+    --cov-cyan:      #bcdcff;
+    --cov-glass:     rgba(130,170,225,0.07);
+    --cov-glass-edge: rgba(150,185,235,0.38);
+
+    --halo-core:    rgba(190,215,255,0.38);
+    --halo-warm:    rgba(120,165,235,0.22);
+    --halo-edge:    rgba(190,215,255,0.00);
+    --ring-glow:    rgba(220,235,255,0.92);
+    --ring-halo:    rgba(150,190,245,0.50);
+    --signal-glow:  rgba(127,184,240,0.80);
+    --halo-blend:   screen;
+
+    --spark-mute: #5b6c93;
+    --shadow:    0 18px 60px rgba(0,0,0,0.55), 0 2px 10px rgba(0,0,0,0.35);
+    --shadow-pill: 0 10px 34px rgba(0,0,0,0.55), 0 1px 5px rgba(0,0,0,0.35);
   }
 
   * { box-sizing: border-box; }
@@ -53,6 +111,29 @@
     letter-spacing: -0.006em;
   }
 
+  /* soft ambient sky behind the whole page */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(1100px 760px at 80% -16%, rgba(150,200,245,0.16) 0%, transparent 62%),
+      radial-gradient(900px 620px at 8% 110%, rgba(255,255,255,0.22) 0%, transparent 60%),
+      radial-gradient(420px 190px at 22% 24%, var(--halo-core) 0%, transparent 70%),
+      radial-gradient(520px 230px at 86% 60%, var(--halo-core) 0%, transparent 72%);
+    mix-blend-mode: var(--halo-blend);
+    opacity: 0.9;
+  }
+  html[data-theme="dark"] body::before {
+    background:
+      radial-gradient(1100px 760px at 80% -16%, rgba(90,130,210,0.20) 0%, transparent 62%),
+      radial-gradient(900px 620px at 8% 110%, rgba(150,185,245,0.12) 0%, transparent 60%),
+      radial-gradient(420px 190px at 22% 24%, var(--halo-core) 0%, transparent 70%),
+      radial-gradient(520px 230px at 86% 60%, var(--halo-core) 0%, transparent 72%);
+  }
+
   /* ============================================================
      FAUX WEBPAGE — a student reading a study article.
      Intentionally plain; the widget is the subject, not this.
@@ -62,14 +143,16 @@
     display: flex; align-items: center; gap: 16px;
     padding: 14px 28px;
     border-bottom: 1px solid var(--hair);
-    background: rgba(252,252,251,0.86);
+    background: rgba(243,248,255,0.86);
     backdrop-filter: saturate(140%) blur(8px);
   }
+  html[data-theme="dark"] .pagebar { background: rgba(7,11,24,0.82); }
   .pagebar .glyph {
     width: 26px; height: 26px; border-radius: 7px;
-    background: var(--ink); color: var(--paper);
+    background: var(--cov-amethyst); color: #fff;
     display: grid; place-items: center;
     font-size: 12px; font-weight: 700; letter-spacing: -0.02em; flex: none;
+    box-shadow: 0 0 12px -2px var(--ring-halo);
   }
   .pagebar .site { font-size: 14px; font-weight: 600; color: var(--ink); }
   .pagebar .pgnav {
@@ -82,6 +165,8 @@
     max-width: 680px;
     margin: 0 auto;
     padding: 64px 28px 160px;
+    position: relative;
+    z-index: 1;
   }
   .article .kicker {
     font-size: 12px; font-weight: 600; letter-spacing: 0.08em;
@@ -106,7 +191,7 @@
   }
   .article .pull {
     margin: 36px 0; padding: 4px 0 4px 22px;
-    border-left: 2px solid var(--hair-strong);
+    border-left: 2px solid var(--cov-glass-edge);
     font-size: 19px; line-height: 1.6; color: var(--ink);
     font-weight: 450; letter-spacing: -0.01em;
   }
@@ -124,21 +209,22 @@
   /* page dim while panel is open */
   .scrim {
     position: fixed; inset: 0; z-index: 40;
-    background: rgba(20,20,15,0.10);
+    background: rgba(20,40,70,0.16);
     opacity: 0; pointer-events: none;
     transition: opacity 260ms ease;
   }
+  html[data-theme="dark"] .scrim { background: rgba(0,0,0,0.42); }
   body.open .scrim { opacity: 1; pointer-events: auto; }
 
   /* ============================================================
-     COLLAPSED PILL — fixed bottom-right, always visible
+     COLLAPSED PILL — fixed, always visible
      ============================================================ */
   .pill {
     position: fixed; left: 0; top: 0; z-index: 50;
     display: flex; align-items: center; gap: 11px;
     padding: 9px 15px 9px 11px;
     background: var(--paper);
-    border: 1px solid var(--hair-strong);
+    border: 1px solid var(--cov-glass-edge);
     border-radius: 999px;
     box-shadow: var(--shadow-pill);
     cursor: grab;
@@ -146,14 +232,14 @@
     touch-action: none;
     transition: opacity 200ms ease, box-shadow 200ms ease;
   }
-  .pill:hover { box-shadow: 0 14px 40px rgba(20,20,15,0.20), 0 1px 4px rgba(20,20,15,0.08); }
+  .pill:hover { box-shadow: 0 14px 40px rgba(30,70,120,0.26), 0 1px 5px rgba(30,70,120,0.12); }
   .pill.dragging { cursor: grabbing; transition: none; }
   body.dragging, body.dragging * { user-select: none !important; -webkit-user-select: none !important; }
   body.open .pill { opacity: 0; pointer-events: none; transform: translateY(6px) scale(0.98); }
 
-  .pill .mark { width: 22px; height: 22px; flex: none; display: block; }
-  .pill .mark circle[stroke] { stroke: var(--ink); }
-  .pill .mark circle[fill]   { fill: var(--ink); }
+  .pill .mark { width: 22px; height: 22px; flex: none; display: block;
+    filter: drop-shadow(0 0 5px var(--ring-halo)); }
+  .pill .mark path { fill: var(--brand-ink); }
 
   .pill .grade {
     font-size: 14.5px; font-weight: 600; color: var(--ink);
@@ -170,14 +256,16 @@
   .pill .trend .car { color: var(--signal-up); font-size: 10px; }
 
   /* ============================================================
-     EXPANDED PANEL — slides in from the right
+     EXPANDED PANEL — a soft cloud card
      ============================================================ */
   .panel {
     position: fixed; left: 0; top: 0; z-index: 60;
     width: var(--panel-w); max-width: 94vw;
     height: 520px; max-height: 92vh;
-    background: var(--paper);
-    border: 1px solid var(--hair);
+    background:
+      linear-gradient(180deg, var(--cov-glass) 0%, transparent 24%),
+      var(--paper);
+    border: 1px solid var(--cov-glass-edge);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
     display: flex; flex-direction: column;
@@ -205,7 +293,7 @@
     opacity: 0.7;
   }
 
-  .panel-scroll { overflow-y: auto; flex: 1; }
+  .panel-scroll { overflow-y: auto; flex: 1; position: relative; }
   .panel-scroll::-webkit-scrollbar { width: 9px; }
   .panel-scroll::-webkit-scrollbar-thumb { background: var(--hair-strong); border-radius: 999px; border: 3px solid var(--paper); }
 
@@ -218,9 +306,9 @@
     cursor: grab; touch-action: none; user-select: none;
   }
   .p-head:active { cursor: grabbing; }
-  .p-head .mark { width: 20px; height: 20px; flex: none; }
-  .p-head .mark circle[stroke] { stroke: var(--ink); }
-  .p-head .mark circle[fill]   { fill: var(--ink); }
+  .p-head .mark { width: 20px; height: 20px; flex: none;
+    filter: drop-shadow(0 0 4px var(--ring-halo)); }
+  .p-head .mark path { fill: var(--brand-ink); }
   .p-head .name {
     font-size: 14px; font-weight: 600; color: var(--ink); letter-spacing: -0.006em;
   }
@@ -234,8 +322,25 @@
   .p-head .x:hover { background: var(--paper-2); color: var(--ink); }
   .p-head .x svg { width: 15px; height: 15px; }
 
-  /* big overall */
-  .p-hero { padding: 26px 20px 24px; border-bottom: 1px solid var(--hair); }
+  /* big overall — the grade resting on a soft cloud */
+  .p-hero { padding: 26px 20px 24px; border-bottom: 1px solid var(--hair); position: relative; overflow: hidden; }
+  .p-hero .cloud {
+    position: absolute;
+    pointer-events: none;
+    z-index: 0;
+    left: 4px; top: 26px;
+    width: 280px; height: 150px;
+    background:
+      radial-gradient(54px 46px at 30% 46%, var(--halo-core) 0%, transparent 71%),
+      radial-gradient(46px 42px at 55% 40%, var(--halo-core) 0%, transparent 71%),
+      radial-gradient(40px 36px at 16% 58%, var(--halo-core) 0%, transparent 73%),
+      radial-gradient(40px 36px at 72% 56%, var(--halo-core) 0%, transparent 73%),
+      radial-gradient(130px 56px at 42% 70%, var(--ring-glow) 0%, transparent 80%);
+    filter: blur(3px);
+    mix-blend-mode: var(--halo-blend);
+    opacity: 0.9;
+  }
+  .p-hero > * { position: relative; z-index: 1; }
   .p-hero .lede {
     font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
     text-transform: uppercase; color: var(--ink-4); margin: 0 0 14px;
@@ -243,9 +348,16 @@
   .p-hero .row { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
   .p-hero .num {
     font-size: 52px; font-weight: 600; letter-spacing: -0.04em;
-    line-height: 0.92; color: var(--ink); font-variant-numeric: tabular-nums;
+    line-height: 0.92; font-variant-numeric: tabular-nums;
+    color: var(--cov-amethyst);
+    background: linear-gradient(170deg, var(--cov-cyan) 0%, var(--cov-amethyst) 60%, var(--cov-amethyst) 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 24px var(--ring-halo);
   }
-  .p-hero .num .pct { font-size: 24px; font-weight: 500; color: var(--ink-4); letter-spacing: -0.02em; }
+  .p-hero .num .pct { font-size: 24px; font-weight: 500;
+    -webkit-text-fill-color: var(--ink-4); color: var(--ink-4);
+    letter-spacing: -0.02em; text-shadow: none; }
   .p-hero .delta {
     display: inline-flex; align-items: baseline; gap: 4px;
     font-size: 13px; font-weight: 600; color: var(--signal-up);
@@ -260,7 +372,7 @@
     padding: 3px 10px; border-radius: 999px;
     border: 1px solid var(--hair-strong); color: var(--ink-3); background: var(--paper-2);
   }
-  .chip.miss { color: var(--signal-miss); background: var(--signal-miss-soft); border-color: rgba(192,57,43,0.16); }
+  .chip.miss { color: var(--signal-miss); background: var(--signal-miss-soft); border-color: rgba(217,138,43,0.22); }
   .chip .cdot { width: 5px; height: 5px; border-radius: 50%; background: var(--ink-4); }
   .chip.miss .cdot { background: var(--signal-miss); }
 
@@ -317,11 +429,20 @@
     transition: background 130ms ease, color 130ms ease, border-color 130ms ease;
   }
   .tab:hover { background: var(--paper-2); }
-  .tab.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .tab.on {
+    background: linear-gradient(135deg, var(--cov-amethyst), var(--cov-cyan));
+    color: #fff; border-color: var(--cov-amethyst);
+    box-shadow: 0 0 12px -2px var(--ring-halo);
+  }
+  html[data-theme="dark"] .tab.on { color: var(--paper); }
 
   .chartwrap {
-    border: 1px solid var(--hair); border-radius: var(--radius);
-    background: var(--paper); padding: 16px 14px 10px; position: relative;
+    border: 1px solid var(--cov-glass-edge); border-radius: var(--radius);
+    background:
+      linear-gradient(180deg, var(--cov-glass) 0%, transparent 26%),
+      var(--paper);
+    padding: 16px 14px 10px; position: relative;
+    box-shadow: 0 0 22px -16px var(--ring-halo);
   }
   .chartwrap .chead {
     display: flex; align-items: baseline; justify-content: space-between;
@@ -344,11 +465,12 @@
   .chartwrap .ylab { fill: var(--ink-4); font-size: 9.5px; font-weight: 500; font-family: inherit; }
   .chartwrap .area { stroke: none; }
   .chartwrap .line {
-    fill: none; stroke: var(--ink); stroke-width: 1.8;
+    fill: none; stroke: var(--cov-amethyst); stroke-width: 1.8;
     stroke-linecap: round; stroke-linejoin: round;
+    filter: drop-shadow(0 0 4px var(--ring-halo));
   }
-  .chartwrap .endpt      { fill: var(--ink); }
-  .chartwrap .endpt-up   { fill: var(--signal-up); }
+  .chartwrap .endpt      { fill: var(--cov-amethyst); }
+  .chartwrap .endpt-up   { fill: var(--signal-up); filter: drop-shadow(0 0 5px var(--signal-glow)); }
   .chartwrap .endpt-down { fill: var(--signal-miss); }
 
   /* foot */
@@ -359,9 +481,8 @@
     font-size: 11px; color: var(--ink-4); font-weight: 450; letter-spacing: 0.01em;
     background: var(--paper);
   }
-  .p-foot .dotmark { width: 12px; height: 12px; opacity: 0.65; }
-  .p-foot .dotmark circle[stroke] { stroke: var(--ink-4); }
-  .p-foot .dotmark circle[fill]   { fill: var(--ink-4); }
+  .p-foot .dotmark { width: 12px; height: 12px; opacity: 0.7; }
+  .p-foot .dotmark path { fill: var(--brand-mute); }
   .p-foot .l { display: inline-flex; align-items: center; gap: 7px; }
 
   @media (max-width: 560px) {
@@ -375,6 +496,20 @@
 </style>
 </head>
 <body>
+
+  <script>
+    /* Apply saved theme before first paint to avoid a flash. */
+    (function () {
+      try {
+        var raw = localStorage.getItem("cloud.theme");
+        var t = raw ? JSON.parse(raw) : "light";
+        var dark = t === "dark" ||
+          (t === "auto" && window.matchMedia &&
+           window.matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+      } catch (e) {}
+    })();
+  </script>
 
   <!-- ============================================================
        FAUX WEBPAGE — the page the widget lives on
@@ -420,8 +555,7 @@
        ============================================================ -->
   <button class="pill" id="pill" aria-label="Open Better SGY grades">
     <svg class="mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="12" cy="12" r="8.4" stroke="#14140f" stroke-width="1.4"/>
-      <circle cx="12" cy="12" r="2.1" fill="#14140f"/>
+      <path d="M7.4 18.5A4.6 4.6 0 0 1 7 9.3a5.6 5.6 0 0 1 10.7 1.2A3.7 3.7 0 0 1 17.1 18.5H7.4z"/>
     </svg>
     <span class="grade">96.2%</span>
     <span class="div"></span>
@@ -434,10 +568,9 @@
   <aside class="panel" id="panel" role="dialog" aria-modal="false" aria-label="Better SGY" aria-hidden="true">
     <div class="p-head">
       <svg class="mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <circle cx="12" cy="12" r="8.4" stroke="#14140f" stroke-width="1.4"/>
-        <circle cx="12" cy="12" r="2.1" fill="#14140f"/>
+        <path d="M7.4 18.5A4.6 4.6 0 0 1 7 9.3a5.6 5.6 0 0 1 10.7 1.2A3.7 3.7 0 0 1 17.1 18.5H7.4z"/>
       </svg>
-      <span class="name">Better SGY</span>
+      <span class="name">Cloud</span>
       <button class="x" id="closeBtn" aria-label="Close panel">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
       </button>
@@ -446,6 +579,7 @@
     <div class="panel-scroll">
       <!-- big overall -->
       <section class="p-hero">
+        <div class="cloud" aria-hidden="true"></div>
         <p class="lede">Overall average</p>
         <div class="row">
           <div class="num">96.2<span class="pct">%</span></div>
@@ -486,8 +620,8 @@
 
     <div class="p-foot">
       <span class="l">
-        <svg class="dotmark" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.4" stroke="#9a9a91" stroke-width="1.4"/><circle cx="12" cy="12" r="2.1" fill="#9a9a91"/></svg>
-        HALO
+        <svg class="dotmark" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7.4 18.5A4.6 4.6 0 0 1 7 9.3a5.6 5.6 0 0 1 10.7 1.2A3.7 3.7 0 0 1 17.1 18.5H7.4z"/></svg>
+        Cloud
       </span>
       <span>Updated today</span>
     </div>
@@ -597,8 +731,8 @@
       var baseY = gy(YMIN).toFixed(1);
       var areaD = "M" + gx(0, n).toFixed(1) + "," + baseY + " L" + pts.join(" L") + " L" + gx(n - 1, n).toFixed(1) + "," + baseY + " Z";
 
-      // monochrome area fill; tinted only when up/down
-      var areaFill = "rgba(20,20,15,0.05)";
+      // soft sky area fill; tinted when up/down
+      var areaFill = "rgba(74,163,232,0.08)";
       if (tr === "up")   areaFill = "var(--signal-up-soft)";
       if (tr === "down") areaFill = "var(--signal-miss-soft)";
       s += '<path class="area" d="' + areaD + '" fill="' + areaFill + '"/>';
@@ -627,7 +761,7 @@
         tabs[i].classList.toggle("on", tabs[i].getAttribute("data-id") === id);
       }
       renderChart(id);
-      try { localStorage.setItem("halo.widget.course", id); } catch (e) {}
+      try { localStorage.setItem("cloud.widget.course", id); } catch (e) {}
     }
 
     $("#tabs").addEventListener("click", function (e) {
@@ -657,7 +791,7 @@
     function vh() { return document.documentElement.clientHeight; }
 
     // ---------- pill position ----------
-    var pillPos = lsGet("halo.widget.pillPos", null); // {x,y} or null -> default bottom-right
+    var pillPos = lsGet("cloud.widget.pillPos", null); // {x,y} or null -> default bottom-right
 
     function defaultPillPos() {
       var r = pill.getBoundingClientRect();
@@ -678,10 +812,10 @@
     }
 
     // ---------- panel size + position ----------
-    var panelSize = lsGet("halo.widget.panelSize", { w: 384, h: 520 });
+    var panelSize = lsGet("cloud.widget.panelSize", { w: 384, h: 520 });
     panelSize.w = clamp(panelSize.w, MINW, Math.min(MAXW, vw() - GAP * 2));
     panelSize.h = clamp(panelSize.h, MINH, Math.min(MAXH, vh() - GAP * 2));
-    var panelPos = lsGet("halo.widget.panelPos", null); // {x,y} or null -> auto-anchor
+    var panelPos = lsGet("cloud.widget.panelPos", null); // {x,y} or null -> auto-anchor
 
     function applyPanelSize() {
       panel.style.width = panelSize.w + "px";
@@ -727,13 +861,13 @@
       document.body.classList.add("open");
       panel.setAttribute("aria-hidden", "false");
       $("#scrim").setAttribute("aria-hidden", "false");
-      lsSet("halo.widget.open", 1);
+      lsSet("cloud.widget.open", 1);
     }
     function collapse() {
       document.body.classList.remove("open");
       panel.setAttribute("aria-hidden", "true");
       $("#scrim").setAttribute("aria-hidden", "true");
-      lsSet("halo.widget.open", 0);
+      lsSet("cloud.widget.open", 0);
     }
 
     $("#closeBtn").addEventListener("click", collapse);
@@ -789,7 +923,7 @@
       },
       onEnd: function (moved) {
         pill.classList.remove("dragging");
-        if (moved) { lsSet("halo.widget.pillPos", pillPos); }
+        if (moved) { lsSet("cloud.widget.pillPos", pillPos); }
         else { open(); } // a clean click opens
       }
     });
@@ -808,7 +942,7 @@
       },
       onEnd: function (moved) {
         panel.classList.remove("dragging");
-        if (moved && panelPos) lsSet("halo.widget.panelPos", panelPos);
+        if (moved && panelPos) lsSet("cloud.widget.panelPos", panelPos);
       }
     });
 
@@ -830,7 +964,7 @@
       },
       onEnd: function (moved) {
         panel.classList.remove("resizing");
-        if (moved) lsSet("halo.widget.panelSize", panelSize);
+        if (moved) lsSet("cloud.widget.panelSize", panelSize);
       }
     });
 
@@ -852,7 +986,7 @@
     renderTabs();
 
     var savedCourse = "alg";
-    try { savedCourse = localStorage.getItem("halo.widget.course") || "alg"; } catch (e) {}
+    try { savedCourse = localStorage.getItem("cloud.widget.course") || "alg"; } catch (e) {}
     if (!HIST[savedCourse]) savedCourse = "alg";
     selectTab(savedCourse);
 
@@ -860,7 +994,7 @@
     applyPanelSize();
 
     // restore open state quietly (default collapsed)
-    var wasOpen = lsGet("halo.widget.open", 0);
+    var wasOpen = lsGet("cloud.widget.open", 0);
     if (wasOpen === 1 || wasOpen === "1") open();
   })();
   </script>

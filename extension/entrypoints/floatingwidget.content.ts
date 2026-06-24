@@ -26,7 +26,7 @@ export default defineContentScript({
       apple:   { bg: '#ffffff', text: '#1d1d1f', card: '#f5f5f7', border: 'rgba(0,0,0,0.08)',        primary: '#0a84ff', fresh: '#34c759', failed: '#ff3b30', muted: '#6e6e73' },
       halo:    { bg: '#eef5ff', text: '#1c2c40', card: '#ffffff', border: 'rgba(74,127,208,0.12)',    primary: '#4a7fd0', fresh: '#34c759', failed: '#ff6b6b', muted: '#6e87a6' },
       slate:   { bg: '#ffffff', text: '#1a1a1a', card: '#f3f3f1', border: 'rgba(0,0,0,0.12)',        primary: '#1a1a1a', fresh: '#2f7d32', failed: '#b00020', muted: '#6b6b6b' },
-      forge:   { bg: '#241c16', text: '#f5ece1', card: '#322820', border: 'rgba(255,255,255,0.09)',  primary: '#e07a3c', fresh: '#5cb85c', failed: '#e5533c', muted: 'rgba(245,236,225,0.5)' },
+      forge:   { bg: '#fdf4e6', text: '#3a2f25', card: '#fffdf9', border: 'rgba(160,120,40,0.18)',    primary: '#e07a3c', fresh: '#4fb286', failed: '#e5533c', muted: '#8a7a66' },
       carbon:  { bg: '#1f150d', text: '#f3e9da', card: '#241a12', border: 'rgba(255,255,255,0.08)',  primary: '#d68a3c', fresh: '#8fae6b', failed: '#c96a4e', muted: '#8a7860' },
     };
     // Labels for the in-panel picker (Forge ships under the friendlier name).

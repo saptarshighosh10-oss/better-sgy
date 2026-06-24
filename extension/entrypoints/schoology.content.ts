@@ -434,7 +434,7 @@ async function runBackgroundScrape() {
     overlayActive = true;
     try { localStorage.removeItem('__bs_deactivated__'); } catch { /* blocked */ }
     if (host) host.style.display = '';   // show overlay first
-    if (btn) btn.style.display = 'none';
+    if (btn) { btn.style.display = 'flex'; const l = document.getElementById('bs-esc-label'); if (l) l.textContent = 'Show original Schoology'; }
     try { hideNativeUI(); } catch (e) { console.warn('[BS] hideNativeUI failed', e); }
     // Re-activate the extension (it was unmounted when we went native).
     // Mount onto a FRESH node: React leaves an internal marker on a container that
@@ -461,7 +461,7 @@ async function runBackgroundScrape() {
     // Hide the overlay + restore native FIRST so "turn off" always works, even if
     // anything below throws.
     if (host) host.style.display = 'none';
-    if (btn) btn.style.display = 'flex';
+    if (btn) { btn.style.display = 'flex'; const l = document.getElementById('bs-esc-label'); if (l) l.textContent = 'Show Better SGY'; }
     try { restoreNativeUI(); } catch (e) { console.warn('[BS] restoreNativeUI failed', e); }
     restoreFavicon();   // give Schoology its own tab icon back on native
     // Fully deactivate: unmount React so NOTHING runs (no polling, no animations,
@@ -487,10 +487,12 @@ function createEscapeHatch() {
 
   const btn = document.createElement('button');
   btn.id = ESCAPE_ID;
-  btn.title = 'Toggle back to Better SGY overlay';
+  btn.title = 'Switch between Better SGY and the original Schoology page';
 
   const label = document.createElement('span');
-  label.textContent = 'Show Better SGY';
+  label.id = 'bs-esc-label';
+  // Startup shows the overlay, so the button offers the way OUT to real Schoology.
+  label.textContent = 'Show original Schoology';
   btn.appendChild(label);
 
   // Notification badge — pings when new announcements/updates arrive while you're
@@ -513,7 +515,7 @@ function createEscapeHatch() {
     bottom: 20px;
     right: 20px;
     z-index: 2147483647;
-    display: none; /* hidden by default on startup */
+    display: flex; /* always visible — it's the toggle to/from real Schoology */
     align-items: center;
     justify-content: center;
     gap: 8px;
@@ -559,10 +561,15 @@ function createEscapeHatch() {
   });
 
   btn.addEventListener('click', () => {
-    // Returning to Better SGY = "viewing" the updates → clear the ping.
-    (window as any).__bsAckUpdates?.();
-    (window as any).__bsSetEscapeBadge?.(0);
-    (window as any).__toggleSchoologyOverlay(true);
+    if (overlayActive) {
+      // Overlay is up → drop to the real Schoology page.
+      (window as any).__toggleSchoologyOverlay(false);
+    } else {
+      // On native Schoology → coming back = "viewing" updates → clear the ping.
+      (window as any).__bsAckUpdates?.();
+      (window as any).__bsSetEscapeBadge?.(0);
+      (window as any).__toggleSchoologyOverlay(true);
+    }
   });
 
   document.body.appendChild(btn);

@@ -231,16 +231,6 @@
     background:linear-gradient(90deg, transparent, rgba(120,80,30,.16));
     box-shadow:inset 1px 0 0 rgba(255,250,240,.6);
   }
-  /* faint tree/branch silhouette growing up from the foot of the rail */
-  .side-tree{
-    position:absolute;left:0;right:0;bottom:0;height:340px;pointer-events:none;z-index:0;
-    opacity:.5;
-    color:#e8a85b;
-    -webkit-mask-image:linear-gradient(180deg, transparent, #000 55%);
-            mask-image:linear-gradient(180deg, transparent, #000 55%);
-  }
-  .side-tree svg{position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);width:240px;height:auto;display:block;}
-  :root[data-theme="light"] .side-tree{ opacity:.32; color:#9c6a2a; }
   /* growth-ring motif faintly stamped behind the brand mark */
   .side-rings{
     position:absolute;top:-40px;right:-50px;width:200px;height:200px;pointer-events:none;z-index:0;
@@ -1325,16 +1315,6 @@
         <circle cx="155" cy="45" r="44" stroke-width="1.2"/>
         <circle cx="155" cy="45" r="66" stroke-width="1"/>
         <circle cx="155" cy="45" r="90" stroke-width="0.8"/>
-      </svg>
-    </div>
-    <div class="side-tree" aria-hidden="true">
-      <svg viewBox="0 0 240 300" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M120 300 L120 150" stroke-width="6"/>
-        <path d="M120 196 C108 178 92 170 74 168 M120 196 C104 184 96 168 96 150" stroke-width="3.5"/>
-        <path d="M120 178 C134 162 152 156 170 156 M120 178 C140 168 150 150 152 132" stroke-width="3.5"/>
-        <path d="M120 158 C110 142 96 134 82 132 M120 152 C132 138 146 132 158 132" stroke-width="2.6"/>
-        <path d="M96 150 C86 140 76 138 68 140 M152 132 C162 122 172 122 180 126" stroke-width="2"/>
-        <path d="M120 138 C120 122 122 108 128 96 M120 144 C112 130 104 122 96 118" stroke-width="2"/>
       </svg>
     </div>
     <div class="brand">

@@ -4,134 +4,134 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Cdefs%3E%3ClinearGradient id=%27sgy%27 x1=%270%27 y1=%270%27 x2=%270%27 y2=%271%27%3E%3Cstop offset=%270%27 stop-color=%27%237c6cfc%27/%3E%3Cstop offset=%271%27 stop-color=%27%235b3df0%27/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27url(%23sgy)%27/%3E%3Cpath d=%27M9 20.5L16 11L23 20.5%27 fill=%27none%27 stroke=%27white%27 stroke-width=%273.2%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
-<title>Better SGY · COVENANT</title>
+<title>Better SGY · Cloud</title>
 <style>
   /* ============================================================
-     COVENANT — Halo alien-tech identity.
-     Smooth curved holographic surfaces, glowing plasma energy,
-     amethyst/royal-purple + electric plasma-cyan, with brass/gold
-     ceremonial ornamentation. Color carries meaning AND atmosphere:
-     plasma-blue/needler-purple = good, hazard-amber = missing work.
-     LIGHT = "active camo / hard light": a paler, cooler alien hologram.
-     DARK  = a Covenant interior glowing against near-black (showpiece).
+     CLOUD — a soft, dreamy sky identity.
+     Airy gradients, fluffy white clouds, gentle sky-blues and a calm
+     atmosphere. Color carries meaning AND mood: sky-blue = good,
+     warm amber = missing work.
+     DAY (light)  = a bright daytime sky: luminous sky-blues, soft
+                    white clouds, lots of gentle light. Calm + beautiful.
+     NIGHT (dark) = a serene night sky: deep indigo/navy, faint stars,
+                    soft moonlight, wispy darker clouds.
      ============================================================ */
 
   :root {
-    /* LIGHT — active-camo / hard-light: cool pearlescent violet glass,
-       still unmistakably alien, never washed out. */
-    --paper:        #f4f2fb;   /* faint violet-white hard-light field   */
-    --paper-2:      #ece8f8;   /* recessed holographic panel            */
-    --paper-3:      #e2dcf4;   /* pressed / active holo surface         */
-    --ink:          #221a3d;   /* deep indigo ink                       */
-    --ink-2:        #423667;
-    --ink-3:        #645690;
-    --ink-4:        #9387bd;
-    --hair:         rgba(123,92,255,0.16);
-    --hair-strong:  rgba(123,92,255,0.28);
+    /* DAY — a bright daytime sky: airy sky-blue-white surfaces, soft
+       and luminous, never harsh. Clean and calm. */
+    --paper:        #f3f8ff;   /* pale sky-white field                  */
+    --paper-2:      #eaf3fe;   /* recessed cloud-tinted panel           */
+    --paper-3:      #def0fd;   /* pressed / active sky surface          */
+    --ink:          #1c3047;   /* deep sky-slate ink                    */
+    --ink-2:        #355270;
+    --ink-3:        #5b7a99;
+    --ink-4:        #8fa9c2;
+    --hair:         rgba(74,144,217,0.15);
+    --hair-strong:  rgba(74,144,217,0.26);
 
-    /* status colors as plasma — plasma-blue good, hazard-amber missing */
-    --signal-up:        #2a86c9;          /* plasma-blue                  */
-    --signal-up-soft:   rgba(54,150,224,0.12);
-    --signal-miss:      #c77a1a;          /* hazard-amber                 */
-    --signal-miss-soft: rgba(199,122,26,0.12);
+    /* status colors — sky-blue good, warm amber missing */
+    --signal-up:        #2f8fd6;          /* clear sky-blue               */
+    --signal-up-soft:   rgba(47,143,214,0.12);
+    --signal-miss:      #d98a2b;          /* warm sunlit amber            */
+    --signal-miss-soft: rgba(217,138,43,0.12);
 
     --radius:       14px;
     --radius-sm:    9px;
     --sidebar:      240px;
     --content-max:  820px;
 
-    /* toast keeps an inverted (deep-violet) surface in light mode */
-    --toast-bg:     #2a1f54;
-    --toast-fg:     #efeaff;
-    --toast-fg-2:   rgba(239,234,255,0.80);
-    --toast-fg-3:   rgba(239,234,255,0.58);
-    --knob-shadow:  rgba(50,30,120,0.22);
-    --brand-ink:    #6e54e8;
-    --brand-mute:   #9387bd;
-    --spark-mute:   #9387bd;
+    /* toast keeps an inverted (deep twilight) surface in day mode */
+    --toast-bg:     #1d3450;
+    --toast-fg:     #eef6ff;
+    --toast-fg-2:   rgba(238,246,255,0.80);
+    --toast-fg-3:   rgba(238,246,255,0.58);
+    --knob-shadow:  rgba(30,70,120,0.22);
+    --brand-ink:    #2f7fd0;
+    --brand-mute:   #8fa9c2;
+    --spark-mute:   #8fa9c2;
 
-    /* ---- COVENANT energy palette (shared accents) ---- */
-    --cov-amethyst:  #7b5cff;   /* royal-purple / needler plasma         */
-    --cov-plasma:    #2a86c9;   /* electric plasma-blue/cyan             */
-    --cov-cyan:      #36d6ff;   /* bright plasma-cyan highlight          */
-    --cov-gold:      #c79a3e;   /* brass / gold ceremonial ornament      */
-    --cov-gold-soft: rgba(199,154,62,0.42);
-    --cov-glass:     rgba(123,92,255,0.05);   /* holo panel tint         */
-    --cov-glass-edge: rgba(123,92,255,0.30);  /* glowing holo edge       */
+    /* ---- CLOUD sky palette (shared accents) ---- */
+    --cov-amethyst:  #4aa3e8;   /* primary sky-blue                      */
+    --cov-plasma:    #2f8fd6;   /* deeper sky-blue                       */
+    --cov-cyan:      #8fd0f5;   /* soft pale-blue highlight              */
+    --cov-gold:      #ffffff;   /* cloud white accent                    */
+    --cov-gold-soft: rgba(255,255,255,0.55);
+    --cov-glass:     rgba(120,180,235,0.06);  /* cloud panel tint        */
+    --cov-glass-edge: rgba(120,180,235,0.26); /* soft sky edge           */
 
-    /* ---- holographic / plasma luminosity layer (light) ----
-       Cooler, softer "hard-light" glows — present but restrained. */
-    --halo-core:    rgba(123,92,255,0.20);    /* plasma emanation core    */
-    --halo-edge:    rgba(123,92,255,0.00);
-    --halo-warm:    rgba(54,214,255,0.16);     /* plasma-cyan counterlight */
-    --halo-warm-edge: rgba(54,214,255,0.00);
-    --halo-ambient: rgba(123,92,255,0.10);     /* page-level violet wash   */
-    --halo-ambient-2: rgba(54,214,255,0.07);
-    --halo-card:    rgba(123,92,255,0.12);     /* glow behind key panels   */
-    --halo-card-edge: rgba(123,92,255,0.00);
-    /* plasma projection ring around the overall grade */
-    --ring-glow:    rgba(123,92,255,0.62);
-    --ring-glow-2:  rgba(54,214,255,0.55);     /* cyan crown               */
-    --ring-track:   rgba(123,92,255,0.10);
-    --ring-halo:    rgba(123,92,255,0.26);     /* soft outer bloom         */
-    --signal-glow:  rgba(54,150,224,0.42);     /* aura around plasma dot   */
+    /* ---- cloud / sky luminosity layer (day) ----
+       Soft white-and-blue glows — gentle and airy. */
+    --halo-core:    rgba(255,255,255,0.55);   /* soft white cloud core    */
+    --halo-edge:    rgba(255,255,255,0.00);
+    --halo-warm:    rgba(150,205,245,0.30);    /* pale-blue counterlight   */
+    --halo-warm-edge: rgba(150,205,245,0.00);
+    --halo-ambient: rgba(150,200,245,0.18);    /* page-level sky wash      */
+    --halo-ambient-2: rgba(255,255,255,0.30);
+    --halo-card:    rgba(255,255,255,0.22);    /* soft cloud behind panels */
+    --halo-card-edge: rgba(255,255,255,0.00);
+    /* soft sun/cloud glow around the overall grade */
+    --ring-glow:    rgba(255,255,255,0.85);
+    --ring-glow-2:  rgba(150,205,245,0.55);    /* sky-blue crown           */
+    --ring-track:   rgba(150,200,245,0.12);
+    --ring-halo:    rgba(140,195,240,0.30);    /* soft outer haze          */
+    --signal-glow:  rgba(47,143,214,0.40);     /* aura around sky dot      */
     --halo-blend:   normal;
   }
 
   /* ============================================================
-     DARK THEME — the Covenant showpiece. Near-black space-violet
-     interiors with holographic violet glass and emitted plasma
-     light. Saturated amethyst/cyan auras read as genuine glow.
+     NIGHT — a serene night sky. Deep indigo/navy void, faint stars,
+     soft moonlight, and wispy darker clouds. Calm and beautiful.
      ============================================================ */
   html[data-theme="dark"] {
-    --paper:        #07060f;   /* near-black indigo void                 */
-    --paper-2:      #100c22;   /* holographic panel surface             */
-    --paper-3:      #19123a;   /* raised / active holo surface          */
-    --ink:          #ede9ff;   /* luminous lavender-white text          */
-    --ink-2:        #c5bbf2;
-    --ink-3:        #8f82c9;
-    --ink-4:        #6a5e9c;
-    --hair:         rgba(123,92,255,0.20);
-    --hair-strong:  rgba(123,92,255,0.36);
+    --paper:        #070b18;   /* deep midnight navy void                */
+    --paper-2:      #0e1428;   /* night-sky panel surface               */
+    --paper-3:      #161e3a;   /* raised / active twilight surface       */
+    --ink:          #e9f0ff;   /* soft moonlit white text               */
+    --ink-2:        #c0cde8;
+    --ink-3:        #8497bd;
+    --ink-4:        #5b6c93;
+    --hair:         rgba(130,160,220,0.18);
+    --hair-strong:  rgba(130,160,220,0.32);
 
-    --signal-up:        #4cc9ff;          /* bright plasma-cyan           */
-    --signal-up-soft:   rgba(76,201,255,0.16);
-    --signal-miss:      #ffb24d;          /* hazard-amber                 */
-    --signal-miss-soft: rgba(255,178,77,0.16);
+    --signal-up:        #7fb8f0;          /* soft moonlit blue            */
+    --signal-up-soft:   rgba(127,184,240,0.16);
+    --signal-miss:      #f0c068;          /* warm starlight amber         */
+    --signal-miss-soft: rgba(240,192,104,0.16);
 
-    /* toast = glowing holo card on the void */
-    --toast-bg:     #160f33;
-    --toast-fg:     #ede9ff;
-    --toast-fg-2:   rgba(237,233,255,0.78);
-    --toast-fg-3:   rgba(237,233,255,0.54);
+    /* toast = soft-lit card on the night sky */
+    --toast-bg:     #121a33;
+    --toast-fg:     #e9f0ff;
+    --toast-fg-2:   rgba(233,240,255,0.78);
+    --toast-fg-3:   rgba(233,240,255,0.54);
     --knob-shadow:  rgba(0,0,0,0.6);
-    --brand-ink:    #b9a6ff;
-    --brand-mute:   #6a5e9c;
-    --spark-mute:   #6a5e9c;
+    --brand-ink:    #a8c6f2;
+    --brand-mute:   #5b6c93;
+    --spark-mute:   #5b6c93;
 
-    /* ---- COVENANT energy palette (dark accents) ---- */
-    --cov-amethyst:  #9d82ff;
-    --cov-plasma:    #4cc9ff;
-    --cov-cyan:      #6fe6ff;
-    --cov-gold:      #e6c062;
-    --cov-gold-soft: rgba(230,192,98,0.42);
-    --cov-glass:     rgba(123,92,255,0.08);
-    --cov-glass-edge: rgba(157,130,255,0.45);
+    /* ---- CLOUD sky palette (night accents) ---- */
+    --cov-amethyst:  #8fbdf0;   /* moonlit sky-blue                      */
+    --cov-plasma:    #6fa6e6;
+    --cov-cyan:      #bcdcff;   /* pale starlight                        */
+    --cov-gold:      #f4f7ff;   /* moon-white accent                     */
+    --cov-gold-soft: rgba(244,247,255,0.42);
+    --cov-glass:     rgba(130,170,225,0.07);
+    --cov-glass-edge: rgba(150,185,235,0.38);
 
-    /* ---- plasma luminosity layer (dark — this is where it sings) ---- */
-    --halo-core:    rgba(157,130,255,0.40);
-    --halo-edge:    rgba(157,130,255,0.00);
-    --halo-warm:    rgba(76,201,255,0.24);     /* plasma-cyan counterlight */
-    --halo-warm-edge: rgba(76,201,255,0.00);
-    --halo-ambient: rgba(123,92,255,0.18);
-    --halo-ambient-2: rgba(60,170,255,0.14);
-    --halo-card:    rgba(157,130,255,0.22);
-    --halo-card-edge: rgba(157,130,255,0.00);
-    --ring-glow:    rgba(178,150,255,0.98);
-    --ring-glow-2:  rgba(111,230,255,0.92);    /* cyan crown               */
-    --ring-track:   rgba(157,130,255,0.14);
-    --ring-halo:    rgba(140,110,255,0.55);
-    --signal-glow:  rgba(76,201,255,0.85);
+    /* ---- moonlight / cloud luminosity layer (night) ---- */
+    --halo-core:    rgba(190,215,255,0.34);    /* soft moon glow           */
+    --halo-edge:    rgba(190,215,255,0.00);
+    --halo-warm:    rgba(120,165,235,0.22);     /* cool night counterlight */
+    --halo-warm-edge: rgba(120,165,235,0.00);
+    --halo-ambient: rgba(90,130,210,0.20);
+    --halo-ambient-2: rgba(150,185,245,0.12);
+    --halo-card:    rgba(160,195,250,0.18);
+    --halo-card-edge: rgba(160,195,250,0.00);
+    --ring-glow:    rgba(220,235,255,0.92);     /* moon-bright crown        */
+    --ring-glow-2:  rgba(140,185,245,0.85);
+    --ring-track:   rgba(150,185,245,0.14);
+    --ring-halo:    rgba(150,190,245,0.50);
+    --signal-glow:  rgba(127,184,240,0.80);
     --halo-blend:   screen;
   }
 
@@ -154,10 +154,10 @@
   }
 
   /* ============================================================
-     COVENANT — ambient plasma field. A fixed, behind-everything
-     light field: layered violet + plasma-cyan radial pools that
-     suggest a glowing alien interior without touching layout or
-     interactivity. Performant — static gradients, no blur filters,
+     CLOUD — ambient sky field. A fixed, behind-everything light
+     field: layered soft white cloud-pools over a gentle sky wash.
+     Suggests an open sky without touching layout or interactivity.
+     Performant — static radial gradients, no blur filters,
      pointer-events: none.
      ============================================================ */
   body::before {
@@ -167,29 +167,40 @@
     z-index: 0;
     pointer-events: none;
     background:
-      radial-gradient(720px 540px at 80% -10%,
+      /* high sky wash + glow */
+      radial-gradient(1100px 760px at 78% -16%,
         var(--halo-ambient) 0%, transparent 62%),
-      radial-gradient(600px 480px at 4% 108%,
+      radial-gradient(900px 620px at 10% 112%,
         var(--halo-ambient-2) 0%, transparent 60%),
-      radial-gradient(900px 700px at 50% 130%,
-        var(--halo-core) 0%, transparent 55%);
+      /* soft fluffy cloud-banks */
+      radial-gradient(440px 200px at 18% 26%,
+        var(--halo-core) 0%, transparent 70%),
+      radial-gradient(560px 240px at 84% 64%,
+        var(--halo-core) 0%, transparent 72%),
+      radial-gradient(360px 170px at 56% 88%,
+        var(--halo-warm) 0%, transparent 70%);
     mix-blend-mode: var(--halo-blend);
-    opacity: 0.9;
+    opacity: 0.95;
   }
-  /* a faint Covenant hard-light scanline veil — barely-there energy grid */
+  /* faint stars — a sprinkle of tiny soft dots (mostly seen at night) */
   body::after {
     content: "";
     position: fixed;
     inset: 0;
     z-index: 0;
     pointer-events: none;
-    background-image: repeating-linear-gradient(
-      to bottom,
-      var(--cov-glass) 0px,
-      var(--cov-glass) 1px,
-      transparent 1px,
-      transparent 4px);
-    opacity: 0.4;
+    background-image:
+      radial-gradient(1.4px 1.4px at 12% 18%, var(--cov-cyan) 0%, transparent 60%),
+      radial-gradient(1.2px 1.2px at 28% 42%, var(--cov-gold) 0%, transparent 60%),
+      radial-gradient(1.6px 1.6px at 44% 12%, var(--cov-cyan) 0%, transparent 60%),
+      radial-gradient(1.2px 1.2px at 62% 30%, var(--cov-gold) 0%, transparent 60%),
+      radial-gradient(1.4px 1.4px at 76% 16%, var(--cov-cyan) 0%, transparent 60%),
+      radial-gradient(1.2px 1.2px at 88% 48%, var(--cov-gold) 0%, transparent 60%),
+      radial-gradient(1.3px 1.3px at 34% 70%, var(--cov-cyan) 0%, transparent 60%),
+      radial-gradient(1.2px 1.2px at 70% 78%, var(--cov-gold) 0%, transparent 60%),
+      radial-gradient(1.5px 1.5px at 8% 60%, var(--cov-cyan) 0%, transparent 60%),
+      radial-gradient(1.2px 1.2px at 52% 56%, var(--cov-gold) 0%, transparent 60%);
+    opacity: 0.5;
     mix-blend-mode: var(--halo-blend);
   }
   /* keep real content above the ambient field */
@@ -220,7 +231,7 @@
     position: sticky;
     overflow: hidden;
   }
-  /* glowing Covenant seam down the sidebar's inner edge */
+  /* soft sky seam down the sidebar inner edge */
   .sidebar::after {
     content: "";
     position: absolute;
@@ -236,11 +247,11 @@
     pointer-events: none;
     opacity: 0.7;
   }
-  /* ornate curved Covenant glyph — a subtle hard-light motif */
+  /* soft cloud glyph — a gentle ambient motif */
   .cov-glyph {
     position: absolute;
-    left: 50%; bottom: 78px;
-    width: 168px; height: 168px;
+    left: 50%; top: 20px;
+    width: 150px; height: 110px;
     transform: translateX(-50%);
     pointer-events: none;
     opacity: 0.5;
@@ -266,7 +277,7 @@
     letter-spacing: 0.01em; color: var(--ink);
   }
 
-  /* student identity — a holographic Covenant ID panel */
+  /* student identity — a soft cloud ID panel */
   .side-id {
     margin: 0 8px 20px;
     padding: 12px;
@@ -567,16 +578,14 @@
   }
 
   /* ============================================================
-     COVENANT — the overall grade as a holographic plasma projection.
-     The old stray "halo ring" that bisected the left-aligned number
-     is GONE. Now a plasma emanation pools directly behind the number
-     and a clean concentric energy ring is centered on the number
-     itself (via .cov-numwrap, which wraps only the number), so the
-     ring actually frames it instead of floating off to one side.
+     CLOUD — the overall grade resting on a soft sky.
+     No broken ring. A gentle, centered cloud/sun glow pools behind
+     the number (via .cov-numwrap, which wraps only the number), with
+     a soft white aura washing behind the whole hero. Calm + pretty.
      ============================================================ */
   .ov-hero-light { position: relative; }
 
-  /* soft plasma aura pooled behind the hero — projector backwash */
+  /* soft sky aura pooled behind the hero — gentle daylight backwash */
   .ov-hero-light .halo-aura {
     position: absolute;
     pointer-events: none;
@@ -584,78 +593,55 @@
     width: 380px; height: 320px;
     border-radius: 50%;
     background: radial-gradient(closest-side,
-      var(--halo-core) 0%, var(--halo-warm) 30%, var(--halo-edge) 75%);
+      var(--halo-core) 0%, var(--halo-warm) 38%, var(--halo-edge) 75%);
     mix-blend-mode: var(--halo-blend);
     z-index: 0;
   }
 
-  /* the number is wrapped tight so the energy ring centers ON it */
+  /* the number is wrapped tight so the soft glow centers ON it */
   .halo-numwrap, .cov-numwrap {
     position: relative; display: inline-flex; isolation: isolate;
   }
   .halo-numwrap .num, .cov-numwrap .num { position: relative; z-index: 2; }
 
-  /* concentric plasma energy ring — sized to the number, centered.
-     A conic crown masked to a thin band; properly framing the grade. */
+  /* soft centered cloud-glow behind the digits — NO ring, just a
+     gentle luminous pool that frames the grade like a break in clouds. */
+  /* a soft fluffy CLOUD behind the digits — the grade rests on a cloud
+     (built from overlapping soft puffs), not a ring. */
   .cov-ring {
     position: absolute;
     pointer-events: none;
     z-index: 1;
-    left: 50%; top: 50%;
-    width: 156px; height: 156px;
+    left: 50%; top: 56%;
+    width: 360px; height: 180px;
     transform: translate(-50%, -50%);
-    border-radius: 50%;
+    border-radius: 0;
     background:
-      conic-gradient(from 130deg,
-        var(--ring-glow-2) 0deg,
-        var(--ring-glow) 90deg,
-        var(--ring-track) 180deg,
-        var(--ring-glow) 270deg,
-        var(--ring-glow-2) 360deg);
-    -webkit-mask: radial-gradient(closest-side,
-        transparent 0%, transparent 72%,
-        #000 73%, #000 78%, transparent 79.5%);
-            mask: radial-gradient(closest-side,
-        transparent 0%, transparent 72%,
-        #000 73%, #000 78%, transparent 79.5%);
+      radial-gradient(64px 54px at 50% 44%, var(--halo-core) 0%, transparent 71%),
+      radial-gradient(50px 48px at 30% 54%, var(--halo-core) 0%, transparent 71%),
+      radial-gradient(54px 50px at 70% 54%, var(--halo-core) 0%, transparent 71%),
+      radial-gradient(44px 38px at 18% 64%, var(--halo-core) 0%, transparent 73%),
+      radial-gradient(44px 38px at 82% 64%, var(--halo-core) 0%, transparent 73%),
+      radial-gradient(150px 70px at 50% 70%, var(--ring-glow) 0%, transparent 80%);
+    filter: blur(3px);
     mix-blend-mode: var(--halo-blend);
     opacity: 0.95;
   }
-  /* the bright plasma pool behind the digits (centered emanation) */
-  .cov-ring::before {
-    content: "";
-    position: absolute; inset: 20%;
-    border-radius: 50%;
-    background: radial-gradient(closest-side,
-      var(--halo-core) 0%, transparent 78%);
-    mix-blend-mode: var(--halo-blend);
-  }
-  /* outer bloom — emitted light (box-shadow, no costly blur filter) */
+  .cov-ring::before { content: none; }
+  /* soft emitted haze under the cloud (no ring outline) */
   .cov-ring::after {
     content: "";
-    position: absolute; inset: 14%;
-    border-radius: 50%;
-    box-shadow:
-      0 0 30px 4px var(--ring-halo),
-      0 0 64px 16px var(--ring-halo);
-    opacity: 0.6;
+    position: absolute; left: 50%; top: 60%;
+    width: 250px; height: 130px; border-radius: 50%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(closest-side, var(--ring-halo) 0%, transparent 76%);
+    opacity: 0.5; filter: blur(7px);
   }
-  /* two ceremonial brass tick-marks on the ring (Covenant ornament) */
-  .cov-ring i {
-    position: absolute; left: 50%; top: 50%;
-    width: 10px; height: 2px; border-radius: 2px;
-    background: var(--cov-gold);
-    box-shadow: 0 0 6px 0 var(--cov-gold-soft);
-    transform-origin: -68px 50%;
-  }
-  .cov-ring i:nth-child(1) { transform: translate(68px,-1px) rotate(0deg); }
-  .cov-ring i:nth-child(2) { transform: translate(68px,-1px) rotate(180deg); }
+  /* the little flanking puffs are part of the cloud body now */
+  .cov-ring i { display: none; }
 
   @media (max-width: 560px) {
-    .cov-ring { width: 124px; height: 124px; }
-    .cov-ring i { transform-origin: -54px 50%; }
-    .cov-ring i:nth-child(1) { transform: translate(54px,-1px) rotate(0deg); }
-    .cov-ring i:nth-child(2) { transform: translate(54px,-1px) rotate(180deg); }
+    .cov-ring { width: 280px; height: 150px; }
     .ov-hero-light .halo-aura { width: 300px; height: 260px; }
   }
 
@@ -1778,6 +1764,64 @@
     .cal-ev { display: none; }
     .cal-cell { min-height: 44px; }
   }
+
+  /* ============================================================
+     DARK / NIGHT MODE — FLAT & SOLID OVERRIDES
+     Night mode becomes one consistent solid-colored UI: every
+     surface is a single block of color, every two-color gradient
+     collapses to a single solid accent. The ONLY soft element
+     left alone is the grade cloud (.cov-ring / .cov-ring::after).
+     Scoped to html[data-theme="dark"] so light/day mode is
+     completely untouched. Placed last so these rules win.
+     ============================================================ */
+
+  /* glass tint goes fully transparent so panel "glass" overlays
+     vanish and the underlying solid --paper* shows through. */
+  html[data-theme="dark"] { --cov-glass: transparent; }
+
+  /* night-sky field + stars: kill the radial-gradient layers so
+     the flat solid --paper void shows. */
+  html[data-theme="dark"] body::before,
+  html[data-theme="dark"] body::after { background: none; }
+
+  /* decorative single-color glow washes (NOT the grade cloud) are
+     killed so surfaces read perfectly flat. The grade cloud
+     (.cov-ring / .cov-ring::after) is intentionally left alone. */
+  html[data-theme="dark"] #screen-overview .stats::before { background: none; }
+  html[data-theme="dark"] #screen-overview .chart::before { background: none; }
+  html[data-theme="dark"] .ov-hero-light .halo-aura        { background: none; }
+
+  /* sidebar right-edge separator: multi-stop fade -> solid accent line */
+  html[data-theme="dark"] .sidebar::after { background: var(--cov-amethyst); }
+
+  /* --- surfaces / cards / panels become SOLID blocks --- */
+  html[data-theme="dark"] .sidebar          { background: var(--paper); }
+  html[data-theme="dark"] .side-id          { background: var(--paper-2); }
+  html[data-theme="dark"] .nav-item.active  { background: var(--paper-3); }
+  html[data-theme="dark"] .card             { background: var(--paper); }
+  html[data-theme="dark"] .panel            { background: var(--paper); }
+  html[data-theme="dark"] .stats            { background: var(--paper); }
+  html[data-theme="dark"] .gb-snapshot      { background: var(--paper); }
+  html[data-theme="dark"] .course           { background: var(--paper); }
+  html[data-theme="dark"] .chart            { background: var(--paper); }
+  html[data-theme="dark"] .rail-item.on     { background: var(--paper-3); }
+  html[data-theme="dark"] .game-card .gc-ic { background: var(--paper-2); }
+
+  /* --- explicit two-color gradients collapse to one solid accent --- */
+  html[data-theme="dark"] .side-id::before        { background: var(--cov-amethyst); }
+  html[data-theme="dark"] .side-id .avatar        { background: var(--cov-amethyst); }
+  html[data-theme="dark"] .nav-item.active::before{ background: var(--cov-amethyst); }
+  html[data-theme="dark"] .ov-hero .grade .num    { background: var(--cov-amethyst); }
+  html[data-theme="dark"] .cat .bar span          { background: var(--cov-amethyst); }
+  html[data-theme="dark"] .light-cell.on          { background: var(--cov-amethyst); }
+  html[data-theme="dark"] .btn.solid              { background: var(--cov-amethyst); color: var(--paper); }
+
+  /* decorative sidebar cloud glyph: flatten its SVG gradient
+     fills to a single solid accent (override presentation attrs). */
+  html[data-theme="dark"] .cov-glyph svg path {
+    fill: var(--cov-amethyst);
+    stroke: var(--cov-amethyst);
+  }
 </style>
 </head>
 <body>
@@ -1788,7 +1832,7 @@
          SIDEBAR — persistent quiet chrome
          ============================================================ -->
     <aside class="sidebar">
-      <!-- decorative Covenant hard-light glyph (purely ornamental) -->
+      <!-- decorative soft cloud glyph (purely ornamental) -->
       <div class="cov-glyph" aria-hidden="true">
         <svg viewBox="0 0 100 100" fill="none">
           <defs>
@@ -1796,15 +1840,20 @@
               <stop offset="0" stop-color="var(--cov-cyan)"/>
               <stop offset="1" stop-color="var(--cov-amethyst)"/>
             </linearGradient>
+            <radialGradient id="covgfill" cx="50%" cy="40%" r="65%">
+              <stop offset="0" stop-color="var(--cov-cyan)" stop-opacity="0.5"/>
+              <stop offset="1" stop-color="var(--cov-amethyst)" stop-opacity="0.18"/>
+            </radialGradient>
           </defs>
-          <g stroke="url(#covg)" stroke-width="1.4" stroke-linecap="round">
-            <circle cx="50" cy="50" r="34" opacity="0.55"/>
-            <circle cx="50" cy="50" r="24" opacity="0.4"/>
-            <path d="M50 16 C30 30 30 70 50 84 C70 70 70 30 50 16Z" opacity="0.7"/>
-            <path d="M16 50 C30 38 70 38 84 50 C70 62 30 62 16 50Z" opacity="0.5"/>
-            <path d="M50 28 C42 40 42 60 50 72 C58 60 58 40 50 28Z" opacity="0.85"/>
-          </g>
-          <circle cx="50" cy="50" r="4" fill="var(--cov-cyan)" opacity="0.9"/>
+          <!-- a soft fluffy cloud -->
+          <path d="M28 64
+                   a14 14 0 0 1 1-26
+                   a18 18 0 0 1 34-6
+                   a15 15 0 0 1 12 20
+                   a12 12 0 0 1 -11 18 Z"
+                fill="url(#covgfill)"
+                stroke="url(#covg)" stroke-width="1.3"
+                stroke-linejoin="round" opacity="0.85"/>
         </svg>
       </div>
       <div class="side-brand">
@@ -1875,7 +1924,7 @@
       <div class="side-foot">
         <span style="display:inline-flex;align-items:center;gap:8px;">
           <svg class="dotmark" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.4" stroke="#9a9a91" stroke-width="1.4"/><circle cx="12" cy="12" r="2.1" fill="#9a9a91"/></svg>
-          COVENANT
+          CLOUD
         </span>
         <span>Updated today</span>
       </div>
@@ -2055,7 +2104,7 @@
             <p class="sb-desc">Choose how Better SGY redraws Schoology.</p>
             <div class="style-grid" id="styleGrid">
               <button class="style-card" data-style="apple" data-file="mockup-app-apple.html"><div class="sc-name">Apple</div><div class="sc-desc">Soft, rounded, familiar</div></button>
-              <button class="style-card on" data-style="halo" data-file="mockup-app-halo.html"><div class="sc-name">Halo <span class="sc-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 6"/></svg></span></div><div class="sc-desc">Calm, minimal, signal-only</div></button>
+              <button class="style-card on" data-style="halo" data-file="mockup-app-halo.html"><div class="sc-name">Cloud <span class="sc-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 6"/></svg></span></div><div class="sc-desc">Soft, dreamy, sky &amp; clouds</div></button>
               <button class="style-card" data-style="slate" data-file="mockup-app-slate.html"><div class="sc-name">Slate</div><div class="sc-desc">Dense, professional</div></button>
               <button class="style-card" data-style="friendly" data-file="mockup-app-forge.html"><div class="sc-name">Friendly</div><div class="sc-desc">Warm, approachable</div></button>
               <button class="style-card" data-style="carbon" data-file="mockup-app-carbon.html"><div class="sc-name">Carbon</div><div class="sc-desc">Sleek bluish-dark. Crisp and modern.</div></button>

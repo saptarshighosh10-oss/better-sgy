@@ -31,6 +31,20 @@ export default defineContentScript({
     };
     // Labels for the in-panel picker (Forge ships under the friendlier name).
     const LOOK_LABELS: Record<string, string> = { apple: 'Apple', halo: 'Halo', slate: 'Slate', forge: 'Friendly', carbon: 'Carbon' };
+    // Per-look IDENTITY (beyond color): the card takes on each edition's character —
+    // Apple/Cloud get an iPhone-soft rounded edge + SF type, Slate a serif newspaper
+    // masthead, Friendly a rounded chatty face, Carbon a serif walnut feel.
+    type LookId = { font: string; radius: number; eyebrow: string; soft: boolean; badge: string };
+    const LOOK_ID: Record<string, LookId> = {
+      default: { font: "-apple-system,'SF Pro Text','Helvetica Neue',sans-serif", radius: 16, eyebrow: 'Better SGY', soft: false, badge: 'SGY' },
+      apple:   { font: "-apple-system,'SF Pro Display','SF Pro Text','Helvetica Neue',sans-serif", radius: 22, eyebrow: 'Better SGY', soft: true, badge: 'SGY' },
+      halo:    { font: "-apple-system,'SF Pro Text','Helvetica Neue',sans-serif", radius: 24, eyebrow: 'Cloud', soft: true, badge: '☁' },
+      slate:   { font: "'Iowan Old Style','Palatino Linotype',Palatino,Georgia,'Times New Roman',serif", radius: 3, eyebrow: 'THE GRADE REVIEW', soft: false, badge: 'SGY' },
+      forge:   { font: "'SF Pro Rounded','Hiragino Maru Gothic ProN','Nunito',-apple-system,sans-serif", radius: 20, eyebrow: 'hey 👋', soft: false, badge: '☺' },
+      carbon:  { font: "'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif", radius: 13, eyebrow: 'Better SGY', soft: false, badge: 'SGY' },
+    };
+    let curLook = 'default';
+    const lookId = () => LOOK_ID[curLook] ?? LOOK_ID.default;
     let theme: CardTheme = { ...CARD_THEMES.default };
 
     // ── Button — a compact rounded-rectangle "grade card" ──────────────────────
@@ -231,8 +245,8 @@ export default defineContentScript({
 
       btn.innerHTML = `
         <span style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;flex-shrink:0;
-          border-radius:10px;background:${accent};color:${theme.bg};font-size:12px;font-weight:800;letter-spacing:0.02em;">
-          SGY
+          border-radius:${curLook==='slate'?'5px':curLook==='apple'||curLook==='halo'?'11px':'9px'};background:${accent};color:${theme.bg};font-size:${lookId().badge.length>1?'13px':'15px'};font-weight:800;letter-spacing:0.02em;">
+          ${lookId().badge}
         </span>
         <span style="display:flex;flex-direction:column;gap:3px;align-items:flex-start;line-height:1;">
           <span style="font-size:18px;font-weight:750;font-variant-numeric:tabular-nums;line-height:1;color:${theme.text};">
@@ -286,7 +300,7 @@ export default defineContentScript({
     function renderHeroHtml(avg: number | null, count: number, watch: Watch): string {
       const t = theme;
       return `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
-            <span style="font-size:11px;font-weight:600;letter-spacing:0.05em;color:${t.muted};">Better SGY</span>
+            <span style="font-size:11px;font-weight:600;letter-spacing:${curLook==='slate'?'0.16em':'0.05em'};color:${t.muted};">${lookId().eyebrow}</span>
             <button id="bs-close" style="all:unset;cursor:pointer;font-size:18px;color:${t.muted};line-height:1;padding:4px 6px;">✕</button>
           </div>
           <div style="padding:0 2px;">
@@ -472,11 +486,18 @@ export default defineContentScript({
 
     async function loadTheme() {
       const { look } = await resolveLook();
+      curLook = look;
       theme = { ...CARD_THEMES[look] ?? CARD_THEMES.default };
+      const id = lookId();
       btn.style.background = theme.bg;
       btn.style.color = theme.text;
+      btn.style.fontFamily = id.font;
+      btn.style.borderRadius = id.radius + 'px';
       panel.style.background = theme.bg;
       panel.style.color = theme.text;
+      panel.style.fontFamily = id.font;
+      // Apple & Cloud round the panel's leading edge like a phone; the rest stay square.
+      panel.style.borderTopLeftRadius = panel.style.borderBottomLeftRadius = id.soft ? '26px' : '0px';
       void renderBtn();
       if (isOpen) void renderPanel();
     }

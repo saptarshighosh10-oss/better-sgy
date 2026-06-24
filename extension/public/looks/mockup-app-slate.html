@@ -104,8 +104,8 @@
     letter-spacing:.24em; text-transform:uppercase; color:var(--ink-60);
   }
   .masthead__topline .edition{ color:var(--ink); }
-  /* live edition flag (Day / Late), set decoratively below the topline,
-     just above the nameplate — never collides with the centred kicker */
+  /* live edition flag (Day / Late), set on its own dedicated band below the
+     topline — sits in open space, clear of the nameplate's Scotch rule + fleuron */
   .masthead__topline{ position:relative; }
   .masthead__topline::after{
     content:var(--edition-word); position:absolute; left:50%; top:calc(100% + 7px);
@@ -115,7 +115,9 @@
   .masthead__title{
     font-family:var(--serif); font-weight:700;
     font-size:clamp(30px,5.6vw,58px); line-height:.96;
-    letter-spacing:-.02em; margin:14px 0 8px; text-align:center;
+    /* extra headroom opens a clear band for the edition flag above the Scotch
+       rule, so the fleuron can never ride up onto the edition words */
+    letter-spacing:-.02em; margin:52px 0 8px; text-align:center;
     position:relative; text-shadow:0 1px 0 var(--ink-08); /* faint press-bleed */
   }
   .masthead__title em{ font-style:italic; font-weight:400; }
@@ -124,8 +126,11 @@
     content:""; display:block; height:4px; margin:0 0 12px;
     border-top:3px solid var(--ink); border-bottom:1px solid var(--ink);
   }
+  /* fleuron centred ON the Scotch rule — well below the edition flag's band,
+     its opaque backing kept clear of the edition words */
   .masthead__title::after{
-    content:"❦"; position:absolute; top:-9px; left:50%; transform:translateX(-50%);
+    content:"❦"; position:absolute; top:2px; left:50%;
+    transform:translate(-50%,-50%); line-height:1;
     background:var(--paper); padding:0 14px; font-size:15px; color:var(--ink-80);
     font-style:normal;
   }
@@ -224,16 +229,24 @@
   .hero__verdict .v-rule{ border-top:3px solid var(--ink); margin-bottom:12px; }
   .hero__verdict h2{
     font-family:var(--serif); font-weight:400; font-style:italic;
-    font-size:clamp(22px,3.4vw,34px); line-height:1.08; letter-spacing:-.01em;
+    font-size:clamp(22px,3.4vw,34px); line-height:1.22; letter-spacing:-.01em;
+    /* generous top headroom + leading so the italic serif ascenders are never
+       trimmed at the top edge of the headline */
+    padding-top:.18em; margin-top:-.04em;
   }
   .hero__verdict p{
     margin-top:14px; font-family:var(--serif); font-size:14px; line-height:1.62;
     color:var(--ink-80); max-width:40ch; text-align:justify; hyphens:auto;
   }
-  /* DROP CAP — the leading paragraph opens with an engraved initial */
+  /* DROP CAP — the leading paragraph opens with an engraved initial.
+     Sized to drop ~2 lines, baseline-aligned to the body, with even side
+     bearing so the justified serif text wraps cleanly around it. */
   .hero__verdict p::first-letter{
     float:left; font-family:var(--serif); font-weight:700;
-    font-size:3.1em; line-height:.72; padding:6px 8px 0 0; margin-top:3px;
+    /* engraved initial dropped two lines: sized and nudged so its cap-height
+       aligns to the first line's top and its foot rests on line two's baseline */
+    font-size:3.34em; line-height:.74;
+    padding:0 .08em 0 0; margin:.04em .06em -.02em 0;
     color:var(--ink);
   }
 

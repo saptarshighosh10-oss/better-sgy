@@ -1913,7 +1913,7 @@
         target: null, screen: "overview", center: true,
         eyebrow: "Welcome",
         title: "Better SGY, drawn over Schoology.",
-        text: "This is the demo, filled with sample grades — in the live extension these are drawn over your real Schoology page. There are four looks (Apple, Halo, Slate, Friendly); switch them in Settings. Let’s take a quick tour."
+        text: "This is the demo, filled with sample grades — in the live extension these are drawn over your real Schoology page. There are four looks (Apple, Cloud, Slate, Friendly); switch them in Settings. Let’s take a quick tour."
       },
       {
         target: "#nav", screen: "overview", side: "right",

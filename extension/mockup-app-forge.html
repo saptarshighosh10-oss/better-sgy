@@ -123,7 +123,7 @@
   .nav button.active .ni{background:rgba(255,255,255,.18)}
 
   .sidefoot{margin-top:16px;padding:12px;border-radius:18px;background:var(--paper-2);
-        border:1.5px dashed #e3d2b6}
+        border:1px solid #e3d2b6}
   .sidefoot p{font-size:12.5px;font-weight:700;color:var(--ink)}
   .sidefoot p span{color:var(--ink-2);font-weight:600}
 
@@ -212,7 +212,7 @@
   .chip .ic.c{background:#ffe6e0} .chip .ic.d{background:#ece7ff}
   .chip .n{font-size:18px;font-weight:800;line-height:1}
   .chip .l{font-size:12px;color:var(--ink-2);font-weight:600}
-  .outro{margin-top:28px;background:var(--paper-2);border:1.5px dashed #e3d2b6;border-radius:22px;
+  .outro{margin-top:28px;background:var(--paper-2);border:1px solid #e3d2b6;border-radius:22px;
         padding:18px 20px;display:flex;gap:13px;align-items:center}
   .outro .ic{font-size:26px}
   .outro p{font-size:15px;font-weight:700;color:var(--ink)}
@@ -777,7 +777,7 @@
   .coachskip:hover{color:var(--ink-2)}
 
   /* tour cheat-sheet on the finish step */
-  .tourcheat{margin-top:12px;background:var(--paper-2);border:1.5px dashed #e3d2b6;border-radius:16px;padding:11px 13px}
+  .tourcheat{margin-top:12px;background:var(--paper-2);border:1px solid #e3d2b6;border-radius:16px;padding:11px 13px}
   html[data-theme="dark"] .tourcheat{border-color:#5a4a2e}
   .tourcheat .tcr{display:flex;align-items:center;gap:9px;padding:4px 0;font-size:12.5px;font-weight:700;color:var(--ink)}
   .tourcheat .tck{display:flex;gap:4px;flex:none;min-width:74px}
@@ -854,12 +854,14 @@
   .hero,.score,.gradehero,.gh-g,.sechd,.outro,.sidefoot,.sticky,
   .emptynote,.govl .gbox,.welcome,.snap,.bestpanel,.gcard{position:relative}
 
-  /* ---- OVERVIEW: big-score gets a doodly "showoff" aside + circle ---- */
+  /* ---- OVERVIEW: big-score gets a doodly "showoff" aside ---- */
+  /* sits cleanly in the margin BELOW the score card, well clear of the
+     "on track" pill (top-right) and never clipped by the toolbar above */
   .score::after{
     content:"hey hey, look at that ✶";
-    position:absolute;left:-6px;top:-28px;
+    position:absolute;left:8px;bottom:-26px;
     font-family:var(--scrawl);font-size:14.5px;font-weight:700;
-    color:var(--scrawl-ink);transform:rotate(-5deg);white-space:nowrap;
+    color:var(--scrawl-ink);transform:rotate(-3deg);white-space:nowrap;
     text-shadow:0 1px 0 var(--paper);pointer-events:none;
   }
   .score .big::after{
@@ -870,12 +872,16 @@
   }
   @media(max-width:900px){.score .big::after{display:none}}
 
-  /* a little hand-drawn squiggle underline under section titles */
+  /* a single soft hand-drawn underline under section titles —
+     one clean tapered stroke (scoped to the heading text), no scallops
+     or dotted squiggle */
+  .sechd h2{position:relative}
   .sechd h2::after{
-    content:"";position:absolute;left:0;right:-6px;bottom:-4px;height:7px;
-    background:
-      radial-gradient(circle at 6px 5px,transparent 4px,var(--peach) 4px,var(--peach) 5px,transparent 5.5px) 0 0/14px 8px repeat-x;
-    opacity:.5;pointer-events:none;
+    content:"";position:absolute;left:1px;right:0;bottom:-3px;height:3px;
+    background:var(--peach);border-radius:3px;
+    -webkit-mask:linear-gradient(90deg,#000 0,#000 82%,transparent);
+            mask:linear-gradient(90deg,#000 0,#000 82%,transparent);
+    opacity:.6;pointer-events:none;
   }
   .sechd{padding-bottom:2px}
 

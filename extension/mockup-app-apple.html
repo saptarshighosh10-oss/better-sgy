@@ -1109,9 +1109,9 @@
     <section class="screen" id="sc-overview">
       <div class="pad">
         <div class="ov-hero">
-          <p class="eyebrow">2025&ndash;2026 &middot; Freshman &middot; Semester 2</p>
-          <h1>96.2<span class="pct">%</span></h1>
-          <p class="subln">Your average across six courses. <span class="ink">Two assignments are missing.</span></p>
+          <p class="eyebrow" id="ovEyebrow">2025&ndash;2026 &middot; Freshman &middot; Semester 2</p>
+          <h1 id="ovOverall">96.2<span class="pct">%</span></h1>
+          <p class="subln" id="ovSubln">Your average across six courses. <span class="ink">Two assignments are missing.</span></p>
           <div class="ov-cta">
             <button class="btn" data-go="grades">View all grades</button>
             <button class="tlink" data-go="assign">See what's due <span class="chev">&rsaquo;</span></button>
@@ -1128,13 +1128,13 @@
         <section class="surface trendcard">
           <div class="th">
             <span class="tlab">Overall grade over time</span>
-            <span class="tnow">Now <b>96.2%</b></span>
+            <span class="tnow">Now <b id="ovTnow">96.2%</b></span>
           </div>
           <svg class="chart" id="ovChart" viewBox="0 0 900 280" role="img" aria-label="Overall grade rising from 94.2% to 96.2% across the semester"></svg>
           <p class="trendcap">Tracked since you installed. History builds as new grades post.</p>
         </section>
 
-        <div class="secrow"><h2>Your courses.</h2><div class="meta">6 courses &middot; Semester 2</div></div>
+        <div class="secrow"><h2>Your courses.</h2><div class="meta" id="ovCoursesMeta">6 courses &middot; Semester 2</div></div>
 
         <section class="gallery" id="ovGallery"></section>
 
@@ -2953,7 +2953,7 @@ $("#shortcutsOverlay").addEventListener("click", e=>{ if(e.target.id==="shortcut
 /* ---- First-run welcome ---- */
 const WELCOME_KEY = "bsgy-apple-welcomed";
 function markWelcomed(){ try{ localStorage.setItem(WELCOME_KEY, "1"); }catch(e){} }
-function showWelcomeIfFirstRun(){
+function showWelcomeIfFirstRun(){ return; /* auto first-run popup disabled — go straight to the overview (manual tour stays in Settings) */
   let seen = false;
   try{ seen = localStorage.getItem(WELCOME_KEY)==="1"; }catch(e){}
   if(!seen){ $("#welcomeOverlay").classList.add("show"); markWelcomed(); /* persist on first show — never auto-run again */ }
@@ -3589,6 +3589,78 @@ $("#setMotion").addEventListener("change", e=>{ state.motion = e.target.checked;
 $("#setGpa").addEventListener("change", e=>{ state.gpa = e.target.checked; save(); });
 
 /* ============================================================
+   LIVE DATA INJECTION (chrome.storage.local 'bsgy_live')
+   Contract: { overall:number, term:string,
+     courses:[{ name, teacher, pct, letter, trend('up'|'flat'|'down'), missing }] }
+   Overrides the OVERVIEW only. Falls back to sample data on any
+   failure or when chrome.storage is unavailable (file:// demo).
+============================================================ */
+function bsgyValidLive(d){
+  return d && typeof d === "object"
+    && typeof d.overall === "number"
+    && Array.isArray(d.courses) && d.courses.length > 0;
+}
+// synthesize a short sparkline history that ends at `pct` and leans `trend`
+function bsgySpark(pct, trend){
+  const end = (typeof pct === "number") ? pct : 95;
+  const d = trend === "up" ? 2.0 : trend === "down" ? -2.0 : 0;
+  return [end-d, end-d*0.7, end-d*0.45, end-d*0.25, end-d*0.12, end-d*0.04, end];
+}
+function bsgyApplyLive(){
+  try{
+    if(!(window.chrome && chrome.storage && chrome.storage.local && chrome.storage.local.get)) return;
+    chrome.storage.local.get("bsgy_live", function(res){
+      try{
+        const live = res && res.bsgy_live;
+        if(!bsgyValidLive(live)) return;   // invalid → keep sample data
+        const PALETTE = ["#5b6cff","#34c759","#ff9f0a","#bf5af2","#0a84ff","#30d158","#ff375f","#64d2ff"];
+        // rebuild COURSES contents in place (COURSES is const → mutate array)
+        const built = live.courses.map(function(c, i){
+          const id = "lc" + i;
+          const nm = String(c.name == null ? ("Course " + (i+1)) : c.name);
+          const tch = String(c.teacher == null ? "" : c.teacher);
+          const pct = (typeof c.pct === "number") ? c.pct : 0;
+          const trend = (c.trend === "up" || c.trend === "down" || c.trend === "flat") ? c.trend : "flat";
+          const miss = (typeof c.missing === "number") ? c.missing : 0;
+          HISTORY[id] = bsgySpark(pct, trend);
+          return {
+            id:id, name:nm, teacher:tch, per:"",
+            grade:pct, letter:String(c.letter == null ? "" : c.letter),
+            trend:trend, missing:miss,
+            accent:PALETTE[i % PALETTE.length],
+            initials:(nm.trim()[0] || "?").toUpperCase()
+          };
+        });
+        COURSES.length = 0;
+        built.forEach(function(c){ COURSES.push(c); });
+        HISTORY.overall = bsgySpark(typeof live.overall === "number" ? live.overall : 0, "up");
+
+        // hero + headers
+        const ov = (typeof live.overall === "number") ? live.overall : null;
+        const ovEl = $("#ovOverall");
+        if(ovEl && ov != null) ovEl.innerHTML = (Math.round(ov*10)/10) + '<span class="pct">%</span>';
+        const tnow = $("#ovTnow"); if(tnow && ov != null) tnow.textContent = (Math.round(ov*10)/10) + "%";
+        const eyebrow = $("#ovEyebrow");
+        if(eyebrow && live.term) eyebrow.textContent = live.term;
+        const totalMissing = COURSES.reduce(function(s,c){ return s + (c.missing||0); }, 0);
+        const subln = $("#ovSubln");
+        if(subln){
+          const missTxt = totalMissing === 0 ? "Nothing is missing."
+            : (totalMissing === 1 ? "One assignment is missing." : (totalMissing + " assignments are missing."));
+          subln.innerHTML = "Your average across " + COURSES.length + " course" + (COURSES.length===1?"":"s") + '. <span class="ink">' + missTxt + "</span>";
+        }
+        const cmeta = $("#ovCoursesMeta");
+        if(cmeta) cmeta.textContent = COURSES.length + " course" + (COURSES.length===1?"":"s") + (live.term ? (" · " + live.term) : "");
+
+        // re-render overview pieces with live data
+        renderOverviewChart();
+        renderGallery();
+      }catch(e){ /* keep sample data already on screen */ }
+    });
+  }catch(e){ /* chrome.storage missing/blocked → sample data stays */ }
+}
+
+/* ============================================================
    INIT
 ============================================================ */
 applyTheme();
@@ -3606,6 +3678,7 @@ renderSettings();
 Arcade.renderHome();
 renderNostalgia();
 go("overview");
+bsgyApplyLive();          // override OVERVIEW with real injected grades if present
 applyDeepLink();          // ?screen= / ?game= for the debug hub
 showWelcomeIfFirstRun();  // first-run welcome card
 </script>

@@ -2043,7 +2043,7 @@
     function finish(){ markSeen(); shut(); }
     function skip(){ markSeen(); shut(); }
 
-    function maybeShowFirstRun(){
+    function maybeShowFirstRun(){ return; /* auto first-run popup disabled — go straight to the overview (manual tour stays in Settings) */
       var seen; try{ seen=localStorage.getItem(WELCOME_KEY); }catch(e){ seen='1'; }
       if(seen) return;
       open(true);

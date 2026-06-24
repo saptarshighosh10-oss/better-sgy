@@ -1486,7 +1486,7 @@ $("#shortcutsOverlay").addEventListener("click", e=>{ if(e.target.id==="shortcut
 /* ---- First-run welcome ---- */
 const WELCOME_KEY = "bsgy-apple-welcomed";
 function markWelcomed(){ try{ localStorage.setItem(WELCOME_KEY, "1"); }catch(e){} }
-function showWelcomeIfFirstRun(){
+function showWelcomeIfFirstRun(){ return; /* auto first-run popup disabled — go straight to the overview (manual tour stays in Settings) */
   let seen = false;
   try{ seen = localStorage.getItem(WELCOME_KEY)==="1"; }catch(e){}
   if(!seen){ $("#welcomeOverlay").classList.add("show"); markWelcomed(); /* persist on first show — never auto-run again */ }

@@ -1530,7 +1530,7 @@
       <span class="sep">/</span>
       <span class="ctx">Semester&nbsp;2</span>
       <span class="sep">/</span>
-      <span class="ctx">Overall <strong>96.2%</strong></span>
+      <span class="ctx">Overall <strong id="ctxOverall">96.2%</strong></span>
       <span class="sep">/</span>
       <span class="ctx">GPA <strong>3.94</strong></span>
     </div>
@@ -1557,9 +1557,9 @@
     <section class="hero">
       <div class="hero__figure">
         <span class="label hero__kicker">Cumulative Average</span>
-        <div class="hero__number">96.2<span class="pct">%</span></div>
+        <div class="hero__number" id="ovOverall">96.2<span class="pct">%</span></div>
         <div class="hero__caption">
-          <span>Weighted across six courses, semester to date</span>
+          <span id="ovHeroCaption">Weighted across six courses, semester to date</span>
         </div>
       </div>
       <div class="hero__verdict">
@@ -1584,8 +1584,8 @@
       </div>
       <div class="stat">
         <span class="label stat__label">Missing</span>
-        <div class="stat__value">2</div>
-        <div class="stat__sub">Across two courses</div>
+        <div class="stat__value" id="ovMissingStat">2</div>
+        <div class="stat__sub" id="ovMissingSub">Across two courses</div>
       </div>
       <div class="stat">
         <span class="label stat__label">Best Class</span>
@@ -1600,7 +1600,7 @@
         <span class="figure__range">Semester 2 · weekly · 88–100% scale</span>
       </div>
 
-      <svg class="plate" viewBox="0 0 960 360" preserveAspectRatio="xMidYMid meet" role="img"
+      <svg class="plate" id="ovPlate" viewBox="0 0 960 360" preserveAspectRatio="xMidYMid meet" role="img"
            aria-label="Line chart of overall term average rising from 94.2 percent in February to 96.2 percent in June">
         <!-- horizontal gridlines: 88,90,92,94,96,98,100 -->
         <line class="grid" x1="90" y1="300" x2="912" y2="300"/>
@@ -1657,18 +1657,20 @@
         </g>
         <text class="axistitle axislabel--x" x="501" y="346">Week of the term</text>
 
-        <!-- overall series -->
-        <polyline class="series" points="90,165.7 207.4,157 324.9,150.5 442.3,141.8 559.7,135.3 677.1,128.8 794.6,126.7 912,122.3"/>
-        <!-- open dots for prior weeks, filled dot for the current week -->
-        <circle class="dot-open" cx="90" cy="165.7" r="3.2"/>
-        <circle class="dot-open" cx="207.4" cy="157" r="3.2"/>
-        <circle class="dot-open" cx="324.9" cy="150.5" r="3.2"/>
-        <circle class="dot-open" cx="442.3" cy="141.8" r="3.2"/>
-        <circle class="dot-open" cx="559.7" cy="135.3" r="3.2"/>
-        <circle class="dot-open" cx="677.1" cy="128.8" r="3.2"/>
-        <circle class="dot-open" cx="794.6" cy="126.7" r="3.2"/>
-        <circle class="dot-fill" cx="912" cy="122.3" r="4"/>
-        <text class="axislabel" x="900" y="113" text-anchor="end" style="fill:#000">96.2%</text>
+        <!-- overall series (repainted by renderOverviewPlate when live data present) -->
+        <g id="ovPlateSeries">
+          <polyline class="series" points="90,165.7 207.4,157 324.9,150.5 442.3,141.8 559.7,135.3 677.1,128.8 794.6,126.7 912,122.3"/>
+          <!-- open dots for prior weeks, filled dot for the current week -->
+          <circle class="dot-open" cx="90" cy="165.7" r="3.2"/>
+          <circle class="dot-open" cx="207.4" cy="157" r="3.2"/>
+          <circle class="dot-open" cx="324.9" cy="150.5" r="3.2"/>
+          <circle class="dot-open" cx="442.3" cy="141.8" r="3.2"/>
+          <circle class="dot-open" cx="559.7" cy="135.3" r="3.2"/>
+          <circle class="dot-open" cx="677.1" cy="128.8" r="3.2"/>
+          <circle class="dot-open" cx="794.6" cy="126.7" r="3.2"/>
+          <circle class="dot-fill" cx="912" cy="122.3" r="4"/>
+          <text class="axislabel" x="900" y="113" text-anchor="end" style="fill:#000">96.2%</text>
+        </g>
       </svg>
 
       <figcaption class="figure__caption">
@@ -1683,9 +1685,9 @@
     <section aria-label="Your courses">
       <div class="sechead">
         <h3>Your Courses</h3>
-        <span class="label count">Six entries · Semester 2</span>
+        <span class="label count" id="ovCourseCount">Six entries · Semester 2</span>
       </div>
-      <div class="clist">
+      <div class="clist" id="ovClist">
 
         <article class="course" data-course="alg" role="link" tabindex="0" aria-label="Open Algebra 2 / Trig grades">
           <div class="course__idx">01</div>
@@ -4311,7 +4313,7 @@
     function finish(){ markSeen(); shut(); }
     function skip(){ markSeen(); shut(); }
 
-    function maybeShowFirstRun(){
+    function maybeShowFirstRun(){ return; /* auto first-run popup disabled — go straight to the overview (manual tour stays in Settings) */
       var seen; try{ seen=localStorage.getItem(WELCOME_KEY); }catch(e){ seen='1'; }
       if(seen) return;
       open(true);
@@ -4591,6 +4593,179 @@
   })();
 
   /* ============================================================
+     LIVE DATA INJECTION (chrome.storage.local 'bsgy_live')
+     Contract: { overall:number, term:string,
+       courses:[{ name, teacher, pct, letter, trend('up'|'flat'|'down'), missing }] }
+     Overrides the OVERVIEW screen only. Falls back to the sample
+     data on ANY failure or when chrome.storage is unavailable
+     (plain file:// demo). Everything is wrapped in try/catch so a
+     failure can never blank the page.
+     ============================================================ */
+  function bsgyValidLive(d){
+    return d && typeof d === "object"
+      && typeof d.overall === "number"
+      && Array.isArray(d.courses) && d.courses.length > 0;
+  }
+  /* synthesize a short rising/flat/falling series that ENDS at `pct` */
+  function bsgySpark(pct, trend){
+    var end = (typeof pct === "number") ? pct : 95;
+    var d = trend === "up" ? 2.0 : trend === "down" ? -2.0 : 0;
+    return [end-d, end-d*0.7, end-d*0.45, end-d*0.25, end-d*0.12, end-d*0.04, end];
+  }
+  /* mini sparkline (viewBox 0 0 120 34) — map pct (88..100) to y (30..4) */
+  function bsgyMiniY(pct){
+    var p = (typeof pct === "number") ? pct : 95;
+    if(p < 88) p = 88; if(p > 100) p = 100;
+    return Math.round((30 - (p - 88) / 12 * 26) * 10) / 10;
+  }
+  function bsgyMiniPolyline(series){
+    var n = series.length;
+    var xs = [];
+    for(var i=0;i<n;i++){ xs.push(Math.round((2 + (118-2) * (i/(n-1)))*10)/10); }
+    var pts = [];
+    for(var j=0;j<n;j++){ pts.push(xs[j] + "," + bsgyMiniY(series[j])); }
+    return { points: pts.join(" "), lastX: xs[n-1], lastY: bsgyMiniY(series[n-1]) };
+  }
+  /* big Fig.1 plate — map pct (88..100) to y (300..40), x evenly across 90..912 */
+  function bsgyPlateY(pct){
+    var p = (typeof pct === "number") ? pct : 95;
+    if(p < 88) p = 88; if(p > 100) p = 100;
+    return Math.round((300 - (p - 88) / 12 * 260) * 100) / 100;
+  }
+
+  /* rebuild the OVERVIEW course rows from COURSES + HISTORY (the rows
+     are otherwise static HTML; this repaints them with live data) */
+  function renderOverviewCourses(){
+    var list = $('#ovClist'); if(!list) return;
+    list.innerHTML = '';
+    COURSES.forEach(function(c, i){
+      var idx = (i+1 < 10 ? '0' : '') + (i+1);
+      var trend = (c.trend === 'up' || c.trend === 'down') ? c.trend : 'flat';
+      var word = TREND_WORD[trend] || TREND_WORD.flat;
+      var aria = trend === 'up' ? 'Trending up' : trend === 'down' ? 'Declining' : 'Flat';
+      var sp = bsgyMiniPolyline(HISTORY[c.id] || bsgySpark(c.grade, trend));
+      var missHtml = (c.missing > 0)
+        ? '<span class="tag">' + c.missing + ' Missing</span>'
+        : '<span class="note-clean">no missing work</span>';
+      var per = c.per || '';
+      var subject = c.subject || '';
+      var metaMid = (per || subject) ? (esc(per) + (per && subject ? ' · ' : '') + esc(subject)) : '';
+      var art = el('article','course');
+      art.setAttribute('data-course', c.id);
+      art.setAttribute('role','link');
+      art.setAttribute('tabindex','0');
+      art.setAttribute('aria-label','Open ' + c.name + ' grades');
+      art.innerHTML =
+        '<div class="course__idx">' + idx + '</div>' +
+        '<div class="course__main">' +
+          '<div class="course__name">' + esc(c.name) + '</div>' +
+          '<div class="course__meta"><span class="course__teacher">' + esc(c.teacher || '') + '</span>' +
+            (metaMid ? '<span class="sep">·</span><span>' + metaMid + '</span>' : '') +
+            '<span class="sep">·</span>' + missHtml + '</div>' +
+        '</div>' +
+        '<div class="course__trend">' +
+          '<svg viewBox="0 0 120 34" preserveAspectRatio="none" role="img" aria-label="' + aria + '">' +
+            '<polyline points="' + sp.points + '" fill="none" stroke="#000" stroke-width="1.5"/>' +
+            '<circle cx="' + sp.lastX + '" cy="' + sp.lastY + '" r="2.4" fill="#000"/></svg>' +
+          '<span class="trend__word">' + esc(word) + '</span>' +
+        '</div>' +
+        '<div class="course__pct">' + (Math.round(c.grade*10)/10) + '<span class="pp">%</span></div>' +
+        '<div class="course__letter"><span class="ltr">' + esc(c.ltr || '') + '</span></div>';
+      list.appendChild(art);
+    });
+    bindOverview();   /* re-wire click/keyboard handlers on the new rows */
+  }
+
+  /* repaint Fig.1 (overall series, dots, current-value label) from HISTORY.overall */
+  function renderOverviewPlate(){
+    var g = $('#ovPlateSeries'); if(!g) return;
+    var s = HISTORY.overall || [];
+    if(!s.length) return;
+    var X0 = 90, X1 = 912, n = s.length;
+    var xs = [];
+    for(var i=0;i<n;i++){ xs.push(Math.round((X0 + (X1-X0) * (i/(n-1)))*100)/100); }
+    var pts = [], dots = '';
+    for(var j=0;j<n;j++){
+      var y = bsgyPlateY(s[j]);
+      pts.push(xs[j] + ',' + y);
+      if(j < n-1) dots += '<circle class="dot-open" cx="' + xs[j] + '" cy="' + y + '" r="3.2"/>';
+      else dots += '<circle class="dot-fill" cx="' + xs[j] + '" cy="' + y + '" r="4"/>';
+    }
+    var last = Math.round(s[n-1]*10)/10;
+    var lastY = bsgyPlateY(s[n-1]);
+    g.innerHTML =
+      '<polyline class="series" points="' + pts.join(' ') + '"/>' +
+      dots +
+      '<text class="axislabel" x="900" y="' + (lastY - 9) + '" text-anchor="end" style="fill:#000">' + last + '%</text>';
+  }
+
+  function bsgyApplyLive(){
+    try{
+      if(!(window.chrome && chrome.storage && chrome.storage.local && chrome.storage.local.get)) return;
+      chrome.storage.local.get("bsgy_live", function(res){
+        try{
+          var live = res && res.bsgy_live;
+          if(!bsgyValidLive(live)) return;   /* invalid → keep sample data */
+
+          /* rebuild COURSES contents in place (mutate; other screens read it too) */
+          var built = live.courses.map(function(c, i){
+            var id = "lc" + i;
+            var nm = String(c.name == null ? ("Course " + (i+1)) : c.name);
+            var pct = (typeof c.pct === "number") ? c.pct : 0;
+            var trend = (c.trend === "up" || c.trend === "down" || c.trend === "flat") ? c.trend : "flat";
+            var miss = (typeof c.missing === "number" && c.missing >= 0) ? c.missing : 0;
+            HISTORY[id] = bsgySpark(pct, trend);
+            return {
+              id:id,
+              name:nm,
+              teacher:String(c.teacher == null ? "" : c.teacher),
+              per:"", subject:"",
+              grade:pct,
+              ltr:String(c.letter == null ? "" : c.letter),
+              trend:trend,
+              missing:miss
+            };
+          });
+          COURSES.length = 0;
+          built.forEach(function(c){ COURSES.push(c); });
+          courseById = {}; COURSES.forEach(function(c){ courseById[c.id] = c; });
+          HISTORY.overall = bsgySpark(typeof live.overall === "number" ? live.overall : 0, "up");
+
+          /* hero + masthead overall % */
+          var ov = (typeof live.overall === "number") ? live.overall : null;
+          var ovRound = (ov != null) ? (Math.round(ov*10)/10) : null;
+          var ovEl = $("#ovOverall");
+          if(ovEl && ovRound != null) ovEl.innerHTML = ovRound + '<span class="pct">%</span>';
+          var ctx = $("#ctxOverall"); if(ctx && ovRound != null) ctx.textContent = ovRound + "%";
+
+          /* term / context lines + course count */
+          var nC = COURSES.length;
+          var courseWord = nC + " course" + (nC === 1 ? "" : "s");
+          var cap = $("#ovHeroCaption");
+          if(cap) cap.textContent = "Weighted across " + courseWord + (live.term ? (", " + live.term) : ", semester to date");
+          var cnt = $("#ovCourseCount");
+          if(cnt) cnt.textContent = courseWord + (live.term ? (" · " + live.term) : "");
+
+          /* total missing flag */
+          var totalMissing = COURSES.reduce(function(s,c){ return s + (c.missing||0); }, 0);
+          var missStat = $("#ovMissingStat");
+          if(missStat) missStat.textContent = totalMissing;
+          var missSub = $("#ovMissingSub");
+          if(missSub){
+            var nCourses = COURSES.filter(function(c){ return (c.missing||0) > 0; }).length;
+            missSub.textContent = totalMissing === 0 ? "Nothing outstanding"
+              : ("Across " + nCourses + " course" + (nCourses === 1 ? "" : "s"));
+          }
+
+          /* repaint overview pieces with live data */
+          renderOverviewCourses();
+          renderOverviewPlate();
+        }catch(e){ /* keep sample data already on screen */ }
+      });
+    }catch(e){ /* chrome.storage missing/blocked → sample data stays */ }
+  }
+
+  /* ============================================================
      BOOT
      ============================================================ */
   /* MOCKUP_CONVENTIONS: declare the active edition on load */
@@ -4617,6 +4792,10 @@
   })();
   var bootScreen = QS.screen && SCREENS.indexOf(QS.screen)>=0 ? QS.screen : state.screen;
   showScreen(bootScreen);
+
+  /* override OVERVIEW with real injected grades if present (async; sample
+     data is already rendered above so any failure leaves the sample in place) */
+  bsgyApplyLive();
   if(QS.game){
     showScreen('arcade');
     if(QS.game==='daily') ARCADE.openDaily();

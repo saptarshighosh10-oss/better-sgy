@@ -96,6 +96,9 @@
       closeBy:'PE 9 · P7 · Coach Bryant' }
   };
 
+  /* pristine snapshot of the gradebooks for the What-if "Reset" affordance */
+  var GRADEBOOK_ORIG = JSON.parse(JSON.stringify(GRADEBOOK));
+
   /* ---------- LIVE "TODAY" — everything derives from the real date ---------- */
   var MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   var DOW_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -335,6 +338,120 @@
   /* legend hidden-series tracking, per course render */
   var hiddenSeries = {};
 
+  /* ============================================================
+     WHAT-IF GRADE CALCULATOR — recalc engine
+     ============================================================ */
+  var whatIf = {};   /* course id -> What-if editing mode on/off */
+
+  /* leading category name before " ·": "Labs · not submitted" -> "Labs" */
+  function wiCatKey(name){
+    var s = String(name == null ? '' : name);
+    var i = s.indexOf('·');
+    if(i >= 0) s = s.slice(0, i);
+    return s.trim();
+  }
+  /* parse a Slate score string ("96 / 100", "— / 25", "0/25") ->
+     { earned:number|null, max:number|null } */
+  function wiParseScore(score){
+    var s = String(score == null ? '' : score);
+    var parts = s.split('/');
+    var e = parts[0] != null ? parts[0].trim() : '';
+    var m = parts[1] != null ? parts[1].trim() : '';
+    var en = (e === '' || e === '—' || e === '-') ? null : parseFloat(e);
+    var mn = (m === '' || m === '—' || m === '-') ? null : parseFloat(m);
+    if(en != null && isNaN(en)) en = null;
+    if(mn != null && isNaN(mn)) mn = null;
+    return { earned:en, max:mn };
+  }
+  /* a row is graded only with numeric earned AND numeric max > 0 */
+  function wiRowGraded(r){
+    var p = wiParseScore(r[3]);
+    return p.earned != null && p.max != null && p.max > 0;
+  }
+  function wiRowPct(r){
+    var p = wiParseScore(r[3]);
+    return (p.earned / p.max) * 100;
+  }
+  /* recompute a course's category averages (mutating gb.cats[i][2]) and its
+     weighted course grade (mutating COURSES/courseById). returns the grade. */
+  function wiRecomputeCourse(id){
+    var gb = GRADEBOOK[id];
+    var c = courseById[id];
+    var sums = {}, counts = {};
+    gb.rows.forEach(function(r){
+      if(!wiRowGraded(r)) return;
+      var k = wiCatKey(r[1]);
+      if(!(k in sums)){ sums[k] = 0; counts[k] = 0; }
+      sums[k] += wiRowPct(r);
+      counts[k] += 1;
+    });
+    var wTotal = 0, wAvg = 0;
+    gb.cats.forEach(function(cat){
+      var k = wiCatKey(cat[0]);
+      if(counts[k] > 0){
+        var avg = sums[k] / counts[k];
+        cat[2] = avg;
+        wTotal += cat[1];
+        wAvg += cat[1] * avg;
+      } else {
+        cat[2] = null;   /* no graded rows -> blank */
+      }
+    });
+    var grade = wTotal > 0 ? (wAvg / wTotal) : 0;
+    c.grade = grade;
+    return grade;
+  }
+  function wiOverallGrade(){
+    if(!COURSES.length) return 0;
+    var sum = 0;
+    COURSES.forEach(function(c){ sum += c.grade; });
+    return sum / COURSES.length;
+  }
+  /* live-update the Overview overall number, masthead figure and Fig.1 chart */
+  function wiUpdateOverall(){
+    var ov = wiOverallGrade();
+    var ovStr = (Math.round(ov*10)/10).toFixed(1);
+    if(HISTORY.overall && HISTORY.overall.length) HISTORY.overall[HISTORY.overall.length-1] = ov;
+    var ovEl = $('#ovOverall');
+    if(ovEl) ovEl.innerHTML = ovStr + '<span class="pct">%</span>';
+    var ctx = $('#ctxOverall'); if(ctx) ctx.textContent = ovStr + '%';
+    if($('#ovPlateSeries')) renderOverviewPlate();
+    if($('#ovClist')) renderOverviewCourses();
+  }
+  function wiCatAvgText(v){
+    if(v == null) return '—';
+    return (v === 100 ? '100' : v.toFixed(1)) + '<span class="pp">%</span>';
+  }
+  /* recompute the current course and refresh only the grade DISPLAYS
+     (snapshot number, category avgs, figure, overall). leaves the
+     assignment INPUT fields untouched so focus is preserved while typing. */
+  function whatIfRecalc(){
+    var id = state.gradeCourse;
+    var grade = wiRecomputeCourse(id);
+    var gStr = grade.toFixed(1);
+    if(HISTORY[id] && HISTORY[id].length) HISTORY[id][HISTORY[id].length-1] = grade;
+
+    var snapNum = $('#grade-body .snapshot__num');
+    if(snapNum) snapNum.innerHTML = gStr + '<span class="pct">%</span>';
+
+    var gb = GRADEBOOK[id];
+    gb.cats.forEach(function(cat, i){
+      var avgEl = $('#wiCatAvg' + i);
+      if(avgEl) avgEl.innerHTML = wiCatAvgText(cat[2]);
+    });
+
+    /* re-render the course figure in place (rebuild the whole figure node) */
+    var figOld = $('#grade-body .figure');
+    if(figOld){
+      var figNew = buildFigure(courseById[id]);
+      figOld.parentNode.replaceChild(figNew, figOld);
+    }
+
+    /* rail snapshot + overall */
+    renderRail();
+    wiUpdateOverall();
+  }
+
   function renderGrades(){
     save();
     renderRail();
@@ -359,36 +476,84 @@
     var ch1=el('div','sechead','<h3>Categories &amp; Weights</h3><span class="label count">'+gb.cats.length+' bands</span>');
     body.appendChild(ch1);
     var cats=el('div','cats');
-    gb.cats.forEach(function(row){
-      var avg = (row[2]===100) ? '100' : row[2].toFixed(1);
+    gb.cats.forEach(function(row, ci){
       cats.appendChild(el('div','cat',
         '<div class="cat__name">'+esc(row[0])+'</div>'+
         '<div class="cat__weight">'+row[1]+'%</div>'+
-        '<div class="cat__avg">'+avg+'<span class="pp">%</span></div>'));
+        '<div class="cat__avg" id="wiCatAvg'+ci+'">'+wiCatAvgText(row[2])+'</div>'));
     });
     body.appendChild(cats);
 
-    /* assignment rows */
-    var ch2=el('div','sechead','<h3>Assignments</h3><span class="label count">Recent first</span>');
+    /* assignment rows — with What-if toggle */
+    var wi = !!whatIf[c.id];
+    var ch2=el('div','sechead');
+    var ctrls = '';
+    if(wi){
+      ctrls = '<span class="wi-controls">'+
+        '<span class="wi-flag">What-if</span>'+
+        '<button class="wi-btn wi-reset" type="button">Reset</button>'+
+        '<button class="wi-btn wi-btn--solid wi-toggle" type="button">Done</button>'+
+        '</span>';
+    } else {
+      ctrls = '<span class="wi-controls">'+
+        '<span class="label count">Recent first</span>'+
+        '<button class="wi-btn wi-toggle" type="button">What-if</button>'+
+        '</span>';
+    }
+    ch2.innerHTML = '<h3>Assignments</h3>' + ctrls;
     body.appendChild(ch2);
+
     var rows=el('div','rows');
-    gb.rows.forEach(function(r){
+    gb.rows.forEach(function(r, ri){
       var name=r[0], cat=r[1], date=r[2], score=r[3], pct=r[4], status=r[5];
       var isMiss = status==='missing', isDue = status==='due';
-      var mark = esc(cat);
-      if(isMiss) mark += ' · <span class="tag tag--ghost" style="font-size:8px">Not submitted</span>';
-      else if(isDue) mark += ' · <span class="tag" style="font-size:8px">Due today</span>';
-      var pctHtml = (pct==null) ? '—'
-        : pct+'<span class="pp" style="font-size:11px;color:var(--ink-45)">%</span>';
-      var ar=el('div','arow'+(isMiss?' arow--missing':''));
-      ar.innerHTML =
-        '<div class="arow__name">'+esc(name)+'<span class="cat-mark">'+mark+'</span></div>'+
-        '<div class="arow__date">'+esc(date)+'</div>'+
-        '<div class="arow__score">'+esc(score)+'</div>'+
-        '<div class="arow__pct">'+pctHtml+'</div>';
-      rows.appendChild(ar);
+      if(wi){
+        var p = wiParseScore(score);
+        var ar=el('div','arow arow--wi');
+        ar.setAttribute('data-i', ri);
+        ar.innerHTML =
+          '<div class="arow__name">'+esc(name)+'<span class="cat-mark">'+esc(cat)+'</span></div>'+
+          '<div class="arow__date">'+esc(date)+'</div>'+
+          '<div class="wi-edit">'+
+            '<input class="wi-num wi-earned" data-i="'+ri+'" type="number" inputmode="decimal" step="any" min="0" aria-label="Earned points" value="'+(p.earned==null?'':p.earned)+'">'+
+            '<span class="wi-slash">/</span>'+
+            '<input class="wi-num wi-max" data-i="'+ri+'" type="number" inputmode="decimal" step="any" min="0" aria-label="Max points" value="'+(p.max==null?'':p.max)+'">'+
+          '</div>'+
+          '<button class="wi-x" data-i="'+ri+'" type="button" aria-label="Remove '+esc(name)+'">×</button>';
+        rows.appendChild(ar);
+      } else {
+        var mark = esc(cat);
+        if(isMiss) mark += ' · <span class="tag tag--ghost" style="font-size:8px">Not submitted</span>';
+        else if(isDue) mark += ' · <span class="tag" style="font-size:8px">Due today</span>';
+        var pctHtml = (pct==null) ? '—'
+          : pct+'<span class="pp" style="font-size:11px;color:var(--ink-45)">%</span>';
+        var arRO=el('div','arow'+(isMiss?' arow--missing':''));
+        arRO.innerHTML =
+          '<div class="arow__name">'+esc(name)+'<span class="cat-mark">'+mark+'</span></div>'+
+          '<div class="arow__date">'+esc(date)+'</div>'+
+          '<div class="arow__score">'+esc(score)+'</div>'+
+          '<div class="arow__pct">'+pctHtml+'</div>';
+        rows.appendChild(arRO);
+      }
     });
+    if(wi){
+      var addRow=el('div','arow arow--wiadd');
+      var opts = gb.cats.map(function(cat){ return '<option value="'+esc(cat[0])+'">'+esc(cat[0])+'</option>'; }).join('');
+      addRow.innerHTML =
+        '<input class="wi-name" id="wiAddName" type="text" placeholder="New assignment" aria-label="New assignment name">'+
+        '<select class="wi-cat" id="wiAddCat" aria-label="Category">'+opts+'</select>'+
+        '<div class="wi-edit">'+
+          '<input class="wi-num" id="wiAddEarned" type="number" inputmode="decimal" step="any" min="0" placeholder="0" aria-label="Earned points">'+
+          '<span class="wi-slash">/</span>'+
+          '<input class="wi-num" id="wiAddMax" type="number" inputmode="decimal" step="any" min="0" placeholder="100" aria-label="Max points">'+
+        '</div>'+
+        '<button class="wi-btn wi-btn--solid wi-add-btn" id="wiAddBtn" type="button">+ Add assignment</button>';
+      rows.appendChild(addRow);
+    }
     body.appendChild(rows);
+
+    /* wire the What-if controls for this pane */
+    wireWhatIf(rows, ch2, c.id);
 
     /* closing */
     var close=el('section','closing');
@@ -396,6 +561,85 @@
     close.innerHTML='<p class="closing__line">'+esc(gb.closeLine)+'</p>'+
       '<p class="closing__byline">'+esc(gb.closeBy)+'</p>';
     body.appendChild(close);
+  }
+
+  /* wire the What-if calculator controls for the current Grades pane */
+  function wireWhatIf(rows, head, id){
+    var toggle = head.querySelector('.wi-toggle');
+    if(toggle){
+      toggle.addEventListener('click', function(){
+        whatIf[id] = !whatIf[id];
+        renderGrades();   /* focus is on a button — safe to re-render */
+      });
+    }
+    if(!whatIf[id]) return;
+
+    var gb = GRADEBOOK[id];
+
+    /* Reset: restore this course's gradebook from the pristine snapshot */
+    var reset = head.querySelector('.wi-reset');
+    if(reset){
+      reset.addEventListener('click', function(){
+        GRADEBOOK[id] = JSON.parse(JSON.stringify(GRADEBOOK_ORIG[id]));
+        wiRecomputeCourse(id);
+        if(HISTORY[id] && HISTORY[id].length) HISTORY[id][HISTORY[id].length-1] = courseById[id].grade;
+        renderGrades();
+        wiUpdateOverall();
+      });
+    }
+
+    /* live edits — update data + grade DISPLAYS only (keep inputs/focus intact) */
+    $$('.wi-earned, .wi-max', rows).forEach(function(inp){
+      inp.addEventListener('input', function(){
+        var i = +this.getAttribute('data-i');
+        var row = gb.rows[i]; if(!row) return;
+        var earnedEl = rows.querySelector('.wi-earned[data-i="'+i+'"]');
+        var maxEl = rows.querySelector('.wi-max[data-i="'+i+'"]');
+        var eVal = earnedEl && earnedEl.value.trim() !== '' ? earnedEl.value.trim() : '—';
+        var mVal = maxEl && maxEl.value.trim() !== '' ? maxEl.value.trim() : '—';
+        row[3] = eVal + ' / ' + mVal;
+        /* keep pct / status coherent */
+        if(wiRowGraded(row)){ row[4] = Math.round(wiRowPct(row)); row[5] = false; }
+        else { row[4] = null; row[5] = false; }
+        whatIfRecalc();
+      });
+    });
+
+    /* remove rows */
+    $$('.wi-x', rows).forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var i = +this.getAttribute('data-i');
+        gb.rows.splice(i, 1);
+        wiRecomputeCourse(id);
+        if(HISTORY[id] && HISTORY[id].length) HISTORY[id][HISTORY[id].length-1] = courseById[id].grade;
+        renderGrades();   /* focus on a button — re-render full pane */
+        wiUpdateOverall();
+      });
+    });
+
+    /* add assignment */
+    var add = rows.querySelector('#wiAddBtn');
+    if(add){
+      add.addEventListener('click', function(){
+        var nameEl = rows.querySelector('#wiAddName');
+        var catEl = rows.querySelector('#wiAddCat');
+        var eEl = rows.querySelector('#wiAddEarned');
+        var mEl = rows.querySelector('#wiAddMax');
+        var name = (nameEl.value || '').trim() || 'New assignment';
+        var cat = catEl.value;
+        var eRaw = (eEl.value || '').trim();
+        var mRaw = (mEl.value || '').trim();
+        var e = eRaw === '' ? '—' : eRaw;
+        var m = mRaw === '' ? '—' : mRaw;
+        var row = [name, cat, 'What-if', e + ' / ' + m, null, false];
+        if(wiRowGraded(row)){ row[4] = Math.round(wiRowPct(row)); }
+        gb.rows.push(row);
+        wiRecomputeCourse(id);
+        if(HISTORY[id] && HISTORY[id].length) HISTORY[id][HISTORY[id].length-1] = courseById[id].grade;
+        renderGrades();   /* focus on a button — re-render full pane */
+        wiUpdateOverall();
+      });
+    }
   }
 
   /* build the statistical plate for a course, with faint refs + hover tips + legend */

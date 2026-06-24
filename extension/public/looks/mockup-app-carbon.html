@@ -668,6 +668,47 @@
   .cat .track{margin-top:10px;height:7px;border-radius:7px;background:var(--track);overflow:hidden;}
   .cat .fill{height:100%;border-radius:7px;transition:width .45s cubic-bezier(.2,.7,.2,1);}
 
+  /* ---- What-if grade calculator (walnut / honey-amber) ---- */
+  .asnhead{display:flex;align-items:center;gap:10px;margin:30px 0 12px;}
+  .asnhead .blocklab{margin:0;}
+  .wi-controls{display:flex;align-items:center;gap:8px;margin-left:auto;}
+  .wi-flag{
+    font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;
+    color:var(--green);background:rgba(143,174,107,.16);
+    border:1px solid rgba(143,174,107,.30);border-radius:980px;padding:3px 11px;
+  }
+  .wi-row{display:flex;align-items:center;gap:13px;}
+  .wi-edit{display:inline-flex;align-items:center;gap:5px;}
+  .wi-slash{color:var(--ink3);font-size:16px;font-family:var(--serif);}
+  .wi-num{
+    width:58px;padding:7px 9px;text-align:right;
+    font-family:inherit;font-size:14px;font-weight:600;letter-spacing:-0.004em;
+    color:var(--ink);background:var(--field-bg);
+    border:1px solid var(--line);border-radius:10px;outline:none;
+    -moz-appearance:textfield;transition:border-color .15s ease;
+  }
+  .wi-num::-webkit-outer-spin-button,.wi-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+  .wi-num:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(214,138,60,.16);}
+  .wi-x{
+    appearance:none;cursor:pointer;width:30px;height:30px;flex:0 0 30px;line-height:1;
+    font-size:18px;border-radius:10px;color:var(--ink3);
+    background:none;border:1px solid transparent;
+    transition:background .15s ease,color .15s ease,border-color .15s ease;
+  }
+  .wi-x:hover{color:var(--red);background:rgba(201,106,78,.10);border-color:rgba(201,106,78,.24);}
+  .wi-add{
+    display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    padding:16px 18px;border-top:1px solid var(--hair);background:var(--tile);
+  }
+  .wi-name,.wi-cat{
+    padding:9px 12px;font-family:inherit;font-size:14px;color:var(--ink);
+    background:var(--field-bg);border:1px solid var(--line);border-radius:11px;outline:none;
+    letter-spacing:-0.004em;transition:border-color .15s ease;
+  }
+  .wi-name{flex:1 1 180px;min-width:140px;}
+  .wi-cat{cursor:pointer;}
+  .wi-name:focus,.wi-cat:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(214,138,60,.16);}
+
   /* ============================================================
      ASSIGNMENTS
   ============================================================ */
@@ -1319,7 +1360,7 @@
     </div>
     <div class="brand">
       <span class="mark">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 7.5L12 4l8 3.5v9L12 20l-8-3.5v-9z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 4v16M4 7.5l8 3.5 8-3.5" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"><path d="M12 3.6l7.3 4.2v8.4L12 20.4l-7.3-4.2V7.8z"/><circle cx="12" cy="12" r="2.1" fill="#fff" stroke="none"/><circle cx="12" cy="3.6" r="1.4" fill="#fff" stroke="none"/><circle cx="19.3" cy="16.2" r="1.4" fill="#fff" stroke="none"/><circle cx="4.7" cy="16.2" r="1.4" fill="#fff" stroke="none"/></svg>
       </span>
       <span class="name">Better <span>SGY</span></span>
     </div>

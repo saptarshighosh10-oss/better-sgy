@@ -208,6 +208,12 @@ Object.values(GRADEBOOKS).forEach(gb=>{
   });
 });
 
+// Pristine snapshot of the gradebooks for the What-if "Reset" affordance,
+// taken after the date relabel so a reset restores the on-screen state.
+const GB_ORIG = JSON.parse(JSON.stringify(GRADEBOOKS));
+// Per-course What-if editing mode (in-memory; not persisted).
+const whatIf = {};
+
 /* ============================================================
    STATE (with localStorage persistence)
 ============================================================ */
@@ -354,13 +360,119 @@ function renderGallery(){
       <div class="accent" style="background:${c.accent};"></div>
       <div class="top" data-card="${c.id}">
         <div class="cname">${esc(c.name)}</div><div class="teach">${esc(c.teacher)} · ${esc(c.per)}</div>
-        <div class="gradeline"><span class="grade">${c.grade}</span><span class="gpct">%</span><span class="letter">${esc(c.letter)}</span></div>
+        <div class="gradeline"><span class="grade">${Math.round(c.grade*10)/10}</span><span class="gpct">%</span><span class="letter">${esc(c.letter)}</span></div>
         ${sparkPath(HISTORY[c.id], c.accent)}
         <span class="trend">${trendIcon(c.trend)}${trendLabel(c)}</span>
       </div>
       <div class="foot"><a data-card="${c.id}">View grades &rsaquo;</a>${c.missing?`<span class="miss">${c.missing} missing</span>`:`<span class="clean">No missing work</span>`}</div>
     </article>`).join("");
   $$("[data-card]", wrap).forEach(el=> el.addEventListener("click", ()=>{ selectCourse(el.dataset.card); go("grades"); }));
+}
+
+/* ============================================================
+   WHAT-IF GRADE CALCULATOR — recalc engine
+   Operates on this look's gradebook shape:
+     cat  = {n: name, w: weight, a: avg}
+     item = {t, cat, date, score: number|null, max: number, status}
+   A row is graded iff score and max>0 are numeric. Row% = score/max*100.
+   Rows match a category by the leading category name (before " ·").
+============================================================ */
+function catKey(name){
+  let s = String(name == null ? "" : name);
+  const i = s.indexOf("·"); // middle dot, e.g. "Labs · not submitted"
+  if(i >= 0) s = s.slice(0, i);
+  return s.trim();
+}
+function rowGraded(it){
+  return typeof it.score === "number" && !isNaN(it.score) &&
+         typeof it.max === "number" && !isNaN(it.max) && it.max > 0;
+}
+function rowPct(it){ return (it.score / it.max) * 100; }
+
+// Recompute a course's category averages (mutating gb.cats[i].a) and its
+// weighted course grade (mutating COURSES via courseById). Returns the grade.
+function recomputeCourse(id){
+  const gb = GRADEBOOKS[id];
+  const c = courseById(id);
+  const sums = {}, counts = {};
+  gb.items.forEach(it=>{
+    if(!rowGraded(it)) return;
+    const k = catKey(it.cat);
+    if(!(k in sums)){ sums[k] = 0; counts[k] = 0; }
+    sums[k] += rowPct(it);
+    counts[k] += 1;
+  });
+  let wTotal = 0, wAvg = 0;
+  gb.cats.forEach(cat=>{
+    const k = catKey(cat.n);
+    if(counts[k] > 0){
+      const avg = sums[k] / counts[k];
+      cat.a = avg;            // category average shown in panel
+      wTotal += cat.w;
+      wAvg += cat.w * avg;
+    } else {
+      cat.a = null;           // no graded rows -> blank
+    }
+  });
+  const grade = wTotal > 0 ? (wAvg / wTotal) : 0;
+  c.grade = grade;
+  return grade;
+}
+function overallGrade(){
+  if(!COURSES.length) return 0;
+  let sum = 0;
+  COURSES.forEach(c=>{ sum += c.grade; });
+  return sum / COURSES.length;
+}
+// 96.8 -> "96.8", 100 -> "100", null -> "—"
+function gradeText(v){
+  if(v == null) return "—";
+  return (v % 1 === 0 ? v : v.toFixed(1)) + "%";
+}
+// Live-update the Overview overall number, its "now" chart point, and chart.
+function updateOverall(){
+  const ov = overallGrade();
+  const ovStr = (Math.round(ov * 10) / 10).toFixed(1);
+  if(HISTORY.overall && HISTORY.overall.length) HISTORY.overall[HISTORY.overall.length-1] = ov;
+  const ovEl = $("#ovOverall");
+  if(ovEl) ovEl.innerHTML = ovStr + '<span class="pct">%</span>';
+  const tnow = $("#ovTnow");
+  if(tnow) tnow.textContent = ovStr + "%";
+  if($("#ovChart")) renderOverviewChart();
+}
+// Recompute the current course and refresh only the grade DISPLAYS
+// (snapshot, chart "now", category avgs + bars, course chart, overall).
+// Leaves the assignment input fields untouched so typing keeps focus.
+function whatIfRecalc(){
+  const id = state.course;
+  const grade = recomputeCourse(id);
+  const gStr = (Math.round(grade * 10) / 10).toFixed(1);
+  if(HISTORY[id] && HISTORY[id].length) HISTORY[id][HISTORY[id].length-1] = grade;
+
+  const snap = $("#grSnapGrade");
+  if(snap) snap.innerHTML = gStr + '<span class="pct">%</span>';
+  const now = $("#grChartNow");
+  if(now) now.textContent = gStr + "%";
+
+  const gb = GRADEBOOKS[id];
+  gb.cats.forEach((cat,i)=>{
+    const avgEl = $("#grCatAvg"+i);
+    if(avgEl) avgEl.textContent = gradeText(cat.a);
+    const fillEl = $("#grCatFill"+i);
+    if(fillEl) fillEl.style.width = (cat.a == null ? 0 : Math.max(0, Math.min(100, cat.a))) + "%";
+  });
+
+  // re-draw the course "grade over time" chart in place
+  redrawCourseChart();
+
+  // refresh the picker rail + overall
+  renderPicker();
+  updateOverall();
+}
+// Re-render only the course-chart svg contents (used during live edits).
+function redrawCourseChart(){
+  const svg = $("#grChart");
+  if(svg){ svg.innerHTML = buildCourseChart(courseById(state.course)); wireDots(svg); }
 }
 
 /* ============================================================
@@ -373,16 +485,12 @@ function renderPicker(){
     <button class="pk${c.id===state.course?" active":""}" data-pick="${c.id}">
       <span class="dot" style="background:${c.accent};"></span>
       <span class="pinfo"><span class="pn">${esc(c.name)}</span><span class="pg">${esc(c.teacher)}</span></span>
-      <span class="pl">${c.grade}</span>
+      <span class="pl">${Math.round(c.grade*10)/10}</span>
     </button>`).join("");
   $$("[data-pick]", p).forEach(b=> b.addEventListener("click", ()=> selectCourse(b.dataset.pick)));
 }
-function renderGradeBody(){
-  const c = courseById(state.course);
-  const gb = GRADEBOOKS[c.id];
-  const missItem = gb.items.find(i=>i.status==="missing");
-
-  // course chart: faint reference lines for others, bold for selected
+// Build only the inner svg markup for the course "grade over time" chart.
+function buildCourseChart(c){
   let chart = "";
   [90,92,94,96,98,100].forEach(v=> chart += `<line class="grid-l" x1="${X0}" y1="${cy(v)}" x2="${X1}" y2="${cy(v)}"/>`);
   chart += `<line class="grid-l" x1="${X0}" y1="${cy(88)}" x2="${X1}" y2="${cy(88)}"/>`;
@@ -400,36 +508,83 @@ function renderGradeBody(){
     chart += `<circle cx="${cx(N-1).toFixed(2)}" cy="${cy(a[N-1]).toFixed(2)}" r="10" fill="none" stroke="${c.accent}" stroke-width="1.5" opacity=".3"/>`;
     a.forEach((v,i)=> chart += hitDot(i,v,c.accent,c.name));
   }
+  return chart;
+}
+function renderGradeBody(){
+  const c = courseById(state.course);
+  const gb = GRADEBOOKS[c.id];
+  const missItem = gb.items.find(i=>i.status==="missing");
+  const wi = !!whatIf[c.id];
+
+  const chart = buildCourseChart(c);
 
   const chips = COURSES.map(o=>`
     <button class="chip${o.id===c.id?" lead":""}${state.chartOff[o.id]?" off":""}" data-chip="${o.id}">
       <span class="cdot" style="background:${o.accent};"></span>${esc(o.name)}
     </button>`).join("");
 
-  const cats = gb.cats.map(cat=>`
+  const cats = gb.cats.map((cat,i)=>`
     <div class="cat"><div class="ch"><span class="cn">${esc(cat.n)}</span><span class="cw">${cat.w}%</span></div>
-      <div class="cavg">${cat.a}%</div>
-      <div class="track"><div class="fill" style="width:0%;background:${c.accent};" data-w="${cat.a}"></div></div></div>`).join("");
+      <div class="cavg" id="grCatAvg${i}">${gradeText(cat.a)}</div>
+      <div class="track"><div class="fill" id="grCatFill${i}" style="width:0%;background:${c.accent};" data-w="${cat.a==null?0:cat.a}"></div></div></div>`).join("");
 
-  const rows = gb.items.map(it=>{
-    let right;
-    if(it.status==="missing") right = `<span class="pill red">Missing</span>`;
-    else if(it.status==="due") right = `<span class="pill blue">Due today</span>`;
-    else right = `<span class="score">${it.score}/${it.max}</span><span class="pct">${Math.round(it.score/it.max*100)}%</span>`;
-    return `<div class="row"><span class="stripe" style="background:${c.accent};"></span>
-      <div><div class="rtitle">${esc(it.t)}</div><div class="rmeta">${esc(it.cat)} · ${esc(it.date)}</div></div>
-      <div class="rright">${right}</div></div>`;
-  }).join("");
+  let rows;
+  if(wi){
+    rows = gb.items.map((it,i)=>{
+      const earned = it.score == null ? "" : it.score;
+      const max = it.max == null ? "" : it.max;
+      return `<div class="row wi-row" data-i="${i}"><span class="stripe" style="background:${c.accent};"></span>
+        <div><div class="rtitle">${esc(it.t)}</div><div class="rmeta">${esc(it.cat)} · ${esc(it.date)}</div></div>
+        <div class="rright">
+          <div class="wi-edit">
+            <input class="wi-num wi-earned" data-i="${i}" type="number" inputmode="decimal" step="any" min="0" aria-label="Earned points" value="${earned}">
+            <span class="wi-slash">/</span>
+            <input class="wi-num wi-max" data-i="${i}" type="number" inputmode="decimal" step="any" min="0" aria-label="Max points" value="${max}">
+          </div>
+          <button class="wi-x" data-i="${i}" type="button" aria-label="Remove ${esc(it.t)}">×</button>
+        </div></div>`;
+    }).join("");
+    rows += `<div class="row wi-add">
+        <input class="wi-name" id="grWiName" type="text" placeholder="New assignment name" aria-label="New assignment name">
+        <select class="wi-cat" id="grWiCat" aria-label="Category">${gb.cats.map(cat=>`<option value="${esc(cat.n)}">${esc(cat.n)}</option>`).join("")}</select>
+        <div class="wi-edit">
+          <input class="wi-num" id="grWiEarned" type="number" inputmode="decimal" step="any" min="0" placeholder="0" aria-label="Earned points">
+          <span class="wi-slash">/</span>
+          <input class="wi-num" id="grWiMax" type="number" inputmode="decimal" step="any" min="0" placeholder="100" aria-label="Max points">
+        </div>
+        <button class="wi-btn solid" id="grWiAdd" type="button">+ Add assignment</button>
+      </div>`;
+  } else {
+    rows = gb.items.map(it=>{
+      let right;
+      if(it.status==="missing") right = `<span class="pill red">Missing</span>`;
+      else if(it.status==="due") right = `<span class="pill blue">Due today</span>`;
+      else right = `<span class="score">${it.score}/${it.max}</span><span class="pct">${Math.round(it.score/it.max*100)}%</span>`;
+      return `<div class="row"><span class="stripe" style="background:${c.accent};"></span>
+        <div><div class="rtitle">${esc(it.t)}</div><div class="rmeta">${esc(it.cat)} · ${esc(it.date)}</div></div>
+        <div class="rright">${right}</div></div>`;
+    }).join("");
+  }
 
-  const alert = missItem ? `
+  const alert = (!wi && missItem) ? `
     <div class="alert">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--red)"><circle cx="12" cy="12" r="9" stroke-width="1.7"/><path d="M12 7v6M12 16.5v.5" stroke-width="1.8" stroke-linecap="round"/></svg>
       <div><div class="at">${esc(missItem.t)} — not submitted</div><div class="ad">Due ${esc(missItem.date)} · counts toward ${esc(missItem.cat)} · turn it in to lift your grade</div></div>
     </div>` : "";
 
+  const asgHead = wi
+    ? `<div class="blockhead"><div class="blocklab">Assignments</div><div class="wi-controls">
+         <span class="wi-flag">What-if</span>
+         <button class="wi-btn" id="grWiReset" type="button">Reset</button>
+         <button class="wi-btn solid" id="grWiToggle" type="button">Done</button>
+       </div></div>`
+    : `<div class="blockhead"><div class="blocklab">Assignments</div><div class="wi-controls">
+         <button class="wi-btn" id="grWiToggle" type="button">What-if</button>
+       </div></div>`;
+
   $("#grBody").innerHTML = `
     <div class="surface snapshot">
-      <div class="sg">${c.grade}<span class="pct">%</span></div>
+      <div class="sg" id="grSnapGrade">${(Math.round(c.grade*10)/10).toFixed(1)}<span class="pct">%</span></div>
       <div class="smeta">
         <span class="sname">${esc(c.name)} · ${esc(c.letter)}</span>
         <span class="steach">${esc(c.teacher)} · ${esc(c.per)}</span>
@@ -439,14 +594,14 @@ function renderGradeBody(){
     </div>
 
     <div class="surface coursetrend">
-      <div class="th"><span class="tlab">${esc(c.name)} — grade over time</span><span class="tnow">Now <b>${c.grade}%</b></span></div>
+      <div class="th"><span class="tlab">${esc(c.name)} — grade over time</span><span class="tnow">Now <b id="grChartNow">${(Math.round(c.grade*10)/10).toFixed(1)}%</b></span></div>
       <svg class="chart" id="grChart" viewBox="0 0 900 280" role="img">${chart}</svg>
       <div class="chips" id="grChips">${chips}</div>
     </div>
     ${alert}
     <div class="blocklab">Grade categories</div>
     <div class="cats">${cats}</div>
-    <div class="blocklab">Assignments</div>
+    ${asgHead}
     <div class="surface rows">${rows}</div>`;
 
   // animate category fills
@@ -457,6 +612,91 @@ function renderGradeBody(){
     state.chartOff[id] = !state.chartOff[id];
     save(); renderGradeBody();
   }));
+
+  wireWhatIf();
+}
+
+// Wire the What-if calculator controls for the current Grades pane.
+function wireWhatIf(){
+  const id = state.course;
+  const gb = GRADEBOOKS[id];
+
+  const toggle = $("#grWiToggle");
+  if(toggle){
+    toggle.addEventListener("click", ()=>{
+      whatIf[id] = !whatIf[id];
+      renderGradeBody(); // focus is on a button — safe to re-render
+    });
+  }
+  if(!whatIf[id]) return;
+
+  // Reset: restore this course's gradebook from the pristine snapshot.
+  const reset = $("#grWiReset");
+  if(reset){
+    reset.addEventListener("click", ()=>{
+      GRADEBOOKS[id] = JSON.parse(JSON.stringify(GB_ORIG[id]));
+      recomputeCourse(id);
+      if(HISTORY[id] && HISTORY[id].length) HISTORY[id][HISTORY[id].length-1] = courseById(id).grade;
+      renderGradeBody();
+      renderPicker();
+      updateOverall();
+    });
+  }
+
+  // Live edits — update data + grade DISPLAYS only (keep inputs/focus intact).
+  function readNum(el){
+    if(!el) return null;
+    const t = el.value.trim();
+    if(t === "") return null;
+    const n = parseFloat(t);
+    return isNaN(n) ? null : n;
+  }
+  $$("#grBody .wi-num.wi-earned, #grBody .wi-num.wi-max").forEach(inp=>{
+    inp.addEventListener("input", function(){
+      const i = +this.getAttribute("data-i");
+      const it = gb.items[i]; if(!it) return;
+      const earnedEl = $(`.wi-earned[data-i="${i}"]`, $("#grBody"));
+      const maxEl = $(`.wi-max[data-i="${i}"]`, $("#grBody"));
+      it.score = readNum(earnedEl);
+      it.max = readNum(maxEl);
+      // keep status coherent so a later re-render shows the right pill
+      if(rowGraded(it)) it.status = "graded";
+      else it.status = "due";
+      whatIfRecalc();
+    });
+  });
+
+  // Remove rows.
+  $$("#grBody .wi-x").forEach(btn=>{
+    btn.addEventListener("click", function(){
+      const i = +this.getAttribute("data-i");
+      gb.items.splice(i, 1);
+      recomputeCourse(id);
+      if(HISTORY[id] && HISTORY[id].length) HISTORY[id][HISTORY[id].length-1] = courseById(id).grade;
+      renderGradeBody(); // focus on a button — re-render full pane
+      renderPicker();
+      updateOverall();
+    });
+  });
+
+  // Add assignment.
+  const add = $("#grWiAdd");
+  if(add){
+    add.addEventListener("click", ()=>{
+      const name = ($("#grWiName").value || "").trim() || "New assignment";
+      const cat = $("#grWiCat").value;
+      const score = readNum($("#grWiEarned"));
+      const max = readNum($("#grWiMax"));
+      const it = { t:name, cat:cat, date:"What-if", score:score, max:max };
+      it.status = rowGraded(it) ? "graded" : "due";
+      gb.items.push(it);
+      recomputeCourse(id);
+      if(HISTORY[id] && HISTORY[id].length) HISTORY[id][HISTORY[id].length-1] = courseById(id).grade;
+      renderGradeBody();
+      renderPicker();
+      updateOverall();
+    });
+  }
 }
 
 /* ============================================================

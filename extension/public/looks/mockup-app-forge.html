@@ -288,6 +288,33 @@
   .missbadge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:#fff;
         background:var(--rose);padding:3px 9px;border-radius:14px}
 
+  /* ---- What-if grade calculator ---- */
+  .sechd .wi-controls{display:inline-flex;align-items:center;gap:8px;margin-left:auto}
+  .sechd .wi-flag{font-size:11.5px;font-weight:800;color:#5a4112;background:var(--peach);
+        border-radius:999px;padding:4px 11px;letter-spacing:-.01em}
+  html[data-theme="dark"] .sechd .wi-flag{color:#3a2f25}
+  .btn.wi-toggle,.btn.wi-reset{font-size:12.5px;padding:7px 13px;border-radius:13px}
+  .btn.wi-toggle{background:var(--paper-2);color:var(--ink);border-color:var(--line)}
+  .btn.wi-toggle.on{background:var(--ink);color:#fff;border-color:transparent}
+  .btn.wi-reset{background:var(--card);color:var(--ink-2);border-color:var(--line)}
+  .btn.wi-addbtn{font-size:12.5px;padding:7px 13px;border-radius:13px;background:var(--ink);color:#fff}
+  table.asg .wi-edit{display:inline-flex;align-items:center;gap:5px;justify-content:flex-end}
+  table.asg .wi-slash{color:var(--ink-3);font-weight:800}
+  .wi-num{width:56px;padding:6px 8px;text-align:right;font:inherit;font-size:13px;font-weight:700;
+        color:var(--ink);background:var(--card);border:1.5px solid var(--line);border-radius:10px;
+        -moz-appearance:textfield}
+  .wi-num::-webkit-outer-spin-button,.wi-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .wi-num:focus{outline:none;border-color:var(--peach);box-shadow:0 0 0 3px rgba(255,180,84,.25)}
+  .wi-x{appearance:none;cursor:pointer;width:28px;height:28px;line-height:1;font-size:18px;font-weight:700;
+        border-radius:10px;color:var(--ink-3);background:transparent;border:1.5px solid transparent;
+        transition:background .12s,color .12s,border-color .12s}
+  .wi-x:hover{color:#fff;background:var(--rose);border-color:transparent}
+  tr.wi-addrow td{background:var(--paper-2)}
+  .wi-name,.wi-cat{width:100%;padding:8px 11px;font:inherit;font-size:13px;font-weight:700;color:var(--ink);
+        background:var(--card);border:1.5px solid var(--line);border-radius:12px}
+  .wi-cat{cursor:pointer}
+  .wi-name:focus,.wi-cat:focus{outline:none;border-color:var(--peach);box-shadow:0 0 0 3px rgba(255,180,84,.25)}
+
   /* ============================================================
      ASSIGNMENTS
      ============================================================ */
@@ -999,7 +1026,7 @@
     <!-- ===== SIDEBAR ===== -->
     <aside class="side">
       <div class="brand">
-        <div class="ava">🙂</div>
+        <div class="ava"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#3a2f25" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M8.2 14.2a4.2 4.2 0 0 0 7.6 0" stroke-linecap="round"/><circle cx="9" cy="10" r="1.05" fill="#3a2f25" stroke="none"/><circle cx="15" cy="10" r="1.05" fill="#3a2f25" stroke="none"/></svg></div>
         <div>
           <div class="nm">Better SGY</div>
           <div class="sub">hey, it's me again</div>

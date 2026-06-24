@@ -16,7 +16,22 @@ export default defineContentScript({
     // Mount guard — a re-injected content script must not stack duplicate buttons.
     if (document.getElementById('bs-float-btn')) return;
 
-    let theme = { bg: '#0e0e12', text: '#f5f5f7', card: '#1c1c1e', border: 'rgba(255,255,255,0.1)', primary: '#3b82f6', fresh: '#34c759', failed: '#ff3b30', muted: 'rgba(235,235,245,0.45)' };
+    // ── Card palettes, one per "look" ──────────────────────────────────────────
+    // The card follows the look you chose in the chooser (chrome.storage
+    // 'bsgy-edition') by default; an explicit override ('bsgy-card-look') wins
+    // when set. Both persist. See loadTheme()/resolveLook() below.
+    type CardTheme = { bg: string; text: string; card: string; border: string; primary: string; fresh: string; failed: string; muted: string };
+    const CARD_THEMES: Record<string, CardTheme> = {
+      default: { bg: '#0e0e12', text: '#f5f5f7', card: '#1c1c1e', border: 'rgba(255,255,255,0.1)',  primary: '#3b82f6', fresh: '#34c759', failed: '#ff3b30', muted: 'rgba(235,235,245,0.45)' },
+      apple:   { bg: '#ffffff', text: '#1d1d1f', card: '#f5f5f7', border: 'rgba(0,0,0,0.08)',        primary: '#0a84ff', fresh: '#34c759', failed: '#ff3b30', muted: '#6e6e73' },
+      halo:    { bg: '#0e1413', text: '#e8efed', card: '#16201d', border: 'rgba(255,255,255,0.09)',  primary: '#16a394', fresh: '#34c759', failed: '#ff6b6b', muted: 'rgba(232,239,237,0.5)' },
+      slate:   { bg: '#ffffff', text: '#1a1a1a', card: '#f3f3f1', border: 'rgba(0,0,0,0.12)',        primary: '#1a1a1a', fresh: '#2f7d32', failed: '#b00020', muted: '#6b6b6b' },
+      forge:   { bg: '#241c16', text: '#f5ece1', card: '#322820', border: 'rgba(255,255,255,0.09)',  primary: '#e07a3c', fresh: '#5cb85c', failed: '#e5533c', muted: 'rgba(245,236,225,0.5)' },
+      carbon:  { bg: '#0d1320', text: '#e6ecf5', card: '#161d2e', border: 'rgba(255,255,255,0.09)',  primary: '#5b8dee', fresh: '#34c759', failed: '#ff6b6b', muted: 'rgba(230,236,245,0.5)' },
+    };
+    // Labels for the in-panel picker (Forge ships under the friendlier name).
+    const LOOK_LABELS: Record<string, string> = { apple: 'Apple', halo: 'Halo', slate: 'Slate', forge: 'Friendly', carbon: 'Carbon' };
+    let theme: CardTheme = { ...CARD_THEMES.default };
 
     // ── Button — a compact rounded-rectangle "grade card" ──────────────────────
     const btn = document.createElement('button');
@@ -37,6 +52,55 @@ export default defineContentScript({
     btn.onmousedown = () => { btn.style.transform = 'scale(0.96)'; };
     btn.onmouseup   = () => { btn.style.transform = 'translateY(-3px) scale(1.03)'; };
     document.body.appendChild(btn);
+
+    // ── Drag-to-place anywhere (position persists in chrome.storage) ────────────
+    // A press that moves past a small threshold is a drag (and is NOT treated as a
+    // click); anything shorter still opens the panel. Position is clamped to the
+    // viewport on drop and on resize so the card can never end up off-screen.
+    let dragStart: { x: number; y: number; left: number; top: number } | null = null;
+    let dragMoved = false;
+    const DRAG_THRESH = 5;
+    function placeAt(left: number, top: number) {
+      const w = btn.offsetWidth || 108, h = btn.offsetHeight || 56;
+      const L = Math.max(6, Math.min(window.innerWidth - w - 6, left));
+      const Tp = Math.max(6, Math.min(window.innerHeight - h - 6, top));
+      btn.style.left = L + 'px'; btn.style.top = Tp + 'px';
+      btn.style.right = 'auto'; btn.style.bottom = 'auto';
+      return { left: L, top: Tp };
+    }
+    async function restorePos() {
+      const r = await browser.storage.local.get('bsgy-card-pos');
+      const pos = r['bsgy-card-pos'] as { left: number; top: number } | undefined;
+      if (pos && typeof pos.left === 'number' && typeof pos.top === 'number') placeAt(pos.left, pos.top);
+    }
+    btn.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      const rect = btn.getBoundingClientRect();
+      dragStart = { x: e.clientX, y: e.clientY, left: rect.left, top: rect.top };
+      dragMoved = false;
+      try { btn.setPointerCapture(e.pointerId); } catch {}
+    });
+    btn.addEventListener('pointermove', (e) => {
+      if (!dragStart) return;
+      const dx = e.clientX - dragStart.x, dy = e.clientY - dragStart.y;
+      if (!dragMoved && Math.hypot(dx, dy) < DRAG_THRESH) return;
+      dragMoved = true;
+      btn.style.transition = 'none';
+      btn.style.transform = 'none';
+      placeAt(dragStart.left + dx, dragStart.top + dy);
+    });
+    btn.addEventListener('pointerup', (e) => {
+      try { btn.releasePointerCapture(e.pointerId); } catch {}
+      btn.style.transition = '';
+      if (dragMoved) {
+        const rect = btn.getBoundingClientRect();
+        void browser.storage.local.set({ 'bsgy-card-pos': { left: rect.left, top: rect.top } });
+      }
+      dragStart = null;
+    });
+    window.addEventListener('resize', () => {
+      if (btn.style.left) { const rect = btn.getBoundingClientRect(); placeAt(rect.left, rect.top); }
+    });
 
     // ── Backdrop ──────────────────────────────────────────────────────────────
     const backdrop = document.createElement('div');
@@ -130,7 +194,10 @@ export default defineContentScript({
       } catch {}
     }
 
-    btn.onclick = () => { chime(); isOpen ? close() : open(); };
+    btn.onclick = () => {
+      if (dragMoved) { dragMoved = false; return; } // just finished a drag — don't open
+      chime(); isOpen ? close() : open();
+    };
 
     // ── Helpers ───────────────────────────────────────────────────────────────
     // Escapes text AND attribute contexts (quotes included) — innerHTML is built
@@ -309,10 +376,32 @@ export default defineContentScript({
       return `<div style="border-radius:16px;overflow:hidden;background:${t.card};">${body}</div>`;
     }
 
+    // "Card look" picker: a "Match site" pill + one swatch per look. Selecting a
+    // swatch sets the override ('bsgy-card-look'); "Match site" clears it so the
+    // card tracks your chosen edition again. Both persist in chrome.storage.
+    function renderCardLookHtml(activeLook: string, matching: boolean): string {
+      const t = theme;
+      const swatches = ['apple', 'halo', 'slate', 'forge', 'carbon'].map((id) => {
+        const p = CARD_THEMES[id];
+        const on = !matching && activeLook === id;
+        return `<button class="bs-look" data-look="${id}" title="${LOOK_LABELS[id]}" style="all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;flex-shrink:0;">
+            <span style="width:30px;height:30px;border-radius:9px;background:${p.bg};box-sizing:border-box;border:2px solid ${on ? t.primary : t.border};box-shadow:inset 0 0 0 3px ${p.primary};"></span>
+            <span style="font-size:9px;font-weight:${on ? '600' : '400'};color:${on ? t.text : t.muted};">${LOOK_LABELS[id]}</span>
+          </button>`;
+      }).join('');
+      const matchPill = `<button class="bs-look-match" style="all:unset;cursor:pointer;font-size:11px;font-weight:${matching ? '600' : '400'};padding:5px 11px;border-radius:999px;border:1px solid ${matching ? t.primary : t.border};color:${matching ? t.text : t.muted};">Match site</button>`;
+      return `${sectionLabelHtml('Card look')}
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          ${matchPill}
+          <span style="font-size:10px;color:${t.muted};">${matching ? 'follows your chosen look' : 'custom override'}</span>
+        </div>
+        <div style="display:flex;gap:12px;overflow-x:auto;padding:2px 2px 4px;">${swatches}</div>`;
+    }
+
     // ── Render panel ──────────────────────────────────────────────────────────
     async function renderPanel() {
-      const [data, changes, announcements, watch] = await Promise.all([
-        loadGradeData(), loadChanges(), loadCachedAnnouncements(), loadWatchStatus(),
+      const [data, changes, announcements, watch, lookState] = await Promise.all([
+        loadGradeData(), loadChanges(), loadCachedAnnouncements(), loadWatchStatus(), resolveLook(),
       ]);
       const courses = data?.courses ?? [];
       const pcts = courses.map(c => parseGradeString(c.grade).percent).filter((p): p is number => p !== null);
@@ -345,10 +434,21 @@ export default defineContentScript({
 
           ${sectionLabelHtml('Updates')}
           ${renderListCardHtml(updatesHtml, 'No updates cached yet.')}
+
+          ${renderCardLookHtml(lookState.look, lookState.matching)}
         </div>`;
 
       // ── Event wiring (rebuilt every render, since innerHTML replaces nodes) ──
       document.getElementById('bs-close')?.addEventListener('click', close);
+      // Card-look picker: set/clear the override, then re-theme + re-render.
+      panel.querySelectorAll<HTMLElement>('.bs-look').forEach(el => {
+        el.addEventListener('click', () => {
+          void browser.storage.local.set({ 'bsgy-card-look': el.dataset.look ?? '' }).then(loadTheme);
+        });
+      });
+      panel.querySelector<HTMLElement>('.bs-look-match')?.addEventListener('click', () => {
+        void browser.storage.local.remove('bsgy-card-look').then(loadTheme);
+      });
       panel.querySelectorAll<HTMLElement>('.bs-course-tab').forEach(el => {
         el.addEventListener('click', () => { selectedCourse = el.dataset.course ?? null; void renderPanel(); });
       });
@@ -358,18 +458,27 @@ export default defineContentScript({
       });
     }
 
-    // ── Theme ─────────────────────────────────────────────────────────────────
+    // ── Theme (follows the chosen look, with an optional override) ──────────────
+    // Effective look = 'bsgy-card-look' (override) → 'bsgy-edition' (site look) →
+    // 'default'. `matching` is true when no override is set (card tracks the site).
+    async function resolveLook(): Promise<{ look: string; matching: boolean; site: string }> {
+      const r = await browser.storage.local.get(['bsgy-card-look', 'bsgy-edition']);
+      const override = typeof r['bsgy-card-look'] === 'string' ? r['bsgy-card-look'].trim().toLowerCase() : '';
+      const site = typeof r['bsgy-edition'] === 'string' ? r['bsgy-edition'].trim().toLowerCase() : '';
+      if (override && CARD_THEMES[override]) return { look: override, matching: false, site };
+      if (site && CARD_THEMES[site]) return { look: site, matching: true, site };
+      return { look: 'default', matching: true, site };
+    }
+
     async function loadTheme() {
-      const res = await browser.storage.local.get('bs_theme_sync');
-      const th = res.bs_theme_sync as Partial<typeof theme> | undefined;
-      if (th) {
-        theme = { ...theme, ...th };
-        btn.style.background = theme.bg;
-        btn.style.color = theme.text;
-        panel.style.background = theme.bg;
-        panel.style.color = theme.text;
-        if (isOpen) void renderPanel();
-      }
+      const { look } = await resolveLook();
+      theme = { ...CARD_THEMES[look] ?? CARD_THEMES.default };
+      btn.style.background = theme.bg;
+      btn.style.color = theme.text;
+      panel.style.background = theme.bg;
+      panel.style.color = theme.text;
+      void renderBtn();
+      if (isOpen) void renderPanel();
     }
 
     // ── Auto-open on new background updates ────────────────────────────────────
@@ -400,6 +509,7 @@ export default defineContentScript({
     // ── Init ──────────────────────────────────────────────────────────────────
     void renderBtn();
     void loadTheme();
+    void restorePos();
     browser.storage.onChanged.addListener((changes, area) => {
       if (area !== 'local') return;
       void loadTheme();

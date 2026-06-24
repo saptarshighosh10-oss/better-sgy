@@ -268,12 +268,12 @@
   .pv-apple .pv-row{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.06)}
   .pv-apple .pv-pill{background:#0071e3}
   .pv-apple .pv-bar{background:#e8e8ed}
-  /* Halo: grayscale, single meaning color */
-  .pv-halo{background:#fff}
-  .pv-halo .pv-row{background:#f4f4f4}
-  .pv-halo .pv-bar{background:#d8d8d8}
-  .pv-halo .pv-pill{background:#111}
-  .pv-halo .pv-pill.accent{background:#16a34a}
+  /* Cloud: soft sky + clouds */
+  .pv-halo{background:linear-gradient(180deg,#eaf3fe 0%,#f6fbff 100%)}
+  .pv-halo .pv-row{background:#ffffff;box-shadow:0 2px 8px rgba(120,160,220,.14)}
+  .pv-halo .pv-bar{background:#d8e8fb}
+  .pv-halo .pv-pill{background:#4a7fd0}
+  .pv-halo .pv-pill.accent{background:#8fbdf0}
   /* Slate: editorial b/w serif */
   .pv-slate{background:#111;color:#fff}
   .pv-slate .ed-serif{position:absolute;left:16px;top:14px;font-family:var(--serif);font-style:italic;font-size:1.6rem;color:#fff}
@@ -286,12 +286,12 @@
   .pv-forge .pv-bar{background:#f1dcb8}
   .pv-forge .pv-pill{background:#e2802f;border-radius:6px}
   .pv-forge .blob{position:absolute;width:90px;height:90px;border-radius:50%;background:radial-gradient(circle at 30% 30%, #ffcf86, #e2802f);right:-20px;top:-20px;opacity:.5}
-  /* Carbon: sleek bluish-dark, deep navy → slate blue with a blue accent */
-  .pv-carbon{background:linear-gradient(150deg,#0d1424 0%,#16203a 55%,#27375c 100%)}
-  .pv-carbon .pv-row{background:rgba(255,255,255,.05);box-shadow:inset 0 0 0 1px rgba(120,150,210,.12)}
-  .pv-carbon .pv-bar{background:rgba(255,255,255,.09)}
-  .pv-carbon .pv-pill{background:#5b8def}
-  .pv-carbon .pv-pill.dim{background:#5a6b8f}
+  /* Carbon: warm walnut + honey-amber */
+  .pv-carbon{background:linear-gradient(150deg,#1a120b 0%,#241a12 60%,#2c2017 100%)}
+  .pv-carbon .pv-row{background:rgba(214,138,60,.06);box-shadow:inset 0 0 0 1px rgba(224,164,90,.14)}
+  .pv-carbon .pv-bar{background:rgba(224,164,90,.12)}
+  .pv-carbon .pv-pill{background:#d68a3c}
+  .pv-carbon .pv-pill.dim{background:#8a7860}
 
   /* ---------- Browse gallery ---------- */
   .browse{background:linear-gradient(180deg, transparent, color-mix(in srgb,var(--accent-soft) 30%, transparent), transparent)}
@@ -559,6 +559,15 @@
           <p>There is a demo with sample grades that needs no login, so you can poke around in seconds. And there is the real version that reads your actual Schoology once you install it. Both are below.</p>
         </div>
       </div>
+
+      <div class="step l reveal">
+        <span class="node"></span>
+        <div class="card">
+          <span class="knum">05 — What's new</span>
+          <h3>A calculator, a glanceable card, and real personality</h3>
+          <p>A what-if grade calculator lets you add, edit, or remove assignments and watch your course grade, overall, and charts update live. A floating card keeps your grade a glance away on any tab — themed to match the look you picked. And every edition leaned into its own identity, each with its own symbol and a light <em>and</em> dark mode: Halo became <strong>Cloud</strong>, Carbon went warm walnut, Slate a proper newspaper, Friendly the chatty one, Apple a phone.</p>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -605,8 +614,8 @@
           </div>
         </div>
         <div class="body">
-          <div class="name">Halo <span class="tag">prototype</span></div>
-          <p class="desc">Quiet and minimal. Mostly grayscale, with color only where it actually means something.</p>
+          <div class="name">Cloud <span class="tag">prototype</span></div>
+          <p class="desc">Soft sky and clouds — a calm day-and-night look, with your grade resting on a cloud.</p>
           <span class="open">Open prototype <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
         </div>
       </a>
@@ -655,7 +664,7 @@
         </div>
         <div class="body">
           <div class="name">Carbon <span class="tag">prototype</span></div>
-          <p class="desc">Sleek bluish-dark. Crisp and modern.</p>
+          <p class="desc">Warm walnut and honey-amber. Rich, woody, and easy on the eyes — light or dark.</p>
           <span class="open">Open prototype <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
         </div>
       </a>
@@ -665,7 +674,7 @@
       Each edition also has a <strong>portable widget</strong> &mdash; a small panel that floats on any page and keeps your grades a glance away:
       <br>
       <a href="./mockup-portable-apple.html" target="_blank" rel="noopener">Apple</a> &middot;
-      <a href="./mockup-portable-halo.html" target="_blank" rel="noopener">Halo</a> &middot;
+      <a href="./mockup-portable-halo.html" target="_blank" rel="noopener">Cloud</a> &middot;
       <a href="./mockup-portable-slate.html" target="_blank" rel="noopener">Slate</a> &middot;
       <a href="./mockup-portable-forge.html" target="_blank" rel="noopener">Friendly</a> &middot;
       <a href="./mockup-portable-carbon.html" target="_blank" rel="noopener">Carbon</a> &middot;
@@ -689,7 +698,7 @@
           <span class="ctrl-label" id="lbl-edition">Edition</span>
           <div class="seg" role="group" aria-labelledby="lbl-edition" id="seg-edition">
             <button type="button" data-edition="apple" aria-pressed="true">Apple</button>
-            <button type="button" data-edition="halo" aria-pressed="false">Halo</button>
+            <button type="button" data-edition="halo" aria-pressed="false">Cloud</button>
             <button type="button" data-edition="slate" aria-pressed="false">Slate</button>
             <button type="button" data-edition="forge" aria-pressed="false">Friendly</button>
             <button type="button" data-edition="carbon" aria-pressed="false">Carbon</button>
@@ -984,7 +993,7 @@
     var openLink   = document.getElementById("galleryOpen");
     var metaText   = document.getElementById("frameMeta");
 
-    var EDITION_NAMES = {apple:"Apple", halo:"Halo", slate:"Slate", forge:"Friendly", carbon:"Carbon"};
+    var EDITION_NAMES = {apple:"Apple", halo:"Cloud", slate:"Slate", forge:"Friendly", carbon:"Carbon"};
     var FORM_NAMES    = {overview:"Overview", app:"Full app", portable:"Portable widget"};
     // Carbon only ships the full-app file (no overview/portable variants yet).
     var ONLY_APP = {carbon:true};

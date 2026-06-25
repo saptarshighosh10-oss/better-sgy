@@ -94,7 +94,7 @@ export function ExtRouter({ scrapeResult }: Props) {
   const [page, setPage] = useState<Page>(() => {
     if (typeof localStorage === 'undefined') return 'overview';
     const saved = localStorage.getItem(PAGE_KEY) as Page | null;
-    return saved && (DEFAULT_TAB_ORDER.includes(saved) || saved === 'settings' || saved === 'versions') ? saved : 'overview';
+    return saved && (DEFAULT_TAB_ORDER.includes(saved) || saved === 'settings') ? saved : 'overview';
   });
   const [selectedCourseName, setSelectedCourseName] = useState<string | null>(() => {
     if (typeof localStorage === 'undefined') return null;

@@ -178,7 +178,9 @@ function VersionViewer({
           // allow-same-origin so the prototypes' localStorage calls don't throw and
           // halt their render. These are our own trusted bundled files.
           sandbox="allow-scripts allow-same-origin allow-popups allow-modals allow-forms"
-          style={{ flex: 1, width: '100%', border: 'none', display: 'block' }}
+          // zoom scales the prototype's content to fit the panel width (these
+          // prototypes are designed for full-screen; 0.7 keeps them readable).
+          style={{ flex: 1, width: '100%', border: 'none', display: 'block', zoom: 0.7 }}
         />
       )}
     </div>

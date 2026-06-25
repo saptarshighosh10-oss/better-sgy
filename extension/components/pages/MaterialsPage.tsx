@@ -407,19 +407,12 @@ export function MaterialsPage({ grades }: Props) {
       {/* ── Main panel ──────────────────────────────────────────────── */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
-        {/* Course banner */}
-        {selected && (
-          <div style={{ height: 64, flexShrink: 0, background: color, borderBottom: `1px solid ${hairline()}`, position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', padding: '0 20px', gap: 12 }}>
-            <div style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', fontSize: fs * 0.65, fontWeight: 900, color: T.text, opacity: 0.06, userSelect: 'none', lineHeight: 1, letterSpacing: '-1px' }} aria-hidden="true">{abbr}</div>
-            <div style={{ zIndex: 1 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: T.text, lineHeight: 1.2 }}>{selected.name}</div>
-              {selected.teacher && <div style={{ fontSize: 11, color: T.muted, marginTop: 2 }}>{selected.teacher}</div>}
-            </div>
-            {viewer && (
-              <span style={{ zIndex: 1, fontSize: 11, color: T.muted, marginLeft: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                / {viewer.title}
-              </span>
-            )}
+        {/* Slim context bar — shows viewer breadcrumb; course already visible in pill strip */}
+        {selected && viewer && (
+          <div style={{ height: 34, flexShrink: 0, display: 'flex', alignItems: 'center', padding: '0 14px', gap: 6, borderBottom: `1px solid ${hairline()}`, background: T.panel }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: T.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 100 }}>{selected.name}</span>
+            <span style={{ fontSize: 11, color: T.faint }}>›</span>
+            <span style={{ fontSize: 11, color: T.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{viewer.title}</span>
           </div>
         )}
 

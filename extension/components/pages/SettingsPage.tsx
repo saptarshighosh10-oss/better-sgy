@@ -351,6 +351,67 @@ function UIStyleSection({ settings, onSave }: { settings: Settings; onSave: (pat
   );
 }
 
+// ── Notifications section ────────────────────────────────────────────────────
+
+function ToggleRow({ label, note, checked, onChange, last }: {
+  label: string; note: string; checked: boolean;
+  onChange: (v: boolean) => void; last?: boolean;
+}) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 12, padding: '13px 18px',
+      borderBottom: last ? 'none' : `1px solid ${hairline()}`,
+    }}>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: AT.sub, fontWeight: AT.medium, color: T.text }}>{label}</div>
+        <div style={{ fontSize: AT.caption, color: T.muted, marginTop: 2 }}>{note}</div>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        className="bs-focusable"
+        style={{
+          all: 'unset', flexShrink: 0, cursor: 'pointer',
+          width: 40, height: 24, borderRadius: 12,
+          background: checked ? T.primary : T.border,
+          position: 'relative', transition: 'background 0.15s',
+        }}
+      >
+        <span style={{
+          position: 'absolute', top: 3, left: checked ? 19 : 3,
+          width: 18, height: 18, borderRadius: '50%', background: '#fff',
+          transition: 'left 0.15s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+        }} />
+      </button>
+    </div>
+  );
+}
+
+function NotificationsSection({ settings, onSave }: { settings: Settings; onSave: (patch: Partial<Settings>) => Promise<Settings> }) {
+  return (
+    <>
+      <SectionTitle>Notifications</SectionTitle>
+      <div style={{ ...haloCardStyle(), overflow: 'hidden' }}>
+        <ToggleRow
+          label="Grade alerts"
+          note="Desktop notification when a grade changes or a new assignment appears"
+          checked={settings.notifications}
+          onChange={(v) => void onSave({ notifications: v })}
+        />
+        <ToggleRow
+          label="Due-soon reminders"
+          note="Reminds you the night before and morning of upcoming assignments"
+          checked={settings.dueSoonReminders}
+          onChange={(v) => void onSave({ dueSoonReminders: v })}
+          last
+        />
+      </div>
+    </>
+  );
+}
+
 // ── Discord section ───────────────────────────────────────────────────────────
 
 function DiscordSection({ settings, onSave }: { settings: Settings; onSave: (patch: Partial<Settings>) => Promise<Settings> }) {
@@ -506,6 +567,7 @@ export function SettingsPage({ settings, onSave, data, onOpenTour, onNavigate, p
           </>
         )}
 
+        <NotificationsSection settings={settings} onSave={onSave} />
         <TabOrderSection settings={settings} onSave={onSave} />
         <UIStyleSection settings={settings} onSave={onSave} />
         <DiscordSection settings={settings} onSave={onSave} />

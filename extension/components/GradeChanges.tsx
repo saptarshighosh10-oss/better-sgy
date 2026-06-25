@@ -47,15 +47,16 @@ export function GradeChanges() {
         const isNew = e.ts > lastSeen;
         let main: React.ReactNode;
         let badge: React.ReactNode = null;
-        if (e.kind === 'course' && e.fromPct !== undefined && e.toPct !== undefined) {
-          const up = e.toPct >= e.fromPct;
+
+        if (e.kind === 'grade') {
+          const up = e.delta >= 0;
           main = <span style={{ fontWeight: 600 }}>{e.course}</span>;
           badge = (
             <span style={{
               fontSize: 11.5, fontWeight: 800, fontVariantNumeric: 'tabular-nums',
               color: up ? T.green : T.red, whiteSpace: 'nowrap',
             }}>
-              {e.fromPct.toFixed(1)}% → {e.toPct.toFixed(1)}%
+              {e.oldPct?.toFixed(1) ?? '—'}% → {e.newPct?.toFixed(1) ?? '—'}%
             </span>
           );
         } else if (e.kind === 'graded') {
@@ -65,10 +66,11 @@ export function GradeChanges() {
               <span style={{ color: T.muted }}> graded · {e.course}</span>
             </span>
           );
-          if (e.scorePct !== undefined) {
-            badge = <span style={{ fontSize: 11.5, fontWeight: 800, color: T.text, fontVariantNumeric: 'tabular-nums' }}>{e.scorePct.toFixed(0)}%</span>;
+          if (e.pct !== null && e.pct !== undefined) {
+            badge = <span style={{ fontSize: 11.5, fontWeight: 800, color: T.text, fontVariantNumeric: 'tabular-nums' }}>{e.pct.toFixed(0)}%</span>;
           }
         } else {
+          // new-assignment
           main = (
             <span>
               <span style={{ fontWeight: 600 }}>{e.name}</span>
@@ -78,9 +80,9 @@ export function GradeChanges() {
           badge = (
             <span style={{
               fontSize: 9, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
-              color: T.red, background: `${T.red}21`, border: `1px solid ${T.red}4d`,
+              color: T.primary, background: `${T.primary}21`, border: `1px solid ${T.primary}4d`,
               borderRadius: 999, padding: '2px 7px',
-            }}>Missing</span>
+            }}>New</span>
           );
         }
         return (

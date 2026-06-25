@@ -83,6 +83,16 @@ export async function clearChanges(): Promise<void> {
   await browser.storage.local.remove(KEY);
 }
 
+const SEEN_KEY = 'bs_changes_seen';
+
+export function getLastSeen(): number {
+  try { return parseInt(localStorage.getItem(SEEN_KEY) ?? '0', 10) || 0; } catch { return 0; }
+}
+
+export function markChangesSeen(): void {
+  try { localStorage.setItem(SEEN_KEY, String(Date.now())); } catch {}
+}
+
 /**
  * Collapse near-identical events (same kind + course/name within a 60s window)
  * that can pile up when a scrape re-runs. Shared by the side panel + floating widget.

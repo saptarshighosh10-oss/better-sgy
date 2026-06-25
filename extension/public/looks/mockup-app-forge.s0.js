@@ -1943,6 +1943,11 @@ function viewSettings(){
       <div class="togrow"><div><div class="tn">Test a ping</div><div class="td">see what a notification looks like</div></div>
         <button class="pingbtn" id="testping">test a ping</button></div>
     </div>
+    <div class="sechd"><h2>Discord</h2><span class="sub">webhook pings</span></div>
+    <div class="card">
+      <div class="togrow"><div><div class="tn">Discord webhook</div><div class="td">paste a webhook URL for grade-change pings</div></div></div>
+      <div style="padding:0 14px 14px"><input id="bsgyDiscord" type="text" placeholder="https://discord.com/api/webhooks/…" autocomplete="off" spellcheck="false" style="width:100%;box-sizing:border-box;padding:9px 11px;border-radius:9px;border:1px solid rgba(128,128,128,.4);background:rgba(128,128,128,.06);color:inherit;font:inherit;font-size:13px;"></div>
+    </div>
     <div class="sechd"><h2>Sections &amp; tabs</h2><span class="sub">show or hide</span></div>
     <div class="card">${secs}</div>
     <div class="sechd"><h2>Theme</h2><span class="sub">light, dark, or follow your system</span></div>

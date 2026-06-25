@@ -2343,6 +2343,14 @@
           </div>
 
           <div class="set-block">
+            <p class="sb-title">Discord alerts</p>
+            <p class="sb-desc">Paste a webhook URL to get grade-change pings in Discord.</p>
+            <div class="panel">
+              <input id="bsgyDiscord" type="text" placeholder="https://discord.com/api/webhooks/…" autocomplete="off" spellcheck="false" style="width:100%;box-sizing:border-box;padding:9px 11px;border-radius:9px;border:1px solid rgba(128,128,128,.4);background:rgba(128,128,128,.06);color:inherit;font:inherit;font-size:13px;" />
+            </div>
+          </div>
+
+          <div class="set-block">
             <p class="sb-title">Appearance</p>
             <p class="sb-desc">Theme and density.</p>
             <div class="panel">
@@ -5470,5 +5478,35 @@
     });
   })();
   </script>
+<script>
+/* Better SGY — Discord webhook bridge: posts the webhook to the parent React
+   shell (which saves it for real) and refills the field on settings re-render. */
+(function(){
+  var current = '';
+  window.addEventListener('message', function(e){
+    var d = e && e.data;
+    if (d && typeof d.bsgyDiscordInit === 'string'){
+      current = d.bsgyDiscordInit;
+      var i = document.getElementById('bsgyDiscord');
+      if (i) i.value = current;
+    }
+  });
+  document.addEventListener('input', function(e){
+    var t = e.target;
+    if (t && t.id === 'bsgyDiscord'){
+      current = (t.value || '').trim();
+      try { parent.postMessage({ bsgyDiscord: current }, '*'); } catch(_){}
+    }
+  }, true);
+  try {
+    var mo = new MutationObserver(function(){
+      var i = document.getElementById('bsgyDiscord');
+      if (i && i.value === '' && current) i.value = current;
+    });
+    mo.observe(document.documentElement, { childList:true, subtree:true });
+  } catch(_){}
+  try { parent.postMessage({ bsgyDiscordReady: 1 }, '*'); } catch(_){}
+})();
+</script>
 </body>
 </html>

@@ -2321,6 +2321,11 @@
     </div>
 
     <div class="setblock">
+      <div class="setblock__head"><h3>Discord</h3><span class="setblock__note">Webhook pings for grade changes.</span></div>
+      <div style="padding:6px 0 2px"><input id="bsgyDiscord" type="text" placeholder="https://discord.com/api/webhooks/…" autocomplete="off" spellcheck="false" style="width:100%;box-sizing:border-box;padding:9px 11px;border-radius:7px;border:1px solid rgba(128,128,128,.4);background:rgba(128,128,128,.06);color:inherit;font:inherit;font-size:13px;" /></div>
+    </div>
+
+    <div class="setblock">
       <div class="setblock__head"><h3>Appearance</h3><span class="setblock__note">Slate stays monochrome by design.</span></div>
       <div class="styles styles--three" id="appearance">
         <div class="style" data-appearance="light"><div class="style__name">Light</div><div class="style__desc">Black ink on white paper. The standing edition.</div><div class="style__state"></div></div>
@@ -5201,6 +5206,36 @@
 
   /* No auto-launch — the guided tour only auto-runs in the Apple edition.
      It stays available here via Settings → "Take the tour". */
+})();
+</script>
+<script>
+/* Better SGY — Discord webhook bridge: posts the webhook to the parent React
+   shell (which saves it for real) and refills the field on settings re-render. */
+(function(){
+  var current = '';
+  window.addEventListener('message', function(e){
+    var d = e && e.data;
+    if (d && typeof d.bsgyDiscordInit === 'string'){
+      current = d.bsgyDiscordInit;
+      var i = document.getElementById('bsgyDiscord');
+      if (i) i.value = current;
+    }
+  });
+  document.addEventListener('input', function(e){
+    var t = e.target;
+    if (t && t.id === 'bsgyDiscord'){
+      current = (t.value || '').trim();
+      try { parent.postMessage({ bsgyDiscord: current }, '*'); } catch(_){}
+    }
+  }, true);
+  try {
+    var mo = new MutationObserver(function(){
+      var i = document.getElementById('bsgyDiscord');
+      if (i && i.value === '' && current) i.value = current;
+    });
+    mo.observe(document.documentElement, { childList:true, subtree:true });
+  } catch(_){}
+  try { parent.postMessage({ bsgyDiscordReady: 1 }, '*'); } catch(_){}
 })();
 </script>
 </body>

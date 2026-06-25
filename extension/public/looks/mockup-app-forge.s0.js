@@ -1880,11 +1880,11 @@ function wireWords(){
    7 · SETTINGS
    ============================================================ */
 const EDITIONS = [
-  ['apple','Apple','clean, glassy, quiet','linear-gradient(135deg,#f5f5f7,#e8e8ed)','mockup-app-apple.html'],
-  ['halo','Halo','deep blue, sci-fi','linear-gradient(135deg,#1b2a4a,#3a6ea5)','mockup-app-halo.html'],
-  ['slate','Slate','dark, no nonsense','linear-gradient(135deg,#2b2b30,#46464d)','mockup-app-slate.html'],
-  ['carbon','Carbon','sleek bluish-dark, crisp and modern','linear-gradient(135deg,#0f1722,#22324a)','mockup-app-carbon.html'],
-  ['friendly','Friendly 🙂','warm, chatty, this one','linear-gradient(135deg,#ffd98a,#ff9d5c)','mockup-app-forge.html'],
+  ['apple','Apple','spare and confident, one calm blue','linear-gradient(135deg,#f5f5f7,#0a84ff)','mockup-app-apple.html'],
+  ['halo','Halo','clean and minimal, color only where it matters','linear-gradient(135deg,#eef2f1,#16a394)','mockup-app-halo.html'],
+  ['slate','Slate','black-and-white editorial, serif','linear-gradient(135deg,#ffffff,#1a1a1a)','mockup-app-slate.html'],
+  ['carbon','Carbon','warm walnut and honey-amber, rich and woody','linear-gradient(135deg,#3a2a1a,#c8881f)','mockup-app-carbon.html'],
+  ['friendly','Friendly 🙂','warm and chatty, this one','linear-gradient(135deg,#ffd98a,#e07a3c)','mockup-app-forge.html'],
 ];
 const SECTIONS = [
   ['overview','Overview','the home screen with the greeting'],

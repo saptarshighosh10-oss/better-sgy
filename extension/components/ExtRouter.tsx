@@ -64,6 +64,9 @@ interface Props {
 /** Starting-screen loader: two concentric counter-rotating accent rings. */
 const PAGE_KEY = '__bs_page__';
 const COURSE_KEY = '__bs_course__';
+/** Set once the user has explicitly picked a look in the chooser. Until then we
+ *  always open on the theme picker first ("theme picker, then our stuff"). */
+const LOOK_CHOSEN_KEY = '__bs_look_chosen__';
 
 export function ExtRouter({ scrapeResult }: Props) {
   const grades = useExtensionGrades();
@@ -90,9 +93,11 @@ export function ExtRouter({ scrapeResult }: Props) {
 
   // Restore the page (and selected course) the user was on before a reload.
   const [page, setPage] = useState<Page>(() => {
-    if (typeof localStorage === 'undefined') return 'overview';
+    if (typeof localStorage === 'undefined') return 'versions';
+    // First run (no look chosen yet): always show the theme picker first.
+    if (localStorage.getItem(LOOK_CHOSEN_KEY) !== '1') return 'versions';
     const saved = localStorage.getItem(PAGE_KEY) as Page | null;
-    return saved && (DEFAULT_TAB_ORDER.includes(saved) || saved === 'settings' || saved === 'versions') ? saved : 'versions';
+    return saved && (DEFAULT_TAB_ORDER.includes(saved) || saved === 'settings' || saved === 'versions') ? saved : 'overview';
   });
   const [selectedCourseName, setSelectedCourseName] = useState<string | null>(() => {
     if (typeof localStorage === 'undefined') return null;
@@ -307,7 +312,10 @@ export function ExtRouter({ scrapeResult }: Props) {
                 }}
               />
             )}
-            {page === 'versions' && <VersionsPage onEditionPicked={() => navigate('overview')} />}
+            {page === 'versions' && <VersionsPage onEditionPicked={() => {
+              try { localStorage.setItem(LOOK_CHOSEN_KEY, '1'); } catch { /* storage blocked */ }
+              navigate('overview');
+            }} />}
             {page === 'settings' && (
               <SettingsPage
                 settings={settings}

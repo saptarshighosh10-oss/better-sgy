@@ -5,7 +5,7 @@
  */
 
 /** Which UI skin is active. Persisted so the choice survives panel close. */
-export type Edition = 'halo' | 'forge' | 'slate';
+export type Edition = 'halo' | 'forge' | 'slate' | 'apple' | 'carbon';
 
 export interface Settings {
   /** Master switch for grade-change desktop notifications. */

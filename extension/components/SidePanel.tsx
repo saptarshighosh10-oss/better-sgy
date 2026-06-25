@@ -386,9 +386,11 @@ function MuteCourses({ courses, settings, onToggle }: {
 }
 
 const EDITIONS: { id: Edition; label: string; note: string }[] = [
-  { id: 'halo',  label: 'Halo',  note: 'Clean · color accents · recommended' },
-  { id: 'forge', label: 'Forge', note: 'Dense · everything at a glance' },
-  { id: 'slate', label: 'Slate', note: 'Monochrome · zero distraction' },
+  { id: 'halo',   label: 'Halo',   note: 'Clean · color accents · recommended' },
+  { id: 'apple',  label: 'Apple',  note: 'Spare · calm blue · lots of space' },
+  { id: 'forge',  label: 'Forge',  note: 'Dense · everything at a glance' },
+  { id: 'slate',  label: 'Slate',  note: 'Monochrome · zero distraction' },
+  { id: 'carbon', label: 'Carbon', note: 'Warm walnut · honey-amber' },
 ];
 
 function EditionPicker({ settings, onSave }: { settings: Settings; onSave: (patch: Partial<Settings>) => Promise<Settings> }) {

@@ -168,6 +168,11 @@
 
   function choose(id){
     try { localStorage.setItem("bsgy-edition", id); } catch(e){}
+    // When embedded in the extension panel, message the parent instead of navigating.
+    if (window.parent !== window) {
+      window.parent.postMessage({ bsgyChooseLook: id }, "*");
+      return;
+    }
     // record the chosen edition for the extension (guarded — only if chrome.storage exists)
     try { if (window.chrome && chrome.storage && chrome.storage.local && chrome.storage.local.set) chrome.storage.local.set({ "bsgy-edition": id }); } catch(e){}
     window.location.href = "./mockup-app-" + id + ".html";

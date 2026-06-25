@@ -307,8 +307,10 @@ function TabOrderSection({ settings, onSave }: { settings: Settings; onSave: (pa
 
 const EDITIONS: Array<{ id: Edition; label: string; note: string }> = [
   { id: 'halo', label: 'Halo', note: 'Clean and minimal — the Better SGY look' },
+  { id: 'apple', label: 'Apple', note: 'Spare and confident — lots of space, calm blue' },
   { id: 'forge', label: 'Forge', note: 'Canvas-style dashboard with course cards' },
   { id: 'slate', label: 'Slate', note: 'Classic Schoology layout & activity feed' },
+  { id: 'carbon', label: 'Carbon', note: 'Warm walnut and honey-amber — rich and woody' },
 ];
 
 function UIStyleSection({ settings, onSave }: { settings: Settings; onSave: (patch: Partial<Settings>) => Promise<Settings> }) {

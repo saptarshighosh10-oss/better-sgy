@@ -10,7 +10,7 @@ import { useExtensionGrades } from '../lib/use-extension-grades';
 import type { ScrapeResult } from '../lib/scrape-status';
 import { SettingsLauncher } from './SettingsLauncher';
 import { QuickNav } from './QuickNav';
-import { OverviewPage } from './pages/OverviewPage';
+import { EditionHome } from './EditionHome';
 import { GradesPage } from './pages/GradesPage';
 import { AssignmentsPage } from './pages/AssignmentsPage';
 import { MaterialsPage } from './pages/MaterialsPage';
@@ -20,8 +20,6 @@ import { AnnouncementsPage } from './pages/AnnouncementsPage';
 import { NostalgiaPage } from './pages/NostalgiaPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { VersionsPage } from './pages/VersionsPage';
-import { ForgeCanvasLayout } from './editions/ForgeCanvasLayout';
-import { SlateSchoologyLayout } from './editions/SlateSchoologyLayout';
 import { DashboardSkeleton } from './DashboardSkeleton';
 import { seedDemoData } from '../lib/demo-data';
 import { type GradeSnapshot } from '../lib/storage';
@@ -255,17 +253,6 @@ export function ExtRouter({ scrapeResult }: Props) {
     );
   }
 
-  // The Forge/Slate editions replace the dashboard "home" (overview) with a wholly
-  // different layout — Canvas-flavoured (Forge) or classic Schoology (Slate) — so
-  // switching editions is an actual change of look, not just a tint. Other pages
-  // (grades, materials, the arcade…) stay on the Halo layout, reachable via the nav.
-  const homeOverride =
-    page === 'overview' && settings.edition === 'forge'
-      ? <ForgeCanvasLayout grades={grades} />
-      : page === 'overview' && settings.edition === 'slate'
-      ? <SlateSchoologyLayout grades={grades} announcements={announcements.items} />
-      : null;
-
   return (
     <div
       style={{
@@ -296,12 +283,7 @@ export function ExtRouter({ scrapeResult }: Props) {
               flexDirection: 'column',
             }}
           >
-            {page === 'overview' && (homeOverride ?? (
-              <OverviewPage
-                grades={grades}
-                onCourseSelect={(name) => navigate('grades', name)}
-              />
-            ))}
+            {page === 'overview' && <EditionHome edition={settings.edition} />}
             {page === 'grades' && (
               <GradesPage
                 grades={grades}

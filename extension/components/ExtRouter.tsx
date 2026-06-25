@@ -9,7 +9,6 @@ import React, { useState } from 'react';
 import { useExtensionGrades } from '../lib/use-extension-grades';
 import type { ScrapeResult } from '../lib/scrape-status';
 import { SettingsLauncher } from './SettingsLauncher';
-import { QuickNav } from './QuickNav';
 import { EditionHome } from './EditionHome';
 import { GradesPage } from './pages/GradesPage';
 import { AssignmentsPage } from './pages/AssignmentsPage';
@@ -341,13 +340,6 @@ export function ExtRouter({ scrapeResult }: Props) {
         active={page === 'settings'}
         announcementsUnread={announcements.unreadCount}
         onOpenSettings={toggleSettings}
-      />
-      <QuickNav
-        page={page}
-        courseName={selectedCourseName}
-        courses={grades.courses}
-        onJump={(p, courseName) => navigate(p, courseName)}
-        pageOrder={pageOrder}
       />
     </div>
   );

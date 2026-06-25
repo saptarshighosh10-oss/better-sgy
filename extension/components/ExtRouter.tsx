@@ -189,13 +189,19 @@ export function ExtRouter({ scrapeResult }: Props) {
     });
   }
 
+  // The look (overview), the theme picker (versions), and settings are static and
+  // don't need scraped grades — they must render immediately. Only the data-driven
+  // pages (grades, assignments, materials…) wait on a scrape, so the old dark
+  // loading/empty dashboard NEVER shows over the chosen look.
+  const needsData = !(page === 'overview' || page === 'versions' || page === 'settings');
+
   // Loading — show a skeleton mirror of the dashboard rather than a bare spinner.
-  if (grades.loading) {
+  if (needsData && grades.loading) {
     return <div role="status" aria-busy="true"><DashboardSkeleton /></div>;
   }
 
   // No data yet
-  if (!grades.data) {
+  if (needsData && !grades.data) {
     const isInProgress = IN_PROGRESS.has(scrapeResult.status);
     const isFailed = scrapeResult.status === 'failed';
     // While the first scrape is running, the skeleton reads better than a spinner.

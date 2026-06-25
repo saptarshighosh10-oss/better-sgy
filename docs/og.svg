@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Better SGY — a readable gradebook for Schoology">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f7f5f0"/>
+      <stop offset="1" stop-color="#eee9df"/>
+    </linearGradient>
+    <linearGradient id="spark" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2f5d3a"/>
+      <stop offset="1" stop-color="#5fb56f"/>
+    </linearGradient>
+    <pattern id="grain" width="6" height="6" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="1" fill="#1c1a17" opacity="0.025"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#grain)"/>
+  <rect x="0" y="0" width="1200" height="8" fill="#2f5d3a"/>
+
+  <!-- Brand mark -->
+  <g transform="translate(96,86)">
+    <rect x="0" y="0" width="72" height="72" rx="18" fill="#2f5d3a"/>
+    <path d="M18 52 L28 32 L37 44 L48 26 L58 52" stroke="#fff" stroke-width="5.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <circle cx="56" cy="26" r="5.4" fill="#fff"/>
+  </g>
+  <text x="186" y="135" font-family="ui-serif, Georgia, 'Times New Roman', serif" font-size="38" font-weight="600" fill="#1c1a17">Better SGY</text>
+
+  <!-- Headline -->
+  <text x="96" y="300" font-family="ui-serif, Georgia, 'Times New Roman', serif" font-size="86" font-weight="600" fill="#1c1a17" letter-spacing="-1.5">A readable gradebook</text>
+  <text x="96" y="396" font-family="ui-serif, Georgia, 'Times New Roman', serif" font-size="86" font-weight="600" fill="#1c1a17" letter-spacing="-1.5">for <tspan font-style="italic" fill="#2f5d3a">Schoology</tspan>.</text>
+
+  <!-- Subhead -->
+  <text x="100" y="470" font-family="-apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="32" fill="#54504a">A free Chrome extension. Same grades, far less clutter.</text>
+
+  <!-- Sparkline panel -->
+  <g transform="translate(96,512)">
+    <rect x="0" y="0" width="1008" height="2" fill="#d3ccbf"/>
+    <polyline points="0,72 150,58 280,64 430,36 590,44 760,18 1008,8" fill="none" stroke="url(#spark)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" transform="translate(0,8)"/>
+    <circle cx="1008" cy="16" r="7" fill="#2f5d3a"/>
+  </g>
+
+  <!-- Footnote -->
+  <text x="96" y="612" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="20" fill="#8a857d" letter-spacing="2">FREE · RUNS IN YOUR BROWSER · YOUR GRADES STAY LOCAL</text>
+</svg>

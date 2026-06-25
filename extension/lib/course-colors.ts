@@ -1,4 +1,4 @@
-import { getActiveTheme } from './theme';
+import { getActiveTheme, isMono } from './theme';
 
 const PALETTE = [
   '#6366f1', // indigo
@@ -55,6 +55,16 @@ export function courseColor(name: string, isText = false): string {
     h = (h * 31 + name.charCodeAt(i)) & 0x7fffffff;
   }
   const theme = getActiveTheme();
+  // Mono / B&W accent forces grayscale course bands regardless of theme.
+  if (isMono()) {
+    const dark = theme !== 'mono-light';
+    if (dark) {
+      const palette = isText ? MONO_TEXT_PALETTE : MONO_BG_PALETTE;
+      return palette[h % palette.length];
+    }
+    const palette = isText ? MONO_LIGHT_TEXT_PALETTE : MONO_LIGHT_BG_PALETTE;
+    return palette[h % palette.length];
+  }
   if (theme === 'mono-dark') {
     const palette = isText ? MONO_TEXT_PALETTE : MONO_BG_PALETTE;
     return palette[h % palette.length];

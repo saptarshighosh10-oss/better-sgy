@@ -1,0 +1,987 @@
+{
+  "/Users/saptarshighosh/better-schoology/.claude/settings.local.json": {
+    "mtime": 1780903185.6804698,
+    "ast_hash": "9e85e9c23ed394c4b5377f28f360e075",
+    "semantic_hash": "9e85e9c23ed394c4b5377f28f360e075"
+  },
+  "/Users/saptarshighosh/better-schoology/.claude/skills/character-sprite-maker/examples/mario-like-platformer.json": {
+    "mtime": 1780741598.1845818,
+    "ast_hash": "a6f7ae86c82ad8e88a28cf922a599f7b",
+    "semantic_hash": "a6f7ae86c82ad8e88a28cf922a599f7b"
+  },
+  "/Users/saptarshighosh/better-schoology/.claude/skills/character-sprite-maker/scripts/character_job_status.py": {
+    "mtime": 1780741598.185403,
+    "ast_hash": "5e491408b4b6ebfbafd301214c0d3c5f",
+    "semantic_hash": "5e491408b4b6ebfbafd301214c0d3c5f"
+  },
+  "/Users/saptarshighosh/better-schoology/.claude/skills/character-sprite-maker/scripts/compose_atlas.py": {
+    "mtime": 1780741598.1856701,
+    "ast_hash": "964af9ce0f7348d5ea90dc5d9787e7d0",
+    "semantic_hash": "964af9ce0f7348d5ea90dc5d9787e7d0"
+  },
+  "/Users/saptarshighosh/better-schoology/.claude/skills/character-sprite-maker/scripts/derive_mirror_animation.py": {
+    "mtime": 1780741598.185844,
+    "ast_hash": "80d7d3ff3c2ba458cfe58273858594dc",
+    "semantic_hash": "80d7d3ff3c2ba458cfe58273858594dc"
+  },
+  "/Users/saptarshighosh/better-schoology/.claude/skills/character-sprite-maker/scripts/extract_strip_frames.py": {
+    "mtime": 1780741598.18598,
+    "ast_hash": "e28ef61214739c35ed744b9e00b888a9",
+    "semantic_hash": "e28ef61214739c35ed744b9e00b888a9"
+  },
+  "/Users/saptarshighosh/better-schoology/.claude/skills/character-sprite-maker/scripts/finalize_character_run.py": {
+    "mtime": 1780741598.1860871,
+    "ast_hash": "82a5782a5ebba0dd358a8f8e5342e79f",
+    "semantic_hash": "82a5782a5ebba0dd358a8f8e5342e79f"
+  },
+  "/Users/saptarshighosh/better-schoology/.claude/skills/character-sprite-maker/scripts/inspect_frames.py": {
+    "mtime": 1780741598.1861825,
+    "ast_hash": "4fb1aac31f939ccf606f6bd9c4f6b0bc",
+    "semantic_hash": "4fb1aac31f939ccf606f6bd9c4f6b0bc"
+  },
+  "/Users/saptarshighosh/better-schoology/.claude/skills/character-sprite-maker/scripts/make_contact_sheet.py": {
+    "mtime": 1780741598.1862748,
+    "ast_hash": "951f490332e8a85424dbd64b78342dca",
+    "semantic_hash": "951f490332e8a85424dbd64b78342dca"
+  },
+  "/Users/saptarshighosh/better-schoology/.claude/skills/character-sprite-maker/scripts/normalize_chroma_source.py": {
+    "mtime": 1780741598.1863816,
+    "ast_hash": "39c86a92f20573bc2770c8c5d7c02444",
+    "semantic_hash": "39c86a92f20573bc2770c8c5d7c02444"
+  },
+  "/Users/saptarshighosh/better-schoology/.claude/skills/character-sprite-maker/scripts/package_sprite_character.py": {
+    "mtime": 1780741598.1864796,
+    "ast_hash": "ab7d660070382e382a537fcdb48b755f",
+    "semantic_hash": "ab7d660070382e382a537fcdb48b755f"
+  },
+  "/Users/saptarshighosh/better-schoology/.claude/skills/character-sprite-maker/scripts/prepare_character_run.py": {
+    "mtime": 1780741598.186671,
+    "ast_hash": "b368e8a947c2c8c659064d68f44041ac",
+    "semantic_hash": "b368e8a947c2c8c659064d68f44041ac"
+  },
+  "/Users/saptarshighosh/better-schoology/.claude/skills/character-sprite-maker/scripts/queue_character_repairs.py": {
+    "mtime": 1780741598.1867778,
+    "ast_hash": "df1b6b6dd4ff902d8bd111a1cb67d5ff",
+    "semantic_hash": "df1b6b6dd4ff902d8bd111a1cb67d5ff"
+  },
+  "/Users/saptarshighosh/better-schoology/.claude/skills/character-sprite-maker/scripts/record_imagegen_result.py": {
+    "mtime": 1780741598.186885,
+    "ast_hash": "0f3e49a87c2e5e5357426caaef3b70a4",
+    "semantic_hash": "0f3e49a87c2e5e5357426caaef3b70a4"
+  },
+  "/Users/saptarshighosh/better-schoology/.claude/skills/character-sprite-maker/scripts/render_animation_gifs.py": {
+    "mtime": 1780741598.1870036,
+    "ast_hash": "b3f0153ccd2a6d318d8d49adbccfa02c",
+    "semantic_hash": "b3f0153ccd2a6d318d8d49adbccfa02c"
+  },
+  "/Users/saptarshighosh/better-schoology/.claude/skills/character-sprite-maker/scripts/validate_atlas.py": {
+    "mtime": 1780741598.1871135,
+    "ast_hash": "b4a4963e676ed9f47a08f7606d9a9e91",
+    "semantic_hash": "b4a4963e676ed9f47a08f7606d9a9e91"
+  },
+  "/Users/saptarshighosh/better-schoology/.impeccable/live/config.json": {
+    "mtime": 1780798780.9655545,
+    "ast_hash": "40f52f76b1c6381420e0829605844fcd",
+    "semantic_hash": "40f52f76b1c6381420e0829605844fcd"
+  },
+  "/Users/saptarshighosh/better-schoology/app/(dashboard)/assignments/page.tsx": {
+    "mtime": 1780706928.338973,
+    "ast_hash": "a5baab2b2afd6cf3550525f3cfcd0db1",
+    "semantic_hash": "a5baab2b2afd6cf3550525f3cfcd0db1"
+  },
+  "/Users/saptarshighosh/better-schoology/app/(dashboard)/emails/page.tsx": {
+    "mtime": 1780714591.6431098,
+    "ast_hash": "3b55713bf590273794c8ff227452e8aa",
+    "semantic_hash": "3b55713bf590273794c8ff227452e8aa"
+  },
+  "/Users/saptarshighosh/better-schoology/app/(dashboard)/gradegraph/page.tsx": {
+    "mtime": 1780800846.32343,
+    "ast_hash": "9bfbbe1fa03ea5a2ec8f9c6a4a1ded0a",
+    "semantic_hash": "9bfbbe1fa03ea5a2ec8f9c6a4a1ded0a"
+  },
+  "/Users/saptarshighosh/better-schoology/app/(dashboard)/grades/page.tsx": {
+    "mtime": 1780706875.6521676,
+    "ast_hash": "08bb8b7fa4722b91600995ced73ce24f",
+    "semantic_hash": "08bb8b7fa4722b91600995ced73ce24f"
+  },
+  "/Users/saptarshighosh/better-schoology/app/(dashboard)/layout.tsx": {
+    "mtime": 1780804888.2006054,
+    "ast_hash": "b45ac93161fade515cfdd38fae4778b3",
+    "semantic_hash": "b45ac93161fade515cfdd38fae4778b3"
+  },
+  "/Users/saptarshighosh/better-schoology/app/(dashboard)/overview/page.tsx": {
+    "mtime": 1780699698.5722456,
+    "ast_hash": "0fab1fcbc04a23d49bba88c98a944ad2",
+    "semantic_hash": "0fab1fcbc04a23d49bba88c98a944ad2"
+  },
+  "/Users/saptarshighosh/better-schoology/app/(dashboard)/settings/page.tsx": {
+    "mtime": 1780707389.8794656,
+    "ast_hash": "64c336447e0245ef2aa90d83d6b8baa6",
+    "semantic_hash": "64c336447e0245ef2aa90d83d6b8baa6"
+  },
+  "/Users/saptarshighosh/better-schoology/app/api/activity/route.ts": {
+    "mtime": 1780738328.7355356,
+    "ast_hash": "1c99f23444578e2ba292cfc33cd563f6",
+    "semantic_hash": "1c99f23444578e2ba292cfc33cd563f6"
+  },
+  "/Users/saptarshighosh/better-schoology/app/api/apple-music/token/route.ts": {
+    "mtime": 1780735109.4371648,
+    "ast_hash": "e802ccfd76a568017704ff428ae0f330",
+    "semantic_hash": "e802ccfd76a568017704ff428ae0f330"
+  },
+  "/Users/saptarshighosh/better-schoology/app/api/auth/callback/route.ts": {
+    "mtime": 1780715545.8576334,
+    "ast_hash": "d70913b1758b20e3b44680f74c88af3a",
+    "semantic_hash": "d70913b1758b20e3b44680f74c88af3a"
+  },
+  "/Users/saptarshighosh/better-schoology/app/api/auth/google/route.ts": {
+    "mtime": 1780715538.277228,
+    "ast_hash": "30076c74d31a2cf5629e8e9a5750b754",
+    "semantic_hash": "30076c74d31a2cf5629e8e9a5750b754"
+  },
+  "/Users/saptarshighosh/better-schoology/app/api/discovery/book/route.ts": {
+    "mtime": 1780861862.5635362,
+    "ast_hash": "3367bad9fa4e629afb115859ae88e39a",
+    "semantic_hash": "3367bad9fa4e629afb115859ae88e39a"
+  },
+  "/Users/saptarshighosh/better-schoology/app/api/discovery/space/route.ts": {
+    "mtime": 1780862987.2350252,
+    "ast_hash": "4fa000311ab392ceb7d721968dac6e4d",
+    "semantic_hash": "4fa000311ab392ceb7d721968dac6e4d"
+  },
+  "/Users/saptarshighosh/better-schoology/app/api/emails/route.ts": {
+    "mtime": 1780716380.5861459,
+    "ast_hash": "985ddac2d3561990903d99189c13ec70",
+    "semantic_hash": "985ddac2d3561990903d99189c13ec70"
+  },
+  "/Users/saptarshighosh/better-schoology/app/api/grades/route.ts": {
+    "mtime": 1780859352.2917147,
+    "ast_hash": "1ce18dded52544678ac6d44350559dfe",
+    "semantic_hash": "1ce18dded52544678ac6d44350559dfe"
+  },
+  "/Users/saptarshighosh/better-schoology/app/api/music/artist/route.ts": {
+    "mtime": 1780803674.3048298,
+    "ast_hash": "cc4bd8ac68e0c9155415238e4c64dbba",
+    "semantic_hash": "cc4bd8ac68e0c9155415238e4c64dbba"
+  },
+  "/Users/saptarshighosh/better-schoology/app/api/music/control/route.ts": {
+    "mtime": 1780740940.5283334,
+    "ast_hash": "8a2ab7bfb0b71be5fe9f4fa30275988a",
+    "semantic_hash": "8a2ab7bfb0b71be5fe9f4fa30275988a"
+  },
+  "/Users/saptarshighosh/better-schoology/app/api/music/output/route.ts": {
+    "mtime": 1780802829.8771431,
+    "ast_hash": "a3df89e0cea4133d5304eed7935c7e4a",
+    "semantic_hash": "a3df89e0cea4133d5304eed7935c7e4a"
+  },
+  "/Users/saptarshighosh/better-schoology/app/api/music/playlists/route.ts": {
+    "mtime": 1780740444.162551,
+    "ast_hash": "54f2272afa45c0e8dd66a49dfdc4753f",
+    "semantic_hash": "54f2272afa45c0e8dd66a49dfdc4753f"
+  },
+  "/Users/saptarshighosh/better-schoology/app/api/music/status/route.ts": {
+    "mtime": 1780877769.8299303,
+    "ast_hash": "12ed04aae41b186948541c39238405dd",
+    "semantic_hash": "12ed04aae41b186948541c39238405dd"
+  },
+  "/Users/saptarshighosh/better-schoology/app/api/music/tracks/route.ts": {
+    "mtime": 1780879672.6121867,
+    "ast_hash": "902736425f70f611187135a30fbb925d",
+    "semantic_hash": "902736425f70f611187135a30fbb925d"
+  },
+  "/Users/saptarshighosh/better-schoology/app/api/scrape/route.ts": {
+    "mtime": 1780902641.8031127,
+    "ast_hash": "53284b9f5f4dac01d25a25006f4dddbd",
+    "semantic_hash": "53284b9f5f4dac01d25a25006f4dddbd"
+  },
+  "/Users/saptarshighosh/better-schoology/app/api/semester/route.ts": {
+    "mtime": 1780721719.2837458,
+    "ast_hash": "3e41c7e076d615d991f3e783ecd0d498",
+    "semantic_hash": "3e41c7e076d615d991f3e783ecd0d498"
+  },
+  "/Users/saptarshighosh/better-schoology/app/api/user-data/route.ts": {
+    "mtime": 1780715234.0260546,
+    "ast_hash": "aa9c8b367602c2e6d6783cfb588295e6",
+    "semantic_hash": "aa9c8b367602c2e6d6783cfb588295e6"
+  },
+  "/Users/saptarshighosh/better-schoology/app/error.tsx": {
+    "mtime": 1780801874.2171226,
+    "ast_hash": "2efb420f52e9da4a6ce23573880bb660",
+    "semantic_hash": "2efb420f52e9da4a6ce23573880bb660"
+  },
+  "/Users/saptarshighosh/better-schoology/app/layout.tsx": {
+    "mtime": 1780733830.67237,
+    "ast_hash": "be4897b07932ae7ff66b581ff1ff6d59",
+    "semantic_hash": "be4897b07932ae7ff66b581ff1ff6d59"
+  },
+  "/Users/saptarshighosh/better-schoology/app/not-found.tsx": {
+    "mtime": 1780800455.1826303,
+    "ast_hash": "e08903513d2dee0dd492bb968ac9e5b1",
+    "semantic_hash": "e08903513d2dee0dd492bb968ac9e5b1"
+  },
+  "/Users/saptarshighosh/better-schoology/app/page.tsx": {
+    "mtime": 1780711134.4187515,
+    "ast_hash": "ca821dda314fe028fa7488d197e59b63",
+    "semantic_hash": "ca821dda314fe028fa7488d197e59b63"
+  },
+  "/Users/saptarshighosh/better-schoology/components.json": {
+    "mtime": 1780695918.1175058,
+    "ast_hash": "0d40e37f6bfe9128ba382b276e6773bc",
+    "semantic_hash": "0d40e37f6bfe9128ba382b276e6773bc"
+  },
+  "/Users/saptarshighosh/better-schoology/components/assignments/assignment-row.tsx": {
+    "mtime": 1780712605.505439,
+    "ast_hash": "13f5a19939c1329d5f0ce5ed345e8bb5",
+    "semantic_hash": "13f5a19939c1329d5f0ce5ed345e8bb5"
+  },
+  "/Users/saptarshighosh/better-schoology/components/assignments/assignments-client.tsx": {
+    "mtime": 1780884296.2495127,
+    "ast_hash": "d81a1396c99b511b228c8e9b4d3c8a77",
+    "semantic_hash": "d81a1396c99b511b228c8e9b4d3c8a77"
+  },
+  "/Users/saptarshighosh/better-schoology/components/emails/emails-client.tsx": {
+    "mtime": 1780876502.1994405,
+    "ast_hash": "a0fbf9ab6268f7016ed3e0f363b51467",
+    "semantic_hash": "a0fbf9ab6268f7016ed3e0f363b51467"
+  },
+  "/Users/saptarshighosh/better-schoology/components/gradegraph/course-detail.tsx": {
+    "mtime": 1780800426.1264534,
+    "ast_hash": "ef272994c2ccb5f595914c188a1a68bb",
+    "semantic_hash": "ef272994c2ccb5f595914c188a1a68bb"
+  },
+  "/Users/saptarshighosh/better-schoology/components/gradegraph/course-graph-card.tsx": {
+    "mtime": 1780711999.0785236,
+    "ast_hash": "11054808591a873f12f3464ddd05f149",
+    "semantic_hash": "11054808591a873f12f3464ddd05f149"
+  },
+  "/Users/saptarshighosh/better-schoology/components/gradegraph/gradegraph-client.tsx": {
+    "mtime": 1780801655.5319326,
+    "ast_hash": "32baf23fb62e5b725a2c017ee301dcca",
+    "semantic_hash": "32baf23fb62e5b725a2c017ee301dcca"
+  },
+  "/Users/saptarshighosh/better-schoology/components/grades/category-row.tsx": {
+    "mtime": 1780742333.9841082,
+    "ast_hash": "bdeb2c742aaf18d4fa5b3ed1fc65e737",
+    "semantic_hash": "bdeb2c742aaf18d4fa5b3ed1fc65e737"
+  },
+  "/Users/saptarshighosh/better-schoology/components/grades/course-sidebar.tsx": {
+    "mtime": 1780706813.154691,
+    "ast_hash": "f8b54a813ba5779ac21a139991b3cc9f",
+    "semantic_hash": "f8b54a813ba5779ac21a139991b3cc9f"
+  },
+  "/Users/saptarshighosh/better-schoology/components/grades/grade-calculator.tsx": {
+    "mtime": 1780742411.4887273,
+    "ast_hash": "83704855ae18adc03612f75f141bf67b",
+    "semantic_hash": "83704855ae18adc03612f75f141bf67b"
+  },
+  "/Users/saptarshighosh/better-schoology/components/grades/grade-formula-strip.tsx": {
+    "mtime": 1780742338.9433975,
+    "ast_hash": "6b66aaf7e66bd6b1ce967161e0f5f09a",
+    "semantic_hash": "6b66aaf7e66bd6b1ce967161e0f5f09a"
+  },
+  "/Users/saptarshighosh/better-schoology/components/grades/gradebook.tsx": {
+    "mtime": 1780742936.691643,
+    "ast_hash": "69c8a46c7d6dcd1d6ef56c38bc503055",
+    "semantic_hash": "69c8a46c7d6dcd1d6ef56c38bc503055"
+  },
+  "/Users/saptarshighosh/better-schoology/components/grades/grades-client.tsx": {
+    "mtime": 1780720877.9264765,
+    "ast_hash": "978da8c1c84c8068001f4ac8fca369ca",
+    "semantic_hash": "978da8c1c84c8068001f4ac8fca369ca"
+  },
+  "/Users/saptarshighosh/better-schoology/components/layout/layout-extras.tsx": {
+    "mtime": 1780746743.0515475,
+    "ast_hash": "01b823db7771e046dcae8c57c2c0f582",
+    "semantic_hash": "01b823db7771e046dcae8c57c2c0f582"
+  },
+  "/Users/saptarshighosh/better-schoology/components/layout/music-widget.tsx": {
+    "mtime": 1780893173.4688692,
+    "ast_hash": "f5f8e534e16d89b0bcc4a8a759ba947a",
+    "semantic_hash": "f5f8e534e16d89b0bcc4a8a759ba947a"
+  },
+  "/Users/saptarshighosh/better-schoology/components/layout/scrape-status-bar.tsx": {
+    "mtime": 1780902658.6469316,
+    "ast_hash": "1d146d499a5f83d4afd41853f477fa0a",
+    "semantic_hash": "1d146d499a5f83d4afd41853f477fa0a"
+  },
+  "/Users/saptarshighosh/better-schoology/components/layout/sidebar.tsx": {
+    "mtime": 1780886566.6559446,
+    "ast_hash": "660136019eaa304bd44bf9f7d96bbec0",
+    "semantic_hash": "660136019eaa304bd44bf9f7d96bbec0"
+  },
+  "/Users/saptarshighosh/better-schoology/components/layout/topbar.tsx": {
+    "mtime": 1780902684.3288503,
+    "ast_hash": "edf6017fbf2bc089e8e722cd29c4356d",
+    "semantic_hash": "edf6017fbf2bc089e8e722cd29c4356d"
+  },
+  "/Users/saptarshighosh/better-schoology/components/mascot/allen-sprite.tsx": {
+    "mtime": 1780806739.814946,
+    "ast_hash": "29d41ef15ac0b9505186330e0820f2ec",
+    "semantic_hash": "29d41ef15ac0b9505186330e0820f2ec"
+  },
+  "/Users/saptarshighosh/better-schoology/components/mascot/family-sprite.tsx": {
+    "mtime": 1780743025.178504,
+    "ast_hash": "0d1685a00458f6b8c677f344c662e365",
+    "semantic_hash": "0d1685a00458f6b8c677f344c662e365"
+  },
+  "/Users/saptarshighosh/better-schoology/components/mascot/mascot-placeholder.tsx": {
+    "mtime": 1780699542.2498767,
+    "ast_hash": "0ee5af07041d691abcb8f20346969f78",
+    "semantic_hash": "0ee5af07041d691abcb8f20346969f78"
+  },
+  "/Users/saptarshighosh/better-schoology/components/mascot/mascot-rive.tsx": {
+    "mtime": 1780732499.7420194,
+    "ast_hash": "5b428c610720bb221f770a235a6080ae",
+    "semantic_hash": "5b428c610720bb221f770a235a6080ae"
+  },
+  "/Users/saptarshighosh/better-schoology/components/mascot/preset-mascots.tsx": {
+    "mtime": 1780809502.9510942,
+    "ast_hash": "a2065d62f7fb001a02771c6b925c8277",
+    "semantic_hash": "a2065d62f7fb001a02771c6b925c8277"
+  },
+  "/Users/saptarshighosh/better-schoology/components/mascot/theme-mascots.tsx": {
+    "mtime": 1780809204.5302348,
+    "ast_hash": "5f0f321d519ed64bd75e8555f19eaa63",
+    "semantic_hash": "5f0f321d519ed64bd75e8555f19eaa63"
+  },
+  "/Users/saptarshighosh/better-schoology/components/overview/analytics-strip.tsx": {
+    "mtime": 1780703995.9517047,
+    "ast_hash": "f61c91fd435e59025ef2303b2d765545",
+    "semantic_hash": "f61c91fd435e59025ef2303b2d765545"
+  },
+  "/Users/saptarshighosh/better-schoology/components/overview/chip-zone.tsx": {
+    "mtime": 1780884737.037642,
+    "ast_hash": "f242d923408d43623df689509bff3068",
+    "semantic_hash": "f242d923408d43623df689509bff3068"
+  },
+  "/Users/saptarshighosh/better-schoology/components/overview/course-card.tsx": {
+    "mtime": 1780885090.672149,
+    "ast_hash": "116547c15879bf8bb15dff849a4a4e34",
+    "semantic_hash": "116547c15879bf8bb15dff849a4a4e34"
+  },
+  "/Users/saptarshighosh/better-schoology/components/overview/daily-discovery.tsx": {
+    "mtime": 1780863013.7298946,
+    "ast_hash": "001eedeb660b5d8ef669432abacdf65e",
+    "semantic_hash": "001eedeb660b5d8ef669432abacdf65e"
+  },
+  "/Users/saptarshighosh/better-schoology/components/overview/missing-section.tsx": {
+    "mtime": 1780884198.1276171,
+    "ast_hash": "22f1b7cb1a1662b8e4494811409c9bdf",
+    "semantic_hash": "22f1b7cb1a1662b8e4494811409c9bdf"
+  },
+  "/Users/saptarshighosh/better-schoology/components/overview/overview-client.tsx": {
+    "mtime": 1780887562.8808684,
+    "ast_hash": "66ee5488e8bd0485294ccf86b8db8cce",
+    "semantic_hash": "66ee5488e8bd0485294ccf86b8db8cce"
+  },
+  "/Users/saptarshighosh/better-schoology/components/overview/recent-updates.tsx": {
+    "mtime": 1780887234.7961512,
+    "ast_hash": "c8a03a109117ba80b7c7da0af146a29c",
+    "semantic_hash": "c8a03a109117ba80b7c7da0af146a29c"
+  },
+  "/Users/saptarshighosh/better-schoology/components/overview/study-music.tsx": {
+    "mtime": 1780893168.7313151,
+    "ast_hash": "79a5cc580498e54d7f2f4d233cfb8f64",
+    "semantic_hash": "79a5cc580498e54d7f2f4d233cfb8f64"
+  },
+  "/Users/saptarshighosh/better-schoology/components/overview/upcoming-section.tsx": {
+    "mtime": 1780887755.190875,
+    "ast_hash": "f4fb34f26c8ab58f0c0c8307e1424d1d",
+    "semantic_hash": "f4fb34f26c8ab58f0c0c8307e1424d1d"
+  },
+  "/Users/saptarshighosh/better-schoology/components/screensaver/screensaver.tsx": {
+    "mtime": 1780746730.6444488,
+    "ast_hash": "fd5232767d0bdf33403a87ef43e11447",
+    "semantic_hash": "fd5232767d0bdf33403a87ef43e11447"
+  },
+  "/Users/saptarshighosh/better-schoology/components/settings/settings-client.tsx": {
+    "mtime": 1780902672.7729821,
+    "ast_hash": "c0a29d1c4cd058b71be1c8ad6f568b51",
+    "semantic_hash": "c0a29d1c4cd058b71be1c8ad6f568b51"
+  },
+  "/Users/saptarshighosh/better-schoology/components/shared/lamp-glow.tsx": {
+    "mtime": 1780801856.532251,
+    "ast_hash": "3acd93e5d12fba3ed7c246a9b6f2bb45",
+    "semantic_hash": "3acd93e5d12fba3ed7c246a9b6f2bb45"
+  },
+  "/Users/saptarshighosh/better-schoology/components/shared/lottie-spinner.tsx": {
+    "mtime": 1780722760.3896601,
+    "ast_hash": "07c2c3cd8ca0e60187191f1f27260aa5",
+    "semantic_hash": "07c2c3cd8ca0e60187191f1f27260aa5"
+  },
+  "/Users/saptarshighosh/better-schoology/components/shared/song-info-panel.tsx": {
+    "mtime": 1780878422.9422467,
+    "ast_hash": "3d2729409cba97f645644555a1dcda45",
+    "semantic_hash": "3d2729409cba97f645644555a1dcda45"
+  },
+  "/Users/saptarshighosh/better-schoology/components/shared/status-chip.tsx": {
+    "mtime": 1780699548.9683483,
+    "ast_hash": "532fcd3b5a513a7bc719f32a4b0e23d3",
+    "semantic_hash": "532fcd3b5a513a7bc719f32a4b0e23d3"
+  },
+  "/Users/saptarshighosh/better-schoology/components/theme-sync.tsx": {
+    "mtime": 1780733834.984119,
+    "ast_hash": "12d9be8ae70d03f24db04c1f40e0cef9",
+    "semantic_hash": "12d9be8ae70d03f24db04c1f40e0cef9"
+  },
+  "/Users/saptarshighosh/better-schoology/components/theme/theme-provider.tsx": {
+    "mtime": 1780800352.0065506,
+    "ast_hash": "6540740f48cc4eabaa0d66c70dafbb7e",
+    "semantic_hash": "6540740f48cc4eabaa0d66c70dafbb7e"
+  },
+  "/Users/saptarshighosh/better-schoology/components/ui/badge.tsx": {
+    "mtime": 1780695984.869149,
+    "ast_hash": "cceb5c2faafe4dc29900abedf914053d",
+    "semantic_hash": "cceb5c2faafe4dc29900abedf914053d"
+  },
+  "/Users/saptarshighosh/better-schoology/components/ui/button.tsx": {
+    "mtime": 1780695924.693136,
+    "ast_hash": "1c3778f3a991ef45b979a3b6856cf28a",
+    "semantic_hash": "1c3778f3a991ef45b979a3b6856cf28a"
+  },
+  "/Users/saptarshighosh/better-schoology/components/ui/card.tsx": {
+    "mtime": 1780695984.8091488,
+    "ast_hash": "0936c44e966e76e8ae30ed7ba28cfc33",
+    "semantic_hash": "0936c44e966e76e8ae30ed7ba28cfc33"
+  },
+  "/Users/saptarshighosh/better-schoology/components/ui/dropdown-menu.tsx": {
+    "mtime": 1780695984.9508393,
+    "ast_hash": "477bf1fe81848a93f456c0a4e6031d28",
+    "semantic_hash": "477bf1fe81848a93f456c0a4e6031d28"
+  },
+  "/Users/saptarshighosh/better-schoology/components/ui/input.tsx": {
+    "mtime": 1780695985.0152106,
+    "ast_hash": "448f4465abdd9f3d8ee69fb62c4ba77b",
+    "semantic_hash": "448f4465abdd9f3d8ee69fb62c4ba77b"
+  },
+  "/Users/saptarshighosh/better-schoology/components/ui/scroll-area.tsx": {
+    "mtime": 1780695985.0803678,
+    "ast_hash": "5a04c269a377e8176ebbf27ee8ac35bf",
+    "semantic_hash": "5a04c269a377e8176ebbf27ee8ac35bf"
+  },
+  "/Users/saptarshighosh/better-schoology/components/ui/select.tsx": {
+    "mtime": 1780695984.9958482,
+    "ast_hash": "e16be97d74d16e9308705b9a4b663b8e",
+    "semantic_hash": "e16be97d74d16e9308705b9a4b663b8e"
+  },
+  "/Users/saptarshighosh/better-schoology/components/ui/separator.tsx": {
+    "mtime": 1780695985.0604956,
+    "ast_hash": "f57449eae78fbd87d99e4edc45ab3c1e",
+    "semantic_hash": "f57449eae78fbd87d99e4edc45ab3c1e"
+  },
+  "/Users/saptarshighosh/better-schoology/components/ui/skeleton.tsx": {
+    "mtime": 1780695985.0984912,
+    "ast_hash": "9443153ca97dad43d604c6d8a7684902",
+    "semantic_hash": "9443153ca97dad43d604c6d8a7684902"
+  },
+  "/Users/saptarshighosh/better-schoology/components/ui/switch.tsx": {
+    "mtime": 1780695985.116868,
+    "ast_hash": "3e461ad4ab876d1397c80d3f8532ada4",
+    "semantic_hash": "3e461ad4ab876d1397c80d3f8532ada4"
+  },
+  "/Users/saptarshighosh/better-schoology/components/ui/table.tsx": {
+    "mtime": 1780695984.892685,
+    "ast_hash": "0c7330d3d72775201c9da97387f00d7b",
+    "semantic_hash": "0c7330d3d72775201c9da97387f00d7b"
+  },
+  "/Users/saptarshighosh/better-schoology/components/ui/tabs.tsx": {
+    "mtime": 1780695984.8428981,
+    "ast_hash": "32cf43e8c7366d1a67ea19d6f6aab62b",
+    "semantic_hash": "32cf43e8c7366d1a67ea19d6f6aab62b"
+  },
+  "/Users/saptarshighosh/better-schoology/components/ui/tooltip.tsx": {
+    "mtime": 1780695985.0337918,
+    "ast_hash": "930ad4e5ae645d9f49c142a7977e0502",
+    "semantic_hash": "930ad4e5ae645d9f49c142a7977e0502"
+  },
+  "/Users/saptarshighosh/better-schoology/eslint.config.mjs": {
+    "mtime": 1780694874.9964905,
+    "ast_hash": "dfa1f5f6a7037bf39dc510f30b180002",
+    "semantic_hash": "dfa1f5f6a7037bf39dc510f30b180002"
+  },
+  "/Users/saptarshighosh/better-schoology/instrumentation.ts": {
+    "mtime": 1780716695.7494895,
+    "ast_hash": "30929deb617aca01de5df40474ee90d5",
+    "semantic_hash": "30929deb617aca01de5df40474ee90d5"
+  },
+  "/Users/saptarshighosh/better-schoology/lib/gmail/auth.ts": {
+    "mtime": 1780715534.2696147,
+    "ast_hash": "6a9865a3da5d916dbd6a285a8ccbb31a",
+    "semantic_hash": "6a9865a3da5d916dbd6a285a8ccbb31a"
+  },
+  "/Users/saptarshighosh/better-schoology/lib/gmail/fetch-emails.ts": {
+    "mtime": 1780715572.0162735,
+    "ast_hash": "8093ba213942c85aaf73c6d5a2a6701e",
+    "semantic_hash": "8093ba213942c85aaf73c6d5a2a6701e"
+  },
+  "/Users/saptarshighosh/better-schoology/lib/mock-data.ts": {
+    "mtime": 1780712592.9781492,
+    "ast_hash": "f673ff0d78273c5f3f153bd836ed23fe",
+    "semantic_hash": "f673ff0d78273c5f3f153bd836ed23fe"
+  },
+  "/Users/saptarshighosh/better-schoology/lib/scraper/activity-watch.ts": {
+    "mtime": 1780803949.5792794,
+    "ast_hash": "278052e2d54af4352e7ae4a70be6bc73",
+    "semantic_hash": "278052e2d54af4352e7ae4a70be6bc73"
+  },
+  "/Users/saptarshighosh/better-schoology/lib/scraper/scheduler.ts": {
+    "mtime": 1780902654.5462563,
+    "ast_hash": "90d3696f5c07b5e71dae9c77590ead4d",
+    "semantic_hash": "90d3696f5c07b5e71dae9c77590ead4d"
+  },
+  "/Users/saptarshighosh/better-schoology/lib/scraper/scrape-activity.ts": {
+    "mtime": 1780902621.9417522,
+    "ast_hash": "24e133fe24154242d5a345a2f65bfab4",
+    "semantic_hash": "24e133fe24154242d5a345a2f65bfab4"
+  },
+  "/Users/saptarshighosh/better-schoology/lib/scraper/scrape-gmail.ts": {
+    "mtime": 1780902739.2800553,
+    "ast_hash": "ffde159986bba5df0b41f2ec917f6f07",
+    "semantic_hash": "ffde159986bba5df0b41f2ec917f6f07"
+  },
+  "/Users/saptarshighosh/better-schoology/lib/scraper/scrape-schoology.ts": {
+    "mtime": 1780902727.1556172,
+    "ast_hash": "a440387a8b8d41f69532a26655749560",
+    "semantic_hash": "a440387a8b8d41f69532a26655749560"
+  },
+  "/Users/saptarshighosh/better-schoology/lib/scraper/semester-log.ts": {
+    "mtime": 1780721702.8576534,
+    "ast_hash": "9b94b3dfd9ee30c0ce872e2abd2d01a3",
+    "semantic_hash": "9b94b3dfd9ee30c0ce872e2abd2d01a3"
+  },
+  "/Users/saptarshighosh/better-schoology/lib/scraper/sessions.ts": {
+    "mtime": 1780858494.1022763,
+    "ast_hash": "b72d3e957ec4a30b1ebe36b95ff88840",
+    "semantic_hash": "b72d3e957ec4a30b1ebe36b95ff88840"
+  },
+  "/Users/saptarshighosh/better-schoology/lib/scraper/state.ts": {
+    "mtime": 1780902529.9334188,
+    "ast_hash": "5aaaa231290578c0c9827c075d7cc928",
+    "semantic_hash": "5aaaa231290578c0c9827c075d7cc928"
+  },
+  "/Users/saptarshighosh/better-schoology/lib/types.ts": {
+    "mtime": 1780718344.3665497,
+    "ast_hash": "b1432481161fbbe26e1695475971d82d",
+    "semantic_hash": "b1432481161fbbe26e1695475971d82d"
+  },
+  "/Users/saptarshighosh/better-schoology/lib/use-connection.ts": {
+    "mtime": 1780864345.146643,
+    "ast_hash": "86e6c93382cdc13c9d1b63f19e97921c",
+    "semantic_hash": "86e6c93382cdc13c9d1b63f19e97921c"
+  },
+  "/Users/saptarshighosh/better-schoology/lib/use-grades.ts": {
+    "mtime": 1780720824.7249248,
+    "ast_hash": "29fa1ebc34693b24185ca3ea7a21bc5a",
+    "semantic_hash": "29fa1ebc34693b24185ca3ea7a21bc5a"
+  },
+  "/Users/saptarshighosh/better-schoology/lib/utils.ts": {
+    "mtime": 1780695924.7208524,
+    "ast_hash": "5a6fd53fdcf2be529e9cc0b718fde352",
+    "semantic_hash": "5a6fd53fdcf2be529e9cc0b718fde352"
+  },
+  "/Users/saptarshighosh/better-schoology/next.config.ts": {
+    "mtime": 1780719201.6810675,
+    "ast_hash": "0677729aa98700585238bd094e9cd8fd",
+    "semantic_hash": "0677729aa98700585238bd094e9cd8fd"
+  },
+  "/Users/saptarshighosh/better-schoology/package.json": {
+    "mtime": 1780818199.892582,
+    "ast_hash": "5e9717fc84e33a509092d1698d1e0942",
+    "semantic_hash": "5e9717fc84e33a509092d1698d1e0942"
+  },
+  "/Users/saptarshighosh/better-schoology/postcss.config.mjs": {
+    "mtime": 1780694874.9966733,
+    "ast_hash": "239f3ebf717465dc636818a1a619398d",
+    "semantic_hash": "239f3ebf717465dc636818a1a619398d"
+  },
+  "/Users/saptarshighosh/better-schoology/scripts/debug-sso-login.mjs": {
+    "mtime": 1780820141.0234606,
+    "ast_hash": "64771d6ca98da4cf6b05497384fecdff",
+    "semantic_hash": "64771d6ca98da4cf6b05497384fecdff"
+  },
+  "/Users/saptarshighosh/better-schoology/scripts/lib/browser-profile.mjs": {
+    "mtime": 1780823609.1015563,
+    "ast_hash": "3836b29c7d6231d76a00457794e422dd",
+    "semantic_hash": "3836b29c7d6231d76a00457794e422dd"
+  },
+  "/Users/saptarshighosh/better-schoology/scripts/lib/keychain.mjs": {
+    "mtime": 1780818177.784724,
+    "ast_hash": "1316d0521546ea841b28af0c863b3142",
+    "semantic_hash": "1316d0521546ea841b28af0c863b3142"
+  },
+  "/Users/saptarshighosh/better-schoology/scripts/lib/schoology-login.mjs": {
+    "mtime": 1780856168.607479,
+    "ast_hash": "3b3a399d20a55b79d421da9208e94773",
+    "semantic_hash": "3b3a399d20a55b79d421da9208e94773"
+  },
+  "/Users/saptarshighosh/better-schoology/scripts/scrape-gmail.mjs": {
+    "mtime": 1780716365.9960117,
+    "ast_hash": "4a4ca86d4b72e93aff10caf4841b6674",
+    "semantic_hash": "4a4ca86d4b72e93aff10caf4841b6674"
+  },
+  "/Users/saptarshighosh/better-schoology/scripts/scrape-schoology.mjs": {
+    "mtime": 1780856919.05058,
+    "ast_hash": "58e71cef0122d120eb3644d18d231d40",
+    "semantic_hash": "58e71cef0122d120eb3644d18d231d40"
+  },
+  "/Users/saptarshighosh/better-schoology/store/use-app-store.ts": {
+    "mtime": 1780861835.5030577,
+    "ast_hash": "a6025cda82ae5e077dcd97504c441071",
+    "semantic_hash": "a6025cda82ae5e077dcd97504c441071"
+  },
+  "/Users/saptarshighosh/better-schoology/tsconfig.json": {
+    "mtime": 1780694874.999425,
+    "ast_hash": "02fc19ad21338c2ab820a70136310db4",
+    "semantic_hash": "02fc19ad21338c2ab820a70136310db4"
+  },
+  "/Users/saptarshighosh/better-schoology/.claude/skills/character-sprite-maker/LICENSE.txt": {
+    "mtime": 1780741598.1839745,
+    "ast_hash": "0bfdc0ac8ba46ed583d8fccc1e347dff",
+    "semantic_hash": "0bfdc0ac8ba46ed583d8fccc1e347dff"
+  },
+  "/Users/saptarshighosh/better-schoology/.claude/skills/character-sprite-maker/README.md": {
+    "mtime": 1780741598.1841328,
+    "ast_hash": "b06b5dd79613e7f0287d6f2fafa12058",
+    "semantic_hash": "b06b5dd79613e7f0287d6f2fafa12058"
+  },
+  "/Users/saptarshighosh/better-schoology/.claude/skills/character-sprite-maker/SKILL.md": {
+    "mtime": 1780741598.1842892,
+    "ast_hash": "3cdbd8c2f9e963d936fe53783afacff8",
+    "semantic_hash": "3cdbd8c2f9e963d936fe53783afacff8"
+  },
+  "/Users/saptarshighosh/better-schoology/.claude/skills/character-sprite-maker/agents/openai.yaml": {
+    "mtime": 1780741598.1844378,
+    "ast_hash": "eb0ccb6ede8f991fb4724566ff6b22b1",
+    "semantic_hash": "eb0ccb6ede8f991fb4724566ff6b22b1"
+  },
+  "/Users/saptarshighosh/better-schoology/.claude/skills/character-sprite-maker/references/input-schema.md": {
+    "mtime": 1780741598.184719,
+    "ast_hash": "ef4a65723d6d28ca6e3033330cc2a3ee",
+    "semantic_hash": "ef4a65723d6d28ca6e3033330cc2a3ee"
+  },
+  "/Users/saptarshighosh/better-schoology/AGENTS.md": {
+    "mtime": 1780694917.9538572,
+    "ast_hash": "9e09241799026ac05be315a2f0b50055",
+    "semantic_hash": "9e09241799026ac05be315a2f0b50055"
+  },
+  "/Users/saptarshighosh/better-schoology/CLAUDE.md": {
+    "mtime": 1780877646.0422099,
+    "ast_hash": "37562a2aa12b67557a9e58f5589bd5c2",
+    "semantic_hash": "37562a2aa12b67557a9e58f5589bd5c2"
+  },
+  "/Users/saptarshighosh/better-schoology/DESIGN.md": {
+    "mtime": 1780798854.268162,
+    "ast_hash": "fbccdd4b01142172846bb34727ec87c7",
+    "semantic_hash": "fbccdd4b01142172846bb34727ec87c7"
+  },
+  "/Users/saptarshighosh/better-schoology/HANDOFF.md": {
+    "mtime": 1780893540.4116762,
+    "ast_hash": "6bd3b13bace19bf314a535e642762593",
+    "semantic_hash": "6bd3b13bace19bf314a535e642762593"
+  },
+  "/Users/saptarshighosh/better-schoology/PRODUCT.md": {
+    "mtime": 1780798753.9341342,
+    "ast_hash": "81bec3f0b162ef73aaab1084d53b9624",
+    "semantic_hash": "81bec3f0b162ef73aaab1084d53b9624"
+  },
+  "/Users/saptarshighosh/better-schoology/README.md": {
+    "mtime": 1780694874.9958386,
+    "ast_hash": "f15aaa42d5d299d091b1171097ea56ad",
+    "semantic_hash": "f15aaa42d5d299d091b1171097ea56ad"
+  },
+  "/Users/saptarshighosh/better-schoology/SCRAPER_NOTES.md": {
+    "mtime": 1780902775.3136837,
+    "ast_hash": "5ce1ffaffc6bbbf4336c2ce423ba4634",
+    "semantic_hash": "5ce1ffaffc6bbbf4336c2ce423ba4634"
+  },
+  "/Users/saptarshighosh/better-schoology/data/activity-debug.html": {
+    "mtime": 1780876558.7848897,
+    "ast_hash": "226d35d9e2722c82c6005c90bbec5256",
+    "semantic_hash": "226d35d9e2722c82c6005c90bbec5256"
+  },
+  "/Users/saptarshighosh/better-schoology/data/gmail-debug.html": {
+    "mtime": 1780857585.1955943,
+    "ast_hash": "31601460a793e6caff8423edd4a0c9c7",
+    "semantic_hash": "31601460a793e6caff8423edd4a0c9c7"
+  },
+  "/Users/saptarshighosh/better-schoology/data/schoology-debug.html": {
+    "mtime": 1780857227.2615669,
+    "ast_hash": "3d2a21492de28f02aa50562e96a6989d",
+    "semantic_hash": "3d2a21492de28f02aa50562e96a6989d"
+  },
+  "/Users/saptarshighosh/better-schoology/data/sprites/family-photo/run-axell/prompts/animations/idle-lineup.md": {
+    "mtime": 1780743255.1626108,
+    "ast_hash": "23b96f7810a989b2190993ffa078334b",
+    "semantic_hash": "23b96f7810a989b2190993ffa078334b"
+  },
+  "/Users/saptarshighosh/better-schoology/data/sprites/family-photo/run-axell/prompts/base-character.md": {
+    "mtime": 1780743255.162502,
+    "ast_hash": "3694a612b1c475e3c76f1cffc3e07245",
+    "semantic_hash": "3694a612b1c475e3c76f1cffc3e07245"
+  },
+  "/Users/saptarshighosh/better-schoology/data/sprites/family-photo/run-evara/prompts/animations/idle-lineup.md": {
+    "mtime": 1780743179.502375,
+    "ast_hash": "377471e06d94521a64f5255e59f96255",
+    "semantic_hash": "377471e06d94521a64f5255e59f96255"
+  },
+  "/Users/saptarshighosh/better-schoology/data/sprites/family-photo/run-evara/prompts/base-character.md": {
+    "mtime": 1780743179.50226,
+    "ast_hash": "bfe3953817df9ccb8bdc86dee1d0ff1c",
+    "semantic_hash": "bfe3953817df9ccb8bdc86dee1d0ff1c"
+  },
+  "/Users/saptarshighosh/better-schoology/data/sprites/family-photo/run-markus/prompts/animations/idle-lineup.md": {
+    "mtime": 1780743160.9420261,
+    "ast_hash": "de07389981554f335211a907ccba8365",
+    "semantic_hash": "de07389981554f335211a907ccba8365"
+  },
+  "/Users/saptarshighosh/better-schoology/data/sprites/family-photo/run-markus/prompts/base-character.md": {
+    "mtime": 1780743160.9419367,
+    "ast_hash": "1ee2f3dc6c19e6e5247b7ac70e3b5a03",
+    "semantic_hash": "1ee2f3dc6c19e6e5247b7ac70e3b5a03"
+  },
+  "/Users/saptarshighosh/better-schoology/data/sprites/family-photo/run-orion/prompts/animations/idle-lineup.md": {
+    "mtime": 1780743230.675625,
+    "ast_hash": "b6aaab3fd3a607cd6068d0e7750dcf2d",
+    "semantic_hash": "b6aaab3fd3a607cd6068d0e7750dcf2d"
+  },
+  "/Users/saptarshighosh/better-schoology/data/sprites/family-photo/run-orion/prompts/base-character.md": {
+    "mtime": 1780743230.6755245,
+    "ast_hash": "1e554e7b01c5f692f6d1ec62d1f5c6d8",
+    "semantic_hash": "1e554e7b01c5f692f6d1ec62d1f5c6d8"
+  },
+  "/Users/saptarshighosh/better-schoology/public/animations/README.md": {
+    "mtime": 1780701935.4392097,
+    "ast_hash": "21359b21c91fb8f0508603d52429f44d",
+    "semantic_hash": "21359b21c91fb8f0508603d52429f44d"
+  },
+  "/Users/saptarshighosh/better-schoology/references/BETTER_SCHOOLOGY_PROJECT.md": {
+    "mtime": 1780698751.1755583,
+    "ast_hash": "04a97650bcd05024a81f72dcedea89f6",
+    "semantic_hash": "04a97650bcd05024a81f72dcedea89f6"
+  },
+  "/Users/saptarshighosh/better-schoology/data/gmail-debug.png": {
+    "mtime": 1780857585.4735188,
+    "ast_hash": "02fae5d9620099aeb55e40aefe868691",
+    "semantic_hash": "02fae5d9620099aeb55e40aefe868691"
+  },
+  "/Users/saptarshighosh/better-schoology/data/schoology-debug.png": {
+    "mtime": 1780857227.304133,
+    "ast_hash": "6a7986e3d065724c8a64a5ff1985685a",
+    "semantic_hash": "6a7986e3d065724c8a64a5ff1985685a"
+  },
+  "/Users/saptarshighosh/better-schoology/data/sprites/family-photo/run-axell/references/layout-guides/idle-lineup.png": {
+    "mtime": 1780743255.1618993,
+    "ast_hash": "c9ddb960779ceba6004bc06580cf0af0",
+    "semantic_hash": "c9ddb960779ceba6004bc06580cf0af0"
+  },
+  "/Users/saptarshighosh/better-schoology/data/sprites/family-photo/run-evara/references/layout-guides/idle-lineup.png": {
+    "mtime": 1780743179.501712,
+    "ast_hash": "c9ddb960779ceba6004bc06580cf0af0",
+    "semantic_hash": "c9ddb960779ceba6004bc06580cf0af0"
+  },
+  "/Users/saptarshighosh/better-schoology/data/sprites/family-photo/run-markus/references/layout-guides/idle-lineup.png": {
+    "mtime": 1780743160.9414315,
+    "ast_hash": "c9ddb960779ceba6004bc06580cf0af0",
+    "semantic_hash": "c9ddb960779ceba6004bc06580cf0af0"
+  },
+  "/Users/saptarshighosh/better-schoology/data/sprites/family-photo/run-orion/references/layout-guides/idle-lineup.png": {
+    "mtime": 1780743230.6748857,
+    "ast_hash": "c9ddb960779ceba6004bc06580cf0af0",
+    "semantic_hash": "c9ddb960779ceba6004bc06580cf0af0"
+  },
+  "/Users/saptarshighosh/better-schoology/public/file.svg": {
+    "mtime": 1780694874.995795,
+    "ast_hash": "d09f95206c3fa0bb9bd9fefabfd0ea71",
+    "semantic_hash": "d09f95206c3fa0bb9bd9fefabfd0ea71"
+  },
+  "/Users/saptarshighosh/better-schoology/public/globe.svg": {
+    "mtime": 1780694874.9975083,
+    "ast_hash": "2aaafa6a49b6563925fe440891e32717",
+    "semantic_hash": "2aaafa6a49b6563925fe440891e32717"
+  },
+  "/Users/saptarshighosh/better-schoology/public/mascot/butcher-angry.png": {
+    "mtime": 1780744795.0315847,
+    "ast_hash": "57283298308448984974f0c284326465",
+    "semantic_hash": "57283298308448984974f0c284326465"
+  },
+  "/Users/saptarshighosh/better-schoology/public/mascot/butcher-chibi.png": {
+    "mtime": 1780745183.8921413,
+    "ast_hash": "643f7f727331c2415003373e1e4a6d22",
+    "semantic_hash": "643f7f727331c2415003373e1e4a6d22"
+  },
+  "/Users/saptarshighosh/better-schoology/public/mascot/butcher-couch.png": {
+    "mtime": 1780744795.0382288,
+    "ast_hash": "89de143ba9e0bd781c56d2133bff0665",
+    "semantic_hash": "89de143ba9e0bd781c56d2133bff0665"
+  },
+  "/Users/saptarshighosh/better-schoology/public/mascot/butcher-happy.png": {
+    "mtime": 1780744795.0206735,
+    "ast_hash": "1c5b2316cf0bd59550df7ea977e57b67",
+    "semantic_hash": "1c5b2316cf0bd59550df7ea977e57b67"
+  },
+  "/Users/saptarshighosh/better-schoology/public/mascot/butcher-sad.png": {
+    "mtime": 1780744795.0268078,
+    "ast_hash": "c319424a3eef4cd59f7659b47313705b",
+    "semantic_hash": "c319424a3eef4cd59f7659b47313705b"
+  },
+  "/Users/saptarshighosh/better-schoology/public/mascot/butcher-smirk.png": {
+    "mtime": 1780744795.0137694,
+    "ast_hash": "623ed03970cd514259e96d6bec2518c8",
+    "semantic_hash": "623ed03970cd514259e96d6bec2518c8"
+  },
+  "/Users/saptarshighosh/better-schoology/public/next.svg": {
+    "mtime": 1780694874.9974494,
+    "ast_hash": "8e061864f388b47f33a1c3780831193e",
+    "semantic_hash": "8e061864f388b47f33a1c3780831193e"
+  },
+  "/Users/saptarshighosh/better-schoology/public/screensaver-vought.png": {
+    "mtime": 1780746603.880106,
+    "ast_hash": "df4b6b787564f3071c3d3efab67fe926",
+    "semantic_hash": "df4b6b787564f3071c3d3efab67fe926"
+  },
+  "/Users/saptarshighosh/better-schoology/public/vercel.svg": {
+    "mtime": 1780694874.997569,
+    "ast_hash": "c0af2f507b369b085b35ef4bbe3bcf1e",
+    "semantic_hash": "c0af2f507b369b085b35ef4bbe3bcf1e"
+  },
+  "/Users/saptarshighosh/better-schoology/public/window.svg": {
+    "mtime": 1780694874.9980466,
+    "ast_hash": "a2760511c65806022ad20adf74370ff3",
+    "semantic_hash": "a2760511c65806022ad20adf74370ff3"
+  },
+  "/Users/saptarshighosh/better-schoology/references/better_schoology_reference_screenshots_contact_sheet.png": {
+    "mtime": 1780698751.1708527,
+    "ast_hash": "2071a0ee17fca5e14e3311bfeb1b12b1",
+    "semantic_hash": "2071a0ee17fca5e14e3311bfeb1b12b1"
+  },
+  "/Users/saptarshighosh/better-schoology/references/pictures/Pictures/Screenshot 2026-06-05 at 4.46.28\u202fPM.png": {
+    "mtime": 1780703192.0,
+    "ast_hash": "28b5637b9c6b9ae3552d7c35698d2a56",
+    "semantic_hash": "28b5637b9c6b9ae3552d7c35698d2a56"
+  },
+  "/Users/saptarshighosh/better-schoology/references/pictures/Pictures/Screenshot 2026-06-05 at 4.46.39\u202fPM.png": {
+    "mtime": 1780703205.0,
+    "ast_hash": "6678d9543b618f97e15c963e432f896f",
+    "semantic_hash": "6678d9543b618f97e15c963e432f896f"
+  },
+  "/Users/saptarshighosh/better-schoology/references/pictures/Pictures/Screenshot 2026-06-05 at 4.47.02\u202fPM.png": {
+    "mtime": 1780703224.0,
+    "ast_hash": "72d27b2654a2148e3c326ddd2591c3ee",
+    "semantic_hash": "72d27b2654a2148e3c326ddd2591c3ee"
+  },
+  "/Users/saptarshighosh/better-schoology/references/pictures/Pictures/Screenshot 2026-06-05 at 4.47.06\u202fPM.png": {
+    "mtime": 1780703228.0,
+    "ast_hash": "37978d3096e3b2a525cc284cb9906dd6",
+    "semantic_hash": "37978d3096e3b2a525cc284cb9906dd6"
+  },
+  "/Users/saptarshighosh/better-schoology/references/pictures/Pictures/Screenshot 2026-06-05 at 4.47.27\u202fPM.png": {
+    "mtime": 1780703250.0,
+    "ast_hash": "b17a7115303f813cdc72147a0bad8012",
+    "semantic_hash": "b17a7115303f813cdc72147a0bad8012"
+  },
+  "/Users/saptarshighosh/better-schoology/references/pictures/Pictures/Screenshot 2026-06-05 at 4.47.38\u202fPM.png": {
+    "mtime": 1780703261.0,
+    "ast_hash": "d34394b34eb12a0402abf3f76d52d708",
+    "semantic_hash": "d34394b34eb12a0402abf3f76d52d708"
+  },
+  "/Users/saptarshighosh/better-schoology/references/pictures/Pictures/Screenshot 2026-06-05 at 4.47.47\u202fPM.png": {
+    "mtime": 1780703269.0,
+    "ast_hash": "a32d741ac3f0d40291aeeef9cc91f2a0",
+    "semantic_hash": "a32d741ac3f0d40291aeeef9cc91f2a0"
+  },
+  "/Users/saptarshighosh/better-schoology/references/pictures/Pictures/Screenshot 2026-06-05 at 4.48.12\u202fPM.png": {
+    "mtime": 1780703294.0,
+    "ast_hash": "fe45f5570182c88d961bec21068339e8",
+    "semantic_hash": "fe45f5570182c88d961bec21068339e8"
+  },
+  "/Users/saptarshighosh/better-schoology/references/pictures/__MACOSX/Pictures/._Screenshot 2026-06-05 at 4.46.28\u202fPM.png": {
+    "mtime": 1780703192.0,
+    "ast_hash": "1019f4486937ad93883ca2b8dfbb81a9",
+    "semantic_hash": "1019f4486937ad93883ca2b8dfbb81a9"
+  },
+  "/Users/saptarshighosh/better-schoology/references/pictures/__MACOSX/Pictures/._Screenshot 2026-06-05 at 4.46.39\u202fPM.png": {
+    "mtime": 1780703205.0,
+    "ast_hash": "49966c14dbff0b3f91008c8f536aac8f",
+    "semantic_hash": "49966c14dbff0b3f91008c8f536aac8f"
+  },
+  "/Users/saptarshighosh/better-schoology/references/pictures/__MACOSX/Pictures/._Screenshot 2026-06-05 at 4.47.02\u202fPM.png": {
+    "mtime": 1780703224.0,
+    "ast_hash": "53d73a4d2a75df0324a4090cbcac1d96",
+    "semantic_hash": "53d73a4d2a75df0324a4090cbcac1d96"
+  },
+  "/Users/saptarshighosh/better-schoology/references/pictures/__MACOSX/Pictures/._Screenshot 2026-06-05 at 4.47.06\u202fPM.png": {
+    "mtime": 1780703228.0,
+    "ast_hash": "488e941bfd20d3a0e81fd82dede5d2e5",
+    "semantic_hash": "488e941bfd20d3a0e81fd82dede5d2e5"
+  },
+  "/Users/saptarshighosh/better-schoology/references/pictures/__MACOSX/Pictures/._Screenshot 2026-06-05 at 4.47.27\u202fPM.png": {
+    "mtime": 1780703250.0,
+    "ast_hash": "ad728626a64f96d46b657b5d275db730",
+    "semantic_hash": "ad728626a64f96d46b657b5d275db730"
+  },
+  "/Users/saptarshighosh/better-schoology/references/pictures/__MACOSX/Pictures/._Screenshot 2026-06-05 at 4.47.38\u202fPM.png": {
+    "mtime": 1780703261.0,
+    "ast_hash": "06779fe6b5f4946f4864ff00df212423",
+    "semantic_hash": "06779fe6b5f4946f4864ff00df212423"
+  },
+  "/Users/saptarshighosh/better-schoology/references/pictures/__MACOSX/Pictures/._Screenshot 2026-06-05 at 4.47.47\u202fPM.png": {
+    "mtime": 1780703269.0,
+    "ast_hash": "2f93b16f6529c62ade57b73ea8c86a01",
+    "semantic_hash": "2f93b16f6529c62ade57b73ea8c86a01"
+  },
+  "/Users/saptarshighosh/better-schoology/references/pictures/__MACOSX/Pictures/._Screenshot 2026-06-05 at 4.48.12\u202fPM.png": {
+    "mtime": 1780703294.0,
+    "ast_hash": "3da0d4440503acd8c584a0dbbf26f3ab",
+    "semantic_hash": "3da0d4440503acd8c584a0dbbf26f3ab"
+  },
+  "/Users/saptarshighosh/better-schoology/references/pixel_art_character_animation_guide.png": {
+    "mtime": 1780698755.4651093,
+    "ast_hash": "02c1781e29ccf3bb1cc5f7d3e61ab069",
+    "semantic_hash": "02c1781e29ccf3bb1cc5f7d3e61ab069"
+  },
+  "/Users/saptarshighosh/better-schoology/app/(dashboard)/game/page.tsx": {
+    "mtime": 1780886560.5774019,
+    "ast_hash": "c2ee3b8519714cc1be82251cd42ab965",
+    "semantic_hash": "c2ee3b8519714cc1be82251cd42ab965"
+  },
+  "/Users/saptarshighosh/better-schoology/components/game/grade-breaker-game.tsx": {
+    "mtime": 1780886677.7628295,
+    "ast_hash": "bf7485dd80968ffa89a8e94e986bd013",
+    "semantic_hash": "bf7485dd80968ffa89a8e94e986bd013"
+  },
+  "/Users/saptarshighosh/better-schoology/components/overview/grade-breaker.tsx": {
+    "mtime": 1780886105.500532,
+    "ast_hash": "02fe0242b8a612e1c92ea706fcb42ca2",
+    "semantic_hash": "02fe0242b8a612e1c92ea706fcb42ca2"
+  },
+  "/Users/saptarshighosh/better-schoology/components/overview/smart-priorities.tsx": {
+    "mtime": 1780892568.8014565,
+    "ast_hash": "0141012ae4adb4ed59d9f846f6a0583f",
+    "semantic_hash": "0141012ae4adb4ed59d9f846f6a0583f"
+  },
+  "/Users/saptarshighosh/better-schoology/skills-lock.json": {
+    "mtime": 1780893016.0728142,
+    "ast_hash": "c0855a0789ef4add2db5523cb387c355",
+    "semantic_hash": "c0855a0789ef4add2db5523cb387c355"
+  },
+  "/Users/saptarshighosh/better-schoology/.agents/skills/frontend-design/LICENSE.txt": {
+    "mtime": 1780893016.0594776,
+    "ast_hash": "2ee41112a44fe7014dce33e26468ba93",
+    "semantic_hash": "2ee41112a44fe7014dce33e26468ba93"
+  },
+  "/Users/saptarshighosh/better-schoology/.agents/skills/frontend-design/SKILL.md": {
+    "mtime": 1780893016.059456,
+    "ast_hash": "06a0520e81f698334258c73ff0de533b",
+    "semantic_hash": "06a0520e81f698334258c73ff0de533b"
+  },
+  "/Users/saptarshighosh/better-schoology/.playwright-mcp/page-2026-06-08T07-19-32-812Z.yml": {
+    "mtime": 1780903172.8128707,
+    "ast_hash": "2e5a1bad8b538d432df680bc36f3039b",
+    "semantic_hash": "2e5a1bad8b538d432df680bc36f3039b"
+  },
+  "/Users/saptarshighosh/better-schoology/verify-overview.png": {
+    "mtime": 1780903186.0046594,
+    "ast_hash": "570286cf270f236cebb3cc943edc9d90",
+    "semantic_hash": "570286cf270f236cebb3cc943edc9d90"
+  }
+}

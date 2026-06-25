@@ -2,17 +2,14 @@
  * ExtRouter.tsx — Phase 3A
  *
  * Full-screen layout shell: sidebar nav + page content.
- * The root component rendered by App.tsx.
+ * Replaces MiniDashboard as the root component rendered by App.tsx.
  */
 
 import React, { useState } from 'react';
 import { useExtensionGrades } from '../lib/use-extension-grades';
 import type { ScrapeResult } from '../lib/scrape-status';
-import { FloatingNav } from './FloatingNav';
+import { SettingsLauncher } from './SettingsLauncher';
 import { QuickNav } from './QuickNav';
-import { ConnectionBanner } from './ConnectionBanner';
-import { CommandPalette } from './CommandPalette';
-import { GradeTransfer } from './GradeTransfer';
 import { OverviewPage } from './pages/OverviewPage';
 import { GradesPage } from './pages/GradesPage';
 import { AssignmentsPage } from './pages/AssignmentsPage';
@@ -21,16 +18,22 @@ import { CalendarPage } from './pages/CalendarPage';
 import { GameHub } from './pages/GameHub';
 import { AnnouncementsPage } from './pages/AnnouncementsPage';
 import { NostalgiaPage } from './pages/NostalgiaPage';
+import { SettingsPage } from './pages/SettingsPage';
+import { VersionsPage } from './pages/VersionsPage';
+import { ForgeCanvasLayout } from './editions/ForgeCanvasLayout';
+import { SlateSchoologyLayout } from './editions/SlateSchoologyLayout';
+import { DashboardSkeleton } from './DashboardSkeleton';
+import { seedDemoData } from '../lib/demo-data';
 import { type GradeSnapshot } from '../lib/storage';
 import { useAnnouncements } from '../lib/use-announcements';
-import { T, inkOnAccent, uiFontStack } from '../lib/theme';
+import { loadSettings, saveSettings, DEFAULT_SETTINGS, type Settings } from '../lib/settings';
+import { T, uiFontStack } from '../lib/theme';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import type { Page } from '../lib/pages';
 
-export type Page = 'overview' | 'grades' | 'assignments' | 'calendar' | 'materials' | 'game' | 'announcements' | 'nostalgia';
+export type { Page };
 
-/** Same order as the FloatingNav carousel — the Arcade (game) sits last so it's the
- *  final page you scroll to. */
-const PAGE_ORDER: Page[] = ['overview', 'grades', 'assignments', 'calendar', 'materials', 'announcements', 'nostalgia', 'game'];
+const DEFAULT_TAB_ORDER: Page[] = ['overview', 'grades', 'assignments', 'calendar', 'materials', 'announcements', 'nostalgia', 'game'];
 
 const IN_PROGRESS = new Set([
   'checking_session',
@@ -61,41 +64,37 @@ interface Props {
 }
 
 /** Starting-screen loader: two concentric counter-rotating accent rings. */
-function BootRings() {
-  return (
-    <div style={{ position: 'relative', width: 58, height: 58, marginBottom: 4 }} aria-hidden="true">
-      <span
-        className="bs-boot-ring"
-        style={{
-          inset: 0,
-          border: `3px solid ${T.border}`,
-          borderTopColor: T.primary,
-          animation: 'bsSpin 0.9s linear infinite',
-        }}
-      />
-      <span
-        className="bs-boot-ring"
-        style={{
-          inset: 11,
-          border: `3px solid ${T.border}`,
-          borderBottomColor: T.primary,
-          animation: 'bsSpinRev 0.7s linear infinite',
-        }}
-      />
-    </div>
-  );
-}
-
 const PAGE_KEY = '__bs_page__';
 const COURSE_KEY = '__bs_course__';
 
 export function ExtRouter({ scrapeResult }: Props) {
   const grades = useExtensionGrades();
+  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
+
+  React.useEffect(() => {
+    loadSettings().then(setSettings).catch(() => {});
+    const unsub = (() => {
+      const handler = (_c: Record<string, unknown>, area: string) => {
+        if (area === 'local') loadSettings().then(setSettings).catch(() => {});
+      };
+      browser.storage.onChanged.addListener(handler);
+      return () => browser.storage.onChanged.removeListener(handler);
+    })();
+    return unsub;
+  }, []);
+
+  // Effective tab order: user's saved order, filtered to remove hidden tabs.
+  const pageOrder = React.useMemo<Page[]>(() => {
+    const order = (settings.tabOrder.length > 0 ? settings.tabOrder : DEFAULT_TAB_ORDER) as Page[];
+    const hidden = new Set(settings.hiddenTabs);
+    return order.filter((p) => !hidden.has(p));
+  }, [settings.tabOrder, settings.hiddenTabs]);
+
   // Restore the page (and selected course) the user was on before a reload.
   const [page, setPage] = useState<Page>(() => {
     if (typeof localStorage === 'undefined') return 'overview';
     const saved = localStorage.getItem(PAGE_KEY) as Page | null;
-    return saved && PAGE_ORDER.includes(saved) ? saved : 'overview';
+    return saved && (DEFAULT_TAB_ORDER.includes(saved) || saved === 'settings' || saved === 'versions') ? saved : 'overview';
   });
   const [selectedCourseName, setSelectedCourseName] = useState<string | null>(() => {
     if (typeof localStorage === 'undefined') return null;
@@ -116,19 +115,6 @@ export function ExtRouter({ scrapeResult }: Props) {
   const [activeSnapshot, setActiveSnapshot] = useState<GradeSnapshot | null>(null);
   const announcements = useAnnouncements(grades.courses ?? []);
   const reduceMotion = useReducedMotion();
-  const [paletteOpen, setPaletteOpen] = useState(false);
-
-  // ⌘K / Ctrl+K opens global search from anywhere in the overlay.
-  React.useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        setPaletteOpen((o) => !o);
-      }
-    }
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, []);
 
   // Mirror the unread count onto the native-Schoology "Show Better Schoology" button
   // so it pings while you're on native Schoology; expose markAllSeen so returning
@@ -156,22 +142,32 @@ export function ExtRouter({ scrapeResult }: Props) {
   // SELECT GAME menu still lets you arrow-key away — Caveman/Neon keep arrows in-game).
   const pageRef = React.useRef(page);
   pageRef.current = page;
+  const pageOrderRef = React.useRef(pageOrder);
+  pageOrderRef.current = pageOrder;
   React.useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
       if (pageRef.current === 'game' && (window as { __bsGameActive?: boolean }).__bsGameActive) return;
+      if (pageRef.current === 'settings') return;
       const target = (e.composedPath?.()[0] ?? e.target) as HTMLElement | null;
       const tag = target?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable) return;
       setPage((p) => {
-        const i = Math.max(0, PAGE_ORDER.indexOf(p));
+        const ord = pageOrderRef.current;
+        const i = Math.max(0, ord.indexOf(p));
         return e.key === 'ArrowRight'
-          ? PAGE_ORDER[(i + 1) % PAGE_ORDER.length]
-          : PAGE_ORDER[(i - 1 + PAGE_ORDER.length) % PAGE_ORDER.length];
+          ? ord[(i + 1) % ord.length]
+          : ord[(i - 1 + ord.length) % ord.length];
       });
     }
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
+  }, []);
+
+  const saveSettingsAndApply = React.useCallback(async (patch: Partial<Settings>): Promise<Settings> => {
+    const next = await saveSettings(patch);
+    setSettings(next);
+    return next;
   }, []);
 
   function navigate(p: Page, courseName?: string) {
@@ -179,57 +175,48 @@ export function ExtRouter({ scrapeResult }: Props) {
     if (courseName !== undefined) setSelectedCourseName(courseName);
   }
 
-  // Bell toggle: open Announcements, or — if already there — go back to the page
-  // you came from (press it again to "leave it").
+  // Settings toggle: open Settings, or — if already there — go back to the page
+  // you came from (press the gear again to "leave it").
   const prevPageRef = React.useRef<Page>('overview');
-  function toggleAnnouncements() {
+  function toggleSettings() {
     setPage((p) => {
-      if (p === 'announcements') return prevPageRef.current;
+      if (p === 'settings') return prevPageRef.current;
       prevPageRef.current = p;
-      return 'announcements';
+      return 'settings';
     });
   }
 
-  // Loading
+  // Loading — show a skeleton mirror of the dashboard rather than a bare spinner.
   if (grades.loading) {
-    return (
-      <div style={BASE} role="status" aria-busy="true">
-        <BootRings />
-        <span style={{ color: T.muted, fontSize: 13 }}>Loading your dashboard…</span>
-      </div>
-    );
+    return <div role="status" aria-busy="true"><DashboardSkeleton /></div>;
   }
 
   // No data yet
   if (!grades.data) {
     const isInProgress = IN_PROGRESS.has(scrapeResult.status);
     const isFailed = scrapeResult.status === 'failed';
-    // "Must have at least 1 course" usually just means the current term is empty
-    // (e.g. over summer) — not a real failure. Show calm copy for that case.
-    const emptyTerm = !!scrapeResult.error && /at least 1 course|at least one course/i.test(scrapeResult.error);
+    // While the first scrape is running, the skeleton reads better than a spinner.
+    if (isInProgress) {
+      return <div role="status" aria-busy="true"><DashboardSkeleton /></div>;
+    }
     return (
       <div style={BASE} role="status">
-        {isInProgress && <BootRings />}
-        <div style={{ fontSize: 16, fontWeight: 600, color: T.text, maxWidth: 440 }}>
+        <div style={{ fontSize: 16, fontWeight: 600, color: T.text, maxWidth: 420 }}>
           {isInProgress
             ? 'Reading grades from Schoology…'
-            : emptyTerm
-            ? 'No active courses this term'
             : isFailed
             ? "Couldn't read your grades"
             : 'No saved grades yet'}
         </div>
-        {isFailed && scrapeResult.error && !emptyTerm && (
+        {isFailed && scrapeResult.error && (
           <div style={{ fontSize: 12, color: T.failed, maxWidth: 400, lineHeight: 1.6 }}>
             {scrapeResult.error}
           </div>
         )}
         {!isInProgress && (
           <>
-            <div style={{ fontSize: 12, color: T.muted, maxWidth: 420, lineHeight: 1.6 }}>
-              {emptyTerm
-                ? 'Schoology has no graded courses for the current grading period (this is normal over breaks). Open your Grades page to load a term that has them — or restore a backup you saved earlier.'
-                : 'Open your Schoology grades page once and the extension reads it automatically — or restore a backup you saved on another device.'}
+            <div style={{ fontSize: 12, color: T.muted, maxWidth: 400, lineHeight: 1.6 }}>
+              Open your Schoology grades page once and the extension reads it automatically.
             </div>
             <a
               href="/grades/grades"
@@ -240,7 +227,7 @@ export function ExtRouter({ scrapeResult }: Props) {
                 alignItems: 'center',
                 gap: 6,
                 background: T.primary,
-                color: inkOnAccent(),
+                color: '#fff',
                 fontSize: 13,
                 fontWeight: 600,
                 borderRadius: 8,
@@ -250,12 +237,34 @@ export function ExtRouter({ scrapeResult }: Props) {
             >
               Open the Grades page
             </a>
-            <GradeTransfer variant="inline" />
+            <button
+              type="button"
+              className="bs-focusable"
+              onClick={() => { void seedDemoData(); }}
+              style={{
+                marginTop: 2, display: 'inline-flex', alignItems: 'center', gap: 6,
+                background: 'transparent', color: T.muted, fontSize: 12, fontWeight: 600,
+                border: `1px solid ${T.border}`, borderRadius: 8, padding: '8px 16px', cursor: 'pointer',
+              }}
+            >
+              Load demo data (for testing)
+            </button>
           </>
         )}
       </div>
     );
   }
+
+  // The Forge/Slate editions replace the dashboard "home" (overview) with a wholly
+  // different layout — Canvas-flavoured (Forge) or classic Schoology (Slate) — so
+  // switching editions is an actual change of look, not just a tint. Other pages
+  // (grades, materials, the arcade…) stay on the Halo layout, reachable via the nav.
+  const homeOverride =
+    page === 'overview' && settings.edition === 'forge'
+      ? <ForgeCanvasLayout grades={grades} />
+      : page === 'overview' && settings.edition === 'slate'
+      ? <SlateSchoologyLayout grades={grades} announcements={announcements.items} />
+      : null;
 
   return (
     <div
@@ -287,12 +296,12 @@ export function ExtRouter({ scrapeResult }: Props) {
               flexDirection: 'column',
             }}
           >
-            {page === 'overview' && (
+            {page === 'overview' && (homeOverride ?? (
               <OverviewPage
                 grades={grades}
                 onCourseSelect={(name) => navigate('grades', name)}
               />
-            )}
+            ))}
             {page === 'grades' && (
               <GradesPage
                 grades={grades}
@@ -316,25 +325,33 @@ export function ExtRouter({ scrapeResult }: Props) {
                 }}
               />
             )}
+            {page === 'versions' && <VersionsPage />}
+            {page === 'settings' && (
+              <SettingsPage
+                settings={settings}
+                onSave={saveSettingsAndApply}
+                data={grades.data}
+                onOpenTour={() => navigate('versions')}
+                onNavigate={(p) => navigate(p)}
+                pageOrder={pageOrder}
+                announcementsUnread={announcements.unreadCount}
+              />
+            )}
           </motion.main>
         </AnimatePresence>
       </div>
 
-      <FloatingNav page={page} onNavigate={(p) => navigate(p)} announcementsUnread={announcements.unreadCount} onBell={toggleAnnouncements} onSearch={() => setPaletteOpen(true)} />
+      <SettingsLauncher
+        active={page === 'settings'}
+        announcementsUnread={announcements.unreadCount}
+        onOpenSettings={toggleSettings}
+      />
       <QuickNav
         page={page}
         courseName={selectedCourseName}
         courses={grades.courses}
         onJump={(p, courseName) => navigate(p, courseName)}
-      />
-      <ConnectionBanner />
-      <GradeTransfer variant="pill" />
-      <CommandPalette
-        open={paletteOpen}
-        onClose={() => setPaletteOpen(false)}
-        courses={grades.courses ?? []}
-        announcements={announcements.items}
-        onNavigate={(p, courseName) => navigate(p, courseName)}
+        pageOrder={pageOrder}
       />
     </div>
   );

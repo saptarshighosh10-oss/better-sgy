@@ -8,7 +8,7 @@
 import type { ScrapedAssignment } from './schemas';
 import { parseGrade } from './transform';
 
-import { getActiveTheme } from './theme';
+import { getActiveTheme, isMono, isLightTheme } from './theme';
 
 // Re-export for components that want a single import point
 export { parseGrade };
@@ -16,6 +16,17 @@ export { parseGrade };
 /** Grade percent → display color. Calm ramp: only D/F read as alarms. */
 export function gradeColor(pct: number | null): string {
   const theme = getActiveTheme();
+  // Mono / B&W mode: a tonal grayscale ramp (better grades read darkest on light
+  // surfaces, lightest on dark) so hierarchy survives without any color.
+  if (isMono()) {
+    const dark = !isLightTheme();
+    if (pct === null) return dark ? '#8e8e93' : '#8a8a8e';
+    if (pct >= 90) return dark ? '#f5f5f7' : '#1d1d1f';
+    if (pct >= 80) return dark ? '#c7c7cc' : '#3a3a3c';
+    if (pct >= 70) return dark ? '#98989d' : '#6e6e73';
+    if (pct >= 60) return dark ? '#7c7c81' : '#8a8a8e';
+    return dark ? '#636366' : '#a0a0a5';
+  }
   if (theme === 'mono-dark') {
     return pct === null ? '#a0a0a0' : '#faf9f6';
   }

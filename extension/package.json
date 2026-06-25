@@ -1,18 +1,22 @@
 {
   "name": "better-sgy-extension",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "wxt",
-    "build": "wxt build",
-    "zip": "wxt zip",
+    "dev": "npm run sync:looks && wxt",
+    "sync:looks": "node scripts/build-looks.mjs",
+    "build": "npm run sync:looks && wxt build",
+    "build:demo": "npm run sync:looks && DEMO=true wxt build --mode demo",
+    "zip": "npm run sync:looks && wxt zip",
+    "zip:demo": "npm run sync:looks && DEMO=true wxt zip --mode demo",
     "icons": "node scripts/gen-icons.mjs",
     "typecheck": "wxt prepare && tsc --noEmit"
   },
   "dependencies": {
     "@types/three": "^0.184.1",
     "framer-motion": "^12.40.0",
+    "pdfjs-dist": "^6.0.227",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "three": "^0.184.0",
@@ -24,6 +28,7 @@
     "@wxt-dev/module-react": "latest",
     "typescript": "^5",
     "vite-plugin-remove-console": "^2.2.0",
+    "vite-plugin-singlefile": "^2.3.3",
     "wxt": "latest"
   }
 }

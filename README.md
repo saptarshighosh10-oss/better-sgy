@@ -1,76 +1,57 @@
 # Better SGY
 
-A cleaner, faster, student-first redesign of your school's **Schoology** — grades,
-assignments, materials, calendar, announcements, and more, all in one calm dashboard.
-Runs entirely in your browser; nothing leaves your device.
-
-> 🧪 **This is a test build.** It installs manually (sideload), not from the Chrome Web
-> Store yet. Works in **Chrome, Edge, Brave**, or any Chromium browser.
-
-## 📸 Screenshots
-
-<!-- Add a hero image here: drop a PNG into a /docs folder and reference it, e.g.
-     ![Better SGY dashboard](docs/dashboard.png)
-     Blur out your real name/grades first. A before/after GIF works even better. -->
-_Coming soon — a peek at the dashboard. (Want to help? Send a screenshot!)_
-
-## ⬇️ Download & install
-
-> ⭐ **This is the flagship — Better SGY v2 (the full redesign).** The `releases/latest`
-> download below is the flagship build, and it's what `main` ships. A lighter **"Lite"**
-> version that keeps Schoology's original look (fewer moving parts, same core
-> quality-of-life features) lives on the
-> [`improve` branch](../../tree/improve/arcade-split-robustness-calculator) ·
-> [PR #1](../../pull/1).
-
-1. **[Download the latest release](../../releases/latest)** (`better-sgy-chrome.zip`)
-   and unzip it → you'll get a folder with a `manifest.json` inside.
-2. Go to **`chrome://extensions`** (Edge: `edge://extensions`).
-3. Turn on **Developer mode** (top-right).
-4. Click **Load unpacked** → select the **unzipped folder**.
-5. Open your Schoology site (e.g. `yourschool.schoology.com`). Done. 🎉
-
-Full steps and troubleshooting: **[INSTALL.md](./INSTALL.md)**
-
-## 🔒 Privacy & safety
-
-Better SGY reads your Schoology pages using **your own logged-in session** and keeps
-everything **on your device** — no accounts, no servers, no analytics, no tracking. It
-makes no network requests except to your own Schoology site. See the full
-**[privacy policy](./PRIVACY.md)**.
-
-> **Verify it yourself:** the full extension source is in [`extension/`](./extension) —
-> read it, or build it from scratch (see below). It only ever talks to your own
-> Schoology site.
-
-## 🛠️ Build from source
-
-The full source is in [`extension/`](./extension) — a [WXT](https://wxt.dev) + React
-(MV3) project. To build it yourself:
-
-```bash
-cd extension
-npm install
-npm run build      # → extension/.output/chrome-mv3
-```
-
-Then load `extension/.output/chrome-mv3` via **Load unpacked**. `npm run zip` packages a
-distributable zip.
-
-## 📄 License
-
-[MIT](./LICENSE) — free to use, modify, and share.
-
-## 🐞 Feedback
-
-Found a bug? [Open an issue](../../issues) with your browser, the Schoology page/URL, and
-what went wrong (a screenshot helps).
-
-## Changelog
-
-See **[CHANGELOG.md](./CHANGELOG.md)**.
+A Chrome extension that replaces the Schoology dashboard with something that
+actually looks good. Grades, assignments, materials, and teacher updates —
+all in one clean panel.
 
 ---
 
-*Not affiliated with, endorsed by, or sponsored by Schoology or PowerSchool. "Schoology"
-is a trademark of its respective owner and is used here only to describe compatibility.*
+## Try it first — no Schoology account required
+
+Download **`Better-SGY-Demo.zip`** from the
+[Releases](https://github.com/saptarshighosh10-oss/better-sgy/releases) page.
+
+It has fake demo grades loaded in so you can see what the extension looks
+like — no login needed, just install and open it.
+
+## Install
+
+Same four steps for the Demo and the real extension:
+
+1. **Unzip** the file — double-click it. You get a folder. Don't delete it.
+2. Open **`chrome://extensions`** in Chrome.
+3. Turn on **Developer mode** (toggle, top-right corner).
+4. Click **Load unpacked** → pick the unzipped folder.
+
+Done. Pin it from the 🧩 toolbar icon so the side panel is one click away.
+
+## Switch looks
+
+Open the Better SGY side panel → scroll to **Settings → UI style**:
+
+- **Halo** — clean and minimal, recommended ⭐
+- **Forge** — compact, more info per screen
+- **Slate** — pure black and white
+
+## Downloads
+
+| File | What it is |
+|---|---|
+| `Better-SGY-Demo.zip` | Fake demo grades loaded in — no login needed |
+| `better-sgy-extension-1.1.0-chrome.zip` | Log into Schoology normally — shows your real grades |
+
+→ [Releases page](https://github.com/saptarshighosh10-oss/better-sgy/releases)
+
+## Troubleshooting
+
+**"Manifest file is missing"** — you loaded the zip itself. Unzip it first, then load the folder.
+
+**Nothing changed on Schoology** — go to `chrome://extensions` and make sure the toggle is blue.
+
+**Chrome keeps popping up "Disable developer mode extensions"** — normal for manually-installed extensions. Just close it.
+
+**Stopped working after a Chrome update** — re-enable it on the `chrome://extensions` page.
+
+---
+
+*Chrome extension · Runs locally, nothing leaves your device.*

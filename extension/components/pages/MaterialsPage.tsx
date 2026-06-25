@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import type { ScrapedCourse, ScrapedAssignment } from '../../lib/schemas';
-import { courseColor, courseAbbr, abbrFontSize } from '../../lib/course-colors';
+import { courseAbbr, abbrFontSize } from '../../lib/course-colors';
 import {
   fetchMaterials,
   fetchItemContent,
@@ -21,6 +21,8 @@ import {
 } from '../../lib/fetch-materials';
 import { loadStarredFolders, toggleStarredFolder, type StarredFolder } from '../../lib/starred-folders';
 import { T, getActiveTheme, onThemeChange, inkOnAccent } from '../../lib/theme';
+import { tileBg, hairline } from '../../lib/halo';
+import { openSafe } from '../../lib/safe-url';
 
 interface GradesState { courses: ScrapedCourse[]; }
 interface Props { grades: GradesState; }
@@ -177,6 +179,8 @@ export function MaterialsPage({ grades }: Props) {
     if (courses[0]) loadCourse(courses[0]);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── Tree / folder loading ─────────────────────────────────────────────────
+
   async function toggleFolder(item: MaterialItem) {
     if (!item.href) return;
     const key = item.href;
@@ -200,6 +204,8 @@ export function MaterialsPage({ grades }: Props) {
       collapsed: false,
     }));
   }
+
+  // ── Viewer openers + in-viewer actions (comment / submit) ─────────────────
 
   async function openContent(url: string, title: string) {
     setViewer({ kind: 'content', data: null, url, title });
@@ -262,7 +268,18 @@ export function MaterialsPage({ grades }: Props) {
     return result;
   }
 
-  // Single router for every clickable href (tree items, attachments, body links)
+  // ── Click router ──────────────────────────────────────────────────────────
+
+  // Single router for every clickable href (tree items, attachments, body links).
+  // Decides, in priority order, how to open a destination:
+  //   1. Google/YouTube/Drive          → inline embedded iframe viewer
+  //   2. External link or `link`/LTI    → new browser tab (openSafe, sanitized)
+  //   3. Schoology file-viewer page     → fetch page, let it auto-redirect to the file
+  //   4. Direct PDF/image              → inline file viewer
+  //   5. Office doc                    → new tab (we can't render it inline)
+  //   6. Discussion                    → discussion thread viewer
+  //   7. Quiz / assessment            → same-origin native viewer (real engine)
+  //   8. Everything else              → native content viewer
   function openHref(href: string, title: string, type?: string, fileName?: string | null) {
     // Unwrap Schoology's /link?path=… redirect to the real destination first
     const real = resolveLinkWrapper(href);
@@ -281,7 +298,7 @@ export function MaterialsPage({ grades }: Props) {
     // Remaining external links (Google Docs etc. — editable, so a real tab)
     // and Schoology "link"/LTI materials → new tab
     if (isExternal || type === 'link') {
-      window.open(real, '_blank', 'noopener,noreferrer');
+      openSafe(real);
       return;
     }
     href = real;
@@ -296,7 +313,7 @@ export function MaterialsPage({ grades }: Props) {
       return;
     }
     if (fileKind === 'office') {
-      window.open(href, '_blank', 'noopener,noreferrer');
+      openSafe(href);
       return;
     }
     if (type === 'discussion' || /\/discussion\//.test(href)) {
@@ -334,34 +351,52 @@ export function MaterialsPage({ grades }: Props) {
     return null;
   }
 
-  const color = selected ? courseColor(selected.name) : '#3b82f6';
+  const color = tileBg();
   const abbr = selected ? courseAbbr(selected.name) : '';
   const fs = selected ? abbrFontSize(abbr) : 48;
 
   return (
-    <div style={{ display: 'flex', position: 'absolute', inset: 0, overflow: 'hidden' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', position: 'absolute', inset: 0, overflow: 'hidden' }}>
 
-      {/* ── Course sidebar ───────────────────────────────────────────── */}
-      <div style={{ width: 200, flexShrink: 0, borderRight: `1px solid ${T.border}`, overflowY: 'auto', background: T.bg, display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '12px 12px 6px', fontSize: 10, fontWeight: 700, color: T.faint, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-          Courses
-        </div>
+      {/* ── Course pill strip ─────────────────────────────────────────── */}
+      <div style={{
+        flexShrink: 0, display: 'flex', alignItems: 'center', gap: 6,
+        overflowX: 'auto', padding: '8px 12px',
+        borderBottom: `1px solid ${T.border}`, background: T.bg,
+        scrollbarWidth: 'none',
+      }}>
         {courses.map(course => {
-          const cBg = courseColor(course.name, false);
-          const cText = courseColor(course.name, true);
           const a = courseAbbr(course.name);
           const isActive = selected?.name === course.name;
           return (
-            <button key={course.name} onClick={() => loadCourse(course)}
-              style={{ all: 'unset', display: 'flex', alignItems: 'center', gap: 9, padding: '8px 10px', cursor: 'pointer',
-                background: isActive ? T.activeBg : 'transparent',
-                borderLeft: `2px solid ${isActive ? cText : 'transparent'}`,
-                boxSizing: 'border-box' }}>
-              <div style={{ width: 28, height: 28, borderRadius: 6, background: cBg, flexShrink: 0,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative' }}>
-                <span style={{ fontSize: Math.round(abbrFontSize(a) * 0.42), fontWeight: 900, color: getActiveTheme() === 'mono-light' ? 'rgba(0,0,0,0.34)' : 'rgba(255,255,255,0.22)', userSelect: 'none', lineHeight: 1 }} aria-hidden="true">{a}</span>
+            <button
+              key={course.name}
+              onClick={() => loadCourse(course)}
+              title={course.name}
+              style={{
+                all: 'unset', flexShrink: 0, cursor: 'pointer', display: 'flex',
+                alignItems: 'center', gap: 6, padding: '5px 10px 5px 6px',
+                borderRadius: 20, boxSizing: 'border-box',
+                background: isActive ? T.activeBg : tileBg(),
+                border: `1.5px solid ${isActive ? T.primary : 'transparent'}`,
+              }}
+            >
+              <div style={{
+                width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
+                background: isActive ? T.primary : T.muted,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <span style={{
+                  fontSize: Math.round(abbrFontSize(a) * 0.28), fontWeight: 900, lineHeight: 1,
+                  color: getActiveTheme() === 'mono-light' ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.85)',
+                  userSelect: 'none',
+                }} aria-hidden="true">{a}</span>
               </div>
-              <span style={{ flex: 1, fontSize: 12, fontWeight: isActive ? 600 : 400, color: isActive ? T.text : '#8892a4', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span style={{
+                fontSize: 11, fontWeight: isActive ? 600 : 400,
+                color: isActive ? T.text : T.muted,
+                maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}>
                 {course.name}
               </span>
             </button>
@@ -370,18 +405,18 @@ export function MaterialsPage({ grades }: Props) {
       </div>
 
       {/* ── Main panel ──────────────────────────────────────────────── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
         {/* Course banner */}
         {selected && (
-          <div style={{ height: 64, flexShrink: 0, background: color, position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', padding: '0 20px', gap: 12 }}>
-            <div style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', fontSize: fs * 0.65, fontWeight: 900, color: 'rgba(255,255,255,0.1)', userSelect: 'none', lineHeight: 1, letterSpacing: '-1px' }} aria-hidden="true">{abbr}</div>
+          <div style={{ height: 64, flexShrink: 0, background: color, borderBottom: `1px solid ${hairline()}`, position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', padding: '0 20px', gap: 12 }}>
+            <div style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', fontSize: fs * 0.65, fontWeight: 900, color: T.text, opacity: 0.06, userSelect: 'none', lineHeight: 1, letterSpacing: '-1px' }} aria-hidden="true">{abbr}</div>
             <div style={{ zIndex: 1 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', lineHeight: 1.2 }}>{selected.name}</div>
-              {selected.teacher && <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)', marginTop: 2 }}>{selected.teacher}</div>}
+              <div style={{ fontSize: 15, fontWeight: 700, color: T.text, lineHeight: 1.2 }}>{selected.name}</div>
+              {selected.teacher && <div style={{ fontSize: 11, color: T.muted, marginTop: 2 }}>{selected.teacher}</div>}
             </div>
             {viewer && (
-              <span style={{ zIndex: 1, fontSize: 11, color: 'rgba(255,255,255,0.6)', marginLeft: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span style={{ zIndex: 1, fontSize: 11, color: T.muted, marginLeft: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 / {viewer.title}
               </span>
             )}
@@ -746,12 +781,12 @@ function StarredPanel({ starred, activeHref, onOpen, onUnstar }: {
 }) {
   return (
     <div style={{ padding: '10px 14px', borderBottom: `1px solid ${T.border}` }}>
-      <div style={{ fontSize: 10, fontWeight: 700, color: T.faint, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 7 }}>
+      <div style={{ fontSize: 10, fontWeight: 500, color: T.muted, letterSpacing: '-0.01em', marginBottom: 7 }}>
         Starred
       </div>
       <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 2 }}>
         {starred.map((folder) => {
-          const c = courseColor(folder.courseName, true);
+          const c = T.muted;
           const isActive = folder.href === activeHref;
           return (
             <div
@@ -1645,7 +1680,7 @@ function DiscussionViewer({ data, url, title, onBack, onNavigate, onPost, onDele
             </div>
           </div>
 
-          <div style={{ fontSize: 10, fontWeight: 700, color: T.faint, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
+          <div style={{ fontSize: 10, fontWeight: 500, color: T.muted, letterSpacing: '-0.01em', marginBottom: 8 }}>
             {data.posts.length} {data.posts.length === 1 ? 'Post' : 'Posts'}
           </div>
 
@@ -1834,7 +1869,7 @@ function SubmissionsPanel({ info, assignmentUrl, onSubmit, onSubmitFiles }: {
   return (
     <div style={{ marginTop: 20, background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, padding: '14px 16px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: info.revisions.length > 0 ? 10 : 0 }}>
-        <span style={{ fontSize: 10, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.5px', flex: 1 }}>
+        <span style={{ fontSize: 10, fontWeight: 500, color: T.muted, letterSpacing: '-0.01em', flex: 1 }}>
           Submissions
         </span>
         {info.submitHref && !composerOpen && (
@@ -2051,7 +2086,7 @@ export function ContentViewer({ data, url, title, grade, onBack, onNavigate, onS
           {collectEmbeds(data).map((e, i) => (
             <div key={e.embedUrl} style={{ marginTop: i === 0 ? 20 : 14 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                <span style={{ fontSize: 10, fontWeight: 700, color: T.faint, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                <span style={{ fontSize: 10, fontWeight: 500, color: T.muted, letterSpacing: '-0.01em' }}>
                   {/youtube\.com/.test(e.embedUrl) ? 'Video' : 'Slides / Doc'}
                   {e.label && e.label.length < 60 ? ` — ${e.label}` : ''}
                 </span>
@@ -2080,7 +2115,7 @@ export function ContentViewer({ data, url, title, grade, onBack, onNavigate, onS
 
           {data.attachments.length > 0 && (
             <div style={{ marginTop: data.body.length > 0 || data.paragraphs.length > 0 ? 20 : 0 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: T.faint, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Attachments</div>
+              <div style={{ fontSize: 10, fontWeight: 500, color: T.muted, letterSpacing: '-0.01em', marginBottom: 8 }}>Attachments</div>
               <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, overflow: 'hidden' }}>
                 {data.attachments.map((att, i) => {
                   const fk = detectFileKind(att.href, att.title);

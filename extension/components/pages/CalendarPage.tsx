@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import type { ScrapedCourse } from '../../lib/schemas';
-import { courseColor, courseAbbr } from '../../lib/course-colors';
-import { T, inkOnAccent } from '../../lib/theme';
+import { courseAbbr } from '../../lib/course-colors';
+import { T } from '../../lib/theme';
+import { AT, tileBg, hairline } from '../../lib/halo';
+import { haloCardStyle } from '../halo-ui';
 
 interface GradesState { courses: ScrapedCourse[]; }
 interface Props { grades: GradesState; }
@@ -51,7 +53,7 @@ export function CalendarPage({ grades }: Props) {
     for (const cat of c.categories) {
       for (const a of cat.assignments) {
         const date = parseDue(a.dueDate);
-        if (date) items.push({ name: a.name, courseName: c.name, color: courseColor(c.name, true), date, status: a.status });
+        if (date) items.push({ name: a.name, courseName: c.name, color: T.muted, date, status: a.status });
       }
     }
   }
@@ -129,90 +131,80 @@ export function CalendarPage({ grades }: Props) {
   const selectedItems = selectedDay ? (byDay.get(selectedDay) ?? []) : [];
 
   return (
-    <div style={{ padding: 24, display: 'flex', flexDirection: 'column', height: '100%', boxSizing: 'border-box', background: T.bg }}>
+    <div style={{ padding: '40px clamp(20px, 4vw, 40px)', display: 'flex', flexDirection: 'column', height: '100%', boxSizing: 'border-box', background: T.bg, fontFamily: AT.font }}>
       <style>{`
         .cal-nav-btn {
           all: unset;
           cursor: pointer;
-          width: 30px;
-          height: 30px;
-          border-radius: 8px;
-          background: ${T.card};
-          border: 1px solid ${T.border};
+          width: 32px;
+          height: 32px;
+          border-radius: ${AT.rChip}px;
+          background: ${tileBg()};
           color: ${T.text};
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          transition: all 0.18s cubic-bezier(0.22, 1, 0.36, 1);
         }
-        .cal-nav-btn:hover {
-          background: ${T.activeBg};
-          border-color: ${T.activeBorder}55;
-          transform: translateY(-0.5px);
-        }
-        .cal-nav-btn:active {
-          transform: translateY(0.5px);
-        }
+        .cal-nav-btn:hover { filter: brightness(1.08); }
+        .cal-nav-btn:active { transform: scale(0.95); }
         .cal-select {
-          background: ${T.card};
-          border: 1px solid ${T.border};
+          background: ${tileBg()};
+          border: none;
           color: ${T.text};
-          border-radius: 8px;
-          font-size: 13px;
-          font-weight: 600;
-          padding: 4px 8px;
+          border-radius: ${AT.rChip}px;
+          font-size: 14px;
+          font-weight: 500;
+          letter-spacing: -0.01em;
+          padding: 6px 10px;
           cursor: pointer;
           outline: none;
-          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          transition: all 0.18s ease;
           font-family: inherit;
         }
-        .cal-select:hover {
-          background: ${T.activeBg};
-          border-color: ${T.activeBorder}55;
-        }
+        .cal-select:hover { filter: brightness(1.08); }
         .cal-cell {
-          background: ${T.card};
-          border: 1px solid ${T.border};
-          border-radius: 8px;
-          padding: 6px 8px;
+          background: transparent;
+          border: 1px solid ${hairline()};
+          border-radius: ${AT.rChip}px;
+          padding: 7px 9px;
           overflow: hidden;
           display: flex;
           flex-direction: column;
           min-height: 0;
           cursor: pointer;
-          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          transition: all 0.18s cubic-bezier(0.22, 1, 0.36, 1);
         }
         .cal-cell:hover {
-          border-color: ${T.activeBorder}55;
+          background: ${tileBg()};
           transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(0,0,0,0.18);
         }
         .cal-cell-active {
           border-color: ${T.primary} !important;
-          box-shadow: 0 0 0 1px ${T.primary}33;
+          box-shadow: 0 0 0 1px ${T.primary}55;
         }
         .cal-close-btn {
           all: unset;
           cursor: pointer;
-          width: 20px;
-          height: 20px;
-          border-radius: 5px;
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
           display: inline-flex;
           align-items: center;
           justify-content: center;
           color: ${T.muted};
-          font-size: 16px;
+          font-size: 18px;
           transition: all 0.15s ease;
         }
         .cal-close-btn:hover {
-          background: ${T.activeBg};
+          background: ${tileBg()};
           color: ${T.text};
         }
       `}</style>
 
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-        <h1 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: T.text, letterSpacing: '-0.5px' }}>Calendar</h1>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+        <h1 style={{ margin: 0, fontSize: AT.h1, fontWeight: AT.semibold, color: T.text, letterSpacing: AT.trackHead }}>Calendar</h1>
         <span style={{ flex: 1 }} />
         
         {/* Navigation Controls */}
@@ -278,7 +270,6 @@ export function CalendarPage({ grades }: Props) {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
         {grades.courses.map((c) => {
           const isActive = filteredCourses.has(c.name);
-          const color = courseColor(c.name, true);
           const abbr = courseAbbr(c.name);
           return (
             <button
@@ -294,23 +285,21 @@ export function CalendarPage({ grades }: Props) {
                   return next;
                 });
               }}
+              className="bs-press"
               style={{
                 all: 'unset',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: 6,
-                padding: '4px 10px',
-                borderRadius: 9999,
-                fontSize: 10,
-                fontWeight: 600,
+                gap: 7,
+                padding: '6px 14px',
+                borderRadius: AT.rPill,
+                fontSize: AT.caption,
+                fontWeight: AT.medium,
                 cursor: 'pointer',
-                background: isActive ? `${color}14` : T.card,
-                border: `1px solid ${isActive ? `${color}40` : T.border}`,
-                color: isActive ? T.text : T.muted,
-                transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                background: isActive ? T.text : tileBg(),
+                color: isActive ? T.bg : T.muted,
               }}
             >
-              <span style={{ width: 5, height: 5, borderRadius: '50%', background: color, opacity: isActive ? 1 : 0.4 }} />
               {abbr}
             </button>
           );
@@ -324,10 +313,10 @@ export function CalendarPage({ grades }: Props) {
         gap: 6,
         marginBottom: 8,
         padding: '6px 0',
-        borderBottom: `1px solid ${T.border}`,
+        borderBottom: `1px solid ${hairline()}`,
       }}>
         {DOW.map((d) => (
-          <div key={d} style={{ fontSize: 10, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '1px', textAlign: 'center' }}>{d}</div>
+          <div key={d} style={{ fontSize: AT.caption, fontWeight: AT.medium, color: T.muted, letterSpacing: AT.trackBody, textAlign: 'center' }}>{d}</div>
         ))}
       </div>
 
@@ -360,24 +349,24 @@ export function CalendarPage({ grades }: Props) {
                 opacity: isCurrentMonth ? 1 : 0.42,
               }}
             >
-              {/* v2: today = accent-filled circle around the day number */}
               <div style={{
                 fontSize: 11,
-                fontWeight: isToday ? 700 : 500,
-                color: isCurrentMonth ? T.text : T.muted,
+                fontWeight: isToday ? 800 : 500,
+                color: isToday ? T.primary : isCurrentMonth ? T.text : T.muted,
                 marginBottom: 4,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
               }}>
-                {isToday ? (
+                <span>{cell.day}</span>
+                {isToday && (
                   <span style={{
-                    width: 20, height: 20, borderRadius: '50%',
-                    background: T.primary, color: inkOnAccent(),
-                    display: 'grid', placeItems: 'center', fontWeight: 700,
-                  }}>{cell.day}</span>
-                ) : (
-                  <span>{cell.day}</span>
+                    width: 4,
+                    height: 4,
+                    borderRadius: '50%',
+                    background: T.primary,
+                    boxShadow: `0 0 4px ${T.primary}`,
+                  }} />
                 )}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 3, overflow: 'hidden', flex: 1 }}>
@@ -423,48 +412,45 @@ export function CalendarPage({ grades }: Props) {
       {/* Selected-day detail */}
       {selectedDay && selectedItems.length > 0 && (
         <div style={{
-          marginTop: 12,
-          background: T.card,
-          border: `1px solid ${T.border}`,
-          borderRadius: 10,
-          padding: '12px 14px',
+          ...haloCardStyle(true),
+          marginTop: 14,
+          borderRadius: AT.rTile,
+          padding: '16px 18px',
           maxHeight: 200,
           overflowY: 'auto',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: T.text }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
+            <span style={{ fontSize: AT.h3, fontWeight: AT.semibold, color: T.text, letterSpacing: AT.trackHead }}>
               {(() => { const [y, m, d] = selectedDay.split('-').map(Number); return `${MONTHS[m]} ${d}, ${y}`; })()}
             </span>
-            <span style={{ fontSize: 11, color: T.muted, marginLeft: 8, fontWeight: 500 }}>{selectedItems.length} due</span>
+            <span style={{ fontSize: AT.caption, color: T.muted, marginLeft: 10 }}>{selectedItems.length} due</span>
             <span style={{ flex: 1 }} />
             <button onClick={() => setSelectedDay(null)} className="cal-close-btn" aria-label="Close details">×</button>
           </div>
           {selectedItems.map((it, j) => (
-            <div key={j} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderTop: j > 0 ? `1px solid ${T.rowBorder}` : 'none' }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: isOverdue(it, now) ? missingRed : it.color, flexShrink: 0 }} />
-              <span style={{ flex: 1, fontSize: 12, color: T.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.name}</span>
+            <div key={j} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderTop: j > 0 ? `1px solid ${hairline()}` : 'none' }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: isOverdue(it, now) ? missingRed : it.color, flexShrink: 0 }} />
+              <span style={{ flex: 1, fontSize: AT.sub, color: T.text, letterSpacing: AT.trackBody, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.name}</span>
               {isOverdue(it, now) && (
                 <span style={{
-                  fontSize: 9,
-                  fontWeight: 700,
+                  fontSize: AT.micro,
+                  fontWeight: AT.semibold,
                   color: missingRed,
-                  background: `${missingRed}15`,
-                  border: `1px solid ${missingRed}40`,
-                  borderRadius: 4,
-                  padding: '1px 5px',
+                  background: `${missingRed}1f`,
+                  borderRadius: AT.rPill,
+                  padding: '2px 9px',
                   flexShrink: 0,
                 }}>
-                  OVERDUE
+                  Overdue
                 </span>
               )}
-              <span style={{ fontSize: 10, color: T.muted, flexShrink: 0 }}>{it.courseName}</span>
+              <span style={{ fontSize: AT.caption, color: T.muted, flexShrink: 0 }}>{it.courseName}</span>
             </div>
           ))}
         </div>
       )}
 
-      <div style={{ fontSize: 11, color: T.faint, marginTop: 10 }}>
+      <div style={{ fontSize: AT.caption, color: T.muted, opacity: 0.8, marginTop: 12 }}>
         {monthCount > 0 ? `${monthCount} due this month` : 'Nothing due this month'} · click a day for details
       </div>
     </div>

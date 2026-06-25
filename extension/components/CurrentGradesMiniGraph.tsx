@@ -1,9 +1,9 @@
 /**
- * CurrentGradesMiniGraph.tsx — horizontal current-grade bars, one per course.
+ * CurrentGradesMiniGraph.tsx — Phase 2
  *
- * Used by the summer/archive views ('gradeOnly' / 'graphOnly' modes): when
- * Schoology has wiped the per-assignment gradebook, this shows what survives —
- * the overall course grades. Token-driven (recolors with theme/accent).
+ * Horizontal grade bars for current grades across all courses.
+ * No fake historical trends — only current grade percentages.
+ * Shows a placeholder note about future trend capability.
  */
 
 import React from 'react';
@@ -24,13 +24,30 @@ export function CurrentGradesMiniGraph({ courses }: Props) {
     percent: number;
   }>;
 
-  if (entries.length === 0) return null;
+  if (entries.length === 0) {
+    return (
+      <div
+        style={{
+          background: '#111827',
+          border: '1px solid #1e2535',
+          borderRadius: 10,
+          padding: '16px 18px',
+          marginBottom: 16,
+          color: '#4a5568',
+          fontSize: 12,
+          textAlign: 'center',
+        }}
+      >
+        No grade percentages available yet.
+      </div>
+    );
+  }
 
   return (
     <div
       style={{
-        background: T.card,
-        border: `1px solid ${T.border}`,
+        background: '#111827',
+        border: '1px solid #1e2535',
         borderRadius: 10,
         padding: '16px 18px',
         marginBottom: 16,
@@ -38,11 +55,10 @@ export function CurrentGradesMiniGraph({ courses }: Props) {
     >
       <div
         style={{
-          fontSize: 10.5,
-          fontWeight: 700,
+          fontSize: 11,
+          fontWeight: 500,
           color: T.muted,
-          textTransform: 'uppercase',
-          letterSpacing: '0.06em',
+          letterSpacing: '-0.01em',
           marginBottom: 14,
         }}
       >
@@ -53,23 +69,75 @@ export function CurrentGradesMiniGraph({ courses }: Props) {
         {entries.map((entry, i) => {
           const color = gradeColor(entry.percent);
           const barWidth = `${Math.min(100, Math.max(0, entry.percent))}%`;
+
           return (
             <div key={i}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4, gap: 10 }}>
-                <span style={{ fontSize: 12.5, fontWeight: 600, color: T.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'baseline',
+                  marginBottom: 4,
+                  gap: 8,
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 12,
+                    color: '#c8d0df',
+                    flex: 1,
+                    minWidth: 0,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
                   {entry.name}
                 </span>
-                <span style={{ fontSize: 12.5, fontWeight: 800, color: T.text, flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
-                  {entry.percent.toFixed(1)}%
-                  {entry.letter && <span style={{ fontSize: 10.5, fontWeight: 700, color: color, marginLeft: 6 }}>{entry.letter}</span>}
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color,
+                    flexShrink: 0,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {entry.percent.toFixed(1)}% {entry.letter}
                 </span>
               </div>
-              <div style={{ height: 6, borderRadius: 999, background: T.faint, overflow: 'hidden' }} aria-hidden="true">
-                <div style={{ height: '100%', width: barWidth, background: T.primary, borderRadius: 999 }} />
+              <div
+                style={{
+                  height: 4,
+                  background: '#1e2535',
+                  borderRadius: 2,
+                  overflow: 'hidden',
+                }}
+              >
+                <div
+                  style={{
+                    width: barWidth,
+                    height: '100%',
+                    background: color,
+                    borderRadius: 2,
+                  }}
+                />
               </div>
             </div>
           );
         })}
+      </div>
+
+      <div
+        style={{
+          marginTop: 14,
+          fontSize: 10,
+          color: '#2d3748',
+          textAlign: 'center',
+          fontStyle: 'italic',
+        }}
+      >
+        Grade trends will appear after more snapshots are collected.
       </div>
     </div>
   );

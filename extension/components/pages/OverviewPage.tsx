@@ -1,75 +1,16 @@
-import React, { useState, useRef } from 'react';
+import React from 'react';
 import type { ScrapedCourse, SchoologyData } from '../../lib/schemas';
-import type { GradesMode } from '../../lib/use-extension-grades';
-import { parseGradeString, isMissing, scorePercent, gradeColor } from '../../lib/grade-utils';
-import { courseColor, courseAbbr, abbrFontSize } from '../../lib/course-colors';
+import { parseGradeString, isMissing, scorePercent } from '../../lib/grade-utils';
 import { SmartPriorities } from '../SmartPriorities';
-import { DueSoon } from '../DueSoon';
-import { FocusTimer } from '../FocusTimer';
-import { GradeChanges } from '../GradeChanges';
-import { PersonalTasks } from '../PersonalTasks';
-import { T, isLightTheme, isMinimalist } from '../../lib/theme';
-
-const CARD_W     = 252;
-const SPREAD     = 274;
-const ROT_Y      = 16;
-const SCALE_STEP = 0.07;
-const OPA_STEP   = 0.18;
-const MAX_VIS    = 2;
-
-export const FLY_VARIANTS = 4;
-
-/**
- * Per-card entrance: each card flies in from its own off-screen spot and lands
- * in its carousel position. Outer cards (bigger |offset|) lead; inner/center
- * cards follow with a slight stagger. Four variations keep it fresh each open.
- * Returns the wrapper style (position + 3D context + z-order + CSS vars the
- * bsCardFly keyframe reads). zIndex mirrors the card's so the fan overlaps right.
- */
-function flyStyle(variant: number, offset: number, i: number): React.CSSProperties {
-  const absOff = Math.abs(offset);
-  // Outermost first (delay 0), center last — "outside ones come in first".
-  const delay = Math.max(0, MAX_VIS + 1 - absOff) * 75;
-  const sign = offset === 0 ? (i % 2 === 0 ? -1 : 1) : Math.sign(offset);
-  let fx = '0px', fy = '120%', fr = '0deg', fs = '0.7';
-  switch (variant) {
-    case 0: // rise up from the bottom
-      fx = `${offset * 22}px`; fy = '128%'; fr = `${offset * 4}deg`; fs = '0.74';
-      break;
-    case 1: // fan out from the sides (center drops up from below)
-      fx = absOff === 0 ? '0%' : `${sign * 78}%`;
-      fy = absOff === 0 ? '96%' : '8%';
-      fr = `${offset * 12}deg`; fs = '0.7';
-      break;
-    case 2: // scatter from the four corners (alternating by index)
-      fx = `${sign * 122}%`;
-      fy = `${(i % 2 === 0 ? -1 : 1) * 118}%`;
-      fr = `${sign * 18}deg`; fs = '0.66';
-      break;
-    case 3: // drop and spin from the top
-    default:
-      fx = `${offset * -18}px`; fy = '-128%'; fr = `${offset * 16}deg`; fs = '0.64';
-      break;
-  }
-  return {
-    position: 'absolute',
-    inset: 0,
-    transformStyle: 'preserve-3d',
-    zIndex: 20 - absOff,
-    animationDelay: `${delay}ms`,
-    ['--fx']: fx,
-    ['--fy']: fy,
-    ['--fr']: fr,
-    ['--fs']: fs,
-  } as React.CSSProperties;
-}
+import { T, isMinimalist } from '../../lib/theme';
+import { AT, tileBg, hairline, cardShadow } from '../../lib/halo';
+import { HaloButton, FeatureTile, SectionHeader, Eyebrow, haloCardStyle } from '../halo-ui';
 
 interface GradesState {
   courses: ScrapedCourse[];
   data: SchoologyData | null;
   courseCount: number;
   assignmentCount: number;
-  mode: GradesMode;
 }
 
 interface Props {
@@ -77,196 +18,31 @@ interface Props {
   onCourseSelect: (name: string) => void;
 }
 
-function wrappedOffset(i: number, active: number, n: number): number {
-  let off = i - active;
-  if (off > n / 2)  off -= n;
-  if (off < -n / 2) off += n;
-  return off;
-}
-
-function recentGraded(course: ScrapedCourse, limit = 5) {
+function recentGraded(course: ScrapedCourse, limit = 7) {
   return course.categories
     .flatMap((cat) => cat.assignments)
     .filter((a) => a.status === 'graded')
-    .slice(-limit)
-    .reverse();
+    .slice(-limit);
 }
 
-function CourseCard({
-  course, offset, isActive, onClick, archive = false,
-}: {
-  course: ScrapedCourse;
-  offset: number;
-  isActive: boolean;
-  onClick: () => void;
-  /** Summer/archive mode: no assignment data exists — hide the Recent list + missing badge. */
-  archive?: boolean;
-}) {
-  const absOff   = Math.abs(offset);
-  const colorBg  = courseColor(course.name, false);
-  const colorText = courseColor(course.name, true);
-  const abbr     = courseAbbr(course.name);
-  const abbFS    = abbrFontSize(abbr);
-  const { percent, letter } = parseGradeString(course.grade);
-  const recent   = recentGraded(course, 5);
-  const missCt   = course.categories.flatMap((c) => c.assignments).filter(isMissing).length;
-  const light    = isLightTheme();
-  const minimal  = isMinimalist();
-  const bandInk  = light ? '#1a1a1a' : '#fff';
-  const bandInkSoft = light ? 'rgba(26,26,26,0.65)' : 'rgba(255,255,255,0.65)';
-
-  const scale  = 1 - absOff * SCALE_STEP;
-  // Light theme: faded cards wash out on white, keep them more opaque
-  const opa    = Math.max(light ? 0.55 : 0.28, 1 - absOff * (light ? 0.12 : OPA_STEP));
-  const rotY   = -offset * ROT_Y;
-  const tx     = offset * SPREAD;
-  const hidden = absOff > MAX_VIS;
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="bs-focusable bs-motion"
-      tabIndex={isActive ? 0 : -1}
-      aria-label={`${course.name}${percent !== null ? `, ${percent.toFixed(1)}%` : ''}${missCt > 0 ? `, ${missCt} missing` : ''} — open gradebook`}
-      style={{
-        all: 'unset',
-        boxSizing: 'border-box',
-        position: 'absolute',
-        left: '50%',
-        top: '50%',
-        width: CARD_W,
-        height: '92%',
-        marginLeft: -(CARD_W / 2),
-        borderRadius: 22,
-        overflow: 'hidden',
-        background: T.card,
-        border: `1px solid ${isActive ? colorText + '55' : T.border}`,
-        boxShadow: isActive
-          ? `0 24px 72px rgba(0,0,0,0.7), 0 0 0 1px ${colorText}22`
-          : `0 6px 24px rgba(0,0,0,0.4)`,
-        cursor: 'pointer',
-        transform: `translateX(${tx}px) translateY(-50%) rotateY(${rotY}deg) scale(${scale})`,
-        opacity: hidden ? 0 : opa,
-        pointerEvents: hidden ? 'none' : 'auto',
-        transition: 'transform 0.52s cubic-bezier(0.22,1,0.36,1), opacity 0.38s ease, border-color 0.3s, box-shadow 0.4s',
-        zIndex: 20 - absOff,
-        userSelect: 'none',
-        willChange: 'transform',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      {/* ── Color header — 40% of card ────────────────────────── */}
-      <div style={{ height: '40%', background: colorBg, position: 'relative', flexShrink: 0, overflow: 'hidden', width: '100%' }}>
-        {/* Watermark — hidden in minimalist mode */}
-        {!minimal && (
-          <div aria-hidden="true" style={{
-            position: 'absolute', inset: 0,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: abbFS, fontWeight: 900,
-            // Ink-black watermark on the light theme (the 0.07 grey was barely there);
-            // keep the subtle white watermark on dark themes.
-            color: light ? 'rgba(0,0,0,0.82)' : 'rgba(255,255,255,0.09)', letterSpacing: '-1px', lineHeight: 1,
-          }}>
-            {abbr}
-          </div>
-        )}
-        {/* Grade — top right */}
-        <div style={{ position: 'absolute', top: 12, right: 14, textAlign: 'right' }}>
-          <div style={{ fontSize: 26, fontWeight: 800, color: bandInk, lineHeight: 1, letterSpacing: '-0.5px', fontVariantNumeric: 'tabular-nums' }}>
-            {percent !== null ? `${percent.toFixed(1)}%` : '—'}
-          </div>
-          {letter && (
-            <div style={{ fontSize: 14, fontWeight: 700, color: bandInkSoft, marginTop: 2 }}>{letter}</div>
-          )}
-        </div>
-        {/* Missing badge — top left */}
-        {missCt > 0 && !archive && (
-          <div style={{
-            position: 'absolute', top: 12, left: 12,
-            fontSize: 9, fontWeight: 700,
-            color: light ? '#faf9f6' : '#fecaca',
-            background: light ? 'rgba(26,26,26,0.85)' : 'rgba(127,29,29,0.75)',
-            border: light ? '1px solid rgba(26,26,26,0.85)' : '1px solid rgba(239,68,68,0.5)',
-            borderRadius: 6, padding: '3px 7px',
-          }}>
-            {missCt} missing
-          </div>
-        )}
-        {/* Course name — flat legibility band */}
-        <div style={{
-          position: 'absolute', bottom: 0, left: 0, right: 0,
-          padding: '10px 14px 9px',
-          background: light ? 'rgba(255,255,255,0.6)' : 'rgba(10, 13, 20, 0.55)',
-        }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: bandInk, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {course.name}
-          </div>
-          {course.teacher && (
-            <div style={{ fontSize: 10, color: bandInkSoft, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {course.teacher}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ── Recent assignments — fills rest ───────────────────── */}
-      <div style={{ flex: 1, padding: '14px 14px 12px', overflow: 'hidden', display: 'flex', flexDirection: 'column', width: '100%', boxSizing: 'border-box' }}>
-        <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>
-          {archive ? 'Final grade' : 'Recent'}
-        </div>
-        {archive ? (
-          <div style={{ fontSize: 11, color: T.muted, fontStyle: 'italic', lineHeight: 1.5 }}>
-            Assignments aren't available for this term.
-          </div>
-        ) : recent.length === 0 ? (
-          <div style={{ fontSize: 11, color: T.muted, fontStyle: 'italic' }}>No graded work yet</div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
-            {recent.map((a, idx) => {
-              const pct    = scorePercent(a.score, a.maxGrade);
-              const pctClr = gradeColor(pct);
-              return (
-                <div
-                  key={idx}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: minimal ? 0 : 8,
-                    padding: minimal ? '3px 0' : '6px 0',
-                    borderBottom: idx < recent.length - 1 ? `1px solid ${T.rowBorder}` : 'none',
-                    flexShrink: 0,
-                  }}
-                >
-                  {!minimal && (
-                    <div style={{ width: 5, height: 5, borderRadius: '50%', background: pctClr ?? T.faint, flexShrink: 0 }} />
-                  )}
-                  <div style={{ flex: 1, fontSize: 11, color: T.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {a.name}
-                  </div>
-                  {pct !== null && (
-                    <div style={{ fontSize: 11, fontWeight: 700, color: pctClr, flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
-                      {pct.toFixed(0)}%
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-        {/* Tap to open hint — hidden in minimalist mode */}
-        {isActive && !minimal && (
-          <div style={{ marginTop: 'auto', paddingTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, background: colorText + '18', borderRadius: 9, padding: '7px 12px' }}>
-            <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke={colorText} strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-            <span style={{ fontSize: 11, fontWeight: 700, color: colorText }}>Tap to open grades</span>
-          </div>
-        )}
-      </div>
-    </button>
-  );
+/** Build a tiny sparkline polyline (chronological) from recent graded work. */
+function sparkPoints(course: ScrapedCourse): string | null {
+  const pts = recentGraded(course)
+    .map((a) => scorePercent(a.score, a.maxGrade))
+    .filter((p): p is number => p !== null);
+  if (pts.length < 2) return null;
+  const W = 220, H = 44, pad = 4;
+  const min = Math.min(...pts, 60);
+  const max = Math.max(...pts, 100);
+  const span = max - min || 1;
+  return pts
+    .map((p, i) => {
+      const x = pad + (i / (pts.length - 1)) * (W - pad * 2);
+      const y = pad + (1 - (p - min) / span) * (H - pad * 2);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(' ');
 }
-
 
 function percentToGpa(p: number): number {
   if (p >= 93) return 4.0;
@@ -285,16 +61,14 @@ function isDueToday(rawDateString: string): boolean {
   if (!rawDateString) return false;
   const s = rawDateString.replace(/\bdue\b/i, '').trim();
   const md = s.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  let dt: Date;
   if (md) {
-    let [, m, d, y] = md;
+    const [, m, d, y] = md;
     const yr = y.length === 2 ? 2000 + parseInt(y, 10) : parseInt(y, 10);
-    const dt = new Date(yr, parseInt(m, 10) - 1, parseInt(d, 10));
-    const today = new Date();
-    return dt.getFullYear() === today.getFullYear() &&
-           dt.getMonth() === today.getMonth() &&
-           dt.getDate() === today.getDate();
+    dt = new Date(yr, parseInt(m, 10) - 1, parseInt(d, 10));
+  } else {
+    dt = new Date(s);
   }
-  const dt = new Date(s);
   if (isNaN(dt.getTime())) return false;
   const today = new Date();
   return dt.getFullYear() === today.getFullYear() &&
@@ -302,301 +76,189 @@ function isDueToday(rawDateString: string): boolean {
          dt.getDate() === today.getDate();
 }
 
-function StatCard({ label, value, subText, accent, borderAccent }: {
-  label: string;
-  value: string;
-  subText?: string;
-  accent?: string;
-  borderAccent?: string;
+function CourseCard({ course, index, onClick }: {
+  course: ScrapedCourse;
+  index: number;
+  onClick: () => void;
 }) {
-  const [hovered, setHovered] = useState(false);
+  const [hover, setHover] = React.useState(false);
+  const { percent, letter } = parseGradeString(course.grade);
+  const missCt = course.categories.flatMap((c) => c.assignments).filter(isMissing).length;
+  const spark = sparkPoints(course);
+
   return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+    <button
+      type="button"
+      onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      className="bs-focusable bs-halo-card bs-halo-in"
+      aria-label={`${course.name}${percent !== null ? `, ${percent.toFixed(1)} percent` : ''}${missCt > 0 ? `, ${missCt} missing` : ''} — open gradebook`}
       style={{
-        background: T.card,
-        border: `1px solid ${hovered && borderAccent ? borderAccent : T.border}`,
-        borderRadius: 14,
-        padding: '12px 18px',
-        minWidth: 106,
+        all: 'unset',
+        boxSizing: 'border-box',
+        cursor: 'pointer',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'center',
-        boxShadow: hovered ? '0 8px 16px rgba(0,0,0,0.25)' : '0 2px 6px rgba(0,0,0,0.1)',
-        transform: hovered ? 'translateY(-2px)' : 'none',
-        transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease-out, border-color 0.2s ease-out',
+        overflow: 'hidden',
+        borderRadius: AT.rCardLg,
+        background: T.card,
+        border: `1px solid ${hairline()}`,
+        boxShadow: cardShadow(hover),
+        transform: hover ? 'translateY(-3px)' : 'none',
+        animationDelay: `${index * 60}ms`,
+        fontFamily: AT.font,
       }}
-      className="bs-motion"
     >
-      <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 4 }}>
-        {label}
-      </div>
-      <div style={{ fontSize: 20, fontWeight: 800, color: accent ?? T.text, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums' }}>
-        {value}
-      </div>
-      {subText && (
-        <div style={{ fontSize: 9, color: T.muted, opacity: 0.8, marginTop: 4, fontWeight: 500 }}>
-          {subText}
+      <div style={{ padding: '22px 24px 18px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <div style={{ fontSize: AT.h3, fontWeight: AT.semibold, letterSpacing: AT.trackHead, color: T.text, lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {course.name}
         </div>
-      )}
-    </div>
+        {course.teacher && (
+          <div style={{ marginTop: 5, fontSize: AT.sub, color: T.muted, letterSpacing: AT.trackBody, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {course.teacher}
+          </div>
+        )}
+        <div style={{ marginTop: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 46, fontWeight: AT.semibold, letterSpacing: AT.trackTight, lineHeight: 1, color: T.text, fontVariantNumeric: 'tabular-nums' }}>
+            {percent !== null ? percent.toFixed(1) : '—'}
+          </span>
+          {percent !== null && (
+            <span style={{ fontSize: AT.h3, fontWeight: AT.semibold, color: T.muted, letterSpacing: AT.trackHead }}>%</span>
+          )}
+          {letter && letter !== '—' && (
+            <span style={{ marginLeft: 'auto', alignSelf: 'center', fontSize: AT.body, fontWeight: AT.semibold, color: T.muted, background: tileBg(), borderRadius: AT.rPill, padding: '4px 14px' }}>
+              {letter}
+            </span>
+          )}
+        </div>
+        {spark && (
+          <svg viewBox="0 0 220 44" preserveAspectRatio="none" aria-hidden="true" style={{ height: 44, width: '100%', marginTop: 16 }}>
+            <polyline fill="none" stroke={T.text} strokeOpacity="0.4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" points={spark} />
+          </svg>
+        )}
+      </div>
+      <div style={{ marginTop: 'auto', padding: '14px 24px', borderTop: `1px solid ${hairline()}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontSize: AT.sub, color: T.primary, letterSpacing: AT.trackBody, display: 'inline-flex', gap: 3 }}>
+          View grades <span aria-hidden="true">›</span>
+        </span>
+        {missCt > 0 ? (
+          <span style={{ fontSize: AT.caption, fontWeight: AT.semibold, color: T.failed }}>{missCt} missing</span>
+        ) : (
+          <span style={{ fontSize: AT.caption, color: T.muted, opacity: 0.85 }}>No missing work</span>
+        )}
+      </div>
+    </button>
   );
 }
 
 export function OverviewPage({ grades, onCourseSelect }: Props) {
   const { courses } = grades;
-  // Summer/archive: Schoology wiped the per-assignment gradebook — hide
-  // everything assignment-derived; keep grades, GPA, timer, tasks.
-  const archive = grades.mode !== 'full';
   const minimal = isMinimalist();
-  const N = courses.length;
-  const [activeIdx, setActiveIdx] = useState(0);
-  const dragRef = useRef({ x0: 0, on: false, moved: false });
-  // Pick a fly-in variation once per mount → unique each time the overview opens.
-  const flyVariant = useRef(Math.floor(Math.random() * FLY_VARIANTS)).current;
-
-  function onPointerDown(e: React.PointerEvent) {
-    dragRef.current = { x0: e.clientX, on: true, moved: false };
-  }
-
-  function onPointerMove(e: React.PointerEvent) {
-    if (!dragRef.current.on) return;
-    if (Math.abs(e.clientX - dragRef.current.x0) > 12) dragRef.current.moved = true;
-  }
-
-  function onPointerUp(e: React.PointerEvent) {
-    if (!dragRef.current.on) return;
-    const dx = e.clientX - dragRef.current.x0;
-    dragRef.current.on = false;
-    if (Math.abs(dx) > 40) {
-      if (dx < 0) setActiveIdx((p) => (p + 1) % N);
-      else        setActiveIdx((p) => (p - 1 + N) % N);
-    }
-  }
-
-  function onCarouselKeyDown(e: React.KeyboardEvent) {
-    if (e.key === 'ArrowRight') {
-      e.preventDefault();
-      e.stopPropagation(); // keep page-level ←/→ tab cycling out of course browsing
-      setActiveIdx((p) => (p + 1) % N);
-    } else if (e.key === 'ArrowLeft') {
-      e.preventDefault();
-      e.stopPropagation();
-      setActiveIdx((p) => (p - 1 + N) % N);
-    }
-  }
-
 
   const gradedCourses = courses.filter((c) => parseGradeString(c.grade).percent !== null);
   const avg = gradedCourses.length
     ? gradedCourses.reduce((s, c) => s + (parseGradeString(c.grade).percent ?? 0), 0) / gradedCourses.length
     : null;
-  const gpas = gradedCourses.map((c) => {
-    const { percent } = parseGradeString(c.grade);
-    return percent !== null ? percentToGpa(percent) : null;
-  }).filter((g) => g !== null) as number[];
-  const gpaEstimate = gpas.length
-    ? gpas.reduce((s, g) => s + g, 0) / gpas.length
-    : null;
 
-  const dueTodayCount = courses
-    .flatMap((c) => c.categories.flatMap((cat) => cat.assignments))
-    .filter((a) => a.dueDate && isDueToday(a.dueDate)).length;
+  const gpas = gradedCourses
+    .map((c) => parseGradeString(c.grade).percent)
+    .filter((p): p is number => p !== null)
+    .map(percentToGpa);
+  const gpaEstimate = gpas.length ? gpas.reduce((s, g) => s + g, 0) / gpas.length : null;
 
-  const missingTotal = courses.flatMap((c) => c.categories.flatMap((cat) => cat.assignments)).filter(isMissing).length;
+  const allAssignments = courses.flatMap((c) => c.categories.flatMap((cat) => cat.assignments));
+  const dueTodayCount = allAssignments.filter((a) => a.dueDate && isDueToday(a.dueDate)).length;
+  const missingTotal = allAssignments.filter(isMissing).length;
+
+  const best = gradedCourses.reduce<{ name: string; pct: number } | null>((acc, c) => {
+    const p = parseGradeString(c.grade).percent ?? -1;
+    return !acc || p > acc.pct ? { name: c.name, pct: p } : acc;
+  }, null);
+
   const period = (grades.data?.gradingPeriod ?? '').replace(/\s*grading\s+period\s*/gi, '').trim();
+  const eyebrowText = period || 'Current semester';
 
-  // Honest data-freshness line — students should know when grades were last read
   const scrapedAt = grades.data?.scrapedAt ?? null;
   const ageMs = scrapedAt ? Date.now() - scrapedAt : null;
-  const isStaleData = ageMs !== null && ageMs > 24 * 60 * 60 * 1000;
   const ageLabel = ageMs === null ? null
     : ageMs < 60_000 ? 'just now'
     : ageMs < 3_600_000 ? `${Math.floor(ageMs / 60_000)}m ago`
     : ageMs < 86_400_000 ? `${Math.floor(ageMs / 3_600_000)}h ago`
     : `${Math.floor(ageMs / 86_400_000)}d ago`;
+  const isStaleData = ageMs !== null && ageMs > 24 * 60 * 60 * 1000;
+
+  const status = avg === null ? '' : avg >= 90 ? "You're on track." : avg >= 80 ? 'Keep it going.' : "Let's bring these up.";
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: T.bg }}>
+    <div style={{ minHeight: '100vh', background: T.bg, fontFamily: AT.font }}>
+      <div style={{ maxWidth: 1040, margin: '0 auto', padding: '48px clamp(20px, 4vw, 40px) 96px' }}>
 
-      {/* ── Header strip ──────────────────────────────────────────── */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 28, padding: '20px 28px 14px', flexShrink: 0 }}>
-        <div>
-          <h1 style={{ margin: '0 0 3px', fontSize: 11, fontWeight: 800, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-            {period || 'Current Semester'}
-          </h1>
-          {/* v2: hero number is neutral text — color is reserved for status, not scale */}
-          <div style={{ fontSize: 64, fontWeight: 800, color: T.text, lineHeight: 1, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums', margin: '6px 0 8px' }}>
-            {avg !== null ? `${avg.toFixed(2)}%` : '—'}
-          </div>
-          <div style={{ fontSize: 11, color: T.muted, marginTop: 6 }}>
-            Overall Average
-            {ageLabel && (
-              <span style={{ color: isStaleData ? T.amber : T.muted, opacity: isStaleData ? 1 : 0.75 }}>
-                {' '}· updated {ageLabel}{isStaleData ? ' — open the Grades page on Schoology to refresh' : ''}
-              </span>
+        {/* ── Hero ─────────────────────────────────────────────── */}
+        <div className="bs-halo-in">
+          <Eyebrow>{eyebrowText}</Eyebrow>
+          <div style={{ marginTop: 14, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 32, flexWrap: 'wrap' }}>
+            <div style={{ minWidth: 260 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                <span style={{ fontSize: AT.hero, fontWeight: AT.semibold, letterSpacing: AT.trackTight, lineHeight: 0.95, color: T.text, fontVariantNumeric: 'tabular-nums' }}>
+                  {avg !== null ? avg.toFixed(1) : '—'}
+                </span>
+                {avg !== null && (
+                  <span style={{ fontSize: 40, fontWeight: AT.semibold, color: T.muted, letterSpacing: AT.trackHead, marginTop: 6, marginLeft: 3 }}>%</span>
+                )}
+              </div>
+              <div style={{ marginTop: 14, fontSize: AT.h3, color: T.muted, letterSpacing: AT.trackBody }}>
+                Overall average across {courses.length} course{courses.length === 1 ? '' : 's'}.
+                {status && <span style={{ color: T.text, fontWeight: AT.medium }}> {status}</span>}
+              </div>
+              {ageLabel && (
+                <div style={{ marginTop: 8, fontSize: AT.caption, color: isStaleData ? T.amber : T.muted, opacity: isStaleData ? 1 : 0.8 }}>
+                  Updated {ageLabel}{isStaleData ? ' — open the Grades page on Schoology to refresh' : ''}
+                </div>
+              )}
+            </div>
+            {courses.length > 0 && (
+              <HaloButton onClick={() => onCourseSelect(courses[0].name)}>View all grades</HaloButton>
             )}
           </div>
-          {archive && (
-            <div style={{ fontSize: 11.5, color: T.muted, marginTop: 8, fontStyle: 'italic' }}>
-              Assignments aren't available for this term — showing final grades{grades.mode === 'graphOnly' ? ' and saved history' : ''}.
+        </div>
+
+        {/* ── Feature tiles ────────────────────────────────────── */}
+        {!minimal && (
+          <div style={{ marginTop: 44, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 18 }}>
+            <FeatureTile label="GPA estimate" value={gpaEstimate !== null ? gpaEstimate.toFixed(2) : '—'} note="Weighted · 4.0 scale" />
+            <FeatureTile label="Due today" value={String(dueTodayCount)} note="Assignments" />
+            <FeatureTile label="Missing" value={missingTotal === 0 ? 'None' : String(missingTotal)} note={missingTotal > 0 ? 'Worth a look' : 'All caught up'} valueColor={missingTotal > 0 ? T.failed : undefined} />
+            <FeatureTile label="Best class" value={best ? best.name : '—'} valueSize={AT.h3} note={best && best.pct >= 0 ? `${best.pct.toFixed(1)}% average` : undefined} />
+          </div>
+        )}
+
+        {/* ── Course gallery ───────────────────────────────────── */}
+        <div style={{ marginTop: 60 }}>
+          <SectionHeader title="Your courses" meta={`${courses.length} course${courses.length === 1 ? '' : 's'}`} />
+          {courses.length === 0 ? (
+            <div style={{ marginTop: 24, padding: '48px 24px', textAlign: 'center', color: T.muted, fontSize: AT.body, ...haloCardStyle() }}>
+              <div>No courses found in the last scrape.</div>
+              <div style={{ marginTop: 8, fontSize: AT.sub, opacity: 0.8 }}>
+                Open <span style={{ color: T.primary, fontWeight: AT.medium }}>{location.host}/grades/grades</span> to re-read your grades.
+              </div>
+            </div>
+          ) : (
+            <div style={{ marginTop: 24, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
+              {courses.map((course, i) => (
+                <CourseCard key={course.name} course={course} index={i} onClick={() => onCourseSelect(course.name)} />
+              ))}
             </div>
           )}
         </div>
-        {/* Stat boxes — hidden in minimalist mode */}
+
+        {/* ── Smart priorities (kept; hidden in minimalist) ────── */}
         {!minimal && (
-          <div style={{ display: 'flex', gap: 12, marginLeft: 8 }}>
-            <StatCard
-              label="GPA Estimate"
-              value={gpaEstimate !== null ? gpaEstimate.toFixed(2) : '—'}
-              subText="Weighted 4.0 Scale"
-              accent={T.primary}
-              borderAccent={T.primary}
-            />
-            {/* Assignment-derived stats would read a misleading 0 in archive modes */}
-            {!archive && (
-              <StatCard
-                label="Due Today"
-                value={String(dueTodayCount)}
-                subText="Assignments"
-                accent={dueTodayCount > 0 ? T.amber : T.fresh}
-                borderAccent={dueTodayCount > 0 ? T.amber : T.fresh}
-              />
-            )}
-            {!archive && (
-              <StatCard
-                label="Missing"
-                value={missingTotal === 0 ? 'None' : String(missingTotal)}
-                subText="Action Required"
-                accent={missingTotal > 0 ? T.failed : T.text}
-                borderAccent={missingTotal > 0 ? T.failed : undefined}
-              />
-            )}
+          <div style={{ marginTop: 64 }}>
+            <SmartPriorities courses={courses} />
           </div>
         )}
       </div>
-
-      {/* ── Carousel — grows to fill viewport ─────────────────────── */}
-      {courses.length === 0 ? (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, color: T.muted, fontSize: 14 }}>
-          <span>No courses found in the last scrape.</span>
-          <span style={{ fontSize: 12, color: T.muted, opacity: 0.75 }}>
-            Open <span style={{ color: T.primary, fontWeight: 600 }}>{location.host}/grades/grades</span> to re-read your grades.
-          </span>
-        </div>
-      ) : (
-        <div
-          role="group"
-          aria-roledescription="carousel"
-          aria-label={`Courses, ${activeIdx + 1} of ${N} selected. Use left and right arrow keys to browse.`}
-          tabIndex={0}
-          className="bs-focusable"
-          style={{
-            flex: 1,
-            minHeight: 420,
-            position: 'relative',
-            perspective: '1400px',
-            cursor: 'grab',
-            overflow: 'visible',
-          }}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onKeyDown={onCarouselKeyDown}
-        >
-          {/* Each card flies in from its own spot and lands in position (staggered,
-              outer cards first). Per-card wrapper carries the entrance; the inner
-              CourseCard keeps its carousel transform. */}
-          {courses.map((course, i) => {
-            const offset = wrappedOffset(i, activeIdx, N);
-            return (
-              <div key={course.name} className="bs-card-fly" style={flyStyle(flyVariant, offset, i)}>
-                <CourseCard
-                  course={course}
-                  offset={offset}
-                  archive={archive}
-                  isActive={offset === 0}
-                  onClick={() => {
-                    if (dragRef.current.moved) return;
-                    if (offset === 0) onCourseSelect(course.name);
-                    else setActiveIdx(i);
-                  }}
-                />
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* ── Position indicator ────────────────────────────────────── */}
-      {/* Minimalist mode swaps the decorative dots for a quiet numeric
-          counter so wayfinding ("which course am I on") survives the strip-down.
-          aria-hidden — the carousel container already announces position to SRs. */}
-      {minimal && N > 1 && (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0 4px', flexShrink: 0 }}>
-          <span aria-hidden="true" style={{ fontSize: 11, fontWeight: 600, color: T.muted, letterSpacing: '0.5px', fontVariantNumeric: 'tabular-nums' }}>
-            {activeIdx + 1} / {N}
-          </span>
-        </div>
-      )}
-      {!minimal && (
-      <div style={{ display: 'flex', justifyContent: 'center', gap: 2, padding: '6px 0 4px', flexShrink: 0 }}>
-        {courses.map((course, i) => (
-          <button
-            key={i}
-            type="button"
-            onClick={() => setActiveIdx(i)}
-            aria-label={`Show ${course.name}`}
-            aria-current={i === activeIdx ? 'true' : undefined}
-            className="bs-focusable bs-motion"
-            style={{
-              all: 'unset',
-              cursor: 'pointer',
-              padding: '10px 5px',
-              display: 'flex',
-              alignItems: 'center',
-            }}
-          >
-            <span
-              aria-hidden="true"
-              className="bs-motion"
-              style={{
-                width: i === activeIdx ? 22 : 7,
-                height: 7,
-                borderRadius: 4,
-                background: i === activeIdx ? T.primary : T.faint,
-                transition: 'width 0.3s cubic-bezier(0.22,1,0.36,1), background 0.3s',
-                display: 'block',
-              }}
-            />
-          </button>
-        ))}
-      </div>
-      )}
-
-      {/* ── What changed + due soon | timer + tasks — hidden in minimalist mode ─ */}
-      {!minimal && (
-        <div style={{ padding: '4px 28px 0', flexShrink: 0, display: 'grid', gridTemplateColumns: '1fr 340px', gap: 16, alignItems: 'start' }}>
-          <div>
-            {!archive && <GradeChanges />}
-            {!archive && <DueSoon courses={courses} />}
-            {archive && <CurrentGradesMiniGraph courses={courses} />}
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <FocusTimer />
-            <PersonalTasks />
-          </div>
-        </div>
-      )}
-
-      {/* ── Smart Priorities — assignment-driven; hidden in archive + minimalist ── */}
-      {!minimal && !archive && (
-        <div style={{ padding: '16px 28px 32px', flexShrink: 0 }}>
-          <SmartPriorities courses={courses} />
-        </div>
-      )}
-
     </div>
   );
 }

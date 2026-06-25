@@ -1,9 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import type { ScrapedCourse, ScrapedAssignment } from '../../lib/schemas';
-import { courseColor, courseAbbr } from '../../lib/course-colors';
+import { courseAbbr } from '../../lib/course-colors';
 import { scorePercent, parseMaxGrade, gradeColor, parseDueDate, formatDueDate, isDatePast } from '../../lib/grade-utils';
 import { Icon } from '../Icon';
 import { T } from '../../lib/theme';
+import { AT, tileBg, hairline } from '../../lib/halo';
+import { haloCardStyle } from '../halo-ui';
 import { ContentViewer, NativeTaskViewer } from './MaterialsPage';
 import { fetchItemContent, submitDropboxText, submitDropboxFiles, type FetchedContent } from '../../lib/fetch-materials';
 
@@ -36,18 +38,11 @@ function getBucketMeta(key: BucketKey): { label: string; color: string; empty: s
     case 'missing':
       return { label: 'Missing', color: T.failed, empty: "Nothing missing — you're all caught up." };
     case 'todo':
-      return { label: 'To Do', color: T.primary, empty: 'Nothing left to turn in.' };
+      return { label: 'To do', color: T.primary, empty: 'Nothing left to turn in.' };
     case 'done':
       return { label: 'Done', color: T.fresh, empty: 'Nothing graded or submitted yet.' };
   }
 }
-
-// Carousel geometry — mirrors the course carousel on the Overview tab.
-const CARD_W = 252;
-const SPREAD = 274;
-const ROT_Y = 16;
-const SCALE_STEP = 0.07;
-const OPA_STEP = 0.18;
 
 /** Unsubmitted with a due date that's already passed. */
 function isMissingItem(a: { status: string; dueDate: string }): boolean {
@@ -77,13 +72,6 @@ function compareForBucket(key: BucketKey) {
     if (db == null) return -1;
     return key === 'done' ? db - da : da - db;
   };
-}
-
-function wrappedOffset(i: number, active: number, n: number): number {
-  let off = i - active;
-  if (off > n / 2) off -= n;
-  if (off < -n / 2) off += n;
-  return off;
 }
 
 export function AssignmentsPage({ grades }: Props) {
@@ -129,14 +117,6 @@ export function AssignmentsPage({ grades }: Props) {
     setViewer({ url, title: a.name });
   };
 
-  // Open on whichever bucket needs attention most: missing > to do > done.
-  const [activeIdx, setActiveIdx] = useState(() => {
-    const hasMissing = allItems.some((a) => bucketOf(a) === 'missing');
-    if (hasMissing) return 0;
-    const hasTodo = allItems.some((a) => bucketOf(a) === 'todo');
-    return hasTodo ? 1 : 2;
-  });
-
   const filtered = useMemo(
     () => allItems.filter((a) => activeCourses.has(a.courseName) && matchesSearch(a, search)),
     [allItems, activeCourses, search],
@@ -163,19 +143,20 @@ export function AssignmentsPage({ grades }: Props) {
   }
 
   return (
-    <div style={{ padding: 24, boxSizing: 'border-box', display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <div style={{ background: T.bg, fontFamily: AT.font, minHeight: '100vh' }}>
+    <div style={{ maxWidth: 1040, margin: '0 auto', padding: '40px clamp(20px, 4vw, 40px) 80px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
       <style>{`.bs-asgn-row { cursor: pointer; transition: background .12s; } .bs-asgn-row:hover { background: ${T.primary}14; }`}</style>
-      <h1 style={{ margin: '0 0 16px', fontSize: 20, fontWeight: 700, color: T.text, lineHeight: 1.3 }}>
+      <h1 style={{ margin: '0 0 20px', fontSize: AT.h1, fontWeight: AT.semibold, color: T.text, lineHeight: 1.1, letterSpacing: AT.trackHead }}>
         Assignments
       </h1>
 
       {/* Search */}
-      <div style={{ position: 'relative', marginBottom: 12 }}>
+      <div style={{ position: 'relative', marginBottom: 14 }}>
         <div style={{
-          position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)',
-          color: T.faint, display: 'flex', pointerEvents: 'none',
+          position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
+          color: T.muted, display: 'flex', pointerEvents: 'none',
         }}>
-          <Icon name="search" size={14} />
+          <Icon name="search" size={16} />
         </div>
         <input
           type="text"
@@ -183,17 +164,18 @@ export function AssignmentsPage({ grades }: Props) {
           onChange={(e) => setSearch(e.target.value)}
           onFocus={() => setSearchFocused(true)}
           onBlur={() => setSearchFocused(false)}
-          placeholder="Search assignments..."
+          placeholder="Search assignments"
           aria-label="Search assignments"
           style={{
             width: '100%',
             boxSizing: 'border-box',
-            background: T.card,
-            border: `1px solid ${searchFocused ? T.primary : T.border}`,
-            borderRadius: 8,
+            background: tileBg(),
+            border: `1px solid ${searchFocused ? T.primary : 'transparent'}`,
+            borderRadius: AT.rTile,
             color: T.text,
-            fontSize: 12,
-            padding: '9px 32px',
+            fontFamily: AT.font,
+            fontSize: AT.sub,
+            padding: '12px 38px',
             outline: 'none',
           }}
         />
@@ -218,7 +200,6 @@ export function AssignmentsPage({ grades }: Props) {
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }} role="group" aria-label="Filter by course">
           {grades.courses.map((c) => {
             const active = activeCourses.has(c.name);
-            const clr = courseColor(c.name, true);
             return (
               <button
                 key={c.name}
@@ -226,55 +207,50 @@ export function AssignmentsPage({ grades }: Props) {
                 onClick={() => toggleCourse(c.name)}
                 aria-pressed={active}
                 aria-label={`${active ? 'Hide' : 'Show'} ${c.name}`}
-                className="bs-focusable"
+                className="bs-focusable bs-press"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: 6,
-                  borderRadius: 999,
-                  border: `1px solid ${active ? `${clr}60` : T.border}`,
-                  background: active ? `${clr}1a` : T.card,
-                  color: active ? clr : T.muted,
-                  padding: '4px 10px',
-                  fontSize: 11,
-                  fontWeight: 600,
+                  gap: 7,
+                  borderRadius: AT.rPill,
+                  border: 'none',
+                  background: active ? T.text : tileBg(),
+                  color: active ? T.bg : T.muted,
+                  padding: '6px 14px',
+                  fontSize: AT.caption,
+                  fontWeight: AT.medium,
                   cursor: 'pointer',
                   lineHeight: 1.4,
                 }}
               >
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: clr, flexShrink: 0 }} />
                 {courseAbbr(c.name)}
               </button>
             );
           })}
         </div>
 
-        <span style={{ marginLeft: 'auto', fontSize: 11, color: T.muted, whiteSpace: 'nowrap' }} role="status">
+        <span style={{ marginLeft: 'auto', fontSize: AT.sub, color: T.muted, whiteSpace: 'nowrap' }} role="status">
           {filtered.length} assignment{filtered.length !== 1 ? 's' : ''}
         </span>
       </div>
 
-      {/* Status carousel */}
-      <div style={{ flex: 1, minHeight: 420, position: 'relative', perspective: '1400px', overflow: 'visible' }}>
-        {BUCKET_ORDER.map((key, i) => {
-          const offset = wrappedOffset(i, activeIdx, BUCKET_ORDER.length);
-          return (
-            <BucketCard
-              key={key}
-              bucketKey={key}
-              items={buckets[key]}
-              offset={offset}
-              isActive={offset === 0}
-              onActivate={() => setActiveIdx(i)}
-              onOpen={openAssignment}
-            />
-          );
-        })}
+      {/* Status columns */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20, alignItems: 'start' }}>
+        {BUCKET_ORDER.map((key, i) => (
+          <BucketCard
+            key={key}
+            bucketKey={key}
+            items={buckets[key]}
+            index={i}
+            onOpen={openAssignment}
+          />
+        ))}
       </div>
 
       {viewer && (
         <SgyAssignmentViewer initialUrl={viewer.url} initialTitle={viewer.title} onClose={() => setViewer(null)} />
       )}
+    </div>
     </div>
   );
 }
@@ -345,76 +321,46 @@ function SgyAssignmentViewer({ initialUrl, initialTitle, onClose }: { initialUrl
 }
 
 function BucketCard({
-  bucketKey, items, offset, isActive, onActivate, onOpen,
+  bucketKey, items, index, onOpen,
 }: {
   bucketKey: BucketKey;
   items: FlatAssignment[];
-  offset: number;
-  isActive: boolean;
-  onActivate: () => void;
+  index: number;
   onOpen: (a: FlatAssignment) => void;
 }) {
   const meta = getBucketMeta(bucketKey);
-  const absOff = Math.abs(offset);
-  const scale = 1 - absOff * SCALE_STEP;
-  const opa = Math.max(0.3, 1 - absOff * OPA_STEP);
-  const rotY = -offset * ROT_Y;
-  const tx = offset * SPREAD;
 
   return (
     <div
-      onClick={!isActive ? onActivate : undefined}
+      className="bs-halo-in"
       style={{
-        position: 'absolute',
-        left: '50%',
-        top: '50%',
-        width: CARD_W,
-        height: '92%',
-        marginLeft: -(CARD_W / 2),
-        borderRadius: 22,
+        ...haloCardStyle(),
         overflow: 'hidden',
-        background: T.card,
-        border: `1px solid ${isActive ? meta.color + '55' : T.border}`,
-        boxShadow: isActive
-          ? `0 24px 72px rgba(0,0,0,0.7), 0 0 0 1px ${meta.color}22`
-          : '0 6px 24px rgba(0,0,0,0.4)',
-        cursor: isActive ? 'default' : 'pointer',
-        transform: `translateX(${tx}px) translateY(-50%) rotateY(${rotY}deg) scale(${scale})`,
-        opacity: opa,
-        transition: 'transform 0.52s cubic-bezier(0.22,1,0.36,1), opacity 0.38s ease, border-color 0.3s, box-shadow 0.4s',
-        zIndex: 10 - absOff,
-        userSelect: 'none',
-        willChange: 'transform',
         display: 'flex',
         flexDirection: 'column',
+        animationDelay: `${index * 70}ms`,
       }}
     >
-      {/* Header — real button so keyboard users can switch buckets */}
-      <button
-        type="button"
-        onClick={onActivate}
-        aria-pressed={isActive}
-        aria-label={`${meta.label}: ${items.length} assignment${items.length !== 1 ? 's' : ''}`}
-        className="bs-focusable"
-        tabIndex={0}
+      {/* Header */}
+      <div
         style={{
-          all: 'unset', boxSizing: 'border-box', width: '100%', display: 'block',
-          padding: '20px 18px 16px', borderBottom: `1px solid ${T.border}`, flexShrink: 0,
-          cursor: isActive ? 'default' : 'pointer', textAlign: 'left',
+          padding: '20px 22px 16px', borderBottom: `1px solid ${hairline()}`, flexShrink: 0,
         }}
       >
-        <div style={{ fontSize: 40, fontWeight: 800, color: meta.color, lineHeight: 1, letterSpacing: '-1px', fontVariantNumeric: 'tabular-nums' }}>
-          {items.length}
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+          <span style={{ fontSize: AT.h1, fontWeight: AT.semibold, color: meta.color, lineHeight: 1, letterSpacing: AT.trackHead, fontVariantNumeric: 'tabular-nums' }}>
+            {items.length}
+          </span>
+          <span style={{ fontSize: AT.h3, fontWeight: AT.semibold, color: T.text, letterSpacing: AT.trackHead }}>
+            {meta.label}
+          </span>
         </div>
-        <div style={{ fontSize: 12, fontWeight: 700, color: T.text, marginTop: 6, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-          {meta.label}
-        </div>
-      </button>
+      </div>
 
       {/* List */}
-      <div style={{ flex: 1, minHeight: 0, overflowY: isActive ? 'auto' : 'hidden' }}>
+      <div style={{ minHeight: 0, maxHeight: 520, overflowY: 'auto' }}>
         {items.length === 0 ? (
-          <div style={{ padding: '24px 18px', fontSize: 12, color: T.muted, fontStyle: 'italic', textAlign: 'center' }}>
+          <div style={{ padding: '28px 22px', fontSize: AT.sub, color: T.muted, textAlign: 'center' }}>
             {meta.empty}
           </div>
         ) : (
@@ -435,9 +381,8 @@ function assignmentPill(a: FlatAssignment): { icon: 'check' | 'minus'; label: st
 }
 
 function BucketRow({ item: a, index, bucketKey, onOpen }: { item: FlatAssignment; index: number; bucketKey: BucketKey; onOpen: (a: FlatAssignment) => void }) {
-  const clr = courseColor(a.courseName, true);
   const showGrade = bucketKey === 'done';
-  const dateColor = bucketKey === 'missing' ? T.failed : T.primary;
+  const dateColor = bucketKey === 'missing' ? T.failed : T.muted;
   const pill = assignmentPill(a);
   const clickable = !!a.link;
 
@@ -452,25 +397,24 @@ function BucketRow({ item: a, index, bucketKey, onOpen }: { item: FlatAssignment
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: 10,
-        padding: '10px 14px',
-        borderBottom: `1px solid ${T.rowBorder}`,
+        gap: 12,
+        padding: '13px 22px',
+        borderBottom: `1px solid ${hairline()}`,
         animationDelay: `${Math.min(index, 12) * 30}ms`,
       }}
     >
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 12, fontWeight: 600, color: T.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <div style={{ fontSize: AT.sub, fontWeight: AT.medium, color: T.text, letterSpacing: AT.trackBody, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {a.name}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4, fontSize: 10, color: T.muted, whiteSpace: 'nowrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 5, fontSize: AT.caption, color: T.muted, whiteSpace: 'nowrap' }}>
           <span
             style={{
-              fontWeight: 700,
-              color: clr,
-              background: `${clr}1a`,
-              border: `1px solid ${clr}40`,
-              borderRadius: 999,
-              padding: '1px 6px',
+              fontWeight: AT.medium,
+              color: T.muted,
+              background: tileBg(),
+              borderRadius: AT.rPill,
+              padding: '2px 9px',
               flexShrink: 0,
             }}
           >
@@ -481,8 +425,8 @@ function BucketRow({ item: a, index, bucketKey, onOpen }: { item: FlatAssignment
           </span>
           {showGrade && (
             <>
-              <span style={{ flexShrink: 0, color: T.faint }}>·</span>
-              <Icon name="calendar" size={10} />
+              <span style={{ flexShrink: 0, color: T.muted, opacity: 0.6 }}>·</span>
+              <Icon name="calendar" size={11} />
               <span style={{ flexShrink: 0 }}>{formatDueDate(a.dueDate)}</span>
             </>
           )}
@@ -491,20 +435,20 @@ function BucketRow({ item: a, index, bucketKey, onOpen }: { item: FlatAssignment
 
       {showGrade ? (
         <span style={{
-          display: 'inline-flex', alignItems: 'center', gap: 4,
-          fontSize: 10, fontWeight: 700, color: pill.color,
-          background: pill.color + '18', border: `1px solid ${pill.color}35`,
-          borderRadius: 7, padding: '3px 8px', flexShrink: 0, whiteSpace: 'nowrap',
+          display: 'inline-flex', alignItems: 'center', gap: 5,
+          fontSize: AT.caption, fontWeight: AT.semibold, color: T.text,
+          background: tileBg(),
+          borderRadius: AT.rPill, padding: '4px 11px', flexShrink: 0, whiteSpace: 'nowrap',
         }}>
           <Icon name={pill.icon} size={11} />
           {pill.label}
         </span>
       ) : (
         <span style={{
-          display: 'inline-flex', alignItems: 'center', gap: 4,
-          fontSize: 10, fontWeight: 700, color: dateColor,
-          background: dateColor + '18', border: `1px solid ${dateColor}35`,
-          borderRadius: 7, padding: '3px 8px', flexShrink: 0, whiteSpace: 'nowrap',
+          display: 'inline-flex', alignItems: 'center', gap: 5,
+          fontSize: AT.caption, fontWeight: AT.semibold, color: dateColor,
+          background: dateColor + '1f',
+          borderRadius: AT.rPill, padding: '4px 11px', flexShrink: 0, whiteSpace: 'nowrap',
         }}>
           <Icon name="calendar" size={11} />
           {formatDueDate(a.dueDate)}

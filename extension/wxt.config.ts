@@ -1,6 +1,9 @@
 import { defineConfig } from 'wxt';
 import removeConsole from 'vite-plugin-remove-console';
 
+// Set by the build:demo npm script via DEMO=true env var.
+const isDemo = process.env.DEMO === 'true';
+
 const ICONS = {
   16: 'icon/16.png',
   32: 'icon/32.png',
@@ -11,28 +14,34 @@ const ICONS = {
 export default defineConfig({
   modules: ['@wxt-dev/module-react'],
   browser: 'chrome',
+  // Match the exact filenames the website/docs advertise so the two builds
+  // never collide and uploading to Releases needs no renaming:
+  //   demo → Better-SGY-Demo.zip   real → better-sgy-extension-1.0.0-chrome.zip
+  zip: isDemo
+    ? { name: 'Better-SGY-Demo', artifactTemplate: '{{name}}.zip' }
+    : { name: 'better-sgy-extension' },
   manifest: {
-    name: 'Better SGY',
-    description:
-      'A cleaner, faster dashboard for Schoology — grades, assignments, materials & calendar, redesigned. Runs locally on your device.',
-    version: '1.0.0',
+    name: isDemo ? 'Better SGY — Demo' : 'Better SGY',
+    description: isDemo
+      ? 'Better SGY preloaded with sample data — try it without a Schoology account.'
+      : 'A cleaner, faster dashboard for Schoology — grades, assignments, materials & calendar, redesigned. Runs locally on your device.',
+    version: '1.1.0',
     // Only ever runs on a school's own Schoology site (any *.schoology.com subdomain).
     // The background worker fetches attachments/feeds with the user's own session.
-    host_permissions: ['https://*.schoology.com/*'],
-    // 'notifications' = OS toasts for grade changes (local data only — nothing
-    // is transmitted; the notification is built from the on-device scrape diff).
-    permissions: ['storage', 'notifications'],
-    // three.js ships in its own chunk (entrypoints/three-bundle.ts) and is
-    // dynamic-imported by the content script only when an Arcade game opens.
-    // web_accessible_resources is required for a content script to import() an
-    // extension resource; it is NOT a permission, and it's restricted to
-    // Schoology pages only (still school-agnostic).
+    host_permissions: [
+      'https://*.schoology.com/*',
+    ],
+    permissions: ['storage', 'notifications', 'sidePanel', 'alarms', 'offscreen'],
+    // pdf.js loads its parser worker by URL from the content script — must be web-accessible.
+    // The Versions ("previous models") gallery iframes the standalone edition prototypes
+    // bundled from public/models/ — also web-accessible so the overlay can load them.
     web_accessible_resources: [
       {
-        // three-bundle.js: lazy-loaded Arcade chunk. icon/*: lets the Schoology
-        // page's <link rel="icon"> point at our logo (favicon swap while the
-        // overlay is active). Still restricted to Schoology origins.
-        resources: ['three-bundle.js', 'icon/*.png'],
+        // pdf.js worker, the Versions gallery prototypes, and — the primary UI now —
+        // the bundled "looks" (chooser + 5 editions) the content script iframes in.
+        // looks/*.js: MV3 blocks inline <script> on extension pages (script-src 'self'),
+        // so each look's scripts are externalized to sibling .js files that must load.
+        resources: ['pdf.worker.min.mjs', 'models/*.html', 'looks/*.html', 'looks/*.js'],
         matches: ['https://*.schoology.com/*'],
       },
     ],
@@ -40,6 +49,12 @@ export default defineConfig({
     action: {
       default_title: 'Better SGY',
       default_icon: ICONS,
+    },
+    commands: {
+      _execute_side_panel: {
+        suggested_key: { mac: 'Command+Shift+S', default: 'Ctrl+Shift+S' },
+        description: 'Open Better SGY side panel',
+      },
     },
   },
   // Strip chatty console.log/info/debug/warn from the production bundle (kept in dev).

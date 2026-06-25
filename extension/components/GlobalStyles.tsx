@@ -77,6 +77,45 @@ export function GlobalStyles() {
       .bs-lift:hover { transform: translateY(-2px); }
       .bs-lift:active { transform: translateY(0) scale(0.98); }
 
+      /* ── Apple-style motion + interactions ───────────────────────────
+         Calm fade-up entrance (replaces the flashy 3D fly-in), gentle press
+         feedback on pills, and underline-on-hover for chevron text links. */
+      @keyframes bsHaloIn {
+        from { opacity: 0; transform: translateY(12px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+      .bs-halo-in {
+        animation: bsHaloIn 620ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+      }
+      .bs-press { transition: transform 140ms cubic-bezier(0.22,1,0.36,1), filter 140ms ease-out; }
+      .bs-press:hover { filter: brightness(1.05); }
+      .bs-press:active { transform: scale(0.97); }
+      .bs-applink { transition: opacity 140ms ease-out; }
+      .bs-applink:hover { opacity: 0.6; }
+      .bs-applink:hover > span:first-child { text-decoration: underline; text-underline-offset: 3px; }
+      /* Apple card hover lift — soft and slow */
+      .bs-halo-card { transition: transform 240ms cubic-bezier(0.22,1,0.36,1), box-shadow 240ms ease-out, border-color 240ms ease-out; }
+
+      /* Skeleton loader — gentle shimmer sweep across a neutral block */
+      @keyframes bsSkel {
+        0%   { background-position: -180% 0; }
+        100% { background-position: 180% 0; }
+      }
+      .bs-skel {
+        border-radius: 8px;
+        background-color: currentColor;
+        background-image: linear-gradient(90deg,
+          rgba(128,128,128,0.00) 0%,
+          rgba(128,128,128,0.14) 20%,
+          rgba(128,128,128,0.26) 50%,
+          rgba(128,128,128,0.14) 80%,
+          rgba(128,128,128,0.00) 100%);
+        background-size: 180% 100%;
+        background-repeat: no-repeat;
+        opacity: 0.5;
+        animation: bsSkel 1.4s ease-in-out infinite;
+      }
+
       /* Tiny loading spinner — rotate only (compositor-safe) */
       @keyframes bsSpin { to { transform: rotate(360deg); } }
       @keyframes bsSpinRev { to { transform: rotate(-360deg); } }
@@ -141,31 +180,11 @@ export function GlobalStyles() {
         flex-shrink: 0;
       }
 
-      /* ── Redesign v2 primitives ──────────────────────────────────── */
-      /* Skeleton shimmer — flat tint under reduced motion */
-      .bs2-skel {
-        background: rgba(128, 142, 163, 0.16);
-        border-radius: 6px;
-      }
-      @media (prefers-reduced-motion: no-preference) {
-        .bs2-skel {
-          background: linear-gradient(90deg,
-            rgba(128, 142, 163, 0.11) 25%,
-            rgba(128, 142, 163, 0.22) 37%,
-            rgba(128, 142, 163, 0.11) 63%);
-          background-size: 400% 100%;
-          animation: bs2Shimmer 1.4s ease infinite;
-        }
-      }
-      @keyframes bs2Shimmer {
-        0% { background-position: 100% 0; }
-        100% { background-position: -100% 0; }
-      }
-
       @media (prefers-reduced-motion: reduce) {
         .bs-page-enter, .bs-row-enter, .bs-fade-in, .bs-collapse,
         .bs-collapse-content, .bs-expand-in, .bs-nav-btn, .bs-card-fly,
         .bs-decor, .bs-decor *,
+        .bs-halo-in, .bs-press, .bs-applink, .bs-halo-card,
         .bs-motion, .bs-reveal, .bs-lift {
           animation: none !important;
           transition: none !important;

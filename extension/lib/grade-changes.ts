@@ -1,137 +1,104 @@
 /**
- * grade-changes.ts — "what changed since the last scrape" feed.
+ * grade-changes.ts — detect and log activity between scrapes: overall grade moves,
+ * new assignments, and newly-graded work. The content script (in-tab) and the
+ * service worker (closed-tab) both diff each fresh scrape against the previous one;
+ * events are stored newest-first and surfaced in the side panel + notifications.
  *
- * Every successful scrape already loads the PREVIOUS snapshot (for the safety
- * guards) right before saving the new one — this module diffs the two at that
- * moment and appends compact change events to chrome.storage.local:
- *   - course overall % moved          ("Biology 96.7% → 97.1%")
- *   - an assignment got graded        ("Pig Quiz 2 graded · 100%")
- *   - an assignment was flagged Missing
- * All local; nothing is fetched or transmitted.
+ * Pure storage — no DOM — so the side panel (no Schoology session) just reads it.
  */
-
-import type { SchoologyData, ScrapedCourse } from './schemas';
+import type { SchoologyData, ScrapedCourse, ScrapedAssignment } from './schemas';
 import { parseGradeString, scorePercent } from './grade-utils';
 
-const EVENTS_KEY = 'bs-grade-changes';
-const SEEN_KEY = 'bs-grade-changes-seen';
-const MAX_EVENTS = 80;
+export type ChangeEvent =
+  | { kind: 'grade'; course: string; oldPct: number | null; newPct: number | null; delta: number; ts: number }
+  | { kind: 'new-assignment'; course: string; name: string; ts: number }
+  | { kind: 'graded'; course: string; name: string; pct: number | null; score: string; max: string; ts: number };
 
-export interface ChangeEvent {
-  ts: number;
-  kind: 'course' | 'graded' | 'missing';
-  course: string;
-  /** assignment name for 'graded' / 'missing' */
-  name?: string;
-  fromPct?: number;
-  toPct?: number;
-  /** assignment score percent for 'graded' */
-  scorePct?: number;
-}
+const KEY = 'bs_grade_changes';
+const MAX = 60;
+const MAX_NEW_PER_COURSE = 6; // avoid flooding when a whole category first appears
 
-function coursePct(c: ScrapedCourse): number | null {
-  return parseGradeString(c.grade).percent;
-}
-
-type AsgState = { status: string; score: string; max: string; exception: string };
-
-function assignmentMap(c: ScrapedCourse): Map<string, AsgState> {
-  const m = new Map<string, AsgState>();
-  for (const cat of c.categories) {
-    for (const a of cat.assignments) {
-      m.set(`${cat.name}|${a.name}`, {
-        status: a.status, score: a.score, max: a.maxGrade, exception: a.exception ?? '',
-      });
-    }
-  }
+function byName(c: ScrapedCourse): Map<string, ScrapedAssignment> {
+  const m = new Map<string, ScrapedAssignment>();
+  for (const cat of c.categories) for (const a of cat.assignments) m.set(a.name, a);
   return m;
 }
 
-/** Pure diff — exported for testability. */
-export function computeChanges(prev: SchoologyData, next: SchoologyData, now = Date.now()): ChangeEvent[] {
-  const events: ChangeEvent[] = [];
-  const prevByName = new Map(prev.courses.map((c) => [c.name, c]));
+/** Grade moves, new assignments, and newly-graded work for courses in both snapshots. */
+export function detectChanges(prev: SchoologyData | null, next: SchoologyData): ChangeEvent[] {
+  if (!prev) return [];
+  const ts = Date.now();
+  const prevByCourse = new Map(prev.courses.map((c) => [c.name, c]));
+  const out: ChangeEvent[] = [];
 
-  for (const course of next.courses) {
-    const before = prevByName.get(course.name);
-    if (!before) continue; // brand-new course — nothing meaningful to diff yet
+  for (const c of next.courses) {
+    const pc = prevByCourse.get(c.name);
+    if (!pc) continue; // newly-appeared course isn't "activity"
 
-    // 1. Course overall percent moved (≥ 0.05 to skip float noise)
-    const p0 = coursePct(before);
-    const p1 = coursePct(course);
-    if (p0 !== null && p1 !== null && Math.abs(p1 - p0) >= 0.05) {
-      events.push({ ts: now, kind: 'course', course: course.name, fromPct: p0, toPct: p1 });
+    // Overall grade %
+    const oldPct = parseGradeString(pc.grade).percent;
+    const newPct = parseGradeString(c.grade).percent;
+    if (oldPct !== null && newPct !== null && Math.abs(newPct - oldPct) >= 0.01) {
+      out.push({ kind: 'grade', course: c.name, oldPct, newPct, delta: newPct - oldPct, ts });
     }
 
-    // 2. Assignment-level: newly graded / newly missing
-    const prevAsg = assignmentMap(before);
-    for (const cat of course.categories) {
+    // Assignment-level activity
+    const prevA = byName(pc);
+    let newCount = 0;
+    for (const cat of c.categories) {
       for (const a of cat.assignments) {
-        const key = `${cat.name}|${a.name}`;
-        const old = prevAsg.get(key);
-        const wasGraded = old?.status === 'graded' && old.score.trim() !== '';
-        const isGraded = a.status === 'graded' && a.score.trim() !== '';
-        if (isGraded && old && !wasGraded) {
-          const pct = scorePercent(a.score, a.maxGrade);
-          events.push({
-            ts: now, kind: 'graded', course: course.name, name: a.name,
-            ...(pct !== null ? { scorePct: pct } : {}),
-          });
-        }
-        const wasMissing = old?.exception === 'Missing';
-        if (a.exception === 'Missing' && old && !wasMissing) {
-          events.push({ ts: now, kind: 'missing', course: course.name, name: a.name });
+        const before = prevA.get(a.name);
+        if (!before) {
+          if (newCount < MAX_NEW_PER_COURSE) out.push({ kind: 'new-assignment', course: c.name, name: a.name, ts });
+          newCount++;
+        } else if (
+          (before.status !== 'graded' && a.status === 'graded') ||
+          (before.status === 'graded' && a.status === 'graded' && before.score !== a.score && !!a.score)
+        ) {
+          out.push({ kind: 'graded', course: c.name, name: a.name, pct: scorePercent(a.score, a.maxGrade), score: a.score, max: a.maxGrade, ts });
         }
       }
     }
   }
-  return events;
+  return out;
 }
 
-/**
- * Diff + persist. Call right before saving a new validated snapshot.
- * Returns the fresh events so callers can e.g. fire an OS notification.
- */
-export async function recordChanges(prev: SchoologyData | null, next: SchoologyData): Promise<ChangeEvent[]> {
-  if (!prev) return [];
-  try {
-    const fresh = computeChanges(prev, next);
-    if (fresh.length === 0) return [];
-    const result = await browser.storage.local.get(EVENTS_KEY);
-    const existing = (result[EVENTS_KEY] as ChangeEvent[] | undefined) ?? [];
-    const all = [...existing, ...fresh].slice(-MAX_EVENTS);
-    await browser.storage.local.set({ [EVENTS_KEY]: all });
-    return fresh;
-  } catch (e) {
-    console.error('[BS] recordChanges failed:', e);
-    return [];
-  }
-}
-
-/** One-line human summary for a change event (used by the OS notification). */
-export function describeChange(e: ChangeEvent): string {
-  if (e.kind === 'course' && e.fromPct !== undefined && e.toPct !== undefined) {
-    return `${e.course}: ${e.fromPct.toFixed(1)}% → ${e.toPct.toFixed(1)}%`;
-  }
-  if (e.kind === 'graded') {
-    return `${e.name} graded${e.scorePct !== undefined ? ` · ${e.scorePct.toFixed(0)}%` : ''} (${e.course})`;
-  }
-  return `${e.name} marked Missing (${e.course})`;
+export async function appendChanges(events: ChangeEvent[]): Promise<void> {
+  if (!events.length) return;
+  const existing = await loadChanges();
+  const merged = [...events, ...existing].slice(0, MAX);
+  await browser.storage.local.set({ [KEY]: merged });
 }
 
 export async function loadChanges(): Promise<ChangeEvent[]> {
-  try {
-    const result = await browser.storage.local.get(EVENTS_KEY);
-    return ((result[EVENTS_KEY] as ChangeEvent[] | undefined) ?? []).slice().reverse(); // newest first
-  } catch {
-    return [];
+  const r = await browser.storage.local.get(KEY);
+  const raw = Array.isArray(r[KEY]) ? r[KEY] : [];
+  // Back-compat: older entries were grade-only with no `kind`.
+  return raw.map((e: Record<string, unknown>) =>
+    'kind' in e ? (e as ChangeEvent) : ({ kind: 'grade', ...(e as object) } as ChangeEvent),
+  );
+}
+
+export async function clearChanges(): Promise<void> {
+  await browser.storage.local.remove(KEY);
+}
+
+/**
+ * Collapse near-identical events (same kind + course/name within a 60s window)
+ * that can pile up when a scrape re-runs. Shared by the side panel + floating widget.
+ */
+export function dedupeChanges(events: ChangeEvent[], limit = 8): ChangeEvent[] {
+  const key = (e: ChangeEvent) =>
+    `${e.kind}|${'course' in e ? e.course : ''}|${'name' in e ? e.name : ''}`;
+  const seen = new Map<string, number>();
+  const out: ChangeEvent[] = [];
+  for (const e of events) {
+    const k = key(e);
+    const last = seen.get(k);
+    if (last !== undefined && Math.abs(last - e.ts) < 60_000) continue;
+    seen.set(k, e.ts);
+    out.push(e);
+    if (out.length >= limit) break;
   }
-}
-
-export function getLastSeen(): number {
-  try { return Number(localStorage.getItem(SEEN_KEY) || 0); } catch { return 0; }
-}
-
-export function markChangesSeen(): void {
-  try { localStorage.setItem(SEEN_KEY, String(Date.now())); } catch { /* blocked */ }
+  return out;
 }

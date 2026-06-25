@@ -2,6 +2,8 @@ import React, { useState, useMemo } from 'react';
 import type { ScrapedCourse } from '../lib/schemas';
 import { isMissing, parseMaxGrade, parseScore, formatDueDate } from '../lib/grade-utils';
 import { T } from '../lib/theme';
+import { AT, tileBg, hairline } from '../lib/halo';
+import { haloCardStyle } from './halo-ui';
 
 interface Priority {
   id: string;
@@ -71,32 +73,34 @@ export function SmartPriorities({ courses }: { courses: ScrapedCourse[] }) {
   if (items.length === 0) return null;
 
   return (
-    <div style={{ marginTop: 20, background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, overflow: 'hidden' }}>
+    <div style={{ ...haloCardStyle(), overflow: 'hidden' }}>
       {/* Header */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '10px 16px', borderBottom: `1px solid ${T.border}` }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-          <h2 style={{ margin: 0, fontSize: 13, fontWeight: 600, color: T.text }}>Smart Priorities</h2>
-          <span style={{ fontSize: 10, color: T.muted, opacity: 0.8 }}>ranked by grade weight</span>
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '18px 24px', borderBottom: `1px solid ${hairline()}` }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+          <h2 style={{ margin: 0, fontSize: AT.h3, fontWeight: AT.semibold, letterSpacing: AT.trackHead, color: T.text }}>Smart priorities</h2>
+          <span style={{ fontSize: AT.caption, color: T.muted, opacity: 0.85 }}>ranked by grade weight</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }} role="group" aria-label="Assumed score if submitted">
-          <span style={{ fontSize: 10, color: T.muted, opacity: 0.8 }}>if submitted at</span>
-          <div style={{ display: 'flex' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} role="group" aria-label="Assumed score if submitted">
+          <span style={{ fontSize: AT.caption, color: T.muted, opacity: 0.85 }}>if submitted at</span>
+          <div style={{ display: 'flex', gap: 2, background: tileBg(), borderRadius: AT.rPill, padding: 3 }}>
             {SCORES.map((s) => (
               <button
                 key={s}
                 type="button"
                 onClick={() => setAssumed(s)}
                 aria-pressed={assumed === s}
-                className="bs-focusable"
+                className="bs-focusable bs-press"
                 style={{
                   all: 'unset',
-                  padding: '6px 8px',
-                  fontSize: 10,
-                  fontWeight: assumed === s ? 700 : 500,
+                  padding: '5px 12px',
+                  fontSize: AT.caption,
+                  fontWeight: AT.medium,
                   cursor: 'pointer',
+                  borderRadius: AT.rPill,
                   color: assumed === s ? T.text : T.muted,
-                  borderBottom: `2px solid ${assumed === s ? T.primary : 'transparent'}`,
-                  transition: 'color 0.1s, border-color 0.1s',
+                  background: assumed === s ? T.card : 'transparent',
+                  boxShadow: assumed === s ? '0 1px 3px rgba(0,0,0,0.12)' : 'none',
+                  transition: 'color 0.15s, background 0.15s',
                 }}
               >
                 {s}%
@@ -115,37 +119,37 @@ export function SmartPriorities({ courses }: { courses: ScrapedCourse[] }) {
           const sign = delta >= 0 ? '+' : '';
 
           return (
-            <li key={item.id} style={{ borderBottom: i < Math.min(items.length, 8) - 1 ? `1px solid ${T.rowBorder}` : 'none' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px' }}>
-                <span style={{ width: 12, flexShrink: 0, fontSize: 10, color: T.muted, opacity: 0.7, fontVariantNumeric: 'tabular-nums' }}>
+            <li key={item.id} style={{ borderBottom: i < Math.min(items.length, 8) - 1 ? `1px solid ${hairline()}` : 'none' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 24px' }}>
+                <span style={{ width: 14, flexShrink: 0, fontSize: AT.caption, color: T.muted, opacity: 0.7, fontVariantNumeric: 'tabular-nums' }}>
                   {i + 1}
                 </span>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10 }}>
-                    <span style={{ fontSize: 12, fontWeight: 500, color: T.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
+                    <span style={{ fontSize: AT.sub, fontWeight: AT.medium, color: T.text, letterSpacing: AT.trackBody, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {item.assignmentName}
                     </span>
-                    <span style={{ flexShrink: 0, fontSize: 12, fontWeight: 600, color: T.text, fontVariantNumeric: 'tabular-nums' }}>
+                    <span style={{ flexShrink: 0, fontSize: AT.sub, fontWeight: AT.semibold, color: T.text, fontVariantNumeric: 'tabular-nums' }}>
                       {sign}{delta.toFixed(2)}%
                     </span>
                   </div>
-                  <div style={{ marginTop: 2, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 4, fontSize: 10, color: T.muted }}>
+                  <div style={{ marginTop: 4, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 5, fontSize: AT.caption, color: T.muted }}>
                     <span>{item.courseName}</span>
                     <span aria-hidden="true">·</span>
                     <span>{item.categoryName}</span>
                     <span aria-hidden="true">·</span>
                     <span>{item.pointsPossible} pts</span>
                     {dateStr && <><span aria-hidden="true">·</span><span>due {dateStr}</span></>}
-                    <span style={{ marginLeft: 2, borderRadius: 4, border: `1px solid ${T.failed}40`, background: `${T.failed}12`, padding: '1px 5px', fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.3px', color: T.failed }}>
-                      missing
+                    <span style={{ marginLeft: 4, borderRadius: AT.rPill, background: `${T.failed}1f`, padding: '2px 9px', fontSize: AT.micro, fontWeight: AT.semibold, color: T.failed }}>
+                      Missing
                     </span>
                   </div>
                   {/* Weight bar — scaleX, not width, so it never triggers layout */}
-                  <div style={{ marginTop: 6, height: 1, width: '100%', background: T.border, overflow: 'hidden' }}>
+                  <div style={{ marginTop: 9, height: 3, width: '100%', background: hairline(), borderRadius: AT.rPill, overflow: 'hidden' }}>
                     <div
                       className="bs-motion"
                       style={{
-                        height: 1, width: '100%', background: 'rgba(255,255,255,0.25)',
+                        height: 3, width: '100%', background: T.primary, opacity: 0.55, borderRadius: AT.rPill,
                         transform: `scaleX(${barW / 100})`, transformOrigin: 'left center',
                         transition: 'transform 0.3s ease',
                       }}
@@ -159,8 +163,8 @@ export function SmartPriorities({ courses }: { courses: ScrapedCourse[] }) {
       </ul>
 
       {/* Footer */}
-      <div style={{ padding: '8px 16px', borderTop: `1px solid ${T.rowBorder}` }}>
-        <p style={{ fontSize: 10, color: T.muted, opacity: 0.85, margin: 0 }}>
+      <div style={{ padding: '12px 24px', borderTop: `1px solid ${hairline()}` }}>
+        <p style={{ fontSize: AT.caption, color: T.muted, opacity: 0.85, margin: 0, letterSpacing: AT.trackBody }}>
           {assumed < 90
             ? `At ${assumed}%, scores below your category avg still pull grades down — better than a zero.`
             : 'Priority order is by category weight, not due date.'}

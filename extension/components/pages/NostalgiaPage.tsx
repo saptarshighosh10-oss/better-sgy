@@ -136,7 +136,7 @@ export function NostalgiaPage({ grades, onViewSnapshot }: Props) {
 
   const statCard = (label: string, value: string, sub?: string, color?: string) => (
     <div style={{ flex: 1, minWidth: 118, background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, padding: '12px 14px', boxSizing: 'border-box' }}>
-      <div style={{ fontSize: 9.5, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.7px' }}>{label}</div>
+      <div style={{ fontSize: 11, fontWeight: 500, color: T.muted, letterSpacing: '-0.01em' }}>{label}</div>
       <div style={{ fontSize: 22, fontWeight: 800, color: color || T.text, marginTop: 4, letterSpacing: '-0.5px', fontVariantNumeric: 'tabular-nums' }}>{value}</div>
       {sub && <div style={{ fontSize: 11, color: T.muted, marginTop: 1 }}>{sub}</div>}
     </div>
@@ -199,7 +199,7 @@ export function NostalgiaPage({ grades, onViewSnapshot }: Props) {
           {statCard('Best Year', bestYear.name, bestYear.gpa ? `${bestYear.gpa} GPA` : '—')}
           {statCard('Captured', `${capturedCount}/8`, 'semesters')}
           <div style={{ flex: 1, minWidth: 132, background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, padding: '12px 14px', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
-            <div style={{ fontSize: 9.5, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.7px' }}>Graduation</div>
+            <div style={{ fontSize: 11, fontWeight: 500, color: T.muted, letterSpacing: '-0.01em' }}>Graduation</div>
             <select value={gradYear ?? ''} onChange={(e) => saveGradYear(e.target.value)} className="bs-focusable"
               style={{ marginTop: 6, background: T.bg, color: T.text, border: `1px solid ${T.border}`, borderRadius: 7, padding: '5px 8px', fontSize: 12, outline: 'none', cursor: 'pointer' }}>
               <option value="">Set year…</option>
@@ -219,7 +219,7 @@ export function NostalgiaPage({ grades, onViewSnapshot }: Props) {
             return (
               <div key={yr.grade} style={{ marginBottom: 22, position: 'relative' }}>
                 <div style={{ position: 'absolute', left: -23, top: 3, width: 12, height: 12, borderRadius: '50%', background: T.bg, border: `2px solid ${hasAny ? T.primary : T.border}`, boxSizing: 'border-box' }} />
-                <div style={{ fontSize: 11, fontWeight: 800, color: T.text, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 9 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: T.text, letterSpacing: '-0.01em', marginBottom: 9 }}>
                   {yr.grade}th · {yr.label.replace(' Year', '')}
                 </div>
                 {renderSemester(sem1Id, 'Semester 1', snap1, `${yr.label} — Semester 1`)}

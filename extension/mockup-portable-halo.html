@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Cdefs%3E%3ClinearGradient id=%27sgy%27 x1=%270%27 y1=%270%27 x2=%270%27 y2=%271%27%3E%3Cstop offset=%270%27 stop-color=%27%237c6cfc%27/%3E%3Cstop offset=%271%27 stop-color=%27%235b3df0%27/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27url(%23sgy)%27/%3E%3Cpath d=%27M9 20.5L16 11L23 20.5%27 fill=%27none%27 stroke=%27white%27 stroke-width=%273.2%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
+<title>Better SGY · Portable widget · Cloud</title>
+<style>
+  /* ============================================================
+     CLOUD — a soft, dreamy sky identity. Airy gradients, fluffy
+     white clouds, gentle sky-blues. Color carries meaning AND mood:
+     sky-blue = upward, warm amber = down / missing.
+     This file is the portable "lives on any webpage" widget,
+     shown over a faux study article — the grade card rests on a
+     soft cloud.
+     ============================================================ */
+
+  :root {
+    /* DAY — a bright daytime sky */
+    --paper:        #f3f8ff;
+    --paper-2:      #eaf3fe;
+    --paper-3:      #def0fd;
+    --ink:          #1c3047;
+    --ink-2:        #355270;
+    --ink-3:        #5b7a99;
+    --ink-4:        #8fa9c2;
+    --hair:         rgba(74,144,217,0.15);
+    --hair-strong:  rgba(74,144,217,0.26);
+
+    --signal-up:        #2f8fd6;   /* clear sky-blue              */
+    --signal-up-soft:   rgba(47,143,214,0.12);
+    --signal-miss:      #d98a2b;   /* warm sunlit amber           */
+    --signal-miss-soft: rgba(217,138,43,0.12);
+
+    --brand-ink:    #2f7fd0;
+    --brand-mute:   #8fa9c2;
+
+    /* CLOUD sky accents */
+    --cov-amethyst:  #4aa3e8;
+    --cov-cyan:      #8fd0f5;
+    --cov-glass:     rgba(120,180,235,0.06);
+    --cov-glass-edge: rgba(120,180,235,0.26);
+
+    /* cloud / sky luminosity (day) */
+    --halo-core:    rgba(255,255,255,0.60);
+    --halo-warm:    rgba(150,205,245,0.30);
+    --halo-edge:    rgba(255,255,255,0.00);
+    --ring-glow:    rgba(255,255,255,0.88);
+    --ring-halo:    rgba(140,195,240,0.32);
+    --signal-glow:  rgba(47,143,214,0.40);
+    --halo-blend:   normal;
+
+    --radius:    14px;
+    --radius-sm: 9px;
+
+    --panel-w:   384px;
+    --spark-mute: #8fa9c2;
+    --shadow:    0 18px 60px rgba(30,70,120,0.20), 0 2px 10px rgba(30,70,120,0.08);
+    --shadow-pill: 0 10px 34px rgba(30,70,120,0.20), 0 1px 5px rgba(30,70,120,0.10);
+  }
+
+  /* NIGHT — a serene night sky */
+  html[data-theme="dark"] {
+    --paper:        #070b18;
+    --paper-2:      #0e1428;
+    --paper-3:      #161e3a;
+    --ink:          #e9f0ff;
+    --ink-2:        #c0cde8;
+    --ink-3:        #8497bd;
+    --ink-4:        #5b6c93;
+    --hair:         rgba(130,160,220,0.18);
+    --hair-strong:  rgba(130,160,220,0.32);
+
+    --signal-up:        #7fb8f0;
+    --signal-up-soft:   rgba(127,184,240,0.16);
+    --signal-miss:      #f0c068;
+    --signal-miss-soft: rgba(240,192,104,0.16);
+
+    --brand-ink:    #a8c6f2;
+    --brand-mute:   #5b6c93;
+
+    --cov-amethyst:  #8fbdf0;
+    --cov-cyan:      #bcdcff;
+    --cov-glass:     rgba(130,170,225,0.07);
+    --cov-glass-edge: rgba(150,185,235,0.38);
+
+    --halo-core:    rgba(190,215,255,0.38);
+    --halo-warm:    rgba(120,165,235,0.22);
+    --halo-edge:    rgba(190,215,255,0.00);
+    --ring-glow:    rgba(220,235,255,0.92);
+    --ring-halo:    rgba(150,190,245,0.50);
+    --signal-glow:  rgba(127,184,240,0.80);
+    --halo-blend:   screen;
+
+    --spark-mute: #5b6c93;
+    --shadow:    0 18px 60px rgba(0,0,0,0.55), 0 2px 10px rgba(0,0,0,0.35);
+    --shadow-pill: 0 10px 34px rgba(0,0,0,0.55), 0 1px 5px rgba(0,0,0,0.35);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "cv11", "ss01", "tnum";
+    line-height: 1.5;
+    letter-spacing: -0.006em;
+  }
+
+  /* soft ambient sky behind the whole page */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(1100px 760px at 80% -16%, rgba(150,200,245,0.16) 0%, transparent 62%),
+      radial-gradient(900px 620px at 8% 110%, rgba(255,255,255,0.22) 0%, transparent 60%),
+      radial-gradient(420px 190px at 22% 24%, var(--halo-core) 0%, transparent 70%),
+      radial-gradient(520px 230px at 86% 60%, var(--halo-core) 0%, transparent 72%);
+    mix-blend-mode: var(--halo-blend);
+    opacity: 0.9;
+  }
+  html[data-theme="dark"] body::before {
+    background:
+      radial-gradient(1100px 760px at 80% -16%, rgba(90,130,210,0.20) 0%, transparent 62%),
+      radial-gradient(900px 620px at 8% 110%, rgba(150,185,245,0.12) 0%, transparent 60%),
+      radial-gradient(420px 190px at 22% 24%, var(--halo-core) 0%, transparent 70%),
+      radial-gradient(520px 230px at 86% 60%, var(--halo-core) 0%, transparent 72%);
+  }
+
+  /* ============================================================
+     FAUX WEBPAGE — a student reading a study article.
+     Intentionally plain; the widget is the subject, not this.
+     ============================================================ */
+  .pagebar {
+    position: sticky; top: 0; z-index: 1;
+    display: flex; align-items: center; gap: 16px;
+    padding: 14px 28px;
+    border-bottom: 1px solid var(--hair);
+    background: rgba(243,248,255,0.86);
+    backdrop-filter: saturate(140%) blur(8px);
+  }
+  html[data-theme="dark"] .pagebar { background: rgba(7,11,24,0.82); }
+  .pagebar .glyph {
+    width: 26px; height: 26px; border-radius: 7px;
+    background: var(--cov-amethyst); color: #fff;
+    display: grid; place-items: center;
+    font-size: 12px; font-weight: 700; letter-spacing: -0.02em; flex: none;
+    box-shadow: 0 0 12px -2px var(--ring-halo);
+  }
+  .pagebar .site { font-size: 14px; font-weight: 600; color: var(--ink); }
+  .pagebar .pgnav {
+    margin-left: auto; display: flex; gap: 22px;
+    font-size: 13px; font-weight: 500; color: var(--ink-4);
+  }
+  .pagebar .pgnav span { cursor: default; }
+
+  .article {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 64px 28px 160px;
+    position: relative;
+    z-index: 1;
+  }
+  .article .kicker {
+    font-size: 12px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ink-4); margin: 0 0 16px;
+  }
+  .article h1 {
+    font-size: 38px; font-weight: 600; letter-spacing: -0.03em;
+    line-height: 1.12; color: var(--ink); margin: 0 0 18px;
+  }
+  .article .byline {
+    font-size: 13.5px; color: var(--ink-4); font-weight: 450;
+    margin: 0 0 40px; padding-bottom: 28px;
+    border-bottom: 1px solid var(--hair);
+  }
+  .article h2 {
+    font-size: 21px; font-weight: 600; letter-spacing: -0.02em;
+    color: var(--ink); margin: 44px 0 16px;
+  }
+  .article p {
+    font-size: 17px; line-height: 1.72; color: var(--ink-2);
+    font-weight: 420; margin: 0 0 22px; letter-spacing: -0.003em;
+  }
+  .article .pull {
+    margin: 36px 0; padding: 4px 0 4px 22px;
+    border-left: 2px solid var(--cov-glass-edge);
+    font-size: 19px; line-height: 1.6; color: var(--ink);
+    font-weight: 450; letter-spacing: -0.01em;
+  }
+  .article figure {
+    margin: 36px 0; border: 1px solid var(--hair);
+    border-radius: var(--radius); overflow: hidden; background: var(--paper-2);
+  }
+  .article figure .band { height: 168px; background:
+      repeating-linear-gradient(135deg, var(--paper-2) 0 16px, var(--paper-3) 16px 32px); }
+  .article figcaption {
+    font-size: 12.5px; color: var(--ink-4); font-weight: 450;
+    padding: 12px 16px; border-top: 1px solid var(--hair); background: var(--paper);
+  }
+
+  /* page dim while panel is open */
+  .scrim {
+    position: fixed; inset: 0; z-index: 40;
+    background: rgba(20,40,70,0.16);
+    opacity: 0; pointer-events: none;
+    transition: opacity 260ms ease;
+  }
+  html[data-theme="dark"] .scrim { background: rgba(0,0,0,0.42); }
+  body.open .scrim { opacity: 1; pointer-events: auto; }
+
+  /* ============================================================
+     COLLAPSED PILL — fixed, always visible
+     ============================================================ */
+  .pill {
+    position: fixed; left: 0; top: 0; z-index: 50;
+    display: flex; align-items: center; gap: 11px;
+    padding: 9px 15px 9px 11px;
+    background: var(--paper);
+    border: 1px solid var(--cov-glass-edge);
+    border-radius: 999px;
+    box-shadow: var(--shadow-pill);
+    cursor: grab;
+    font-family: inherit;
+    touch-action: none;
+    transition: opacity 200ms ease, box-shadow 200ms ease;
+  }
+  .pill:hover { box-shadow: 0 14px 40px rgba(30,70,120,0.26), 0 1px 5px rgba(30,70,120,0.12); }
+  .pill.dragging { cursor: grabbing; transition: none; }
+  body.dragging, body.dragging * { user-select: none !important; -webkit-user-select: none !important; }
+  body.open .pill { opacity: 0; pointer-events: none; transform: translateY(6px) scale(0.98); }
+
+  .pill .mark { width: 22px; height: 22px; flex: none; display: block;
+    filter: drop-shadow(0 0 5px var(--ring-halo)); }
+  .pill .mark path { fill: var(--brand-ink); }
+
+  .pill .grade {
+    font-size: 14.5px; font-weight: 600; color: var(--ink);
+    letter-spacing: -0.012em; font-variant-numeric: tabular-nums;
+  }
+  .pill .div { width: 1px; height: 16px; background: var(--hair-strong); }
+  .pill .trend {
+    display: inline-flex; align-items: baseline; gap: 4px;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.02em;
+    color: var(--ink-4);
+  }
+  .pill .trend .lab { color: var(--ink-4); font-weight: 600; }
+  .pill .trend .val { color: var(--signal-up); font-variant-numeric: tabular-nums; }
+  .pill .trend .car { color: var(--signal-up); font-size: 10px; }
+
+  /* ============================================================
+     EXPANDED PANEL — a soft cloud card
+     ============================================================ */
+  .panel {
+    position: fixed; left: 0; top: 0; z-index: 60;
+    width: var(--panel-w); max-width: 94vw;
+    height: 520px; max-height: 92vh;
+    background:
+      linear-gradient(180deg, var(--cov-glass) 0%, transparent 24%),
+      var(--paper);
+    border: 1px solid var(--cov-glass-edge);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    opacity: 0; pointer-events: none;
+    transform: scale(0.97);
+    transform-origin: bottom right;
+    transition: opacity 200ms ease, transform 220ms cubic-bezier(.22,.61,.30,1);
+  }
+  body.open .panel { opacity: 1; pointer-events: auto; transform: scale(1); }
+  .panel.dragging, .panel.resizing { transition: none; }
+  .panel.dragging .p-head { cursor: grabbing; }
+
+  /* resize handle (bottom-right corner) */
+  .p-resize {
+    position: absolute; right: 0; bottom: 0; z-index: 70;
+    width: 18px; height: 18px; cursor: nwse-resize;
+    touch-action: none;
+  }
+  .p-resize::after {
+    content: ""; position: absolute; right: 4px; bottom: 4px;
+    width: 8px; height: 8px;
+    border-right: 1.5px solid var(--ink-4);
+    border-bottom: 1.5px solid var(--ink-4);
+    opacity: 0.7;
+  }
+
+  .panel-scroll { overflow-y: auto; flex: 1; position: relative; }
+  .panel-scroll::-webkit-scrollbar { width: 9px; }
+  .panel-scroll::-webkit-scrollbar-thumb { background: var(--hair-strong); border-radius: 999px; border: 3px solid var(--paper); }
+
+  /* header */
+  .p-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 16px 16px 16px 20px;
+    border-bottom: 1px solid var(--hair);
+    flex: none;
+    cursor: grab; touch-action: none; user-select: none;
+  }
+  .p-head:active { cursor: grabbing; }
+  .p-head .mark { width: 20px; height: 20px; flex: none;
+    filter: drop-shadow(0 0 4px var(--ring-halo)); }
+  .p-head .mark path { fill: var(--brand-ink); }
+  .p-head .name {
+    font-size: 14px; font-weight: 600; color: var(--ink); letter-spacing: -0.006em;
+  }
+  .p-head .x {
+    margin-left: auto; appearance: none; cursor: pointer;
+    background: var(--paper); border: 1px solid var(--hair);
+    border-radius: var(--radius-sm); width: 30px; height: 30px;
+    display: grid; place-items: center; color: var(--ink-3);
+    transition: background 130ms ease, color 130ms ease;
+  }
+  .p-head .x:hover { background: var(--paper-2); color: var(--ink); }
+  .p-head .x svg { width: 15px; height: 15px; }
+
+  /* big overall — the grade resting on a soft cloud */
+  .p-hero { padding: 26px 20px 24px; border-bottom: 1px solid var(--hair); position: relative; overflow: hidden; }
+  .p-hero .cloud {
+    position: absolute;
+    pointer-events: none;
+    z-index: 0;
+    left: 4px; top: 26px;
+    width: 280px; height: 150px;
+    background:
+      radial-gradient(54px 46px at 30% 46%, var(--halo-core) 0%, transparent 71%),
+      radial-gradient(46px 42px at 55% 40%, var(--halo-core) 0%, transparent 71%),
+      radial-gradient(40px 36px at 16% 58%, var(--halo-core) 0%, transparent 73%),
+      radial-gradient(40px 36px at 72% 56%, var(--halo-core) 0%, transparent 73%),
+      radial-gradient(130px 56px at 42% 70%, var(--ring-glow) 0%, transparent 80%);
+    filter: blur(3px);
+    mix-blend-mode: var(--halo-blend);
+    opacity: 0.9;
+  }
+  .p-hero > * { position: relative; z-index: 1; }
+  .p-hero .lede {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--ink-4); margin: 0 0 14px;
+  }
+  .p-hero .row { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .p-hero .num {
+    font-size: 52px; font-weight: 600; letter-spacing: -0.04em;
+    line-height: 0.92; font-variant-numeric: tabular-nums;
+    color: var(--cov-amethyst);
+    background: linear-gradient(170deg, var(--cov-cyan) 0%, var(--cov-amethyst) 60%, var(--cov-amethyst) 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 24px var(--ring-halo);
+  }
+  .p-hero .num .pct { font-size: 24px; font-weight: 500;
+    -webkit-text-fill-color: var(--ink-4); color: var(--ink-4);
+    letter-spacing: -0.02em; text-shadow: none; }
+  .p-hero .delta {
+    display: inline-flex; align-items: baseline; gap: 4px;
+    font-size: 13px; font-weight: 600; color: var(--signal-up);
+    font-variant-numeric: tabular-nums; padding-bottom: 6px;
+  }
+  .p-hero .delta .car { font-size: 11px; }
+  .p-hero .meta { margin-top: 14px; font-size: 12.5px; color: var(--ink-3); font-weight: 450; letter-spacing: 0.004em; }
+  .p-hero .chips { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11.5px; font-weight: 500; letter-spacing: 0.01em;
+    padding: 3px 10px; border-radius: 999px;
+    border: 1px solid var(--hair-strong); color: var(--ink-3); background: var(--paper-2);
+  }
+  .chip.miss { color: var(--signal-miss); background: var(--signal-miss-soft); border-color: rgba(217,138,43,0.22); }
+  .chip .cdot { width: 5px; height: 5px; border-radius: 50%; background: var(--ink-4); }
+  .chip.miss .cdot { background: var(--signal-miss); }
+
+  /* sections */
+  .p-sec { padding: 22px 20px; border-bottom: 1px solid var(--hair); }
+  .p-sec:last-child { border-bottom: none; }
+  .p-sec .sec-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  .p-sec .sec-title {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--ink-4); margin: 0;
+  }
+  .p-sec .sec-aside { font-size: 11.5px; color: var(--ink-4); font-weight: 450; }
+
+  /* recent activity rows */
+  .act { display: flex; flex-direction: column; }
+  .arow {
+    display: grid; grid-template-columns: 1fr auto;
+    align-items: baseline; gap: 14px;
+    padding: 13px 0; border-bottom: 1px solid var(--hair);
+  }
+  .arow:last-child { border-bottom: none; }
+  .arow .at {
+    font-size: 13.5px; font-weight: 500; color: var(--ink);
+    letter-spacing: -0.008em; line-height: 1.3;
+  }
+  .arow .at.miss { color: var(--signal-miss); }
+  .arow .asub {
+    margin-top: 3px; font-size: 11.5px; color: var(--ink-4);
+    font-weight: 450; letter-spacing: 0.004em; line-height: 1.35;
+  }
+  .arow .av {
+    font-size: 13px; font-weight: 600; color: var(--ink-2);
+    font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right;
+  }
+  .arow .av.up   { color: var(--signal-up); }
+  .arow .av.down { color: var(--signal-miss); }
+  .arow .av.new  {
+    color: var(--ink-4); font-weight: 500; font-size: 11px;
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .arow .av .car { font-size: 10px; }
+
+  /* chart */
+  .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 16px; }
+  .tab {
+    appearance: none; cursor: pointer; font-family: inherit;
+    font-size: 11.5px; font-weight: 500; letter-spacing: 0.01em;
+    color: var(--ink-3); background: var(--paper);
+    border: 1px solid var(--hair-strong); border-radius: 999px;
+    padding: 4px 11px;
+    transition: background 130ms ease, color 130ms ease, border-color 130ms ease;
+  }
+  .tab:hover { background: var(--paper-2); }
+  .tab.on {
+    background: linear-gradient(135deg, var(--cov-amethyst), var(--cov-cyan));
+    color: #fff; border-color: var(--cov-amethyst);
+    box-shadow: 0 0 12px -2px var(--ring-halo);
+  }
+  html[data-theme="dark"] .tab.on { color: var(--paper); }
+
+  .chartwrap {
+    border: 1px solid var(--cov-glass-edge); border-radius: var(--radius);
+    background:
+      linear-gradient(180deg, var(--cov-glass) 0%, transparent 26%),
+      var(--paper);
+    padding: 16px 14px 10px; position: relative;
+    box-shadow: 0 0 22px -16px var(--ring-halo);
+  }
+  .chartwrap .chead {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 12px; margin-bottom: 10px;
+  }
+  .chartwrap .ctitle { font-size: 12.5px; font-weight: 600; color: var(--ink); letter-spacing: -0.006em; }
+  .chartwrap .cnow {
+    font-size: 12px; font-weight: 600; color: var(--ink-3);
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+    display: inline-flex; align-items: baseline; gap: 4px;
+  }
+  .chartwrap .cnow.up   { color: var(--signal-up); }
+  .chartwrap .cnow.down { color: var(--signal-miss); }
+  .chartwrap .cnow .car { font-size: 10px; }
+  .chartwrap svg { display: block; width: 100%; height: auto; }
+  .chartwrap .cap { margin-top: 8px; font-size: 11px; color: var(--ink-4); font-weight: 450; letter-spacing: 0.004em; }
+
+  .chartwrap .axis { stroke: var(--hair); stroke-width: 1; }
+  .chartwrap .grid { stroke: var(--hair); stroke-width: 1; }
+  .chartwrap .ylab { fill: var(--ink-4); font-size: 9.5px; font-weight: 500; font-family: inherit; }
+  .chartwrap .area { stroke: none; }
+  .chartwrap .line {
+    fill: none; stroke: var(--cov-amethyst); stroke-width: 1.8;
+    stroke-linecap: round; stroke-linejoin: round;
+    filter: drop-shadow(0 0 4px var(--ring-halo));
+  }
+  .chartwrap .endpt      { fill: var(--cov-amethyst); }
+  .chartwrap .endpt-up   { fill: var(--signal-up); filter: drop-shadow(0 0 5px var(--signal-glow)); }
+  .chartwrap .endpt-down { fill: var(--signal-miss); }
+
+  /* foot */
+  .p-foot {
+    flex: none; padding: 12px 20px;
+    border-top: 1px solid var(--hair);
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 11px; color: var(--ink-4); font-weight: 450; letter-spacing: 0.01em;
+    background: var(--paper);
+  }
+  .p-foot .dotmark { width: 12px; height: 12px; opacity: 0.7; }
+  .p-foot .dotmark path { fill: var(--brand-mute); }
+  .p-foot .l { display: inline-flex; align-items: center; gap: 7px; }
+
+  @media (max-width: 560px) {
+    .article h1 { font-size: 30px; }
+    .article p { font-size: 16px; }
+    .pill .trend { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pill, .panel, .scrim { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+  <script>
+    /* Apply saved theme before first paint to avoid a flash. */
+    (function () {
+      try {
+        var raw = localStorage.getItem("cloud.theme");
+        var t = raw ? JSON.parse(raw) : "light";
+        var dark = t === "dark" ||
+          (t === "auto" && window.matchMedia &&
+           window.matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+      } catch (e) {}
+    })();
+  </script>
+
+  <!-- ============================================================
+       FAUX WEBPAGE — the page the widget lives on
+       ============================================================ -->
+  <header class="pagebar">
+    <div class="glyph">SR</div>
+    <span class="site">StudyReader</span>
+    <nav class="pgnav"><span>Library</span><span>Notes</span><span>Saved</span></nav>
+  </header>
+
+  <article class="article">
+    <p class="kicker">Learning Science</p>
+    <h1>Spacing it out: why studying a little at a time beats cramming</h1>
+    <p class="byline">By Dana Okafor · 9 min read · Updated June 20, 2026</p>
+
+    <p>Most students discover the night before an exam that there is more material than hours left in the evening. The temptation is to push through in one long sitting. Decades of research on memory suggest this is close to the least efficient way to learn anything you actually want to keep.</p>
+
+    <p>The effect has a name: spaced repetition. When you revisit material across several shorter sessions instead of one marathon, more of it survives the week, the month, and the final. The gaps between sessions are not wasted time. They are part of how the memory consolidates.</p>
+
+    <div class="pull">"The forgetting is the point. Each time you almost lose a fact and then recover it, the recovery is what makes it stick."</div>
+
+    <h2>Why the gap helps</h2>
+    <p>During a single long session, the second hour rarely teaches you much the first hour did not. Attention drifts, and rereading starts to feel like progress without being progress. A short break — even a day — lets the trace fade just enough that retrieving it again counts as real practice.</p>
+
+    <p>Researchers call this desirable difficulty. Easy review feels good and does little. Slightly effortful review feels worse and does more. The discomfort of nearly forgetting is a feature, not a bug.</p>
+
+    <figure>
+      <div class="band" aria-hidden="true"></div>
+      <figcaption>Figure 1 — Retention over time for massed versus spaced study. Spaced practice (lower curve, slower decay) outlasts a single long session.</figcaption>
+    </figure>
+
+    <h2>Putting it to use</h2>
+    <p>Practically, this means breaking a topic into a handful of fifteen-minute reviews spread across a week, rather than a single two-hour block the night before. Self-testing beats rereading. Mixing related topics, rather than drilling one at a time, helps too.</p>
+
+    <p>None of this requires special tools. A calendar, a stack of questions, and the discipline to start a few days early will do. The hardest part is trusting that the slower path is the faster one.</p>
+  </article>
+
+  <!-- page dim while the panel is open -->
+  <div class="scrim" id="scrim" aria-hidden="true"></div>
+
+  <!-- ============================================================
+       COLLAPSED PILL
+       ============================================================ -->
+  <button class="pill" id="pill" aria-label="Open Better SGY grades">
+    <svg class="mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M7.4 18.5A4.6 4.6 0 0 1 7 9.3a5.6 5.6 0 0 1 10.7 1.2A3.7 3.7 0 0 1 17.1 18.5H7.4z"/>
+    </svg>
+    <span class="grade">96.2%</span>
+    <span class="div"></span>
+    <span class="trend"><span class="lab">GRADES</span> <span class="car">&#9650;</span><span class="val">1.4</span></span>
+  </button>
+
+  <!-- ============================================================
+       EXPANDED PANEL
+       ============================================================ -->
+  <aside class="panel" id="panel" role="dialog" aria-modal="false" aria-label="Better SGY" aria-hidden="true">
+    <div class="p-head">
+      <svg class="mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M7.4 18.5A4.6 4.6 0 0 1 7 9.3a5.6 5.6 0 0 1 10.7 1.2A3.7 3.7 0 0 1 17.1 18.5H7.4z"/>
+      </svg>
+      <span class="name">Cloud</span>
+      <button class="x" id="closeBtn" aria-label="Close panel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <div class="panel-scroll">
+      <!-- big overall -->
+      <section class="p-hero">
+        <div class="cloud" aria-hidden="true"></div>
+        <p class="lede">Overall average</p>
+        <div class="row">
+          <div class="num">96.2<span class="pct">%</span></div>
+          <div class="delta"><span class="car">&#9650;</span>1.4</div>
+        </div>
+        <div class="meta">Across 6 courses · checked just now</div>
+        <div class="chips">
+          <span class="chip"><span class="cdot"></span>Trending up</span>
+          <span class="chip miss"><span class="cdot"></span>2 missing</span>
+        </div>
+      </section>
+
+      <!-- recent activity -->
+      <section class="p-sec">
+        <div class="sec-head">
+          <h3 class="sec-title">Recent activity</h3>
+          <span class="sec-aside">Last 6 days</span>
+        </div>
+        <div class="act" id="act"></div>
+      </section>
+
+      <!-- grade over time -->
+      <section class="p-sec">
+        <div class="sec-head">
+          <h3 class="sec-title">Grade over time</h3>
+        </div>
+        <div class="tabs" id="tabs"></div>
+        <div class="chartwrap">
+          <div class="chead">
+            <span class="ctitle" id="chartTitle">Algebra 2 / Trig</span>
+            <span class="cnow up" id="chartNow">97.4% now</span>
+          </div>
+          <svg id="chart" viewBox="0 0 340 132" role="img" aria-label="Grade over time"></svg>
+          <p class="cap" id="chartCap">8 weeks · since late April</p>
+        </div>
+      </section>
+    </div>
+
+    <div class="p-foot">
+      <span class="l">
+        <svg class="dotmark" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7.4 18.5A4.6 4.6 0 0 1 7 9.3a5.6 5.6 0 0 1 10.7 1.2A3.7 3.7 0 0 1 17.1 18.5H7.4z"/></svg>
+        Cloud
+      </span>
+      <span>Updated today</span>
+    </div>
+    <div class="p-resize" id="pResize" aria-hidden="true" title="Drag to resize"></div>
+  </aside>
+
+  <script>
+  (function () {
+    "use strict";
+
+    // ---------- data (mirrors MOCKUP_DATA.md; today = Mon Jun 22 2026) ----------
+    var COURSES = [
+      { id: "alg", name: "Algebra 2 / Trig", abbr: "Algebra", grade: 97.4, trend: "up" },
+      { id: "bio", name: "Biology",          abbr: "Biology", grade: 96.7, trend: "flat" },
+      { id: "fre", name: "French 1",         abbr: "French",  grade: 96.5, trend: "up" },
+      { id: "dra", name: "Drama",            abbr: "Drama",   grade: 90.3, trend: "down" },
+      { id: "lit", name: "Literature",       abbr: "Lit",     grade: 94.1, trend: "up" },
+      { id: "pe",  name: "PE 9",             abbr: "PE 9",    grade: 99.1, trend: "flat" }
+    ];
+
+    // weekly grade history, oldest -> newest (8 points)
+    var HIST = {
+      alg: [92.0, 93.0, 94.0, 95.0, 95.5, 96.3, 97.0, 97.4],
+      bio: [96.0, 96.4, 96.2, 96.8, 96.5, 96.9, 96.6, 96.7],
+      fre: [91.0, 92.5, 93.0, 94.0, 94.8, 95.5, 96.1, 96.5],
+      dra: [95.0, 94.5, 94.0, 93.2, 92.5, 91.6, 91.0, 90.3],
+      lit: [90.0, 90.8, 91.5, 92.0, 92.6, 93.2, 93.7, 94.1],
+      pe:  [98.5, 98.7, 98.6, 99.0, 98.9, 99.1, 99.0, 99.1]
+    };
+
+    // recent activity feed (newest first)
+    var ACTIVITY = [
+      { t: "Algebra 2 / Trig",      sub: "96.3% → 97.4% · 2d ago",   kind: "up",   v: "1.1" },
+      { t: "Enzymes Problem Set",   sub: "Graded · Biology · 3d ago", kind: "score", v: "18/20" },
+      { t: "Monologue Reflection",  sub: "New · Drama · 3d ago",      kind: "new",  v: "New" },
+      { t: "Drama",                 sub: "91.0% → 90.3% · 4d ago",   kind: "down", v: "0.7" },
+      { t: "Unité 5 Exam",     sub: "Graded · French 1 · 5d ago", kind: "score", v: "95%" },
+      { t: "Cell Energetics Lab",   sub: "New · Biology · 6d ago",    kind: "new",  v: "New" }
+    ];
+
+    var $ = function (s, r) { return (r || document).querySelector(s); };
+
+    // ---------- recent activity ----------
+    function renderActivity() {
+      var html = "";
+      ACTIVITY.forEach(function (a) {
+        var av;
+        if (a.kind === "up") {
+          av = '<span class="av up"><span class="car">▲</span>' + a.v + '%</span>';
+        } else if (a.kind === "down") {
+          av = '<span class="av down"><span class="car">▼</span>' + a.v + '%</span>';
+        } else if (a.kind === "new") {
+          av = '<span class="av new">New</span>';
+        } else {
+          av = '<span class="av">' + a.v + '</span>';
+        }
+        var miss = (a.kind === "new") ? " " : "";
+        html +=
+          '<div class="arow">' +
+            '<div><div class="at">' + a.t + '</div><div class="asub">' + a.sub + '</div></div>' +
+            av +
+          '</div>';
+      });
+      $("#act").innerHTML = html;
+    }
+
+    // ---------- chart geometry (y 88..100) ----------
+    var YMIN = 88, YMAX = 100;
+    var W = 340, H = 132, padL = 24, padR = 12, padT = 12, padB = 14;
+
+    function gx(i, n) { return padL + (W - padL - padR) * (n <= 1 ? 0 : i / (n - 1)); }
+    function gy(v)    { return padT + (H - padT - padB) * (1 - (v - YMIN) / (YMAX - YMIN)); }
+
+    function trendOf(course) {
+      var arr = HIST[course], first = arr[0], last = arr[arr.length - 1];
+      if (last - first > 0.4) return "up";
+      if (first - last > 0.4) return "down";
+      return "flat";
+    }
+
+    function renderTabs() {
+      var html = "";
+      COURSES.forEach(function (c, i) {
+        html += '<button class="tab' + (i === 0 ? " on" : "") + '" data-id="' + c.id + '">' + c.abbr + '</button>';
+      });
+      $("#tabs").innerHTML = html;
+    }
+
+    function renderChart(id) {
+      var c = null;
+      for (var i = 0; i < COURSES.length; i++) { if (COURSES[i].id === id) { c = COURSES[i]; break; } }
+      if (!c) return;
+      var arr = HIST[id], n = arr.length;
+      var tr = trendOf(id);
+
+      var s = "";
+      // gridlines + y labels
+      var grids = [100, 96, 92, 88];
+      grids.forEach(function (gv, idx) {
+        var yy = gy(gv).toFixed(1);
+        s += '<line class="' + (idx === grids.length - 1 ? "axis" : "grid") + '" x1="' + padL + '" y1="' + yy + '" x2="' + (W - padR) + '" y2="' + yy + '"/>';
+        s += '<text class="ylab" x="2" y="' + (parseFloat(yy) + 3).toFixed(1) + '">' + gv + '</text>';
+      });
+
+      // area + line points
+      var pts = arr.map(function (v, i2) { return gx(i2, n).toFixed(1) + "," + gy(v).toFixed(1); });
+      var baseY = gy(YMIN).toFixed(1);
+      var areaD = "M" + gx(0, n).toFixed(1) + "," + baseY + " L" + pts.join(" L") + " L" + gx(n - 1, n).toFixed(1) + "," + baseY + " Z";
+
+      // soft sky area fill; tinted when up/down
+      var areaFill = "rgba(74,163,232,0.08)";
+      if (tr === "up")   areaFill = "var(--signal-up-soft)";
+      if (tr === "down") areaFill = "var(--signal-miss-soft)";
+      s += '<path class="area" d="' + areaD + '" fill="' + areaFill + '"/>';
+      s += '<polyline class="line" points="' + pts.join(" ") + '"/>';
+
+      // endpoint, colored only for signal
+      var lx = gx(n - 1, n).toFixed(1), ly = gy(arr[n - 1]).toFixed(1);
+      var endCls = tr === "up" ? "endpt-up" : tr === "down" ? "endpt-down" : "endpt";
+      s += '<circle class="' + endCls + '" cx="' + lx + '" cy="' + ly + '" r="3"/>';
+
+      $("#chart").innerHTML = s;
+      $("#chart").setAttribute("aria-label",
+        c.name + " grade over time, " + arr[0].toFixed(1) + " to " + c.grade.toFixed(1) + " percent");
+
+      // header
+      $("#chartTitle").textContent = c.name;
+      var now = $("#chartNow");
+      now.className = "cnow" + (tr === "up" ? " up" : tr === "down" ? " down" : "");
+      var car = tr === "up" ? '<span class="car">▲</span> ' : tr === "down" ? '<span class="car">▼</span> ' : "";
+      now.innerHTML = car + c.grade.toFixed(1) + "% now";
+    }
+
+    function selectTab(id) {
+      var tabs = document.querySelectorAll(".tab");
+      for (var i = 0; i < tabs.length; i++) {
+        tabs[i].classList.toggle("on", tabs[i].getAttribute("data-id") === id);
+      }
+      renderChart(id);
+      try { localStorage.setItem("cloud.widget.course", id); } catch (e) {}
+    }
+
+    $("#tabs").addEventListener("click", function (e) {
+      var b = e.target.closest(".tab");
+      if (b) selectTab(b.getAttribute("data-id"));
+    });
+
+    // ============================================================
+    // DRAG / RESIZE / ANCHOR LAYER
+    // The pill can be moved anywhere; clicking it opens the panel
+    // anchored near the pill (flipped to stay on screen). The panel
+    // is draggable by its header and resizable from the corner.
+    // Position + size + open + active tab persist in localStorage.
+    // ============================================================
+    var pill = $("#pill"), panel = $("#panel"), head = $(".p-head", panel), resize = $("#pResize");
+    var GAP = 12; // viewport edge margin
+    var MINW = 300, MINH = 360, MAXW = 560, MAXH = 760;
+
+    function lsGet(k, d) {
+      try { var v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); }
+      catch (e) { return d; }
+    }
+    function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+
+    function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+    function vw() { return document.documentElement.clientWidth; }
+    function vh() { return document.documentElement.clientHeight; }
+
+    // ---------- pill position ----------
+    var pillPos = lsGet("cloud.widget.pillPos", null); // {x,y} or null -> default bottom-right
+
+    function defaultPillPos() {
+      var r = pill.getBoundingClientRect();
+      return { x: vw() - r.width - 22, y: vh() - r.height - 22 };
+    }
+    function clampPill(p) {
+      var r = pill.getBoundingClientRect();
+      return {
+        x: clamp(p.x, GAP, vw() - r.width - GAP),
+        y: clamp(p.y, GAP, vh() - r.height - GAP)
+      };
+    }
+    function placePill() {
+      if (!pillPos) pillPos = defaultPillPos();
+      pillPos = clampPill(pillPos);
+      pill.style.left = pillPos.x + "px";
+      pill.style.top = pillPos.y + "px";
+    }
+
+    // ---------- panel size + position ----------
+    var panelSize = lsGet("cloud.widget.panelSize", { w: 384, h: 520 });
+    panelSize.w = clamp(panelSize.w, MINW, Math.min(MAXW, vw() - GAP * 2));
+    panelSize.h = clamp(panelSize.h, MINH, Math.min(MAXH, vh() - GAP * 2));
+    var panelPos = lsGet("cloud.widget.panelPos", null); // {x,y} or null -> auto-anchor
+
+    function applyPanelSize() {
+      panel.style.width = panelSize.w + "px";
+      panel.style.height = panelSize.h + "px";
+    }
+    function clampPanel(p) {
+      return {
+        x: clamp(p.x, GAP, Math.max(GAP, vw() - panelSize.w - GAP)),
+        y: clamp(p.y, GAP, Math.max(GAP, vh() - panelSize.h - GAP))
+      };
+    }
+    // anchor the panel next to the pill, flipping so it stays on screen
+    function anchorToPill() {
+      var r = pill.getBoundingClientRect();
+      var x, y;
+      // prefer above the pill (panel grows upward from pill), else below
+      if (r.top - panelSize.h - 10 >= GAP) y = r.top - panelSize.h - 10;
+      else if (r.bottom + 10 + panelSize.h <= vh() - GAP) y = r.bottom + 10;
+      else y = vh() - panelSize.h - GAP;
+      // prefer right-aligned to pill, else left-aligned
+      if (r.right - panelSize.w >= GAP) x = r.right - panelSize.w;
+      else if (r.left + panelSize.w <= vw() - GAP) x = r.left;
+      else x = vw() - panelSize.w - GAP;
+      return clampPanel({ x: x, y: y });
+    }
+    function placePanel(pos) {
+      var p = clampPanel(pos);
+      panel.style.left = p.x + "px";
+      panel.style.top = p.y + "px";
+      return p;
+    }
+
+    // ---------- open / collapse ----------
+    function open() {
+      applyPanelSize();
+      var pos = panelPos ? clampPanel(panelPos) : anchorToPill();
+      placePanel(pos);
+      // transform-origin toward the pill for a natural grow
+      var r = pill.getBoundingClientRect();
+      panel.style.transformOrigin =
+        (r.left < pos.x ? "left" : "right") + " " +
+        (r.top < pos.y ? "top" : "bottom");
+      document.body.classList.add("open");
+      panel.setAttribute("aria-hidden", "false");
+      $("#scrim").setAttribute("aria-hidden", "false");
+      lsSet("cloud.widget.open", 1);
+    }
+    function collapse() {
+      document.body.classList.remove("open");
+      panel.setAttribute("aria-hidden", "true");
+      $("#scrim").setAttribute("aria-hidden", "true");
+      lsSet("cloud.widget.open", 0);
+    }
+
+    $("#closeBtn").addEventListener("click", collapse);
+    $("#scrim").addEventListener("click", collapse);
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && document.body.classList.contains("open")) collapse();
+    });
+
+    // ---------- generic pointer drag ----------
+    // onMove(dx,dy,ev); returns true on threshold-cross handled in caller.
+    function makeDrag(target, opts) {
+      target.addEventListener("pointerdown", function (e) {
+        if (opts.ignore && opts.ignore(e)) return;
+        if (e.button != null && e.button !== 0) return;
+        var startX = e.clientX, startY = e.clientY;
+        var moved = false;
+        var THRESH = 4;
+        try { target.setPointerCapture(e.pointerId); } catch (err) {}
+        if (opts.onStart) opts.onStart(e);
+        document.body.classList.add("dragging");
+
+        function move(ev) {
+          var dx = ev.clientX - startX, dy = ev.clientY - startY;
+          if (!moved && (Math.abs(dx) > THRESH || Math.abs(dy) > THRESH)) {
+            moved = true;
+            if (opts.onFirstMove) opts.onFirstMove();
+          }
+          if (moved) { ev.preventDefault(); opts.onMove(dx, dy, ev); }
+        }
+        function up(ev) {
+          target.removeEventListener("pointermove", move);
+          target.removeEventListener("pointerup", up);
+          target.removeEventListener("pointercancel", up);
+          document.body.classList.remove("dragging");
+          try { target.releasePointerCapture(ev.pointerId); } catch (err) {}
+          if (opts.onEnd) opts.onEnd(moved, ev);
+        }
+        target.addEventListener("pointermove", move);
+        target.addEventListener("pointerup", up);
+        target.addEventListener("pointercancel", up);
+      });
+    }
+
+    // ---------- pill: drag to move, click (no drag) to open ----------
+    var pillStart;
+    makeDrag(pill, {
+      onStart: function () { pillStart = { x: pillPos.x, y: pillPos.y }; },
+      onFirstMove: function () { pill.classList.add("dragging"); },
+      onMove: function (dx, dy) {
+        pillPos = clampPill({ x: pillStart.x + dx, y: pillStart.y + dy });
+        pill.style.left = pillPos.x + "px";
+        pill.style.top = pillPos.y + "px";
+      },
+      onEnd: function (moved) {
+        pill.classList.remove("dragging");
+        if (moved) { lsSet("cloud.widget.pillPos", pillPos); }
+        else { open(); } // a clean click opens
+      }
+    });
+
+    // ---------- panel: drag by header ----------
+    var panelStart;
+    makeDrag(head, {
+      ignore: function (e) { return !!e.target.closest(".x"); }, // close button still clickable
+      onStart: function () {
+        var r = panel.getBoundingClientRect();
+        panelStart = { x: r.left, y: r.top };
+      },
+      onFirstMove: function () { panel.classList.add("dragging"); },
+      onMove: function (dx, dy) {
+        panelPos = placePanel({ x: panelStart.x + dx, y: panelStart.y + dy });
+      },
+      onEnd: function (moved) {
+        panel.classList.remove("dragging");
+        if (moved && panelPos) lsSet("cloud.widget.panelPos", panelPos);
+      }
+    });
+
+    // ---------- panel: resize from corner ----------
+    var sizeStart, posStart;
+    makeDrag(resize, {
+      onStart: function () {
+        sizeStart = { w: panelSize.w, h: panelSize.h };
+        var r = panel.getBoundingClientRect();
+        posStart = { x: r.left, y: r.top };
+      },
+      onFirstMove: function () { panel.classList.add("resizing"); },
+      onMove: function (dx, dy) {
+        var maxW = Math.min(MAXW, vw() - posStart.x - GAP);
+        var maxH = Math.min(MAXH, vh() - posStart.y - GAP);
+        panelSize.w = clamp(sizeStart.w + dx, MINW, maxW);
+        panelSize.h = clamp(sizeStart.h + dy, MINH, maxH);
+        applyPanelSize();
+      },
+      onEnd: function (moved) {
+        panel.classList.remove("resizing");
+        if (moved) lsSet("cloud.widget.panelSize", panelSize);
+      }
+    });
+
+    // keep everything on-screen when the window resizes
+    window.addEventListener("resize", function () {
+      placePill();
+      panelSize.w = clamp(panelSize.w, MINW, Math.min(MAXW, vw() - GAP * 2));
+      panelSize.h = clamp(panelSize.h, MINH, Math.min(MAXH, vh() - GAP * 2));
+      applyPanelSize();
+      if (document.body.classList.contains("open")) {
+        var pos = panelPos ? clampPanel(panelPos) : anchorToPill();
+        if (panelPos) panelPos = pos;
+        placePanel(pos);
+      }
+    });
+
+    // ---------- init ----------
+    renderActivity();
+    renderTabs();
+
+    var savedCourse = "alg";
+    try { savedCourse = localStorage.getItem("cloud.widget.course") || "alg"; } catch (e) {}
+    if (!HIST[savedCourse]) savedCourse = "alg";
+    selectTab(savedCourse);
+
+    placePill();
+    applyPanelSize();
+
+    // restore open state quietly (default collapsed)
+    var wasOpen = lsGet("cloud.widget.open", 0);
+    if (wasOpen === 1 || wasOpen === "1") open();
+  })();
+  </script>
+</body>
+</html>

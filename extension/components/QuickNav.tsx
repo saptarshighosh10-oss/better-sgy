@@ -1,31 +1,69 @@
-import React, { useEffect, useRef, useState } from 'react';
-import type { Page } from './ExtRouter';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import type { Page } from '../lib/pages';
 import type { ScrapedCourse } from '../lib/schemas';
 import { parseGradeString, gradeColor } from '../lib/grade-utils';
 import { courseColor } from '../lib/course-colors';
 import { loadStarredFolders, type StarredFolder } from '../lib/starred-folders';
 import { T, inkOnAccent, uiFontStack } from '../lib/theme';
 
+/**
+ * Subsequence fuzzy match: every char of `q` must appear in order in `text`.
+ * Returns a score (higher = better; contiguous + early matches rank up) or -1.
+ */
+function fuzzyScore(q: string, text: string): number {
+  if (!q) return 0;
+  const t = text.toLowerCase();
+  let ti = 0, score = 0, streak = 0;
+  for (const ch of q.toLowerCase()) {
+    const found = t.indexOf(ch, ti);
+    if (found === -1) return -1;
+    streak = found === ti ? streak + 1 : 0;
+    score += found === ti ? 3 + streak : 1;
+    if (found === 0) score += 2; // matches at the very start
+    ti = found + 1;
+  }
+  return score;
+}
+
+interface SearchResult {
+  key: string;
+  label: string;
+  sublabel?: string;
+  accent: string;
+  badge?: string;
+  trailing?: string;
+  trailingColor?: string;
+  score: number;
+  run: () => void;
+}
+
 /** First letter of the course name, e.g. "Drama" → "D" */
 function courseInitial(name: string): string {
   return (name.trim()[0] ?? '?').toUpperCase();
 }
 
-/** Readable ink on top of the primary-accent handle/badges (contrast-aware) */
+/**
+ * Readable ink on top of the primary-accent handle/badges (contrast-aware).
+ * A function, not a const, so it re-reads the theme on every render.
+ */
 function monoLabelInk(): string {
   return inkOnAccent();
 }
 
-const PAGES: Array<{ id: Page; label: string }> = [
+const STATIC_PAGES: Array<{ id: Page; label: string }> = [
   { id: 'overview', label: 'Overview' },
   { id: 'grades', label: 'Grades' },
   { id: 'assignments', label: 'Assignments' },
   { id: 'calendar', label: 'Calendar' },
   { id: 'materials', label: 'Materials' },
-  { id: 'game', label: 'Grade Breaker' },
+  { id: 'announcements', label: 'Announcements' },
+  { id: 'game', label: 'Arcade' },
   { id: 'nostalgia', label: 'Nostalgia' },
+  { id: 'versions', label: 'Versions' },
+  { id: 'settings', label: 'Settings' },
 ];
 
+// ── Pins: user-saved shortcuts, persisted in localStorage ───────────────────
 const PIN_KEY = '__bs_quicknav_pins__';
 
 export interface QuickPin {
@@ -57,6 +95,8 @@ interface Props {
   courseName: string | null;
   courses: ScrapedCourse[];
   onJump: (page: Page, courseName?: string) => void;
+  /** Effective tab order (hidden tabs already filtered out). */
+  pageOrder?: Page[];
 }
 
 /**
@@ -64,18 +104,70 @@ interface Props {
  * slide-out rail of jump links — every page, every course gradebook, plus the
  * user's own pinned shortcuts. Lets students hop around without scrolling.
  */
-export function QuickNav({ page, courseName, courses, onJump }: Props) {
+export function QuickNav({ page, courseName, courses, onJump, pageOrder }: Props) {
+  // ── State ──────────────────────────────────────────────────────────────────
   const [open, setOpen] = useState(false);
   const [pins, setPins] = useState<QuickPin[]>([]);
   const [starred, setStarred] = useState<StarredFolder[]>([]);
+  const [query, setQuery] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
   const dragRef = useRef({ x0: 0, on: false });
 
+  // ── Effects ────────────────────────────────────────────────────────────────
   useEffect(() => { setPins(loadPins()); }, []);
   // Starred Materials folders live in chrome.storage.local — refresh when the
   // drawer opens so newly-starred folders show without a page reload.
   useEffect(() => {
-    if (open) loadStarredFolders().then(setStarred).catch(() => {});
+    if (open) {
+      loadStarredFolders().then(setStarred).catch(() => {});
+      // Focus the search box so you can type immediately after pressing "g".
+      setTimeout(() => inputRef.current?.focus(), 60);
+    } else {
+      setQuery('');
+    }
   }, [open]);
+
+  // Build the visible pages list from pageOrder (respecting custom order + hidden tabs).
+  const visiblePages = useMemo<Array<{ id: Page; label: string }>>(() => {
+    if (pageOrder) {
+      const byId = Object.fromEntries(STATIC_PAGES.map((p) => [p.id, p]));
+      const ordered = pageOrder.map((id) => byId[id]).filter(Boolean);
+      // Always append Settings at the end so it's always reachable.
+      if (!ordered.find((p) => p.id === 'settings')) ordered.push(byId['settings']);
+      return ordered;
+    }
+    return STATIC_PAGES;
+  }, [pageOrder]);
+
+  // ── Search: fuzzy results across pages, courses, and every assignment ───────
+  const results = useMemo<SearchResult[]>(() => {
+    const q = query.trim();
+    if (!q) return [];
+    const out: SearchResult[] = [];
+    for (const p of visiblePages) {
+      const s = fuzzyScore(q, p.label);
+      if (s >= 0) out.push({ key: `page:${p.id}`, label: p.label, sublabel: 'Page', accent: T.primary, score: s + 1, run: () => jump(p.id) });
+    }
+    for (const c of courses) {
+      const { percent } = parseGradeString(c.grade);
+      const s = fuzzyScore(q, c.name);
+      if (s >= 0) out.push({
+        key: `course:${c.name}`, label: c.name, sublabel: 'Course', accent: courseColor(c.name, true),
+        badge: courseInitial(c.name), trailing: percent !== null ? `${percent.toFixed(0)}%` : undefined,
+        trailingColor: gradeColor(percent), score: s, run: () => jump('grades', c.name),
+      });
+      for (const cat of c.categories) {
+        for (const a of cat.assignments) {
+          const sa = fuzzyScore(q, a.name);
+          if (sa >= 0) out.push({
+            key: `a:${c.name}:${a.name}`, label: a.name, sublabel: c.name, accent: courseColor(c.name, true),
+            badge: courseInitial(c.name), score: sa, run: () => jump('grades', c.name),
+          });
+        }
+      }
+    }
+    return out.sort((a, b) => b.score - a.score).slice(0, 24);
+  }, [query, courses]);
 
   // Esc closes; "g" opens (skipped while typing)
   useEffect(() => {
@@ -90,6 +182,7 @@ export function QuickNav({ page, courseName, courses, onJump }: Props) {
     return () => document.removeEventListener('keydown', onKey);
   }, [open]);
 
+  // ── Navigation + pin handlers ───────────────────────────────────────────────
   function jump(p: Page, course?: string) {
     onJump(p, course);
     setOpen(false);
@@ -104,7 +197,7 @@ export function QuickNav({ page, courseName, courses, onJump }: Props) {
   function pinCurrent() {
     const label = courseName && page === 'grades'
       ? courseName
-      : PAGES.find((p) => p.id === page)?.label ?? page;
+      : STATIC_PAGES.find((p) => p.id === page)?.label ?? page;
     const id = `${page}|${courseName ?? ''}`;
     if (pins.some((p) => p.id === id)) return;
     const next = [...pins, { id, label, page, courseName: courseName ?? undefined }];
@@ -135,42 +228,8 @@ export function QuickNav({ page, courseName, courses, onJump }: Props) {
     <>
       {/* Edge swipe hotzone + discoverable handle */}
       {!open && (
-        <div
-          onPointerDown={onZoneDown}
-          onPointerMove={onZoneMove}
-          onPointerUp={() => { dragRef.current.on = false; }}
-          style={{ position: 'fixed', top: 0, left: 0, bottom: 0, width: 18, zIndex: 49 }}
-        >
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            aria-label="Open quick navigation (press G)"
-            aria-expanded={false}
-            className="bs-focusable bs-lift"
-            style={{
-              all: 'unset',
-              position: 'absolute', top: '50%', left: 0, transform: 'translateY(-50%)',
-              cursor: 'pointer',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6,
-              width: 26, height: 92,
-              background: T.primary,
-              borderRadius: '0 12px 12px 0',
-              boxShadow: '3px 0 14px rgba(0,0,0,0.4)',
-            }}
-            title="Quick nav (press G)"
-          >
-            <span style={{
-              fontSize: 9, fontWeight: 800, letterSpacing: '1px',
-              color: monoLabelInk(), writingMode: 'vertical-rl', textOrientation: 'mixed',
-              textTransform: 'uppercase',
-            }}>
-              Jump
-            </span>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={monoLabelInk()} strokeWidth="3" strokeLinecap="round" aria-hidden="true">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </button>
-        </div>
+        <EdgeHandle onOpen={() => setOpen(true)} onZoneDown={onZoneDown} onZoneMove={onZoneMove}
+          onZoneUp={() => { dragRef.current.on = false; }} />
       )}
 
       {/* Backdrop */}
@@ -202,7 +261,7 @@ export function QuickNav({ page, courseName, courses, onJump }: Props) {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 14px 8px', position: 'sticky', top: 0, background: T.panel }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.6px', flex: 1 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: T.muted, letterSpacing: '0.6px', flex: 1 }}>
             Quick Nav
           </span>
           <button type="button" onClick={() => setOpen(false)} aria-label="Close quick navigation" className="bs-focusable"
@@ -211,59 +270,35 @@ export function QuickNav({ page, courseName, courses, onJump }: Props) {
           </button>
         </div>
 
-        {/* Pinned shortcuts */}
-        {pins.length > 0 && (
-          <Section label="Pinned">
-            {pins.map((p) => (
-              <Row key={p.id} onClick={() => jump(p.page, p.courseName)}
-                accent={p.courseName ? courseColor(p.courseName, true) : T.primary}
-                label={p.label}
-                onRemove={() => removePin(p.id)}
-              />
-            ))}
-          </Section>
-        )}
+        {/* Search */}
+        <div style={{ padding: '4px 12px 8px', position: 'sticky', top: 38, background: T.panel, zIndex: 1 }}>
+          <input
+            ref={inputRef}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') { if (query) setQuery(''); else setOpen(false); }
+              else if (e.key === 'Enter' && results[0]) results[0].run();
+            }}
+            placeholder="Search courses, assignments…"
+            aria-label="Search"
+            style={{
+              all: 'unset', boxSizing: 'border-box', width: '100%', padding: '8px 11px',
+              fontSize: 12.5, color: T.text, background: T.activeBg,
+              border: `1px solid ${T.border}`, borderRadius: 9, fontFamily: uiFontStack(),
+            }}
+          />
+        </div>
 
-        {/* Pages */}
-        <Section label="Pages">
-          {PAGES.map((p) => (
-            <Row key={p.id} onClick={() => jump(p.id)} label={p.label}
-              accent={T.primary} active={page === p.id && !courseName} />
-          ))}
-        </Section>
-
-        {/* Starred Materials folders → jump straight into the folder */}
-        {starred.length > 0 && (
-          <Section label="Starred">
-            {starred.map((f) => (
-              <Row key={f.href} onClick={() => jumpFolder(f)}
-                accent={courseColor(f.courseName, true)}
-                badge={courseInitial(f.courseName)}
-                label={f.title}
-                trailing="★"
-                trailingColor={T.primary}
-              />
-            ))}
-          </Section>
-        )}
-
-        {/* Courses → jump straight to gradebook */}
-        {courses.length > 0 && (
-          <Section label="Courses">
-            {courses.map((c) => {
-              const { percent } = parseGradeString(c.grade);
-              return (
-                <Row key={c.name} onClick={() => jump('grades', c.name)}
-                  accent={courseColor(c.name, true)}
-                  badge={courseInitial(c.name)}
-                  label={c.name}
-                  active={page === 'grades' && courseName === c.name}
-                  trailing={percent !== null ? `${percent.toFixed(0)}%` : undefined}
-                  trailingColor={gradeColor(percent)}
-                />
-              );
-            })}
-          </Section>
+        {/* While typing, fuzzy results replace the normal browse sections. */}
+        {query ? (
+          <SearchResultsList query={query} results={results} />
+        ) : (
+          <BrowseSections
+            page={page} courseName={courseName} courses={courses} pins={pins} starred={starred}
+            onJump={jump} onJumpFolder={jumpFolder} onRemovePin={removePin}
+            visiblePages={visiblePages}
+          />
         )}
 
         {/* Pin current view */}
@@ -286,10 +321,150 @@ export function QuickNav({ page, courseName, courses, onJump }: Props) {
   );
 }
 
+/** Fuzzy-search results, or an empty-state line when nothing matches. */
+function SearchResultsList({ query, results }: { query: string; results: SearchResult[] }) {
+  if (results.length === 0) {
+    return (
+      <div style={{ padding: '20px 16px', fontSize: 12, color: T.muted, textAlign: 'center' }}>
+        No matches for “{query}”.
+      </div>
+    );
+  }
+  return (
+    <Section label={`${results.length} result${results.length === 1 ? '' : 's'}`}>
+      {results.map((r) => (
+        <Row key={r.key} onClick={r.run} label={r.label} accent={r.accent} badge={r.badge}
+          trailing={r.trailing} trailingColor={r.trailingColor} sublabel={r.sublabel} />
+      ))}
+    </Section>
+  );
+}
+
+/** Default drawer contents (shown when the search box is empty): Pinned, Pages, Starred, Courses. */
+function BrowseSections({ page, courseName, courses, pins, starred, onJump, onJumpFolder, onRemovePin, visiblePages }: {
+  page: Page;
+  courseName: string | null;
+  courses: ScrapedCourse[];
+  pins: QuickPin[];
+  starred: StarredFolder[];
+  onJump: (p: Page, course?: string) => void;
+  onJumpFolder: (folder: StarredFolder) => void;
+  onRemovePin: (id: string) => void;
+  visiblePages: Array<{ id: Page; label: string }>;
+}) {
+  return (
+    <>
+      {/* Pinned shortcuts */}
+      {pins.length > 0 && (
+        <Section label="Pinned">
+          {pins.map((p) => (
+            <Row key={p.id} onClick={() => onJump(p.page, p.courseName)}
+              accent={p.courseName ? courseColor(p.courseName, true) : T.primary}
+              label={p.label}
+              onRemove={() => onRemovePin(p.id)}
+            />
+          ))}
+        </Section>
+      )}
+
+      {/* Pages */}
+      <Section label="Pages">
+        {visiblePages.map((p) => (
+          <Row key={p.id} onClick={() => onJump(p.id)} label={p.label}
+            accent={T.primary} active={page === p.id && !courseName} />
+        ))}
+      </Section>
+
+      {/* Starred Materials folders → jump straight into the folder */}
+      {starred.length > 0 && (
+        <Section label="Starred">
+          {starred.map((f) => (
+            <Row key={f.href} onClick={() => onJumpFolder(f)}
+              accent={courseColor(f.courseName, true)}
+              badge={courseInitial(f.courseName)}
+              label={f.title}
+              trailing="★"
+              trailingColor={T.primary}
+            />
+          ))}
+        </Section>
+      )}
+
+      {/* Courses → jump straight to gradebook */}
+      {courses.length > 0 && (
+        <Section label="Courses">
+          {courses.map((c) => {
+            const { percent } = parseGradeString(c.grade);
+            return (
+              <Row key={c.name} onClick={() => onJump('grades', c.name)}
+                accent={courseColor(c.name, true)}
+                badge={courseInitial(c.name)}
+                label={c.name}
+                active={page === 'grades' && courseName === c.name}
+                trailing={percent !== null ? `${percent.toFixed(0)}%` : undefined}
+                trailingColor={gradeColor(percent)}
+              />
+            );
+          })}
+        </Section>
+      )}
+    </>
+  );
+}
+
+/**
+ * Left-edge affordance shown while the drawer is closed: an invisible 18px swipe
+ * hotzone wrapping a small "Jump" handle button. Both open the drawer.
+ */
+function EdgeHandle({ onOpen, onZoneDown, onZoneMove, onZoneUp }: {
+  onOpen: () => void;
+  onZoneDown: (e: React.PointerEvent) => void;
+  onZoneMove: (e: React.PointerEvent) => void;
+  onZoneUp: () => void;
+}) {
+  return (
+    <div
+      onPointerDown={onZoneDown}
+      onPointerMove={onZoneMove}
+      onPointerUp={onZoneUp}
+      style={{ position: 'fixed', top: 0, left: 0, bottom: 0, width: 18, zIndex: 49 }}
+    >
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-label="Open quick navigation (press G)"
+        aria-expanded={false}
+        className="bs-focusable bs-lift"
+        style={{
+          all: 'unset',
+          position: 'absolute', top: '50%', left: 0, transform: 'translateY(-50%)',
+          cursor: 'pointer',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6,
+          width: 26, height: 92,
+          background: T.primary,
+          borderRadius: '0 12px 12px 0',
+          boxShadow: '3px 0 14px rgba(0,0,0,0.4)',
+        }}
+        title="Quick nav (press G)"
+      >
+        <span style={{
+          fontSize: 9, fontWeight: 800, letterSpacing: '1px',
+          color: monoLabelInk(), writingMode: 'vertical-rl', textOrientation: 'mixed',
+        }}>
+          Jump
+        </span>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={monoLabelInk()} strokeWidth="3" strokeLinecap="round" aria-hidden="true">
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
 function Section({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ padding: '4px 8px 8px' }}>
-      <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, opacity: 0.8, textTransform: 'uppercase', letterSpacing: '0.5px', padding: '6px 6px 4px' }}>
+      <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, opacity: 0.8, letterSpacing: '0.5px', padding: '6px 6px 4px' }}>
         {label}
       </div>
       {children}
@@ -297,7 +472,7 @@ function Section({ label, children }: { label: string; children: React.ReactNode
   );
 }
 
-function Row({ onClick, label, accent, badge, active, trailing, trailingColor, onRemove }: {
+function Row({ onClick, label, accent, badge, active, trailing, trailingColor, onRemove, sublabel }: {
   onClick: () => void;
   label: string;
   accent: string;
@@ -306,6 +481,7 @@ function Row({ onClick, label, accent, badge, active, trailing, trailingColor, o
   trailing?: string;
   trailingColor?: string;
   onRemove?: () => void;
+  sublabel?: string;
 }) {
   return (
     <div className="bs-reveal-parent" style={{ position: 'relative' }}>
@@ -327,8 +503,15 @@ function Row({ onClick, label, accent, badge, active, trailing, trailingColor, o
         ) : (
           <span aria-hidden="true" style={{ flexShrink: 0, width: 6, height: 6, borderRadius: '50%', background: accent }} />
         )}
-        <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: active ? 600 : 400, color: active ? T.text : T.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {label}
+        <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <span style={{ fontSize: 12.5, fontWeight: active ? 600 : 400, color: T.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {label}
+          </span>
+          {sublabel && (
+            <span style={{ fontSize: 10, color: T.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {sublabel}
+            </span>
+          )}
         </span>
         {trailing && (
           <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 700, color: trailingColor ?? T.muted, fontVariantNumeric: 'tabular-nums' }}>

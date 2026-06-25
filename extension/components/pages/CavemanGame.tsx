@@ -1,8 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-// Type-only: the runtime namespace is lazy-loaded via loadThree() so three.js
-// stays out of the main content-script bundle until a game actually mounts.
-import type * as THREE from 'three';
-import { loadThree, type ThreeModule } from '../../lib/load-three';
+import * as THREE from 'three';
 
 /*
   CAVEMAN CANYON RUN — 3D low-poly prehistoric endless dodger (by Fable).
@@ -29,20 +26,6 @@ export function CavemanGame() {
   const [causeOfDeath, setCauseOfDeath] = useState('boulder');
 
   useEffect(() => {
-    // three.js loads lazily (separate extension chunk) — the game world is built
-    // once it arrives. `unmounted` guards the gap between unmount and resolution.
-    let unmounted = false;
-    let teardown: (() => void) | undefined;
-    loadThree().then((three) => {
-      if (unmounted) return;
-      teardown = start(three);
-    }).catch((err) => console.error('[BS] Failed to load three.js for Caveman Canyon Run:', err));
-    return () => {
-      unmounted = true;
-      teardown?.();
-    };
-
-    function start(THREE: ThreeModule): (() => void) | undefined {
     const mount = mountRef.current;
     if (!mount) return;
 
@@ -748,7 +731,6 @@ export function CavemanGame() {
         }
       });
     };
-    } // end start()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

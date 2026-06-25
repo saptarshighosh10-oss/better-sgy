@@ -17,17 +17,94 @@ import React from 'react';
 import { App } from '../components/App';
 import { hideNativeUI, restoreNativeUI, isNativeHidden } from '../lib/dom-takeover';
 import { scrapeGradesFromDoc, buildSchoologyData, checkSafetyGuards } from '../lib/scrape-dom';
-import { validateSchoologyData } from '../lib/schemas';
+import { validateSchoologyData, type SchoologyData } from '../lib/schemas';
 import { saveGradeData, loadGradeData, saveScrapeMeta } from '../lib/storage';
 import { countAssignments } from '../lib/transform';
 import { queuedFetch } from '../lib/sgy-net';
-import { isWafChallenge } from '../lib/fetch-materials';
-import { looksLikeLoginPage, reportSessionExpired, reportConnectionOk } from '../lib/connection-status';
 import type { ScrapeResult } from '../lib/scrape-status';
 import { INITIAL_SCRAPE_RESULT } from '../lib/scrape-status';
 import { appendGradeHistory } from '../lib/grade-history';
-import { recordChanges, describeChange, type ChangeEvent } from '../lib/grade-changes';
+import { detectChanges, appendChanges, type ChangeEvent } from '../lib/grade-changes';
+import { saveWatchStatus } from '../lib/watch-status';
+import { cacheAnnouncements } from '../lib/announcement-cache';
+import { T, onThemeChange, getActiveTheme, getAccentColor } from '../lib/theme';
+import { parseGradeString, isMissing } from '../lib/grade-utils';
 
+// ── Change reporting & persistence ───────────────────────────────
+/**
+ * After a successful scrape, mark the watcher healthy and record any activity
+ * (grade moves, new/graded assignments), pinging the worker so it can fire a
+ * desktop notification even when this tab isn't focused.
+ */
+async function reportChanges(prev: SchoologyData | null, next: SchoologyData) {
+  await saveWatchStatus({ ok: true, ts: Date.now() });
+  const events: ChangeEvent[] = detectChanges(prev, next);
+  if (!events.length) return;
+  await appendChanges(events);
+  try { await browser.runtime.sendMessage({ type: 'change', events }); } catch { /* worker asleep is fine */ }
+}
+
+/**
+ * Map scraped Schoology data → the compact shape the bundled "looks" read from
+ * chrome.storage.local['bsgy_live'], and persist it. Real build only — the demo
+ * never writes this key so the looks fall back to their built-in sample data.
+ * Best-effort: every step is guarded so a bad scrape can't break the save tail.
+ */
+async function writeLiveData(data: SchoologyData) {
+  // Demo builds (wxt --mode demo) must not seed live data — keep the sample look.
+  if (import.meta.env.MODE === 'demo') return;
+  try {
+    const courses = (data.courses ?? []).map((c) => {
+      const { letter, percent } = parseGradeString(c.grade);
+      let missing = 0;
+      try {
+        for (const cat of c.categories ?? []) {
+          for (const a of cat.assignments ?? []) if (isMissing(a)) missing++;
+        }
+      } catch { /* missing count is cosmetic */ }
+      return {
+        name: c.name,
+        teacher: c.teacher || '',
+        pct: percent,
+        letter,
+        trend: 'flat' as const,
+        missing,
+      };
+    });
+    const graded = courses.map((c) => c.pct).filter((p): p is number => typeof p === 'number');
+    const overall = graded.length ? graded.reduce((s, p) => s + p, 0) / graded.length : null;
+    // Contract the bundled looks read (see "LIVE DATA INJECTION" in each look):
+    //   { overall:number, term:string, courses:[{name,teacher,pct,letter,trend,missing}] }
+    const live = {
+      overall,
+      term: data.gradingPeriod || '',
+      courses,
+    };
+    await browser.storage.local.set({ bsgy_live: live });
+  } catch (err) {
+    console.error('[BS] writeLiveData failed:', err);
+  }
+}
+
+/**
+ * Shared tail of both scrape paths: persist the fresh data, append history,
+ * report any changes to the worker, and record fresh scrape metadata.
+ */
+async function saveFreshData(previous: SchoologyData | null, data: SchoologyData) {
+  await saveGradeData(data);
+  await appendGradeHistory(data.courses);
+  await reportChanges(previous, data);
+  await writeLiveData(data);
+  await saveScrapeMeta({
+    status: 'fresh',
+    scrapedAt: data.scrapedAt,
+    courseCount: data.courses.length,
+    assignmentCount: countAssignments(data.courses),
+    error: null,
+  });
+}
+
+// ── Module state ─────────────────────────────────────────────────
 const MOUNT_ID = '__better-schoology-root__';
 const ESCAPE_ID = '__better-schoology-escape__';
 
@@ -57,12 +134,53 @@ function updateScrapeResult(partial: Partial<ScrapeResult>) {
   rerender();
 }
 
+// ── Tab favicon — swap Schoology's for the Better SGY mark while the overlay is on ──
+const SGY_FAVICON =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='sgy' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%237c6cfc'/%3E%3Cstop offset='1' stop-color='%235b3df0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23sgy)'/%3E%3Cpath d='M9 20.5L16 11L23 20.5' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E";
+let savedFaviconHrefs: string[] | null = null;
+function applySgyFavicon() {
+  try {
+    const links = Array.from(document.querySelectorAll<HTMLLinkElement>('link[rel~="icon"]'));
+    if (savedFaviconHrefs === null) savedFaviconHrefs = links.map((l) => l.getAttribute('href') || '');
+    links.forEach((l) => { if (l.id !== 'bs-favicon') l.remove(); });
+    let ours = document.getElementById('bs-favicon') as HTMLLinkElement | null;
+    if (!ours) { ours = document.createElement('link'); ours.id = 'bs-favicon'; ours.rel = 'icon'; document.head.appendChild(ours); }
+    ours.href = SGY_FAVICON;
+  } catch { /* favicon swap is cosmetic — never block the overlay */ }
+}
+function restoreFavicon() {
+  try {
+    document.getElementById('bs-favicon')?.remove();
+    if (savedFaviconHrefs && savedFaviconHrefs.length) {
+      // re-assert Schoology's own icon(s)
+      if (!document.querySelector('link[rel~="icon"]')) {
+        for (const href of savedFaviconHrefs) {
+          const l = document.createElement('link'); l.rel = 'icon'; if (href) l.href = href; document.head.appendChild(l);
+        }
+      }
+    }
+  } catch { /* ignore */ }
+}
+
 export default defineContentScript({
   matches: ['https://*.schoology.com/*'],
   runAt: 'document_idle',
 
   main() {
     console.log('[BS] Content script executing on', window.location.href);
+
+    // Remember this school's Schoology origin so the background worker can poll
+    // grades on a timer even when no Schoology tab is open (closed-tab watching).
+    void browser.storage.local.set({ bs_sgy_origin: location.origin });
+
+    // Push the active theme to storage so the side panel + floating widget (which
+    // run in other contexts with their own empty localStorage) can match Schoology.
+    const saveThemeSync = () => void browser.storage.local.set({
+      bs_theme_sync: { bg: T.bg, text: T.text, primary: T.primary, border: T.border, card: T.card },
+      bs_theme_state: { theme: getActiveTheme(), accent: getAccentColor() },
+    });
+    saveThemeSync();
+    onThemeChange(saveThemeSync);
 
     // ── Single-mount guard ─────────────────────────────────────
     if (document.getElementById(MOUNT_ID)) {
@@ -114,8 +232,8 @@ export default defineContentScript({
       const hiddenCount = hideNativeUI();
       console.log(`[BS] Hidden ${hiddenCount} native container(s)`);
 
-      // ── Our logo in the tab while the overlay owns the page ────
-      applyBranding(true);
+      // Swap the tab favicon to the Better SGY mark while the overlay is on.
+      applySgyFavicon();
     }
 
     // ── Phase 1: Scrape trigger ────────────────────────────────
@@ -199,18 +317,9 @@ async function runScrape() {
       return;
     }
 
-    // Step 6: saving (diff against the previous snapshot first → change feed)
+    // Step 6: saving
     updateScrapeResult({ status: 'saving' });
-    notifyChanges(await recordChanges(previousData, data));
-    await saveGradeData(data);
-    await appendGradeHistory(data.courses);
-    await saveScrapeMeta({
-      status: 'fresh',
-      scrapedAt: data.scrapedAt,
-      courseCount: data.courses.length,
-      assignmentCount: countAssignments(data.courses),
-      error: null,
-    });
+    await saveFreshData(previousData, data);
 
     // Done!
     updateScrapeResult({
@@ -243,59 +352,6 @@ async function runScrape() {
   }
 }
 
-/**
- * OS notification for fresh grade changes — only when this tab isn't visible
- * (if you're looking at the dashboard, the "What changed" feed already shows
- * it). The background worker shows the toast so it pops over any app/tab.
- */
-function notifyChanges(events: ChangeEvent[]) {
-  if (events.length === 0 || !document.hidden) return;
-  const lines = events.slice(0, 3).map(describeChange);
-  const extra = events.length > 3 ? `\n+${events.length - 3} more` : '';
-  browser.runtime.sendMessage({
-    type: 'notify',
-    title: events.length === 1 ? 'Grade update' : `${events.length} grade updates`,
-    body: lines.join('\n') + extra,
-  }).catch(() => { /* worker asleep or messaging unavailable — feed still has it */ });
-}
-
-// ── Branding: our logo in the tab while the overlay is active ────────────────
-
-let originalFavicons: Array<{ el: HTMLLinkElement; href: string }> | null = null;
-
-/** Swap the page favicon to the Better SGY logo (and back). */
-function applyBranding(active: boolean) {
-  try {
-    if (active) {
-      if (!originalFavicons) {
-        originalFavicons = [];
-        document.querySelectorAll<HTMLLinkElement>('link[rel*="icon"]').forEach((el) => {
-          originalFavicons!.push({ el, href: el.href });
-        });
-      }
-      const url = browser.runtime.getURL('/icon/32.png');
-      if (originalFavicons.length === 0) {
-        const link = document.createElement('link');
-        link.rel = 'icon';
-        link.href = url;
-        link.setAttribute('data-bs-favicon', '1');
-        document.head.appendChild(link);
-        originalFavicons.push({ el: link, href: '' });
-      } else {
-        originalFavicons.forEach(({ el }) => { el.href = url; });
-      }
-    } else if (originalFavicons) {
-      originalFavicons.forEach(({ el, href }) => {
-        if (el.getAttribute('data-bs-favicon')) el.remove();
-        else el.href = href;
-      });
-      originalFavicons = null;
-    }
-  } catch (e) {
-    console.warn('[BS] favicon swap failed', e);
-  }
-}
-
 async function runBackgroundScrape() {
   console.log('[BS] Running background scrape...');
   try {
@@ -311,17 +367,14 @@ async function runBackgroundScrape() {
     }
 
     const html = await response.text();
-    if (isWafChallenge(html)) {
-      // isWafChallenge already reported it — the ConnectionBanner takes it from here.
-      console.warn('[BS] Background fetch hit the WAF bot-challenge');
-      return;
-    }
-    if (looksLikeLoginPage(html)) {
+    if (
+      html.includes('id="edit-mail"') ||
+      html.includes('accounts.google.com') ||
+      html.includes('Sign in')
+    ) {
       console.warn('[BS] Background fetch returned login/auth page — session expired');
-      reportSessionExpired();
       return;
     }
-    reportConnectionOk();
 
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
@@ -346,16 +399,9 @@ async function runBackgroundScrape() {
       return;
     }
 
-    notifyChanges(await recordChanges(previousData, data));
-    await saveGradeData(data);
-    await appendGradeHistory(data.courses);
-    await saveScrapeMeta({
-      status: 'fresh',
-      scrapedAt: data.scrapedAt,
-      courseCount: data.courses.length,
-      assignmentCount: countAssignments(data.courses),
-      error: null,
-    });
+    await saveFreshData(previousData, data);
+    // Cache teacher announcements/updates for the side panel (best-effort).
+    void cacheAnnouncements(data.courses);
 
     // Update current scrape result for React rendering
     updateScrapeResult({
@@ -388,14 +434,25 @@ async function runBackgroundScrape() {
     overlayActive = true;
     try { localStorage.removeItem('__bs_deactivated__'); } catch { /* blocked */ }
     if (host) host.style.display = '';   // show overlay first
-    if (btn) btn.style.display = 'none';
+    if (btn) { btn.style.display = 'flex'; const l = document.getElementById('bs-esc-label'); if (l) l.textContent = 'Show original Schoology'; }
     try { hideNativeUI(); } catch (e) { console.warn('[BS] hideNativeUI failed', e); }
-    applyBranding(true);
     // Re-activate the extension (it was unmounted when we went native).
-    if (!reactRootRef && reactRootEl) {
-      reactRootRef = ReactDOM.createRoot(reactRootEl);
+    // Mount onto a FRESH node: React leaves an internal marker on a container that
+    // has held a root before, so calling createRoot() on the same element again can
+    // make the first render a no-op (the "press twice to come back" bug). Swapping in
+    // a clean element guarantees a single press always restores the overlay.
+    if (!reactRootRef) {
+      const shadow = host?.shadowRoot ?? null;
+      const old = reactRootEl ?? shadow?.querySelector<HTMLElement>('#bs-react-root') ?? null;
+      const fresh = document.createElement('div');
+      fresh.id = 'bs-react-root';
+      if (old && old.parentNode) old.replaceWith(fresh);
+      else if (shadow) shadow.appendChild(fresh);
+      reactRootEl = fresh;
+      reactRootRef = ReactDOM.createRoot(fresh);
       rerender();
     }
+    applySgyFavicon();
     console.log('[BS] Switched to Better SGY overlay — reactivated');
   } else {
     overlayActive = false;
@@ -404,9 +461,9 @@ async function runBackgroundScrape() {
     // Hide the overlay + restore native FIRST so "turn off" always works, even if
     // anything below throws.
     if (host) host.style.display = 'none';
-    if (btn) btn.style.display = 'flex';
+    if (btn) { btn.style.display = 'flex'; const l = document.getElementById('bs-esc-label'); if (l) l.textContent = 'Show Better SGY'; }
     try { restoreNativeUI(); } catch (e) { console.warn('[BS] restoreNativeUI failed', e); }
-    applyBranding(false); // native Schoology gets its own favicon back
+    restoreFavicon();   // give Schoology its own tab icon back on native
     // Fully deactivate: unmount React so NOTHING runs (no polling, no animations,
     // no timers) until the user presses "Show Better SGY". Defer one tick —
     // this is triggered from a button INSIDE React, and sync self-unmount glitches.
@@ -430,10 +487,12 @@ function createEscapeHatch() {
 
   const btn = document.createElement('button');
   btn.id = ESCAPE_ID;
-  btn.title = 'Toggle back to Better SGY overlay';
+  btn.title = 'Switch between Better SGY and the original Schoology page';
 
   const label = document.createElement('span');
-  label.textContent = '✨ Show Better SGY';
+  label.id = 'bs-esc-label';
+  // Startup shows the overlay, so the button offers the way OUT to real Schoology.
+  label.textContent = 'Show original Schoology';
   btn.appendChild(label);
 
   // Notification badge — pings when new announcements/updates arrive while you're
@@ -456,7 +515,7 @@ function createEscapeHatch() {
     bottom: 20px;
     right: 20px;
     z-index: 2147483647;
-    display: none; /* hidden by default on startup */
+    display: flex; /* always visible — it's the toggle to/from real Schoology */
     align-items: center;
     justify-content: center;
     gap: 8px;
@@ -502,10 +561,15 @@ function createEscapeHatch() {
   });
 
   btn.addEventListener('click', () => {
-    // Returning to Better SGY = "viewing" the updates → clear the ping.
-    (window as any).__bsAckUpdates?.();
-    (window as any).__bsSetEscapeBadge?.(0);
-    (window as any).__toggleSchoologyOverlay(true);
+    if (overlayActive) {
+      // Overlay is up → drop to the real Schoology page.
+      (window as any).__toggleSchoologyOverlay(false);
+    } else {
+      // On native Schoology → coming back = "viewing" updates → clear the ping.
+      (window as any).__bsAckUpdates?.();
+      (window as any).__bsSetEscapeBadge?.(0);
+      (window as any).__toggleSchoologyOverlay(true);
+    }
   });
 
   document.body.appendChild(btn);

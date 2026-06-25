@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-06-06T10:52:59.502384+00:00",
+  "run_dir": "/Users/saptarshighosh/better-schoology/data/sprites/family-photo/run-evara",
+  "primary_generation_skill": "$imagegen",
+  "jobs": [
+    {
+      "id": "base",
+      "kind": "base-character",
+      "status": "pending",
+      "prompt_file": "prompts/base-character.md",
+      "input_images": [],
+      "output_path": "decoded/base.png",
+      "depends_on": [],
+      "generation_skill": "$imagegen",
+      "requires_grounded_generation": false,
+      "allow_prompt_only_generation": true,
+      "recording_owner": "parent"
+    },
+    {
+      "id": "idle-lineup",
+      "kind": "animation-strip",
+      "status": "pending",
+      "prompt_file": "prompts/animations/idle-lineup.md",
+      "input_images": [
+        {
+          "path": "references/layout-guides/idle-lineup.png",
+          "role": "layout guide for 8 frame slots; use for spacing only, do not copy guide lines"
+        },
+        {
+          "path": "references/canonical-base.png",
+          "role": "canonical identity reference"
+        },
+        {
+          "path": "decoded/base.png",
+          "role": "approved base character"
+        }
+      ],
+      "output_path": "decoded/idle-lineup.png",
+      "depends_on": [
+        "base"
+      ],
+      "generation_skill": "$imagegen",
+      "requires_grounded_generation": true,
+      "allow_prompt_only_generation": false,
+      "identity_reference_paths": [
+        "references/canonical-base.png",
+        "decoded/base.png"
+      ],
+      "animation": {
+        "name": "idle-lineup",
+        "row": 0,
+        "frames": 8,
+        "fps": 12,
+        "action": "hovering slightly off the ground in a lineup for a family photo, floating gently up and down, hands relaxed at sides or slightly out, looking at camera with effortless cool confidence"
+      },
+      "mirror_policy": {},
+      "recording_owner": "parent"
+    }
+  ]
+}

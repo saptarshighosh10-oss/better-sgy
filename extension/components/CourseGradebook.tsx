@@ -2,7 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import type { ScrapedCourse, ScrapedCategory } from '../lib/schemas';
 import type { GradePoint } from '../lib/grade-history';
 import {
-  parseGradeString, gradeColor, checkBorderline,
+  parseGradeString, checkBorderline,
   parseScore, parseMaxGrade, formatDueDate, parseDueDate,
 } from '../lib/grade-utils';
 import { Icon, ICON_PATHS } from './Icon';
@@ -50,7 +50,13 @@ interface EffAsg {
 
 interface CatSums { weight: number; ss: number; sm: number }
 
-/** Course grade from per-category point sums. Weighted when the course defines weights. */
+/**
+ * Course grade from per-category point sums.
+ * - Weighted courses: weighted average of each category's percentage (only
+ *   categories that both have data AND a positive weight contribute).
+ * - Unweighted courses: plain average of each category's percentage.
+ * Returns null when no category has any graded points.
+ */
 function gradeFromSums(cats: CatSums[], courseHasWeights: boolean): number | null {
   const withData = cats.filter(c => c.sm > 0);
   if (withData.length === 0) return null;
@@ -615,23 +621,23 @@ function CategoryRow({
           {/* Stat columns */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr' }}>
             <div>
-              <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: 2 }}>Current %</div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: gradeColor(effPct) ?? T.muted, fontVariantNumeric: 'tabular-nums' }}>
+              <div style={{ fontSize: 11, fontWeight: 500, color: T.muted, letterSpacing: '-0.01em', marginBottom: 2 }}>Current %</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: T.text, fontVariantNumeric: 'tabular-nums' }}>
                 {animatedEffPct !== null ? `${animatedEffPct.toFixed(1)}%` : '—'}
               </div>
             </div>
             <div>
-              <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: 2 }}>Weight</div>
+              <div style={{ fontSize: 11, fontWeight: 500, color: T.muted, letterSpacing: '-0.01em', marginBottom: 2 }}>Weight</div>
               <div style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{weight > 0 ? `${weight}%` : '—'}</div>
             </div>
             <div>
-              <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: 2 }}>Points</div>
+              <div style={{ fontSize: 11, fontWeight: 500, color: T.muted, letterSpacing: '-0.01em', marginBottom: 2 }}>Points</div>
               <div style={{ fontSize: 15, fontWeight: 700, color: T.text, fontVariantNumeric: 'tabular-nums' }}>
                 {sm > 0 ? `${+ss.toFixed(1)}/${+sm.toFixed(1)}` : '—'}
               </div>
             </div>
             <div>
-              <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: 2 }}>Impact</div>
+              <div style={{ fontSize: 11, fontWeight: 500, color: T.muted, letterSpacing: '-0.01em', marginBottom: 2 }}>Impact</div>
               <div style={{ fontSize: 15, fontWeight: 700, color: T.text, fontVariantNumeric: 'tabular-nums' }}>
                 {contribution !== null ? `${contribution.toFixed(1)}%` : '—'}
               </div>
@@ -648,7 +654,7 @@ function CategoryRow({
             const ov = overrides.get(a.key);
             const hypo = a.isHypo ? hypos.find(h => `h:${h.id}` === a.key) : undefined;
             const pct = a.score !== null && a.max ? (a.score / a.max) * 100 : null;
-            const clr = gradeColor(pct);
+            const clr = T.muted;
             // Pre-fill with the real current value (override if edited, else original)
             // so existing scores like "16.5/19.5" are visible and directly editable.
             const scoreStr = a.isHypo
@@ -804,9 +810,12 @@ export function CourseGradebook({ course, nickname }: Props) {
           catIdx: ci,
           catName: cleanCat,
           origScore, origMax,
+          // Effective value = override if typed, else the original scraped value
           score: ovScore ?? origScore,
           max: ovMax ?? origMax,
           isHypo: false,
+          // "Edited" = a real graded assignment whose score/max was typed over.
+          // "Filled" = a previously ungraded assignment given a simulated score.
           isEdited: origScore !== null && (ovScore !== null || ovMax !== null),
           isFilled: origScore === null && ovScore !== null,
           date: parseDueDate(a.dueDate),
@@ -851,16 +860,21 @@ export function CourseGradebook({ course, nickname }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [effAsgs, courseHasWeights]);
 
+  // What-if delta: how much our projected grade moved from our own computed
+  // baseline. Null until something is edited (so we show the official grade as-is).
   const delta = hasEdits && projectedGrade !== null && baselineGrade !== null
     ? projectedGrade - baselineGrade
     : null;
-  // anchor on the official grade so the number matches Schoology until something is edited
+  // Anchor the headline on the OFFICIAL Schoology percent and apply only the
+  // delta, so the number matches Schoology exactly until something is edited
+  // (our point-sum recompute can differ slightly from Schoology's rounding).
+  // Fall back to the raw projected grade when there's no official percent.
   const displayPct = delta !== null && percent !== null
     ? percent + delta
     : delta !== null && projectedGrade !== null
     ? projectedGrade
     : percent;
-  const displayColor = gradeColor(displayPct);
+  const displayColor = T.text;
   const borderInfo = checkBorderline(displayPct);
   const animatedDisplayPct = useAnimatedNumber(displayPct);
 
@@ -873,6 +887,8 @@ export function CourseGradebook({ course, nickname }: Props) {
   const gradedCount = effAsgs.filter(a => !a.isHypo && a.origScore !== null).length;
   const totalCount = course.categories.reduce((s, c) => s + c.assignments.length, 0);
   const missingCount = course.categories.flatMap(c => c.assignments).filter(a => a.status === 'unsubmitted').length;
+
+  // ── What-if edit handlers (overrides on real assignments + hypotheticals) ──
 
   function setOverride(key: string, field: 'score' | 'max', val: string) {
     setOverrides(prev => {
@@ -916,45 +932,31 @@ export function CourseGradebook({ course, nickname }: Props) {
 
   return (
     <div>
-      {/* ── Course header — v2 gb-head: title leads left, metric + letter tile right ── */}
-      <div style={{ background: T.panel, border: `1px solid ${T.border}`, borderRadius: '12px 12px 0 0', padding: '20px 22px 14px' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24, marginBottom: 12 }}>
+      {/* ── Course header ─────────────────────────────────────────── */}
+      <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: '16px 16px 0 0', padding: '12px 18px 10px' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: T.text, letterSpacing: '-0.015em', lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {nickname || course.name}
-            </div>
-            <div style={{ fontSize: 12.5, color: T.muted, marginTop: 5 }}>
-              {nickname ? `${course.name} · ` : ''}{course.teacher || '—'}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
-              {borderInfo && (
-                <span style={{ fontSize: 10, fontWeight: 700, color: T.amber, background: T.amber + '20', border: `1px solid ${T.amber}48`, borderRadius: 999, padding: '2px 8px' }}>
-                  ↗ Borderline {borderInfo.currentLetter}→{borderInfo.nextLetter}
-                </span>
-              )}
-              {delta !== null && Math.abs(delta) >= 0.01 && (
-                <span style={{ fontSize: 12, fontWeight: 700, color: delta > 0 ? T.green : T.red, background: (delta > 0 ? T.green : T.red) + '18', borderRadius: 999, padding: '2px 9px' }}>
-                  {delta > 0 ? '+' : ''}{delta.toFixed(2)}% what-if
-                </span>
-              )}
-            </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexShrink: 0 }}>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 36, fontWeight: 800, color: displayColor ?? T.text, lineHeight: 1, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 28, fontWeight: 800, color: displayColor ?? T.text, lineHeight: 1, letterSpacing: '-0.5px', fontVariantNumeric: 'tabular-nums' }}>
                 {animatedDisplayPct !== null ? `${animatedDisplayPct.toFixed(2)}%` : '—'}
-              </div>
-              <div style={{ fontSize: 11, fontWeight: 600, color: T.muted, marginTop: 4 }}>
-                {hasEdits ? 'What-if grade' : 'Current grade'}
-              </div>
+              </span>
+              <span style={{ fontSize: 14, fontWeight: 600, color: T.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {nickname || course.name}
+              </span>
+              <span style={{ fontSize: 16, fontWeight: 700, color: displayColor ?? T.muted }}>{letter}</span>
             </div>
-            {letter && (
-              <div aria-hidden="true" style={{
-                fontSize: 22, fontWeight: 800, width: 54, height: 54, borderRadius: 10,
-                display: 'grid', placeItems: 'center', background: `${T.primary}1f`, color: T.primary,
-              }}>
-                {letter}
-              </div>
+            {nickname && <div style={{ fontSize: 10, color: T.muted, opacity: 0.8, marginTop: 2 }}>{course.name}</div>}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+            {borderInfo && (
+              <span style={{ fontSize: 10, fontWeight: 600, color: T.amber, background: T.amber + '15', border: `1px solid ${T.amber}30`, borderRadius: 8, padding: '2px 7px' }}>
+                ↗ Borderline {borderInfo.currentLetter}→{borderInfo.nextLetter}
+              </span>
+            )}
+            {delta !== null && Math.abs(delta) >= 0.01 && (
+              <span style={{ fontSize: 13, fontWeight: 700, color: delta > 0 ? T.green : T.red, background: (delta > 0 ? T.green : T.red) + '18', borderRadius: 8, padding: '2px 8px' }}>
+                {delta > 0 ? '+' : ''}{delta.toFixed(2)}%
+              </span>
             )}
           </div>
         </div>
@@ -968,7 +970,7 @@ export function CourseGradebook({ course, nickname }: Props) {
             { label: 'Categories', val: String(visibleCats.length) },
           ].map(({ label, val, accent }) => (
             <div key={label}>
-              <div style={{ fontSize: 9, fontWeight: 700, color: T.muted, textTransform: 'uppercase', letterSpacing: '0.4px' }}>{label}</div>
+              <div style={{ fontSize: 11, fontWeight: 500, color: T.muted, letterSpacing: '-0.01em' }}>{label}</div>
               <div style={{ fontSize: 12, fontWeight: 600, color: accent ?? T.muted, marginTop: 1 }}>{val}</div>
             </div>
           ))}

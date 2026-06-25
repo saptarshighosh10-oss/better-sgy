@@ -1,8 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-// Type-only: the runtime namespace is lazy-loaded via loadThree() so three.js
-// stays out of the main content-script bundle until a game actually mounts.
-import type * as THREE from 'three';
-import { loadThree, type ThreeModule } from '../../lib/load-three';
+import * as THREE from 'three';
 
 /*
   NEON PROTOCOL — Holographic Arena FPS (by Fable). Wrapped for the extension:
@@ -101,20 +98,6 @@ export function NeonProtocol() {
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // three.js loads lazily (separate extension chunk) — the arena is built once
-    // it arrives. `unmounted` guards the gap between unmount and resolution.
-    let unmounted = false;
-    let teardown: (() => void) | undefined;
-    loadThree().then((three) => {
-      if (unmounted) return;
-      teardown = start(three);
-    }).catch((err) => console.error('[BS] Failed to load three.js for Neon Protocol:', err));
-    return () => {
-      unmounted = true;
-      teardown?.();
-    };
-
-    function start(THREE: ThreeModule): (() => void) | undefined {
     const root = rootRef.current;
     if (!root) return;
     const $ = (id: string) => root.querySelector<HTMLElement>('#' + id)!;
@@ -464,7 +447,6 @@ export function NeonProtocol() {
       renderer.dispose();
       if (renderer.domElement.parentNode === mount) mount.removeChild(renderer.domElement);
     };
-    } // end start()
   }, []);
 
   return (

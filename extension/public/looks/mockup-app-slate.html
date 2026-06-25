@@ -1,0 +1,2426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%274%27 fill=%27%2314110d%27/%3E%3Cg fill=%27none%27 stroke=%27%23f4f1e9%27 stroke-width=%271.6%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Crect x=%277.5%27 y=%279.5%27 width=%2717%27 height=%2713%27 rx=%271.4%27/%3E%3Cpath d=%27M11 13h6M11 16h6M11 19h4%27/%3E%3Crect x=%2719%27 y=%2713%27 width=%273.2%27 height=%276%27 rx=%27.5%27/%3E%3C/g%3E%3C/svg%3E">
+<title>Better SGY — SLATE</title>
+<style>
+  /* ============================================================
+     SLATE — Swiss / International Typographic Style
+     Pure black & white. No hue, ever. Type, grid, rules, space.
+     Single-file, multi-screen application. No dependencies.
+     ============================================================ */
+
+  :root{
+    /* DAY EDITION — warm rag-paper white, near-black ink (true ink is never pure #000) */
+    --ink:#14110d;
+    --paper:#f4f1e9;
+    --ink-80:rgba(20,17,13,.80);
+    --ink-60:rgba(20,17,13,.60);
+    --ink-45:rgba(20,17,13,.45);
+    --ink-30:rgba(20,17,13,.30);
+    --ink-15:rgba(20,17,13,.16);
+    --ink-08:rgba(20,17,13,.07);
+    --hair:rgba(20,17,13,.85);
+    --serif:Georgia,"Times New Roman",serif;
+    --sans:Helvetica,"Helvetica Neue",Arial,system-ui,sans-serif;
+    --gut:24px;
+    --rule:1px solid var(--ink);
+    --hairline:1px solid var(--ink-15);
+    /* newsprint substrate — fibre fleck + faint vertical laid lines + edge vignette */
+    --news-fleck:rgba(20,17,13,.05);
+    --news-fleck2:rgba(20,17,13,.035);
+    --news-tint:rgba(120,96,60,.05);
+    --edition-word:"Day Edition";
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{ -webkit-text-size-adjust:100%; }
+
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.4;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    padding:clamp(18px,4vw,56px);
+    position:relative;
+  }
+
+  /* ============================================================
+     NEWSPRINT SUBSTRATE — pressman's paper, not a flat fill.
+     Fixed, behind everything, purely decorative.  Stacks:
+       1. ink-fibre fleck (two radial speckle fields)
+       2. faint vertical "laid lines" of the paper mould
+       3. a warm press-tint wash + corner foxing vignette
+     ============================================================ */
+  body::before{
+    content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+    background:
+      radial-gradient(circle at 20% 35%, var(--news-fleck) 0 .6px, transparent 1.2px),
+      radial-gradient(circle at 72% 68%, var(--news-fleck2) 0 .5px, transparent 1.1px),
+      radial-gradient(circle at 48% 88%, var(--news-fleck) 0 .5px, transparent 1px),
+      repeating-linear-gradient(90deg, var(--news-fleck2) 0 1px, transparent 1px 4px),
+      radial-gradient(125% 95% at 50% 40%, transparent 58%, var(--news-tint) 100%);
+    background-size:7px 7px, 9px 9px, 11px 11px, 4px 100%, 100% 100%;
+    mix-blend-mode:multiply; opacity:.9;
+  }
+  /* keep main content above the press substrate (z:0) without disturbing
+     the fixed overlays, which carry their own higher z-index */
+  .page{ position:relative; z-index:1; max-width:1180px; margin:0 auto; }
+
+  /* small-caps label utility */
+  .label{
+    font-family:var(--sans);
+    font-size:11px; font-weight:700;
+    letter-spacing:.22em; text-transform:uppercase;
+    color:var(--ink-60);
+  }
+  .label--ink{ color:var(--ink); }
+
+  a{ color:inherit; text-decoration:none; }
+
+  /* ============================================================
+     SCREEN SWITCHER — JS toggles .screen--on
+     ============================================================ */
+  .screen{ display:none; }
+  .screen--on{ display:block; }
+
+  /* ============================================================
+     MASTHEAD — persistent editorial chrome
+     ============================================================ */
+  /* MASTHEAD — the nameplate. Heavy top rule, then a thick/thin "Scotch"
+     double-rule frames the title, with an engraved ornament centred over it. */
+  .masthead{
+    border-top:3px solid var(--ink);
+    box-shadow:0 2px 0 -1px var(--paper), 0 3px 0 -1px var(--ink); /* thick + hairline */
+    padding-top:10px;
+  }
+  .masthead__topline{
+    display:flex; justify-content:space-between; align-items:baseline;
+    gap:16px; font-size:10.5px; font-weight:700;
+    letter-spacing:.24em; text-transform:uppercase; color:var(--ink-60);
+  }
+  .masthead__topline .edition{ color:var(--ink); }
+  /* live edition flag (Day / Late), set on its own dedicated band below the
+     topline — sits in open space, clear of the nameplate's Scotch rule + fleuron */
+  .masthead__topline{ position:relative; }
+  .masthead__topline::after{
+    content:var(--edition-word); position:absolute; left:50%; top:calc(100% + 7px);
+    transform:translateX(-50%); white-space:nowrap;
+    font-size:9px; letter-spacing:.36em; color:var(--ink-45); pointer-events:none;
+  }
+  .masthead__title{
+    font-family:var(--serif); font-weight:700;
+    font-size:clamp(30px,5.6vw,58px); line-height:.96;
+    /* extra headroom opens a clear band for the edition flag above the Scotch
+       rule, so the fleuron can never ride up onto the edition words */
+    letter-spacing:-.02em; margin:52px 0 8px; text-align:center;
+    position:relative; text-shadow:0 1px 0 var(--ink-08); /* faint press-bleed */
+  }
+  .masthead__title em{ font-style:italic; font-weight:400; }
+  /* Scotch rule: thick line, thin line, with a fleuron centred over the gap */
+  .masthead__title::before{
+    content:""; display:block; height:4px; margin:0 0 12px;
+    border-top:3px solid var(--ink); border-bottom:1px solid var(--ink);
+  }
+  /* fleuron centred ON the Scotch rule — well below the edition flag's band,
+     its opaque backing kept clear of the edition words */
+  .masthead__title::after{
+    content:"❦"; position:absolute; top:2px; left:50%;
+    transform:translate(-50%,-50%); line-height:1;
+    background:var(--paper); padding:0 14px; font-size:15px; color:var(--ink-80);
+    font-style:normal;
+  }
+
+  /* DATELINE — small-caps identity strip beneath the nameplate, centred,
+     framed by hairline rules like a broadsheet's volume/price line. */
+  .masthead__context{
+    display:flex; flex-wrap:wrap; gap:0 18px; align-items:baseline; justify-content:center;
+    border-top:var(--rule); border-bottom:var(--rule); padding:9px 0 8px;
+    font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+    font-weight:700;
+  }
+  .masthead__context .sep{ color:var(--ink-30); }
+  .masthead__context .ctx{ color:var(--ink-60); }
+  .masthead__context .ctx strong{ font-weight:700; color:var(--ink); letter-spacing:.02em; }
+
+  /* ============================================================
+     RULED NAV — 7 sections, acts like a table of contents
+     ============================================================ */
+  .nav{
+    display:grid;
+    grid-template-columns:repeat(9,1fr);
+    border-bottom:3px solid var(--ink);
+    margin-bottom:4px;
+  }
+  .nav__item{
+    border-right:var(--hairline);
+    padding:11px 12px 12px;
+    cursor:pointer;
+    display:block;
+  }
+  .nav__item:last-child{ border-right:none; }
+  .nav__no{
+    font-family:var(--serif); font-style:italic;
+    font-size:12px; color:var(--ink-30); display:block; margin-bottom:5px;
+  }
+  .nav__name{
+    font-family:var(--sans); font-size:11px; font-weight:700;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--ink-60);
+    line-height:1.2;
+  }
+  .nav__item:hover .nav__name{ color:var(--ink); }
+  .nav__item:hover{ background:var(--ink-08); }
+
+  /* active state — JS toggles .nav__item--on */
+  .nav__item--on{ background:var(--ink); }
+  .nav__item--on .nav__name{ color:var(--paper); }
+  .nav__item--on .nav__no{ color:rgba(255,255,255,.5); }
+  .nav__item--on:hover{ background:var(--ink); }
+  .nav__item--on:hover .nav__name{ color:var(--paper); }
+
+  /* ============================================================
+     SECTION STANDFIRST — heads every inner screen
+     ============================================================ */
+  .standfirst{
+    display:grid; grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);
+    gap:var(--gut); align-items:end; padding:clamp(22px,4vw,40px) 0 22px;
+    border-bottom:var(--rule);
+  }
+  .standfirst__head h2{
+    font-family:var(--serif); font-weight:700;
+    font-size:clamp(26px,4.4vw,46px); line-height:.98; letter-spacing:-.02em;
+  }
+  .standfirst__head h2 em{ font-style:italic; font-weight:400; }
+  .standfirst__kicker{ margin-bottom:8px; display:block; }
+  .standfirst__intro{
+    align-self:end; font-family:var(--serif); font-style:italic;
+    font-size:clamp(13px,1.6vw,16px); line-height:1.5; color:var(--ink-80);
+    max-width:40ch;
+  }
+
+  /* ============================================================
+     HERO FIGURE — Overview
+     ============================================================ */
+  .hero{
+    display:grid; grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);
+    gap:var(--gut); align-items:end;
+    padding:clamp(28px,5vw,52px) 0 clamp(20px,3.5vw,34px); border-bottom:var(--rule);
+  }
+  .hero__figure{ position:relative; border-right:var(--hairline); padding-right:var(--gut); }
+  .hero__kicker{ margin-bottom:6px; }
+  .hero__number{
+    font-family:var(--serif); font-weight:700;
+    font-size:clamp(96px,21vw,232px); line-height:1.0; letter-spacing:-.04em;
+    display:flex; align-items:flex-start;
+  }
+  .hero__number .pct{
+    font-size:.30em; font-weight:400; font-style:italic; letter-spacing:0;
+    margin-left:.12em; margin-top:.30em; color:var(--ink-60);
+  }
+  .hero__caption{
+    margin-top:14px; display:flex; flex-wrap:wrap; align-items:baseline;
+    gap:6px 12px; font-size:12px; color:var(--ink-60); letter-spacing:.04em;
+  }
+  .hero__verdict{ align-self:end; }
+  .hero__verdict .v-rule{ border-top:3px solid var(--ink); margin-bottom:12px; }
+  .hero__verdict h2{
+    font-family:var(--serif); font-weight:400; font-style:italic;
+    font-size:clamp(22px,3.4vw,34px); line-height:1.22; letter-spacing:-.01em;
+    /* generous top headroom + leading so the italic serif ascenders are never
+       trimmed at the top edge of the headline */
+    padding-top:.18em; margin-top:-.04em;
+  }
+  .hero__verdict p{
+    margin-top:14px; font-family:var(--serif); font-size:14px; line-height:1.62;
+    color:var(--ink-80); max-width:40ch; text-align:justify; hyphens:auto;
+  }
+  /* DROP CAP — the leading paragraph opens with an engraved initial.
+     Sized to drop ~2 lines, baseline-aligned to the body, with even side
+     bearing so the justified serif text wraps cleanly around it. */
+  .hero__verdict p::first-letter{
+    float:left; font-family:var(--serif); font-weight:700;
+    /* engraved initial dropped two lines: sized and nudged so its cap-height
+       aligns to the first line's top and its foot rests on line two's baseline */
+    font-size:3.34em; line-height:.74;
+    padding:0 .08em 0 0; margin:.04em .06em -.02em 0;
+    color:var(--ink);
+  }
+
+  /* ============================================================
+     STATS — ruled table row
+     ============================================================ */
+  .stats{ display:grid; grid-template-columns:repeat(4,1fr); border-bottom:var(--rule); }
+  .stat{ padding:18px 18px 20px; border-right:var(--hairline); }
+  .stat:last-child{ border-right:none; }
+  .stat__label{ margin-bottom:10px; display:block; }
+  .stat__value{
+    font-family:var(--serif); font-weight:700;
+    font-size:clamp(28px,4.2vw,44px); line-height:1; letter-spacing:-.02em;
+    font-variant-numeric:tabular-nums;
+  }
+  .stat__value .unit{
+    font-family:var(--sans); font-size:13px; font-weight:400;
+    letter-spacing:.02em; color:var(--ink-60); margin-left:4px;
+  }
+  .stat__sub{
+    margin-top:9px; font-size:11px; letter-spacing:.04em; color:var(--ink-60);
+    font-style:italic; font-family:var(--serif);
+  }
+  .stat__sub--name{ font-style:normal; font-family:var(--sans); }
+
+  /* ============================================================
+     FIGURE — statistical plate (line charts). Pure black ink.
+     Used on Overview (Fig. 1) and Grades (Fig. 2).
+     ============================================================ */
+  .figure{ border-bottom:var(--rule); padding:clamp(20px,3.4vw,30px) 0 clamp(18px,3vw,26px); }
+  .figure__top{
+    display:flex; justify-content:space-between; align-items:baseline;
+    gap:16px; flex-wrap:wrap; margin-bottom:14px;
+  }
+  .figure__no{
+    font-family:var(--sans); font-size:10px; font-weight:700;
+    letter-spacing:.2em; text-transform:uppercase; color:var(--ink);
+  }
+  .figure__no .figure__of{ color:var(--ink-45); }
+  .figure__range{
+    font-family:var(--serif); font-style:italic; font-size:12px; color:var(--ink-60);
+  }
+  .plate{
+    width:100%; height:auto; display:block; border:var(--rule);
+  }
+  .plate .grid{ stroke:var(--ink-15); stroke-width:1; }
+  .plate .axis{ stroke:var(--ink); stroke-width:1; }
+  .plate .tick{ stroke:var(--ink); stroke-width:1; }
+  .plate .reference{ fill:none; stroke:var(--ink); stroke-width:1; opacity:.22; }
+  .plate .series{ fill:none; stroke:var(--ink); stroke-width:1.6; }
+  .plate .dot-open{ fill:var(--paper); stroke:var(--ink); stroke-width:1.3; }
+  .plate .dot-fill{ fill:var(--ink); }
+  .plate .axislabel{
+    font-family:Helvetica,Arial,sans-serif; font-size:11px; font-weight:700;
+    letter-spacing:.04em; fill:var(--ink-60);
+  }
+  .plate .axislabel--x{ text-anchor:middle; }
+  .plate .axislabel--y{ text-anchor:end; }
+  .plate .axistitle{
+    font-family:Helvetica,Arial,sans-serif; font-size:10px; font-weight:700;
+    letter-spacing:.18em; text-transform:uppercase; fill:var(--ink-45);
+  }
+  .figure__caption{
+    margin-top:14px; display:grid; grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);
+    gap:var(--gut); align-items:baseline;
+  }
+  .figure__captext{
+    font-family:var(--serif); font-style:italic; font-size:13.5px; line-height:1.5;
+    color:var(--ink-80); max-width:60ch; text-align:justify; hyphens:auto;
+  }
+  .figure__captext .figure__lead{ font-style:normal; font-weight:700; color:var(--ink); letter-spacing:.02em; }
+  .figure__legend{ align-self:start; }
+  .figure__legend .label{ display:block; margin-bottom:8px; }
+  .legend{ border-top:var(--hairline); }
+  .legend__row{
+    display:grid; grid-template-columns:34px minmax(0,1fr) auto; gap:10px;
+    align-items:center; padding:5px 0; border-bottom:var(--hairline);
+    font-size:12px; letter-spacing:.02em;
+  }
+  .legend__row:last-child{ border-bottom:none; }
+  .legend__swatch{ display:block; width:34px; height:10px; }
+  .legend__name{ font-family:var(--serif); }
+  .legend__row--active .legend__name{ font-weight:700; }
+  .legend__val{ font-variant-numeric:tabular-nums; color:var(--ink-60); text-align:right; }
+  .legend__row--active .legend__val{ color:var(--ink); font-weight:700; }
+
+  @media (max-width:880px){
+    .figure__caption{ grid-template-columns:1fr; gap:16px; }
+  }
+
+  /* ============================================================
+     SECTION HEADS (shared)
+     ============================================================ */
+  .sechead{
+    display:flex; justify-content:space-between; align-items:baseline;
+    padding:30px 0 10px; gap:16px; flex-wrap:wrap;
+  }
+  .sechead h3{
+    font-family:var(--serif); font-weight:700;
+    font-size:clamp(20px,3vw,28px); letter-spacing:-.01em;
+  }
+  .sechead .count{ color:var(--ink-45); }
+
+  /* ============================================================
+     COURSES — editorial list (Overview)
+     ============================================================ */
+  .clist{ border-top:var(--rule); }
+  .course{
+    display:grid; grid-template-columns:36px minmax(0,1fr) 150px 96px 74px;
+    align-items:center; gap:var(--gut); padding:20px 4px; border-bottom:var(--hairline);
+  }
+  .course:last-child{ border-bottom:none; }
+  .course__idx{
+    font-family:var(--serif); font-style:italic; font-size:15px;
+    color:var(--ink-30); text-align:right;
+  }
+  .course__main{ min-width:0; }
+  .course__name{
+    font-family:var(--serif); font-weight:700;
+    font-size:clamp(18px,2.3vw,23px); line-height:1.12; letter-spacing:-.01em;
+  }
+  .course__meta{
+    margin-top:5px; display:flex; flex-wrap:wrap; align-items:baseline;
+    gap:4px 10px; font-size:12px; color:var(--ink-60); letter-spacing:.03em;
+  }
+  .course__teacher{ color:var(--ink-80); }
+  .sep{ color:var(--ink-30); }
+  .tag{
+    font-family:var(--sans); font-size:9.5px; font-weight:700;
+    letter-spacing:.16em; text-transform:uppercase;
+    border:1px solid var(--ink); background:var(--ink); color:var(--paper);
+    padding:2px 6px 1px; display:inline-block; line-height:1.2;
+  }
+  .tag--ghost{ background:var(--paper); color:var(--ink); }
+  .note-clean{
+    font-family:var(--serif); font-style:italic; font-size:12px; color:var(--ink-45);
+  }
+  .course__trend{ display:flex; flex-direction:column; gap:6px; }
+  .course__trend svg{ display:block; width:100%; height:34px; }
+  .trend__word{
+    font-size:9.5px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink-60);
+  }
+  .course__pct{
+    font-family:var(--serif); font-weight:700;
+    font-size:clamp(22px,2.8vw,30px); line-height:1; letter-spacing:-.02em;
+    text-align:right; font-variant-numeric:tabular-nums;
+  }
+  .course__pct .pp{ font-family:var(--sans); font-size:12px; font-weight:400; color:var(--ink-45); }
+  .course__letter{ text-align:right; border-left:var(--hairline); padding-left:18px; }
+  .course__letter .ltr{
+    font-family:var(--serif); font-weight:700;
+    font-size:clamp(26px,3.4vw,38px); line-height:1; letter-spacing:-.02em;
+  }
+
+  /* ============================================================
+     CLOSING + COLOPHON (shared)
+     ============================================================ */
+  .closing{
+    margin-top:34px; border-top:var(--rule); padding-top:22px;
+    display:grid; grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);
+    gap:var(--gut); align-items:baseline;
+  }
+  .closing__line{
+    font-family:var(--serif); font-weight:400; font-style:italic;
+    font-size:clamp(18px,2.6vw,27px); line-height:1.22; letter-spacing:-.01em; max-width:30ch;
+  }
+  .closing__byline{
+    text-align:right; align-self:end; font-size:11px; letter-spacing:.05em;
+    color:var(--ink-60); font-style:italic; font-family:var(--serif);
+  }
+  .colophon{
+    margin-top:40px; border-top:3px solid var(--ink);
+    box-shadow:0 2px 0 -1px var(--paper), 0 3px 0 -1px var(--ink);
+    padding-top:14px;
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px 24px;
+    font-size:10px; font-weight:700; letter-spacing:.22em; text-transform:uppercase;
+    color:var(--ink-45);
+  }
+  .colophon .mark{ color:var(--ink); }
+  /* "-30-" — the pressman's traditional end-of-copy mark, centred above the colophon */
+  .colophon::before{
+    content:"— 30 —"; position:absolute; left:50%; top:-15px; transform:translateX(-50%);
+    background:var(--paper); padding:0 12px; letter-spacing:.3em;
+    font-family:var(--serif); font-weight:400; font-style:italic; font-size:12px;
+    text-transform:none; color:var(--ink-45);
+  }
+  .colophon{ position:relative; }
+
+  /* ============================================================
+     LEDGER (Grades) — two-column gradebook
+     ============================================================ */
+  .ledger{ display:grid; grid-template-columns:240px minmax(0,1fr); gap:0; border-top:var(--rule); }
+  .ledger__rail{ border-right:var(--rule); }
+  .railitem{
+    display:block; width:100%; text-align:left; background:none; border:none;
+    border-bottom:var(--hairline); padding:14px 18px 14px 0; cursor:default;
+    font-family:var(--serif); font-weight:700; font-size:16px; letter-spacing:-.01em;
+  }
+  .railitem .rname{ display:block; }
+  .railitem .rmeta{
+    display:block; font-family:var(--sans); font-weight:400; font-size:11px;
+    letter-spacing:.04em; color:var(--ink-60); margin-top:5px;
+  }
+  .railitem--active{ position:relative; }
+  .railitem--active::before{
+    content:""; position:absolute; left:-1px; top:0; bottom:0;
+    width:3px; background:var(--ink);
+  }
+  .railitem--active{ padding-left:14px; }
+
+  .ledger__body{ padding-left:var(--gut); }
+  .snapshot{ display:grid; grid-template-columns:auto 1fr; gap:0 var(--gut); align-items:end; padding:6px 0 22px; border-bottom:var(--rule); }
+  .snapshot__num{
+    font-family:var(--serif); font-weight:700; font-size:clamp(56px,10vw,96px);
+    line-height:.84; letter-spacing:-.03em; font-variant-numeric:tabular-nums;
+  }
+  .snapshot__num .pct{ font-size:.3em; font-style:italic; font-weight:400; color:var(--ink-60); }
+  .snapshot__side{ align-self:end; }
+  .snapshot__letter{
+    font-family:var(--serif); font-weight:700; font-size:clamp(34px,6vw,54px); line-height:1;
+  }
+  .snapshot__caption{ margin-top:8px; font-size:12px; color:var(--ink-60); letter-spacing:.04em; font-style:italic; font-family:var(--serif); }
+
+  /* category weights bar */
+  .cats{ border-bottom:var(--rule); }
+  .cat{
+    display:grid; grid-template-columns:minmax(0,1fr) 64px 78px; align-items:baseline;
+    gap:var(--gut); padding:13px 4px; border-bottom:var(--hairline);
+  }
+  .cat:last-child{ border-bottom:none; }
+  .cat__name{ font-family:var(--serif); font-weight:700; font-size:16px; }
+  .cat__weight{ font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:700; color:var(--ink-60); text-align:right; }
+  .cat__avg{
+    font-family:var(--serif); font-weight:700; font-size:20px; text-align:right;
+    font-variant-numeric:tabular-nums;
+  }
+  .cat__avg .pp{ font-family:var(--sans); font-size:11px; font-weight:400; color:var(--ink-45); }
+
+  /* assignment rows */
+  .rows{ border-top:var(--hairline); }
+  .arow{
+    display:grid; grid-template-columns:minmax(0,1fr) 110px 76px 70px; align-items:baseline;
+    gap:var(--gut); padding:13px 4px; border-bottom:var(--hairline);
+  }
+  .arow:last-child{ border-bottom:none; }
+  .arow__name{ font-family:var(--serif); font-size:16px; line-height:1.25; }
+  .arow__name .cat-mark{ font-family:var(--sans); font-size:9.5px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-45); display:block; margin-top:3px; }
+  .arow__date{ font-size:12px; color:var(--ink-60); letter-spacing:.03em; }
+  .arow__score{ font-size:14px; text-align:right; font-variant-numeric:tabular-nums; color:var(--ink-80); }
+  .arow__pct{ font-family:var(--serif); font-weight:700; font-size:18px; text-align:right; font-variant-numeric:tabular-nums; }
+  .arow--missing .arow__name{ color:var(--ink-60); }
+
+  /* ============================================================
+     WHAT-IF GRADE CALCULATOR — editorial, hairline-ruled inputs
+     ============================================================ */
+  .sechead .wi-controls{ display:inline-flex; align-items:center; gap:8px; }
+  .wi-flag{
+    font-family:var(--sans); font-size:10px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; border:1px solid var(--ink); background:var(--ink);
+    color:var(--paper); padding:4px 9px 3px;
+  }
+  .wi-btn{
+    font-family:var(--sans); font-size:10px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; border:1px solid var(--ink); background:var(--paper);
+    color:var(--ink); padding:6px 12px 5px; cursor:pointer;
+  }
+  .wi-btn:hover{ background:var(--ink); color:var(--paper); }
+  .wi-btn--solid{ background:var(--ink); color:var(--paper); }
+  .wi-btn--solid:hover{ filter:none; opacity:.82; }
+
+  /* editable assignment rows */
+  .arow--wi{ grid-template-columns:minmax(0,1fr) 110px auto 32px; }
+  .wi-edit{ display:inline-flex; align-items:baseline; gap:5px; justify-self:end; }
+  .wi-slash{ font-family:var(--serif); color:var(--ink-45); font-size:16px; }
+  .wi-num{
+    width:54px; padding:5px 7px; text-align:right; font-family:var(--sans);
+    font-size:13px; font-variant-numeric:tabular-nums; color:var(--ink);
+    background:var(--paper); border:1px solid var(--ink-30); border-radius:0;
+    -moz-appearance:textfield; appearance:textfield;
+  }
+  .wi-num::-webkit-outer-spin-button, .wi-num::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+  .wi-num:focus{ outline:none; border-color:var(--ink); box-shadow:inset 0 -2px 0 0 var(--ink); }
+  .wi-x{
+    justify-self:end; width:26px; height:26px; line-height:1; font-size:17px;
+    font-family:var(--serif); color:var(--ink-45); background:none;
+    border:1px solid transparent; cursor:pointer; padding:0;
+  }
+  .wi-x:hover{ color:var(--ink); border-color:var(--ink-30); }
+
+  .arow--wiadd{ grid-template-columns:minmax(0,1fr) 130px auto auto; align-items:center; }
+  .wi-name, .wi-cat{
+    padding:7px 9px; font-family:var(--serif); font-size:15px; color:var(--ink);
+    background:var(--paper); border:1px solid var(--ink-30); border-radius:0;
+  }
+  .wi-name{ font-style:italic; }
+  .wi-name:focus, .wi-cat:focus{ outline:none; border-color:var(--ink); }
+  .wi-cat{ font-family:var(--sans); font-size:13px; cursor:pointer; }
+  .wi-add-btn{ white-space:nowrap; }
+
+  /* ============================================================
+     DOCKET (Assignments) — agenda + search + filters
+     ============================================================ */
+  .toolbar{
+    display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--gut);
+    align-items:end; border-bottom:var(--rule); padding:6px 0 16px;
+  }
+  .search{ border-bottom:var(--rule); padding-bottom:8px; }
+  .search input{
+    width:100%; border:none; background:none; font-family:var(--serif);
+    font-style:italic; font-size:18px; color:var(--ink); outline:none;
+  }
+  .search input::placeholder{ color:var(--ink-30); }
+  .filters{ display:flex; gap:8px; }
+  .filter{
+    font-family:var(--sans); font-size:10px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; border:1px solid var(--ink); background:var(--paper);
+    color:var(--ink); padding:7px 14px 6px; cursor:default;
+  }
+  .filter--on{ background:var(--ink); color:var(--paper); }
+
+  .docket{ border-top:var(--rule); }
+  .ditem{
+    display:grid; grid-template-columns:30px minmax(0,1fr) 150px 130px; align-items:baseline;
+    gap:var(--gut); padding:16px 4px; border-bottom:var(--hairline);
+  }
+  .ditem:last-child{ border-bottom:none; }
+  .ditem__mark{ font-family:var(--serif); font-style:italic; color:var(--ink-30); font-size:14px; }
+  .ditem__title{ font-family:var(--serif); font-weight:700; font-size:18px; line-height:1.15; letter-spacing:-.01em; }
+  .ditem__course{ display:block; margin-top:5px; font-size:11px; letter-spacing:.12em; text-transform:uppercase; font-weight:700; color:var(--ink-60); }
+  .ditem__due{ font-size:12px; color:var(--ink-60); letter-spacing:.03em; font-style:italic; font-family:var(--serif); }
+  .ditem__due strong{ font-style:normal; font-family:var(--sans); font-weight:700; color:var(--ink); letter-spacing:.02em; }
+  .ditem__status{ text-align:right; }
+  .status-word{ font-family:var(--sans); font-size:10px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-60); }
+
+  /* ============================================================
+     CALENDAR — printed month grid
+     ============================================================ */
+  .calbar{
+    display:flex; justify-content:space-between; align-items:baseline;
+    border-bottom:var(--rule); padding:6px 0 14px; gap:16px; flex-wrap:wrap;
+  }
+  .calbar h3{ font-family:var(--serif); font-weight:700; font-size:clamp(22px,3.4vw,34px); letter-spacing:-.01em; }
+  .calbar h3 em{ font-style:italic; font-weight:400; color:var(--ink-60); }
+  .calnav{ display:flex; gap:8px; align-items:center; }
+  .calbtn{
+    font-family:var(--sans); font-size:10px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; border:1px solid var(--ink); background:var(--paper);
+    color:var(--ink); padding:7px 13px 6px; cursor:default;
+  }
+  .calbtn--solid{ background:var(--ink); color:var(--paper); }
+
+  .caldow{ display:grid; grid-template-columns:repeat(7,1fr); border-bottom:var(--rule); }
+  .caldow span{
+    padding:8px 6px; font-size:10px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink-60); border-right:var(--hairline); text-align:left;
+  }
+  .caldow span:last-child{ border-right:none; }
+
+  .calgrid{ display:grid; grid-template-columns:repeat(7,1fr); }
+  .cell{
+    min-height:104px; border-right:var(--hairline); border-bottom:var(--hairline);
+    padding:8px 8px 10px; display:flex; flex-direction:column; gap:6px;
+  }
+  .cell:nth-child(7n){ border-right:none; }
+  .cell__date{ font-family:var(--serif); font-size:14px; color:var(--ink-60); }
+  .cell--out .cell__date{ color:var(--ink-15); }
+  .cell--today{ background:var(--ink); }
+  .cell--today .cell__date{ color:var(--paper); font-weight:700; }
+  .cell--today .cell__date::after{ content:" · Today"; font-size:9px; letter-spacing:.14em; text-transform:uppercase; font-family:var(--sans); }
+  .calnote{
+    font-size:10.5px; line-height:1.25; border-top:1px solid var(--ink);
+    padding-top:4px; letter-spacing:.02em;
+  }
+  .calnote .cn-course{ display:block; font-size:8.5px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-60); }
+  .cell--today .calnote{ border-top-color:rgba(255,255,255,.6); color:var(--paper); }
+  .cell--today .calnote .cn-course{ color:rgba(255,255,255,.7); }
+
+  /* ============================================================
+     BULLETINS (Announcements)
+     ============================================================ */
+  .bullbar{ display:flex; justify-content:space-between; align-items:baseline; border-bottom:var(--rule); padding:6px 0 14px; flex-wrap:wrap; gap:12px; }
+  .bullbar .label{ color:var(--ink-60); }
+  .bulletins{ border-top:var(--rule); }
+  .brief{
+    display:grid; grid-template-columns:30px minmax(0,1fr) 110px; gap:var(--gut);
+    padding:22px 4px; border-bottom:var(--hairline); align-items:start;
+  }
+  .brief:last-child{ border-bottom:none; }
+  .brief__star{ font-family:var(--serif); font-size:18px; color:var(--ink-30); line-height:1.3; cursor:default; }
+  .brief--important .brief__star{ color:var(--ink); }
+  .brief__dateline{
+    font-size:10.5px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--ink-60); margin-bottom:8px;
+  }
+  .brief__dateline .by{ color:var(--ink); }
+  .brief__head{
+    font-family:var(--serif); font-weight:700; font-size:clamp(19px,2.4vw,24px);
+    line-height:1.12; letter-spacing:-.01em; margin-bottom:8px;
+  }
+  .brief__stand{ font-size:13px; line-height:1.6; color:var(--ink-80); max-width:62ch; }
+  .brief__side{ text-align:right; }
+  .brief__time{ font-size:11px; color:var(--ink-45); font-style:italic; font-family:var(--serif); }
+  .brief__flag{ display:inline-block; margin-top:10px; }
+
+  /* ============================================================
+     MATERIALS — index + reading panel
+     ============================================================ */
+  .mat{ display:grid; grid-template-columns:300px minmax(0,1fr); gap:0; border-top:var(--rule); }
+  .mat__index{ border-right:var(--rule); padding-right:var(--gut); }
+  .matgroup{ border-bottom:var(--hairline); padding:14px 0; }
+  .matgroup:last-child{ border-bottom:none; }
+  .matgroup__title{
+    font-size:10px; font-weight:700; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--ink-60); margin-bottom:10px;
+  }
+  .matrow{ display:flex; gap:10px; align-items:baseline; padding:6px 0; }
+  .matrow__kind{ font-family:var(--serif); font-style:italic; font-size:11px; color:var(--ink-30); width:38px; flex:none; }
+  .matrow__name{ font-family:var(--serif); font-size:15px; line-height:1.25; }
+  .matrow--active .matrow__name{ font-weight:700; }
+  .matrow--active{ position:relative; }
+
+  .mat__panel{ padding-left:var(--gut); }
+  .panel__kicker{ display:block; margin-bottom:10px; }
+  .panel__title{
+    font-family:var(--serif); font-weight:700; font-size:clamp(24px,3.4vw,34px);
+    line-height:1.04; letter-spacing:-.02em; margin-bottom:12px;
+  }
+  .panel__meta{ font-size:12px; color:var(--ink-60); letter-spacing:.03em; border-bottom:var(--rule); padding-bottom:16px; margin-bottom:18px; }
+  .attach{ border:var(--rule); margin-bottom:18px; }
+  .attach__row{ display:flex; justify-content:space-between; align-items:baseline; padding:11px 14px; border-bottom:var(--hairline); font-size:13px; }
+  .attach__row:last-child{ border-bottom:none; }
+  .attach__row .a-kind{ font-size:10px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-60); }
+  .field{ margin-bottom:16px; }
+  .field__label{ display:block; margin-bottom:8px; }
+  .field textarea, .field input{
+    width:100%; border:var(--rule); background:var(--paper); font-family:var(--serif);
+    font-size:14px; line-height:1.5; color:var(--ink); padding:12px 14px; outline:none; resize:vertical;
+  }
+  .field textarea::placeholder, .field input::placeholder{ color:var(--ink-30); font-style:italic; }
+  .panel__actions{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; border-top:var(--rule); padding-top:16px; margin-top:4px; }
+  .btn{
+    font-family:var(--sans); font-size:10px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; padding:10px 18px 9px; border:1px solid var(--ink);
+    background:var(--ink); color:var(--paper); cursor:default;
+  }
+  .btn--ghost{ background:var(--paper); color:var(--ink); }
+  .panel__rev{ font-size:11px; color:var(--ink-45); font-style:italic; font-family:var(--serif); margin-left:auto; }
+
+  /* ============================================================
+     SETTINGS
+     ============================================================ */
+  .setblock{ border-top:var(--rule); padding:22px 0; }
+  .setblock:first-of-type{ border-top:none; }
+  .setblock__head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:16px; gap:16px; }
+  .setblock__head h3{ font-family:var(--serif); font-weight:700; font-size:22px; letter-spacing:-.01em; }
+  .setblock__note{ font-size:12px; color:var(--ink-60); font-style:italic; font-family:var(--serif); }
+
+  .styles{ display:grid; grid-template-columns:repeat(4,1fr); border:var(--rule); }
+  .styles--three{ grid-template-columns:repeat(3,1fr); }
+  @media (max-width:700px){ .styles--three{ grid-template-columns:1fr; } }
+  .style{ display:block; padding:18px 16px 20px; border-right:var(--hairline); color:inherit; }
+  .style:last-child{ border-right:none; }
+  .style__name{ font-family:var(--serif); font-weight:700; font-size:20px; letter-spacing:-.01em; }
+  .style__desc{ font-size:11px; color:var(--ink-60); margin-top:6px; line-height:1.45; }
+  .style__state{ margin-top:12px; }
+  .style--active{ background:var(--ink); }
+  .style--active .style__name{ color:var(--paper); }
+  .style--active .style__desc{ color:rgba(255,255,255,.65); }
+  .style--active .tag{ background:var(--paper); color:var(--ink); border-color:var(--paper); }
+
+  .detected{
+    display:grid; grid-template-columns:auto 1fr auto; gap:0 var(--gut); align-items:center;
+    border:var(--rule); padding:16px 18px;
+  }
+  .detected__label{ font-size:10px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-60); }
+  .detected__host{ font-family:var(--serif); font-size:18px; }
+
+  .toggles{ border-top:var(--rule); }
+  .toggle{
+    display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center;
+    gap:var(--gut); padding:14px 4px; border-bottom:var(--hairline);
+  }
+  .toggle:last-child{ border-bottom:none; }
+  .toggle__name{ font-family:var(--serif); font-size:16px; }
+  .toggle__desc{ font-size:11px; color:var(--ink-60); margin-top:3px; }
+  .switch{
+    font-family:var(--sans); font-size:9.5px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; border:1px solid var(--ink); padding:5px 12px 4px; min-width:64px; text-align:center;
+  }
+  .switch--on{ background:var(--ink); color:var(--paper); }
+  .switch--off{ background:var(--paper); color:var(--ink-45); border-color:var(--ink-30); }
+
+  /* ============================================================
+     INTERACTIVE AFFORDANCES — cursors, toast, hover label, empty
+     ============================================================ */
+  .nav__item, .railitem, .matrow, .course, .filter, .calbtn, .calbtn--solid,
+  .brief__star, .switch, .style, .btn, .legend__row, .cell--has, .day-strip__close{
+    cursor:pointer;
+  }
+  .btn[aria-disabled="true"], .calbtn[aria-disabled="true"]{ cursor:default; opacity:.45; }
+  .railitem{ transition:background .12s ease; }
+  .railitem:hover{ background:var(--ink-08); }
+  .matrow:hover .matrow__name{ text-decoration:underline; text-underline-offset:3px; }
+  .course:hover{ background:var(--ink-08); }
+  .legend__row:hover .legend__name{ text-decoration:underline; text-underline-offset:3px; }
+  .legend__row--off .legend__name,
+  .legend__row--off .legend__val{ color:var(--ink-30); }
+  .legend__row--off .legend__swatch{ opacity:.3; }
+
+  /* calendar selectable days */
+  .cell--has:hover{ background:var(--ink-08); }
+  .cell--today.cell--has:hover{ background:var(--ink); }
+  .cell--sel{ outline:2px solid var(--ink); outline-offset:-2px; }
+  .cell__count{
+    margin-top:auto; font-size:9px; font-weight:700; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--ink-60);
+  }
+  .cell--today .cell__count{ color:rgba(255,255,255,.7); }
+
+  /* day strip — shows selected day's entries */
+  .day-strip{
+    border:var(--rule); margin-top:18px; padding:16px 18px;
+    display:none;
+  }
+  .day-strip--on{ display:block; }
+  .day-strip__top{
+    display:flex; justify-content:space-between; align-items:baseline;
+    border-bottom:var(--hairline); padding-bottom:10px; margin-bottom:6px; gap:16px;
+  }
+  .day-strip__date{ font-family:var(--serif); font-weight:700; font-size:19px; letter-spacing:-.01em; }
+  .day-strip__close{
+    font-family:var(--sans); font-size:10px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink-60); border:none; background:none;
+  }
+  .day-strip__close:hover{ color:var(--ink); }
+  .day-strip__row{
+    display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--gut);
+    align-items:baseline; padding:9px 0; border-bottom:var(--hairline);
+  }
+  .day-strip__row:last-child{ border-bottom:none; }
+  .day-strip__title{ font-family:var(--serif); font-size:15px; }
+  .day-strip__course{ display:block; margin-top:3px; font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-60); }
+
+  /* empty state — editorial */
+  .empty{
+    padding:40px 4px; text-align:center; border-bottom:var(--hairline);
+    font-family:var(--serif); font-style:italic; font-size:15px; color:var(--ink-45);
+  }
+
+  /* mark-filed affordance on docket items */
+  .ditem__file{
+    display:block; margin-top:7px; font-family:var(--sans); font-size:9px;
+    font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-45);
+    border:none; background:none; padding:0; cursor:pointer; text-align:right;
+  }
+  .ditem__file:hover{ color:var(--ink); text-decoration:underline; text-underline-offset:2px; }
+
+  /* hover tooltip for figure data points */
+  .plate .hit{ fill:transparent; stroke:none; cursor:pointer; }
+  .plate .dot-hover{ fill:var(--ink); display:none; }
+  .figwrap{ position:relative; }
+  .figtip{
+    position:absolute; pointer-events:none; display:none;
+    background:var(--paper); border:1px solid var(--ink); padding:6px 9px 5px;
+    font-family:var(--sans); z-index:6; min-width:84px;
+    box-shadow:3px 3px 0 var(--ink);
+  }
+  .figtip--on{ display:block; }
+  .figtip__wk{ font-size:8.5px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-60); display:block; }
+  .figtip__rule{ border-top:1px solid var(--ink); margin:4px 0 4px; }
+  .figtip__val{ font-family:var(--serif); font-weight:700; font-size:17px; letter-spacing:-.01em; font-variant-numeric:tabular-nums; }
+  .figtip__name{ font-size:8.5px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-60); display:block; margin-top:2px; }
+
+  /* desktop-style toast / bulletin ping */
+  .ping-dock{ position:fixed; top:20px; right:20px; z-index:50; display:flex; flex-direction:column; gap:10px; }
+  .ping{
+    width:320px; background:var(--paper); border:2px solid var(--ink);
+    box-shadow:5px 5px 0 var(--ink); padding:13px 15px 14px;
+    opacity:0; transform:translateY(-8px); transition:opacity .18s ease, transform .18s ease;
+  }
+  .ping--in{ opacity:1; transform:translateY(0); }
+  .ping__top{
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-size:9px; font-weight:700; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--ink-60); border-bottom:1px solid var(--ink); padding-bottom:7px; margin-bottom:8px;
+  }
+  .ping__app{ color:var(--ink); }
+  .ping__body{ display:flex; gap:11px; align-items:flex-start; }
+  .ping__glyph{ font-family:var(--serif); font-weight:700; font-size:20px; line-height:1; flex:none; width:18px; }
+  .ping__text{ font-family:var(--serif); font-size:14px; line-height:1.35; }
+  .ping__text .ping__lead{ font-weight:700; display:block; letter-spacing:-.01em; }
+  .ping__sub{ display:block; margin-top:3px; font-style:italic; font-size:12px; color:var(--ink-60); }
+
+  /* settings disabled-section affordance */
+  .setblock--muted{ opacity:.55; }
+
+  /* live "updated" note for bulletins refresh */
+  .bull-updated{ font-style:italic; font-family:var(--serif); color:var(--ink-45); }
+
+  /* ============================================================
+     ARCADE — three printed game diagrams. Strictly B&W.
+     ============================================================ */
+  .arcade{
+    border-top:var(--rule);
+    display:grid; grid-template-columns:repeat(2,1fr); gap:0;
+  }
+  .gcard{
+    border-right:var(--hairline); border-bottom:var(--rule);
+    padding:22px 20px 24px; display:flex; flex-direction:column;
+    cursor:pointer; transition:background .12s ease;
+  }
+  .gcard:nth-child(2n){ border-right:none; }
+  .gcard:hover{ background:var(--ink-08); }
+  .gcard:focus-visible{ outline:2px solid var(--ink); outline-offset:-2px; }
+  .gcard__top{
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-family:var(--sans); font-size:10px; font-weight:700;
+    letter-spacing:.18em; text-transform:uppercase; color:var(--ink-60);
+    border-bottom:var(--hairline); padding-bottom:9px; margin-bottom:14px;
+  }
+  .gcard__no{ color:var(--ink); }
+  .gcard__diag{ border:var(--rule); margin-bottom:14px; background:var(--paper); }
+  .gcard__diag svg{ display:block; width:100%; height:auto; }
+  .gcard__name{
+    font-family:var(--serif); font-weight:700; font-size:clamp(22px,3vw,28px);
+    line-height:1; letter-spacing:-.02em; margin-bottom:8px;
+  }
+  .gcard__desc{
+    font-family:var(--serif); font-style:italic; font-size:13px; line-height:1.5;
+    color:var(--ink-80); margin-bottom:16px;
+  }
+  .gcard__cta{
+    margin-top:auto; font-family:var(--sans); font-size:10px; font-weight:700;
+    letter-spacing:.16em; text-transform:uppercase; color:var(--ink);
+  }
+  .gcard:hover .gcard__cta{ text-decoration:underline; text-underline-offset:3px; }
+
+  /* play stage */
+  .arcade-stage{ border-top:var(--rule); padding-top:18px; position:relative; }
+  .stage__bar{
+    display:flex; justify-content:space-between; align-items:center; gap:14px;
+    border-bottom:var(--rule); padding-bottom:14px; margin-bottom:4px;
+  }
+  .stage__title{
+    font-family:var(--serif); font-weight:700; font-size:clamp(20px,3vw,28px);
+    letter-spacing:-.02em; text-align:center; flex:1;
+  }
+  .gbtn{
+    font-family:var(--sans); font-size:10px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; padding:9px 16px 8px; border:1px solid var(--ink);
+    background:var(--ink); color:var(--paper); cursor:pointer; flex:none;
+  }
+  .gbtn--ghost{ background:var(--paper); color:var(--ink); }
+  .gbtn:hover{ opacity:.82; }
+
+  .stage__scores{
+    display:grid; grid-template-columns:1fr 1fr; border-bottom:var(--rule);
+  }
+  .gscore{ padding:12px 4px 14px; border-right:var(--hairline); }
+  .gscore:last-child{ border-right:none; text-align:right; }
+  .gscore__label{
+    display:block; font-family:var(--sans); font-size:10px; font-weight:700;
+    letter-spacing:.18em; text-transform:uppercase; color:var(--ink-60); margin-bottom:5px;
+  }
+  .gscore__val{
+    font-family:var(--serif); font-weight:700; font-size:clamp(26px,4vw,38px);
+    line-height:1; letter-spacing:-.02em; font-variant-numeric:tabular-nums;
+  }
+
+  .stage__board{
+    max-width:460px; margin:22px auto 0; touch-action:none;
+    -webkit-user-select:none; user-select:none;
+  }
+  .stage__hint{
+    max-width:460px; margin:14px auto 4px; text-align:center;
+    font-family:var(--serif); font-style:italic; font-size:12px; color:var(--ink-45);
+  }
+
+  /* ---- shared game furniture ---- */
+  .gtype{
+    font-family:var(--sans); font-size:11px; font-weight:700; line-height:2.1;
+    letter-spacing:.04em;
+  }
+  .gpill{
+    display:inline-block; font-family:var(--sans); font-size:9px; font-weight:700;
+    letter-spacing:.18em; text-transform:uppercase; color:var(--ink-60);
+    border:var(--hairline); padding:4px 9px 3px;
+  }
+
+  /* TYPING TEST — quote + input */
+  .type-quote{
+    border:var(--rule); background:var(--paper); padding:20px 22px;
+    font-family:var(--serif); font-size:clamp(17px,3.2vw,21px); line-height:1.7;
+    letter-spacing:.005em;
+  }
+  .type-quote .tch{ position:relative; white-space:pre-wrap; }
+  .type-quote .tch.done{ color:var(--ink); }
+  .type-quote .tch.bad{ color:var(--ink); background:var(--ink); -webkit-text-fill-color:var(--paper); text-decoration:line-through; }
+  .type-quote .tch.pend{ color:var(--ink-30); }
+  .type-quote .tch.cur{ box-shadow:inset 0 -2px 0 var(--ink); }
+  .type-cite{
+    font-family:var(--sans); font-size:10px; font-weight:700; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--ink-45); text-align:right;
+    border-top:var(--hairline); margin-top:14px; padding-top:10px;
+  }
+  .type-field{
+    width:100%; box-sizing:border-box; margin-top:16px; resize:none;
+    border:var(--rule); background:var(--paper); color:var(--ink);
+    font-family:var(--serif); font-size:16px; line-height:1.6; padding:13px 15px;
+    min-height:84px;
+  }
+  .type-field:focus{ outline:2px solid var(--ink); outline-offset:-2px; }
+
+  /* ANAGRAM — scrambled letters */
+  .ana-rack{
+    display:flex; flex-wrap:wrap; gap:8px; justify-content:center;
+    border:var(--rule); background:var(--ink-08); padding:20px 16px;
+  }
+  .ana-tile{
+    width:46px; height:56px; border:1px solid var(--ink); background:var(--paper);
+    color:var(--ink); font-family:var(--serif); font-weight:700;
+    font-size:clamp(22px,5vw,28px); line-height:1; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; transition:background .1s;
+  }
+  .ana-tile:hover{ background:var(--ink-08); }
+  .ana-tile:disabled{ opacity:.28; cursor:default; background:var(--ink-08); }
+  .ana-slots{
+    display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:14px;
+    min-height:56px;
+  }
+  .ana-slot{
+    width:46px; height:56px; border:1px dashed var(--ink-30); background:var(--paper);
+    font-family:var(--serif); font-weight:700; font-size:clamp(22px,5vw,28px); line-height:1;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .ana-slot.full{ border:1px solid var(--ink); }
+  .ana-slot.right{ background:var(--ink); color:var(--paper); }
+  .ana-slot.wrong{ box-shadow:inset 0 0 0 2px var(--ink); }
+  .ana-hint{
+    text-align:center; margin-top:16px; font-family:var(--serif); font-style:italic;
+    font-size:13px; color:var(--ink-80); min-height:1.4em;
+  }
+  .ana-actions{ display:flex; gap:8px; justify-content:center; margin-top:16px; flex-wrap:wrap; }
+
+  /* TIC-TAC-TOE — ruled board */
+  .ttt{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:0;
+    border:var(--rule); background:var(--paper); aspect-ratio:1/1;
+  }
+  .ttt__cell{
+    position:relative; border-right:var(--hairline); border-bottom:var(--hairline);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    font-family:var(--serif); font-weight:700; font-size:clamp(40px,13vw,72px);
+    line-height:1; color:var(--ink); background:none; transition:background .1s;
+  }
+  .ttt__cell:nth-child(3n){ border-right:none; }
+  .ttt__cell:nth-child(n+7){ border-bottom:none; }
+  .ttt__cell:hover:not(.taken){ background:var(--ink-08); }
+  .ttt__cell.taken{ cursor:default; }
+  .ttt__cell .mk{ animation:tilePop .14s ease; }
+  .ttt__cell.o .mk{ font-style:italic; }
+  .ttt__cell.win{ background:var(--ink); color:var(--paper); }
+  @keyframes tilePop{ 0%{ transform:scale(.6); opacity:.3; } 100%{ transform:scale(1); opacity:1; } }
+  .ttt-tally{
+    display:grid; grid-template-columns:repeat(3,1fr); border-top:var(--hairline);
+    margin-top:16px;
+  }
+  .ttt-tally div{ padding:11px 4px 12px; text-align:center; border-right:var(--hairline); }
+  .ttt-tally div:last-child{ border-right:none; }
+  .ttt-tally .tl{
+    display:block; font-family:var(--sans); font-size:9px; font-weight:700;
+    letter-spacing:.18em; text-transform:uppercase; color:var(--ink-60); margin-bottom:4px;
+  }
+  .ttt-tally .tv{
+    font-family:var(--serif); font-weight:700; font-size:24px; line-height:1;
+    font-variant-numeric:tabular-nums;
+  }
+
+  /* WORD SEARCH — letter grid */
+  .ws-wrap{ border:var(--rule); background:var(--paper); }
+  .ws{ display:grid; grid-template-columns:repeat(10,1fr); gap:0; }
+  .ws__c{
+    aspect-ratio:1/1; border-right:var(--hairline); border-bottom:var(--hairline);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    font-family:var(--sans); font-weight:700; font-size:clamp(11px,2.8vw,15px);
+    color:var(--ink); background:var(--paper); -webkit-user-select:none; user-select:none;
+    text-transform:uppercase;
+  }
+  .ws__c:nth-child(10n){ border-right:none; }
+  .ws .ws__c:nth-last-child(-n+10){ border-bottom:none; }
+  .ws__c.sel{ background:var(--ink-15); }
+  .ws__c.aim{ box-shadow:inset 0 0 0 2px var(--ink); }
+  .ws__c.found{ background:var(--ink); color:var(--paper); }
+  .ws-list{
+    display:flex; flex-wrap:wrap; gap:7px; justify-content:center; margin-top:16px;
+  }
+  .ws-word{
+    font-family:var(--sans); font-size:10px; font-weight:700; letter-spacing:.14em;
+    text-transform:uppercase; border:var(--hairline); padding:6px 10px 5px; color:var(--ink);
+  }
+  .ws-word.struck{ background:var(--ink); color:var(--paper); text-decoration:line-through; opacity:.7; }
+
+  /* win/lose overlay */
+  .goverlay{
+    position:absolute; inset:0; background:rgba(255,255,255,.92);
+    display:flex; align-items:center; justify-content:center; z-index:8;
+  }
+  body.theme-wob .goverlay{ background:rgba(16,14,9,.93); }
+  .goverlay__card{
+    border:2px solid var(--ink); background:var(--paper); box-shadow:6px 6px 0 var(--ink);
+    padding:28px 32px 30px; text-align:center; max-width:340px;
+  }
+  .goverlay__kicker{
+    display:block; font-family:var(--sans); font-size:10px; font-weight:700;
+    letter-spacing:.22em; text-transform:uppercase; color:var(--ink-60); margin-bottom:10px;
+  }
+  .goverlay__head{
+    font-family:var(--serif); font-weight:700; font-size:clamp(26px,5vw,38px);
+    line-height:1; letter-spacing:-.02em; margin-bottom:10px;
+  }
+  .goverlay__sub{
+    font-family:var(--serif); font-style:italic; font-size:14px; line-height:1.5;
+    color:var(--ink-80); margin-bottom:20px;
+  }
+
+  @media (max-width:700px){
+    .arcade{ grid-template-columns:1fr; }
+    .gcard{ border-right:none; }
+  }
+
+  /* ANAGRAM rack tonal fill inverts cleanly via vars; word-search grays as well.
+     Only the static card diagrams use hard #000/#fff strokes — invert for dark. */
+  body.theme-wob .gcard__diag svg [stroke="#000"]{ stroke:#ece3d2; }
+  body.theme-wob .gcard__diag svg [fill="#000"]{ fill:#ece3d2; }
+  body.theme-wob .gcard__diag svg [fill="#fff"]{ fill:#16140f; }
+
+  /* ============================================================
+     NIGHT / LATE EDITION — the inverted broadsheet.
+     Not pure white-on-black: a deep charcoal newsprint carrying
+     warm cream ink, with inverted hairline rules. The masthead
+     still commands the page.  Reached via body.theme-wob, which
+     the appearance toggle (Dark / Auto-after-dusk) applies.
+     ============================================================ */
+  body.theme-wob{
+    --ink:#ece3d2;            /* warm cream ink */
+    --paper:#16140f;          /* deep charcoal newsprint */
+    --ink-80:rgba(236,227,210,.82); --ink-60:rgba(236,227,210,.60);
+    --ink-45:rgba(236,227,210,.42); --ink-30:rgba(236,227,210,.26);
+    --ink-15:rgba(236,227,210,.16); --ink-08:rgba(236,227,210,.075);
+    --hair:rgba(236,227,210,.85);
+    /* night substrate: cream flecks, laid lines, cool press wash */
+    --news-fleck:rgba(236,227,210,.05);
+    --news-fleck2:rgba(236,227,210,.03);
+    --news-tint:rgba(60,72,96,.12);
+    --edition-word:"Late Edition";
+  }
+  /* the charcoal carries a faint warm gradient, like a lamp over newsprint */
+  body.theme-wob{
+    background:
+      radial-gradient(140% 110% at 50% 0%, #1d1a13 0%, var(--paper) 62%, #100e09 100%);
+    background-attachment:fixed;
+  }
+  body.theme-wob::before{ mix-blend-mode:screen; opacity:1; }
+  body.theme-wob .plate .grid{ stroke:var(--ink-15); }
+  body.theme-wob .plate .axis,
+  body.theme-wob .plate .tick,
+  body.theme-wob .plate .series{ stroke:var(--ink); }
+  body.theme-wob .plate .reference{ stroke:var(--ink); }
+  body.theme-wob .plate .dot-open{ fill:var(--paper); stroke:var(--ink); }
+  body.theme-wob .plate .dot-fill,
+  body.theme-wob .plate .dot-hover{ fill:var(--ink); }
+  body.theme-wob svg polyline[stroke="#000"],
+  body.theme-wob svg line[stroke="#000"]{ stroke:#ece3d2; }
+  body.theme-wob svg circle[fill="#000"]{ fill:#ece3d2; }
+  body.theme-wob svg text[style*="fill:#000"]{ fill:#ece3d2 !important; }
+  body.theme-wob .figtip,
+  body.theme-wob .ping{ box-shadow:5px 5px 0 var(--ink); }
+  /* reversed: text sitting on a cream-ink fill must read as the charcoal paper */
+  body.theme-wob .nav__item--on .nav__no{ color:rgba(22,20,15,.55); }
+  body.theme-wob .cell--today .calnote .cn-course,
+  body.theme-wob .cell--today .cell__count{ color:rgba(22,20,15,.72); }
+  body.theme-wob .style--active .style__desc{ color:rgba(22,20,15,.66); }
+  body.theme-wob .cell--today .calnote{ border-top-color:rgba(22,20,15,.6); }
+  /* the nameplate fleuron & end-mark backings track the night paper */
+
+  /* THEME — high contrast hairlines */
+  body.contrast{ --ink-15:rgba(20,17,13,.42); --hairline:1px solid rgba(20,17,13,.42); }
+  body.contrast.theme-wob{ --ink-15:rgba(236,227,210,.42); --hairline:1px solid rgba(236,227,210,.42); }
+
+  /* DENSITY — compact */
+  body.compact .course{ padding:13px 4px; }
+  body.compact .arow, body.compact .cat, body.compact .ditem{ padding:9px 4px; }
+  body.compact .railitem{ padding:10px 18px 10px 0; }
+  body.compact .brief{ padding:15px 4px; }
+  body.compact .cell{ min-height:84px; }
+  body.compact .stat{ padding:13px 18px 14px; }
+
+  /* ============================================================
+     NOSTALGIA — The Archive. Capture block + ruled back-issue list.
+     Strictly B&W; deltas via glyph + weight, never hue.
+     ============================================================ */
+  .capture{
+    display:grid; grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);
+    gap:var(--gut); align-items:end; border-top:var(--rule); border-bottom:var(--rule);
+    padding:22px 4px 24px;
+  }
+  .capture__head{ min-width:0; }
+  .capture__term{
+    font-family:var(--serif); font-weight:700; font-size:clamp(20px,3vw,28px);
+    line-height:1.05; letter-spacing:-.01em;
+  }
+  .capture__term em{ font-style:italic; font-weight:400; color:var(--ink-60); }
+  .capture__meta{
+    margin-top:8px; font-size:12px; color:var(--ink-60); letter-spacing:.04em;
+    font-style:italic; font-family:var(--serif);
+  }
+  .capture__side{ text-align:right; align-self:end; }
+  .capture__big{
+    font-family:var(--serif); font-weight:700; font-size:clamp(34px,6vw,52px);
+    line-height:.9; letter-spacing:-.02em; font-variant-numeric:tabular-nums;
+  }
+  .capture__big .pct{ font-size:.34em; font-style:italic; font-weight:400; color:var(--ink-60); }
+  .capture__file{
+    display:inline-block; margin-top:14px; font-family:var(--sans); font-size:10px;
+    font-weight:700; letter-spacing:.16em; text-transform:uppercase;
+    border:1px solid var(--ink); background:var(--ink); color:var(--paper);
+    padding:10px 18px 9px; cursor:pointer;
+  }
+  .capture__file:hover{ opacity:.82; }
+  .capture__note{
+    display:block; margin-top:10px; font-family:var(--serif); font-style:italic;
+    font-size:11px; color:var(--ink-45);
+  }
+
+  .archive{ border-top:var(--rule); }
+  .issue{
+    display:grid; grid-template-columns:46px minmax(0,1fr) 96px 132px;
+    gap:var(--gut); align-items:start; padding:20px 4px; border-bottom:var(--hairline);
+  }
+  .issue:last-child{ border-bottom:none; }
+  .issue__no{ font-family:var(--serif); font-style:italic; font-size:15px; color:var(--ink-30); text-align:right; }
+  .issue__main{ min-width:0; }
+  .issue__term{
+    font-family:var(--serif); font-weight:700; font-size:clamp(18px,2.3vw,22px);
+    line-height:1.12; letter-spacing:-.01em;
+  }
+  .issue__filed{
+    margin-top:5px; font-size:11px; letter-spacing:.04em; color:var(--ink-60);
+    font-style:italic; font-family:var(--serif);
+  }
+  .issue__courses{
+    margin-top:9px; font-size:12px; line-height:1.7; color:var(--ink-80);
+  }
+  .issue__courses .ic{ white-space:nowrap; }
+  .issue__courses .sep{ color:var(--ink-30); margin:0 5px; }
+  .issue__pct{
+    font-family:var(--serif); font-weight:700; font-size:clamp(22px,2.8vw,28px);
+    line-height:1; letter-spacing:-.02em; text-align:right; font-variant-numeric:tabular-nums;
+  }
+  .issue__pct .pp{ font-family:var(--sans); font-size:11px; font-weight:400; color:var(--ink-45); }
+  .issue__delta{
+    display:block; margin-top:6px; font-family:var(--sans); font-size:10px; font-weight:700;
+    letter-spacing:.1em; text-transform:uppercase; color:var(--ink-60); text-align:right;
+  }
+  .issue__delta--up,.issue__delta--down{ color:var(--ink); }
+  .issue__acts{ display:flex; flex-direction:column; gap:8px; align-items:flex-end; }
+  .iact{
+    font-family:var(--sans); font-size:9.5px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; border:1px solid var(--ink); background:var(--paper);
+    color:var(--ink); padding:7px 14px 6px; cursor:pointer; min-width:84px; text-align:center;
+  }
+  .iact:hover{ background:var(--ink); color:var(--paper); }
+  .iact--solid{ background:var(--ink); color:var(--paper); }
+  .iact--solid:hover{ opacity:.82; }
+
+  /* read-only ruled view of a saved snapshot */
+  .backissue{ border-top:var(--rule); margin-top:18px; display:none; }
+  .backissue--on{ display:block; }
+  .backissue__top{
+    display:flex; justify-content:space-between; align-items:baseline;
+    border-bottom:var(--rule); padding:14px 4px 14px; gap:16px; flex-wrap:wrap;
+  }
+  .backissue__title{
+    font-family:var(--serif); font-weight:700; font-size:clamp(20px,3vw,26px);
+    letter-spacing:-.01em;
+  }
+  .backissue__title em{ font-style:italic; font-weight:400; color:var(--ink-60); }
+  .backissue__close{
+    font-family:var(--sans); font-size:10px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink-60); border:none; background:none; cursor:pointer;
+  }
+  .backissue__close:hover{ color:var(--ink); }
+  .birow{
+    display:grid; grid-template-columns:36px minmax(0,1fr) 90px 70px;
+    gap:var(--gut); align-items:baseline; padding:14px 4px; border-bottom:var(--hairline);
+  }
+  .birow:last-child{ border-bottom:none; }
+  .birow--total{ border-top:var(--rule); border-bottom:none; }
+  .birow__idx{ font-family:var(--serif); font-style:italic; font-size:14px; color:var(--ink-30); text-align:right; }
+  .birow__name{ font-family:var(--serif); font-weight:700; font-size:17px; letter-spacing:-.01em; }
+  .birow--total .birow__name{ font-size:18px; }
+  .birow__pct{ font-family:var(--serif); font-weight:700; font-size:18px; text-align:right; font-variant-numeric:tabular-nums; }
+  .birow__pct .pp{ font-family:var(--sans); font-size:11px; font-weight:400; color:var(--ink-45); }
+  .birow__ltr{ font-family:var(--serif); font-weight:700; font-size:20px; text-align:right; }
+
+  @media (max-width:880px){
+    .capture{ grid-template-columns:1fr; align-items:start; gap:14px; }
+    .capture__side{ text-align:left; }
+    .issue{ grid-template-columns:1fr auto; }
+    .issue__no{ display:none; }
+    .issue__pct{ text-align:left; }
+    .issue__delta{ text-align:left; }
+    .issue__acts{ grid-column:1/-1; flex-direction:row; align-items:flex-start; }
+  }
+
+  /* ============================================================
+     RESPONSIVE
+     ============================================================ */
+  @media (max-width:980px){
+    .nav{ grid-template-columns:repeat(4,1fr); border-bottom:var(--rule); }
+    .nav__item{ border-bottom:var(--hairline); }
+    .nav__item:nth-child(4n){ border-right:none; }
+    .ledger{ grid-template-columns:1fr; }
+    .ledger__rail{ border-right:none; border-bottom:var(--rule); padding-bottom:8px; }
+    .ledger__body{ padding-left:0; padding-top:22px; }
+    .mat{ grid-template-columns:1fr; }
+    .mat__index{ border-right:none; border-bottom:var(--rule); padding-right:0; padding-bottom:8px; }
+    .mat__panel{ padding-left:0; padding-top:22px; }
+    .styles{ grid-template-columns:repeat(2,1fr); }
+    .style:nth-child(2){ border-right:none; }
+    .style:nth-child(1),.style:nth-child(2){ border-bottom:var(--hairline); }
+  }
+  @media (max-width:880px){
+    .hero{ grid-template-columns:1fr; align-items:start; gap:32px; }
+    .hero__figure{ border-right:none; padding-right:0; border-bottom:var(--hairline); padding-bottom:24px; }
+    .standfirst{ grid-template-columns:1fr; align-items:start; gap:14px; }
+    .stats{ grid-template-columns:repeat(2,1fr); }
+    .stat:nth-child(2){ border-right:none; }
+    .stat:nth-child(1),.stat:nth-child(2){ border-bottom:var(--hairline); }
+    .closing{ grid-template-columns:1fr; gap:14px; }
+    .closing__byline{ text-align:left; }
+    .toolbar{ grid-template-columns:1fr; gap:16px; }
+    .filters{ flex-wrap:wrap; }
+  }
+  @media (max-width:700px){
+    .nav{ grid-template-columns:repeat(2,1fr); }
+    .nav__item:nth-child(even){ border-right:none; }
+    .caldow span{ font-size:8px; letter-spacing:.06em; padding:6px 3px; }
+    .cell{ min-height:74px; padding:5px 4px; }
+    .calnote{ font-size:9px; }
+    .ditem{ grid-template-columns:1fr auto; grid-template-areas:"mark status" "title status" "due status"; gap:6px 16px; }
+    .ditem__mark{ grid-area:mark; } .ditem__title{ grid-area:title; }
+    .ditem__due{ grid-area:due; } .ditem__status{ grid-area:status; align-self:center; }
+    .brief{ grid-template-columns:24px minmax(0,1fr); }
+    .brief__side{ display:none; }
+    .detected{ grid-template-columns:1fr; gap:8px; }
+    .styles{ grid-template-columns:1fr; }
+    .style{ border-right:none; border-bottom:var(--hairline); }
+    .style:last-child{ border-bottom:none; }
+  }
+  @media (max-width:620px){
+    .course{
+      grid-template-columns:1fr auto;
+      grid-template-areas:"main pct" "meta letter" "trend trend";
+      gap:10px 16px; padding:22px 2px;
+    }
+    .course__idx{ display:none; }
+    .course__main{ grid-area:main; }
+    .course__meta{ grid-area:meta; margin-top:0; }
+    .course__trend{ grid-area:trend; flex-direction:row; align-items:center; gap:14px; }
+    .course__trend svg{ width:120px; }
+    .course__pct{ grid-area:pct; }
+    .course__letter{ grid-area:letter; border-left:none; padding-left:0; text-align:right; }
+    .stats{ grid-template-columns:1fr; }
+    .stat{ border-right:none; border-bottom:var(--hairline); }
+    .stat:last-child{ border-bottom:none; }
+    .cat{ grid-template-columns:1fr auto; }
+    .cat__weight{ display:none; }
+    .arow{ grid-template-columns:1fr auto; grid-template-areas:"name pct" "date score"; gap:4px 16px; }
+    .arow__name{ grid-area:name; } .arow__date{ grid-area:date; }
+    .arow__score{ grid-area:score; text-align:left; } .arow__pct{ grid-area:pct; }
+    .snapshot{ grid-template-columns:1fr; gap:14px; }
+  }
+
+  /* ============================================================
+     ADDED — Search ⌘K affordance in the masthead
+     ============================================================ */
+  .masthead__topline{ position:relative; }
+  .mh-search{
+    font-family:var(--sans); font-size:9.5px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink-60); border:1px solid var(--ink-30);
+    background:var(--paper); padding:5px 10px 4px; cursor:pointer; line-height:1;
+    display:inline-flex; gap:8px; align-items:center;
+  }
+  .mh-search:hover{ color:var(--ink); border-color:var(--ink); }
+  .mh-search .kbd{
+    font-family:var(--sans); font-size:9px; font-weight:700; letter-spacing:.08em;
+    border:1px solid var(--ink-30); padding:2px 5px 1px; color:var(--ink-60);
+  }
+  .mh-search:hover .kbd{ border-color:var(--ink); color:var(--ink); }
+
+  /* ============================================================
+     ADDED — overlays: command palette + shortcuts help + welcome
+     ============================================================ */
+  .ov-scrim{
+    position:fixed; inset:0; z-index:60; background:rgba(0,0,0,.28);
+    display:none; align-items:flex-start; justify-content:center;
+    padding:clamp(40px,9vh,110px) 18px 40px;
+  }
+  body.theme-wob .ov-scrim{ background:rgba(0,0,0,.62); }
+  .ov-scrim--on{ display:flex; }
+
+  /* — command palette — */
+  .pal{
+    width:100%; max-width:620px; background:var(--paper);
+    border:2px solid var(--ink); box-shadow:8px 8px 0 var(--ink);
+    display:flex; flex-direction:column; max-height:72vh;
+  }
+  .pal__top{ border-bottom:var(--rule); padding:10px 16px 0; }
+  .pal__kicker{
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-family:var(--sans); font-size:9px; font-weight:700; letter-spacing:.22em;
+    text-transform:uppercase; color:var(--ink-60); margin-bottom:6px;
+  }
+  .pal__field{
+    width:100%; border:none; background:none; outline:none;
+    font-family:var(--serif); font-style:italic; font-size:22px; color:var(--ink);
+    padding:4px 0 12px;
+  }
+  .pal__field::placeholder{ color:var(--ink-30); }
+  .pal__results{ overflow:auto; }
+  .pal__group{
+    font-family:var(--sans); font-size:9px; font-weight:700; letter-spacing:.2em;
+    text-transform:uppercase; color:var(--ink-45); padding:11px 16px 5px;
+    border-bottom:var(--hairline);
+  }
+  .pal__row{
+    display:grid; grid-template-columns:minmax(0,1fr) auto; gap:16px; align-items:baseline;
+    padding:11px 16px; border-bottom:var(--hairline); cursor:pointer;
+  }
+  .pal__row:last-child{ border-bottom:none; }
+  .pal__row--sel{ background:var(--ink); }
+  .pal__row--sel .pal__name,
+  .pal__row--sel .pal__sub,
+  .pal__row--sel .pal__where{ color:var(--paper); }
+  .pal__name{ font-family:var(--serif); font-weight:700; font-size:16px; letter-spacing:-.01em; line-height:1.15; }
+  .pal__sub{ display:block; margin-top:3px; font-size:11px; color:var(--ink-60); letter-spacing:.02em; }
+  .pal__where{
+    font-family:var(--sans); font-size:9px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink-45); white-space:nowrap; align-self:center;
+  }
+  .pal__empty{
+    padding:34px 16px; text-align:center; font-family:var(--serif); font-style:italic;
+    font-size:15px; color:var(--ink-45);
+  }
+  .pal__foot{
+    border-top:var(--rule); padding:8px 16px; display:flex; gap:16px; flex-wrap:wrap;
+    font-family:var(--sans); font-size:9px; font-weight:700; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--ink-45);
+  }
+  .pal__foot .k{ border:1px solid var(--ink-30); padding:1px 5px; color:var(--ink-60); }
+
+  /* — shortcuts help (ruled key) — */
+  .help{
+    width:100%; max-width:560px; background:var(--paper);
+    border:2px solid var(--ink); box-shadow:8px 8px 0 var(--ink); max-height:80vh; overflow:auto;
+  }
+  .help__top{
+    display:flex; justify-content:space-between; align-items:baseline;
+    border-bottom:3px solid var(--ink); padding:14px 18px 12px;
+  }
+  .help__title{ font-family:var(--serif); font-weight:700; font-size:24px; letter-spacing:-.01em; }
+  .help__title em{ font-style:italic; font-weight:400; }
+  .help__close{
+    font-family:var(--sans); font-size:10px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink-60); border:none; background:none; cursor:pointer;
+  }
+  .help__close:hover{ color:var(--ink); }
+  .help__grp{
+    font-family:var(--sans); font-size:9px; font-weight:700; letter-spacing:.22em;
+    text-transform:uppercase; color:var(--ink-45); padding:14px 18px 4px;
+  }
+  .help__row{
+    display:grid; grid-template-columns:minmax(0,1fr) auto; gap:18px; align-items:center;
+    padding:9px 18px; border-bottom:var(--hairline);
+  }
+  .help__row:last-child{ border-bottom:none; }
+  .help__what{ font-family:var(--serif); font-size:15px; }
+  .help__keys{ display:flex; gap:5px; align-items:center; white-space:nowrap; }
+  .help__keys .key{
+    font-family:var(--sans); font-size:11px; font-weight:700; letter-spacing:.04em;
+    border:1px solid var(--ink); background:var(--paper); color:var(--ink);
+    padding:3px 8px 2px; min-width:22px; text-align:center; line-height:1.2;
+  }
+  .help__keys .then{ font-family:var(--serif); font-style:italic; font-size:12px; color:var(--ink-45); }
+
+  /* — first-run welcome note — */
+  .welcome{
+    width:100%; max-width:540px; background:var(--paper);
+    border:2px solid var(--ink); box-shadow:8px 8px 0 var(--ink);
+  }
+  .welcome__band{ border-top:3px solid var(--ink); border-bottom:var(--rule); padding:9px 20px;
+    font-family:var(--sans); font-size:9px; font-weight:700; letter-spacing:.24em;
+    text-transform:uppercase; color:var(--ink-60); display:flex; justify-content:space-between; }
+  .welcome__body{ padding:22px 24px 8px; }
+  .welcome__head{
+    font-family:var(--serif); font-weight:700; font-size:clamp(24px,4vw,32px);
+    line-height:1.02; letter-spacing:-.02em; margin-bottom:14px;
+  }
+  .welcome__head em{ font-style:italic; font-weight:400; }
+  .welcome__body p{
+    font-family:var(--serif); font-size:14.5px; line-height:1.6; color:var(--ink-80);
+    margin-bottom:12px; max-width:58ch;
+  }
+  .welcome__body p .lead{ font-weight:700; color:var(--ink); }
+  .welcome__foot{ border-top:var(--rule); padding:14px 24px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .welcome__sig{ font-family:var(--serif); font-style:italic; font-size:11px; color:var(--ink-45); margin-left:auto; }
+
+  /* — guided tutorial: a reader's guide — */
+  /* The whole layer; dimming is done by the spotlight's huge box-shadow. */
+  .tour{ position:fixed; inset:0; z-index:80; display:none; }
+  .tour--on{ display:block; }
+  /* spotlight: a transparent window cut out of a black/white scrim via box-shadow */
+  .tour__spot{
+    position:absolute; border:2px solid var(--ink);
+    box-shadow:0 0 0 9999px rgba(0,0,0,.55), 0 0 0 2px var(--paper) inset;
+    transition:top .26s cubic-bezier(.4,0,.2,1), left .26s cubic-bezier(.4,0,.2,1),
+               width .26s cubic-bezier(.4,0,.2,1), height .26s cubic-bezier(.4,0,.2,1);
+    pointer-events:none; border-radius:2px;
+  }
+  body.theme-wob .tour__spot{ box-shadow:0 0 0 9999px rgba(0,0,0,.78), 0 0 0 2px var(--paper) inset; }
+  /* when no target (intro / finish), centre everything over a plain scrim */
+  .tour--center .tour__spot{ display:none; }
+  .tour__veil{ position:absolute; inset:0; display:none; background:rgba(0,0,0,.55); }
+  body.theme-wob .tour__veil{ background:rgba(0,0,0,.82); }
+  .tour--center .tour__veil{ display:block; }
+
+  .tour__card{
+    position:absolute; width:min(360px,calc(100vw - 32px));
+    background:var(--paper); border:2px solid var(--ink); box-shadow:8px 8px 0 var(--ink);
+    pointer-events:auto;
+    transition:top .26s cubic-bezier(.4,0,.2,1), left .26s cubic-bezier(.4,0,.2,1);
+  }
+  .tour--center .tour__card{
+    position:relative; z-index:2; margin:0 auto; width:min(460px,calc(100vw - 32px));
+    top:auto; left:auto;
+  }
+  .tour--center{ display:flex; align-items:flex-start; justify-content:center;
+    padding:clamp(40px,10vh,120px) 16px 40px; overflow:auto; }
+  /* the little arrow on the callout */
+  .tour__card::before, .tour__card::after{
+    content:""; position:absolute; width:0; height:0; display:none;
+  }
+  .tour--center .tour__card::before, .tour--center .tour__card::after{ display:none; }
+  .tour__card[data-arrow="top"]::before{ display:block; top:-11px; left:var(--ax,28px);
+    border-left:11px solid transparent; border-right:11px solid transparent; border-bottom:11px solid var(--ink); }
+  .tour__card[data-arrow="top"]::after{ display:block; top:-8px; left:calc(var(--ax,28px) + 2px);
+    border-left:9px solid transparent; border-right:9px solid transparent; border-bottom:9px solid var(--paper); }
+  .tour__card[data-arrow="bottom"]::before{ display:block; bottom:-11px; left:var(--ax,28px);
+    border-left:11px solid transparent; border-right:11px solid transparent; border-top:11px solid var(--ink); }
+  .tour__card[data-arrow="bottom"]::after{ display:block; bottom:-8px; left:calc(var(--ax,28px) + 2px);
+    border-left:9px solid transparent; border-right:9px solid transparent; border-top:9px solid var(--paper); }
+  .tour__card[data-arrow="left"]::before{ display:block; left:-11px; top:var(--ay,24px);
+    border-top:11px solid transparent; border-bottom:11px solid transparent; border-right:11px solid var(--ink); }
+  .tour__card[data-arrow="left"]::after{ display:block; left:-8px; top:calc(var(--ay,24px) + 2px);
+    border-top:9px solid transparent; border-bottom:9px solid transparent; border-right:9px solid var(--paper); }
+  .tour__card[data-arrow="right"]::before{ display:block; right:-11px; top:var(--ay,24px);
+    border-top:11px solid transparent; border-bottom:11px solid transparent; border-left:11px solid var(--ink); }
+  .tour__card[data-arrow="right"]::after{ display:block; right:-8px; top:calc(var(--ay,24px) + 2px);
+    border-top:9px solid transparent; border-bottom:9px solid transparent; border-left:9px solid var(--paper); }
+
+  .tour__band{
+    border-bottom:var(--rule); padding:8px 18px;
+    display:flex; justify-content:space-between; align-items:baseline; gap:12px;
+    font-family:var(--sans); font-size:9px; font-weight:700; letter-spacing:.22em;
+    text-transform:uppercase; color:var(--ink-60);
+  }
+  .tour__band .tour__no{ color:var(--ink); }
+  .tour__body{ padding:16px 18px 6px; }
+  .tour__kicker{
+    font-family:var(--sans); font-size:9px; font-weight:700; letter-spacing:.2em;
+    text-transform:uppercase; color:var(--ink-45); margin-bottom:7px;
+  }
+  .tour__head{
+    font-family:var(--serif); font-weight:700; font-size:clamp(19px,3.2vw,24px);
+    line-height:1.04; letter-spacing:-.01em; margin-bottom:10px;
+  }
+  .tour__head em{ font-style:italic; font-weight:400; }
+  .tour__text{
+    font-family:var(--serif); font-size:14px; line-height:1.55; color:var(--ink-80);
+    margin-bottom:10px;
+  }
+  .tour__text:last-child{ margin-bottom:0; }
+  .tour__text .key{
+    font-family:var(--sans); font-size:11px; font-weight:700; letter-spacing:.04em;
+    border:1px solid var(--ink); background:var(--paper); color:var(--ink);
+    padding:1px 6px; white-space:nowrap;
+  }
+  .tour__text .did{
+    display:inline-block; font-family:var(--sans); font-size:9px; font-weight:700;
+    letter-spacing:.16em; text-transform:uppercase; border:1px solid var(--ink);
+    background:var(--ink); color:var(--paper); padding:2px 7px 1px; margin-top:4px;
+  }
+  /* cheat-sheet on the finish step */
+  .tour__sheet{ border-top:var(--hairline); margin-top:4px; }
+  .tour__sheet .tour__srow{
+    display:grid; grid-template-columns:minmax(0,1fr) auto; gap:14px; align-items:center;
+    padding:7px 0; border-bottom:var(--hairline);
+  }
+  .tour__sheet .tour__srow:last-child{ border-bottom:none; }
+  .tour__sheet .tour__swhat{ font-family:var(--serif); font-size:13.5px; }
+  .tour__sheet .tour__skeys{ display:flex; gap:4px; align-items:center; white-space:nowrap; }
+  .tour__sheet .tour__skeys .key{
+    font-family:var(--sans); font-size:10.5px; font-weight:700; letter-spacing:.04em;
+    border:1px solid var(--ink); background:var(--paper); color:var(--ink);
+    padding:2px 7px 1px; min-width:20px; text-align:center; line-height:1.2;
+  }
+  .tour__sheet .tour__skeys .then{ font-family:var(--serif); font-style:italic; font-size:11px; color:var(--ink-45); }
+
+  .tour__foot{
+    border-top:var(--rule); padding:11px 18px; margin-top:8px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .tour__prog{
+    font-family:var(--sans); font-size:9px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink-45); font-variant-numeric:tabular-nums;
+  }
+  .tour__spacer{ flex:1; }
+  .tour__btn{
+    font-family:var(--sans); font-size:10px; font-weight:700; letter-spacing:.14em;
+    text-transform:uppercase; padding:8px 14px 7px; border:1px solid var(--ink);
+    background:var(--paper); color:var(--ink); cursor:pointer;
+  }
+  .tour__btn--solid{ background:var(--ink); color:var(--paper); }
+  .tour__btn:hover{ outline:2px solid var(--ink); outline-offset:1px; }
+  .tour__skip{
+    font-family:var(--sans); font-size:9px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink-45); border:none; background:none; cursor:pointer;
+  }
+  .tour__skip:hover{ color:var(--ink); text-decoration:underline; }
+  /* progress ticks */
+  .tour__ticks{ display:flex; gap:4px; align-items:center; margin-left:6px; }
+  .tour__tick{ width:7px; height:7px; border:1px solid var(--ink); background:var(--paper); }
+  .tour__tick--on{ background:var(--ink); }
+  .tour__tick--done{ background:var(--ink-30); border-color:var(--ink-30); }
+  @media (max-width:560px){
+    .tour__card{ width:calc(100vw - 24px); }
+    .tour__foot{ flex-wrap:wrap; }
+  }
+  @media print{ .tour{ display:none !important; } }
+
+  /* "Take the tour" settings action */
+  .tour-launch{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding-top:14px; }
+  .tour-launch .panel__rev{ margin-left:auto; }
+
+  /* ============================================================
+     ADDED — arcade: best-scores panel + sound toggle + daily label
+     ============================================================ */
+  .arcade-extras{
+    border-top:var(--rule); border-bottom:var(--rule);
+    display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:0;
+  }
+  @media (max-width:700px){ .arcade-extras{ grid-template-columns:1fr; } }
+  .scores-panel{ border-right:var(--hairline); padding:18px 20px 20px; }
+  @media (max-width:700px){ .scores-panel{ border-right:none; border-bottom:var(--hairline); } }
+  .scores-panel__head{
+    font-family:var(--sans); font-size:10px; font-weight:700; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--ink-60); border-bottom:var(--hairline);
+    padding-bottom:8px; margin-bottom:4px; display:flex; justify-content:space-between;
+  }
+  .scorerow{
+    display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:14px; align-items:baseline;
+    padding:9px 0; border-bottom:var(--hairline);
+  }
+  .scorerow:last-child{ border-bottom:none; }
+  .scorerow__no{ font-family:var(--serif); font-style:italic; font-size:13px; color:var(--ink-30); }
+  .scorerow__name{ font-family:var(--serif); font-weight:700; font-size:16px; letter-spacing:-.01em; }
+  .scorerow__val{
+    font-family:var(--serif); font-weight:700; font-size:16px; text-align:right;
+    font-variant-numeric:tabular-nums;
+  }
+  .scorerow__val.none{ font-style:italic; font-weight:400; color:var(--ink-45); }
+  .arcade-aside{ padding:18px 20px 20px; display:flex; flex-direction:column; gap:16px; }
+  .sfx-toggle{
+    display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:14px;
+    border-bottom:var(--hairline); padding-bottom:16px; cursor:pointer;
+  }
+  .sfx-toggle__name{ font-family:var(--serif); font-weight:700; font-size:16px; }
+  .sfx-toggle__desc{ font-size:11px; color:var(--ink-60); margin-top:3px; }
+  .daily-card .label{ display:block; margin-bottom:6px; }
+  .daily-card__line{ font-family:var(--serif); font-style:italic; font-size:13px; line-height:1.5; color:var(--ink-80); }
+  .daily-tag{
+    display:inline-block; font-family:var(--sans); font-size:9px; font-weight:700;
+    letter-spacing:.16em; text-transform:uppercase; border:1px solid var(--ink);
+    background:var(--ink); color:var(--paper); padding:3px 8px 2px; margin-left:8px; vertical-align:1px;
+  }
+
+  /* ============================================================
+     ADDED — PRINT (fallback for "Save as PDF"). Overview only, B&W.
+     ============================================================ */
+  @media print{
+    /* force monochrome regardless of dark theme */
+    body, body.theme-wob{ --ink:#000; --paper:#fff; background:#fff; color:#000; padding:0; }
+    body::before, body.theme-wob::before{ display:none !important; } /* no newsprint texture in print */
+    .nav, .colophon, .ping-dock, .ov-scrim, .mh-search,
+    #export-overview, .course__trend{ display:none !important; }
+    /* print only the overview */
+    .screen{ display:none !important; }
+    #s-overview{ display:block !important; }
+    .hero, .stats, .figure, .clist, .closing{ break-inside:avoid; }
+    a{ color:#000; }
+  }
+</style>
+</head>
+<body>
+
+<main class="page">
+
+  <!-- ===================== PERSISTENT MASTHEAD ===================== -->
+  <header class="masthead">
+    <div class="masthead__topline">
+      <span class="edition">Better&nbsp;SGY</span>
+      <span>The Grade Review</span>
+      <button class="mh-search" id="mh-search" type="button" aria-label="Open search">Search <span class="kbd" id="mh-search-kbd">⌘K</span></button>
+    </div>
+
+    <h1 class="masthead__title">Better <em>SGY</em></h1>
+
+    <div class="masthead__context">
+      <span class="ctx"><strong>2025–2026</strong></span>
+      <span class="sep">/</span>
+      <span class="ctx">Freshman</span>
+      <span class="sep">/</span>
+      <span class="ctx">Semester&nbsp;2</span>
+      <span class="sep">/</span>
+      <span class="ctx">Overall <strong id="ctxOverall">96.2%</strong></span>
+      <span class="sep">/</span>
+      <span class="ctx">GPA <strong>3.94</strong></span>
+    </div>
+  </header>
+
+  <!-- ===================== RULED NAV ===================== -->
+  <nav class="nav" id="nav" aria-label="Sections">
+    <a class="nav__item" data-nav="overview" href="#overview"><span class="nav__no">01</span><span class="nav__name">Overview</span></a>
+    <a class="nav__item" data-nav="grades" href="#grades"><span class="nav__no">02</span><span class="nav__name">Grades</span></a>
+    <a class="nav__item" data-nav="assignments" href="#assignments"><span class="nav__no">03</span><span class="nav__name">Assignments</span></a>
+    <a class="nav__item" data-nav="calendar" href="#calendar"><span class="nav__no">04</span><span class="nav__name">Calendar</span></a>
+    <a class="nav__item" data-nav="announcements" href="#announcements"><span class="nav__no">05</span><span class="nav__name">Bulletins</span></a>
+    <a class="nav__item" data-nav="materials" href="#materials"><span class="nav__no">06</span><span class="nav__name">Materials</span></a>
+    <a class="nav__item" data-nav="arcade" href="#arcade"><span class="nav__no">07</span><span class="nav__name">Games</span></a>
+    <a class="nav__item" data-nav="nostalgia" href="#nostalgia"><span class="nav__no">08</span><span class="nav__name">Nostalgia</span></a>
+    <a class="nav__item" data-nav="settings" href="#settings"><span class="nav__no">09</span><span class="nav__name">Settings</span></a>
+  </nav>
+
+  <!-- ================================================================
+       SCREEN 1 — OVERVIEW
+       ================================================================ -->
+  <section class="screen" id="s-overview">
+
+    <section class="hero">
+      <div class="hero__figure">
+        <span class="label hero__kicker">Cumulative Average</span>
+        <div class="hero__number" id="ovOverall">96.2<span class="pct">%</span></div>
+        <div class="hero__caption">
+          <span id="ovHeroCaption">Weighted across six courses, semester to date</span>
+        </div>
+      </div>
+      <div class="hero__verdict">
+        <div class="v-rule"></div>
+        <span class="label label--ink">The Standing</span>
+        <h2>Six courses, one&nbsp;steady&nbsp;term.</h2>
+        <p>Five of the six hold an A; four are climbing. Drama is the term’s one soft spot, an A− and slipping.
+          Two assignments remain outstanding. The report is otherwise quiet.</p>
+      </div>
+    </section>
+
+    <section class="stats" aria-label="Key figures">
+      <div class="stat">
+        <span class="label stat__label">GPA Estimate</span>
+        <div class="stat__value">3.94</div>
+        <div class="stat__sub">Weighted · 4.0 scale</div>
+      </div>
+      <div class="stat">
+        <span class="label stat__label">Due Today</span>
+        <div class="stat__value">2</div>
+        <div class="stat__sub">Both before the bell</div>
+      </div>
+      <div class="stat">
+        <span class="label stat__label">Missing</span>
+        <div class="stat__value" id="ovMissingStat">2</div>
+        <div class="stat__sub" id="ovMissingSub">Across two courses</div>
+      </div>
+      <div class="stat">
+        <span class="label stat__label">Best Class</span>
+        <div class="stat__value">99.1<span class="unit">%</span></div>
+        <div class="stat__sub stat__sub--name">PE 9 · Coach Bryant</div>
+      </div>
+    </section>
+
+    <figure class="figure" aria-label="Figure 1 — Overall grade over the term">
+      <div class="figure__top">
+        <span class="figure__no">Fig.&nbsp;1 <span class="figure__of">— Overall grade, by week</span></span>
+        <span class="figure__range">Semester 2 · weekly · 88–100% scale</span>
+      </div>
+
+      <svg class="plate" id="ovPlate" viewBox="0 0 960 360" preserveAspectRatio="xMidYMid meet" role="img"
+           aria-label="Line chart of overall term average rising from 94.2 percent in February to 96.2 percent in June">
+        <!-- horizontal gridlines: 88,90,92,94,96,98,100 -->
+        <line class="grid" x1="90" y1="300" x2="912" y2="300"/>
+        <line class="grid" x1="90" y1="256.7" x2="912" y2="256.7"/>
+        <line class="grid" x1="90" y1="213.3" x2="912" y2="213.3"/>
+        <line class="grid" x1="90" y1="170" x2="912" y2="170"/>
+        <line class="grid" x1="90" y1="126.7" x2="912" y2="126.7"/>
+        <line class="grid" x1="90" y1="83.3" x2="912" y2="83.3"/>
+        <line class="grid" x1="90" y1="40" x2="912" y2="40"/>
+
+        <!-- y axis + ticks/labels -->
+        <line class="axis" x1="90" y1="40" x2="90" y2="300"/>
+        <g class="axislabel axislabel--y">
+          <text x="80" y="304">88</text>
+          <text x="80" y="260.7">90</text>
+          <text x="80" y="217.3">92</text>
+          <text x="80" y="174">94</text>
+          <text x="80" y="130.7">96</text>
+          <text x="80" y="87.3">98</text>
+          <text x="80" y="44">100</text>
+        </g>
+        <g class="tick">
+          <line x1="84" y1="300" x2="90" y2="300"/>
+          <line x1="84" y1="256.7" x2="90" y2="256.7"/>
+          <line x1="84" y1="213.3" x2="90" y2="213.3"/>
+          <line x1="84" y1="170" x2="90" y2="170"/>
+          <line x1="84" y1="126.7" x2="90" y2="126.7"/>
+          <line x1="84" y1="83.3" x2="90" y2="83.3"/>
+          <line x1="84" y1="40" x2="90" y2="40"/>
+        </g>
+        <text class="axistitle" x="34" y="170" transform="rotate(-90 34 170)" text-anchor="middle">Percent</text>
+
+        <!-- x axis + ticks/labels (weekly Feb -> Jun) -->
+        <line class="axis" x1="90" y1="300" x2="912" y2="300"/>
+        <g class="tick">
+          <line x1="90" y1="300" x2="90" y2="306"/>
+          <line x1="207.4" y1="300" x2="207.4" y2="306"/>
+          <line x1="324.9" y1="300" x2="324.9" y2="306"/>
+          <line x1="442.3" y1="300" x2="442.3" y2="306"/>
+          <line x1="559.7" y1="300" x2="559.7" y2="306"/>
+          <line x1="677.1" y1="300" x2="677.1" y2="306"/>
+          <line x1="794.6" y1="300" x2="794.6" y2="306"/>
+          <line x1="912" y1="300" x2="912" y2="306"/>
+        </g>
+        <g class="axislabel axislabel--x">
+          <text x="90" y="322">Feb 10</text>
+          <text x="207.4" y="322">Mar 2</text>
+          <text x="324.9" y="322">Mar 23</text>
+          <text x="442.3" y="322">Apr 13</text>
+          <text x="559.7" y="322">May 4</text>
+          <text x="677.1" y="322">May 25</text>
+          <text x="794.6" y="322">Jun 8</text>
+          <text x="912" y="322">Jun 22</text>
+        </g>
+        <text class="axistitle axislabel--x" x="501" y="346">Week of the term</text>
+
+        <!-- overall series (repainted by renderOverviewPlate when live data present) -->
+        <g id="ovPlateSeries">
+          <polyline class="series" points="90,165.7 207.4,157 324.9,150.5 442.3,141.8 559.7,135.3 677.1,128.8 794.6,126.7 912,122.3"/>
+          <!-- open dots for prior weeks, filled dot for the current week -->
+          <circle class="dot-open" cx="90" cy="165.7" r="3.2"/>
+          <circle class="dot-open" cx="207.4" cy="157" r="3.2"/>
+          <circle class="dot-open" cx="324.9" cy="150.5" r="3.2"/>
+          <circle class="dot-open" cx="442.3" cy="141.8" r="3.2"/>
+          <circle class="dot-open" cx="559.7" cy="135.3" r="3.2"/>
+          <circle class="dot-open" cx="677.1" cy="128.8" r="3.2"/>
+          <circle class="dot-open" cx="794.6" cy="126.7" r="3.2"/>
+          <circle class="dot-fill" cx="912" cy="122.3" r="4"/>
+          <text class="axislabel" x="900" y="113" text-anchor="end" style="fill:#000">96.2%</text>
+        </g>
+      </svg>
+
+      <figcaption class="figure__caption">
+        <p class="figure__captext"><span class="figure__lead">Fig. 1 — Term average, week by week.</span>
+          A steady climb of two points across the semester, 94.2 to 96.2, with no week giving ground.
+          The line is the weighted mean of all six courses; the open marks are past weeks, the filled mark the present standing.</p>
+        <p class="figure__captext" style="font-style:normal;font-family:var(--sans);font-size:11px;letter-spacing:.04em;color:var(--ink-45);max-width:36ch">
+          Source: Semester 2 gradebook, eight weekly readings. Drawn to a 88–100% scale, black ink, no smoothing.</p>
+      </figcaption>
+    </figure>
+
+    <section aria-label="Your courses">
+      <div class="sechead">
+        <h3>Your Courses</h3>
+        <span class="label count" id="ovCourseCount">Six entries · Semester 2</span>
+      </div>
+      <div class="clist" id="ovClist">
+
+        <article class="course" data-course="alg" role="link" tabindex="0" aria-label="Open Algebra 2 / Trig grades">
+          <div class="course__idx">01</div>
+          <div class="course__main">
+            <div class="course__name">Algebra 2 / Trigonometry</div>
+            <div class="course__meta"><span class="course__teacher">Mr. Stubbs</span><span class="sep">·</span><span>P1 · Math</span><span class="sep">·</span><span class="note-clean">no missing work</span></div>
+          </div>
+          <div class="course__trend">
+            <svg viewBox="0 0 120 34" preserveAspectRatio="none" role="img" aria-label="Trending up"><polyline points="2,26 22,24 42,22 62,17 82,14 102,8 118,4" fill="none" stroke="#000" stroke-width="1.5"/><circle cx="118" cy="4" r="2.4" fill="#000"/></svg>
+            <span class="trend__word">Rising ↗</span>
+          </div>
+          <div class="course__pct">97.4<span class="pp">%</span></div>
+          <div class="course__letter"><span class="ltr">A</span></div>
+        </article>
+
+        <article class="course" data-course="bio" role="link" tabindex="0" aria-label="Open Biology grades">
+          <div class="course__idx">02</div>
+          <div class="course__main">
+            <div class="course__name">Biology</div>
+            <div class="course__meta"><span class="course__teacher">Ms. Carrington</span><span class="sep">·</span><span>P2 · Science</span><span class="sep">·</span><span class="tag">1 Missing</span></div>
+          </div>
+          <div class="course__trend">
+            <svg viewBox="0 0 120 34" preserveAspectRatio="none" role="img" aria-label="Flat"><polyline points="2,17 22,16 42,18 62,16 82,17 102,16 118,17" fill="none" stroke="#000" stroke-width="1.5"/><circle cx="118" cy="17" r="2.4" fill="#000"/></svg>
+            <span class="trend__word">Steady →</span>
+          </div>
+          <div class="course__pct">96.7<span class="pp">%</span></div>
+          <div class="course__letter"><span class="ltr">A</span></div>
+        </article>
+
+        <article class="course" data-course="fre" role="link" tabindex="0" aria-label="Open French 1 grades">
+          <div class="course__idx">03</div>
+          <div class="course__main">
+            <div class="course__name">French 1</div>
+            <div class="course__meta"><span class="course__teacher">Mme. Laurent</span><span class="sep">·</span><span>P4 · World Language</span><span class="sep">·</span><span class="note-clean">no missing work</span></div>
+          </div>
+          <div class="course__trend">
+            <svg viewBox="0 0 120 34" preserveAspectRatio="none" role="img" aria-label="Trending up"><polyline points="2,24 22,23 42,19 62,18 82,13 102,11 118,6" fill="none" stroke="#000" stroke-width="1.5"/><circle cx="118" cy="6" r="2.4" fill="#000"/></svg>
+            <span class="trend__word">Rising ↗</span>
+          </div>
+          <div class="course__pct">96.5<span class="pp">%</span></div>
+          <div class="course__letter"><span class="ltr">A</span></div>
+        </article>
+
+        <article class="course" data-course="dra" role="link" tabindex="0" aria-label="Open Drama grades">
+          <div class="course__idx">04</div>
+          <div class="course__main">
+            <div class="course__name">Drama</div>
+            <div class="course__meta"><span class="course__teacher">Mr. Ellison</span><span class="sep">·</span><span>P5 · Performing Arts</span><span class="sep">·</span><span class="tag">1 Missing</span></div>
+          </div>
+          <div class="course__trend">
+            <svg viewBox="0 0 120 34" preserveAspectRatio="none" role="img" aria-label="Declining"><polyline points="2,7 22,9 42,12 62,15 82,18 102,22 118,27" fill="none" stroke="#000" stroke-width="1.5"/><circle cx="118" cy="27" r="2.4" fill="#000"/></svg>
+            <span class="trend__word">Easing ↘</span>
+          </div>
+          <div class="course__pct">90.3<span class="pp">%</span></div>
+          <div class="course__letter"><span class="ltr">A−</span></div>
+        </article>
+
+        <article class="course" data-course="lit" role="link" tabindex="0" aria-label="Open Literature grades">
+          <div class="course__idx">05</div>
+          <div class="course__main">
+            <div class="course__name">Literature</div>
+            <div class="course__meta"><span class="course__teacher">Ms. Howe</span><span class="sep">·</span><span>P6 · English</span><span class="sep">·</span><span class="note-clean">no missing work</span></div>
+          </div>
+          <div class="course__trend">
+            <svg viewBox="0 0 120 34" preserveAspectRatio="none" role="img" aria-label="Trending up"><polyline points="2,25 22,22 42,21 62,16 82,15 102,10 118,7" fill="none" stroke="#000" stroke-width="1.5"/><circle cx="118" cy="7" r="2.4" fill="#000"/></svg>
+            <span class="trend__word">Rising ↗</span>
+          </div>
+          <div class="course__pct">94.1<span class="pp">%</span></div>
+          <div class="course__letter"><span class="ltr">A</span></div>
+        </article>
+
+        <article class="course" data-course="pe" role="link" tabindex="0" aria-label="Open PE 9 grades">
+          <div class="course__idx">06</div>
+          <div class="course__main">
+            <div class="course__name">PE 9</div>
+            <div class="course__meta"><span class="course__teacher">Coach Bryant</span><span class="sep">·</span><span>P7 · Phys Ed</span><span class="sep">·</span><span class="note-clean">no missing work</span></div>
+          </div>
+          <div class="course__trend">
+            <svg viewBox="0 0 120 34" preserveAspectRatio="none" role="img" aria-label="Flat and high"><polyline points="2,6 22,5 42,6 62,5 82,6 102,5 118,5" fill="none" stroke="#000" stroke-width="1.5"/><circle cx="118" cy="5" r="2.4" fill="#000"/></svg>
+            <span class="trend__word">High →</span>
+          </div>
+          <div class="course__pct">99.1<span class="pp">%</span></div>
+          <div class="course__letter"><span class="ltr">A</span></div>
+        </article>
+
+      </div>
+    </section>
+
+    <section class="closing" aria-label="In closing">
+      <p class="closing__line">An A− in Drama, two papers owed, and not much else to report. A solid term, held together.</p>
+      <p class="closing__byline">
+        <button class="btn btn--ghost" id="export-overview" type="button" style="cursor:pointer;margin-bottom:8px">Save edition as PNG ↓</button><br>
+        <span id="export-note">Filed Semester 2 · Six courses of record</span>
+      </p>
+    </section>
+  </section>
+
+  <!-- ================================================================
+       SCREEN 2 — GRADES (ledger)
+       ================================================================ -->
+  <section class="screen" id="s-grades">
+    <div class="standfirst">
+      <div class="standfirst__head">
+        <span class="label standfirst__kicker">The Gradebook</span>
+        <h2>Grades, <em>itemized</em>.</h2>
+      </div>
+      <p class="standfirst__intro">Every course kept as a ledger: weighted categories first, then the assignments behind the figure. Biology is on the page; one entry sits unsubmitted.</p>
+    </div>
+
+    <div class="ledger">
+      <aside class="ledger__rail" id="grade-rail" aria-label="Course list"></aside>
+
+      <div class="ledger__body" id="grade-body">
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================
+       SCREEN 3 — ASSIGNMENTS (docket)
+       ================================================================ -->
+  <section class="screen" id="s-assignments">
+    <div class="standfirst">
+      <div class="standfirst__head">
+        <span class="label standfirst__kicker">The Docket</span>
+        <h2>What is <em>owed</em>.</h2>
+      </div>
+      <p class="standfirst__intro">A single agenda across all six courses. Two are due before the bell, two are overdue, the rest are scheduled. Filed work sits at the foot of the column.</p>
+    </div>
+
+    <div class="toolbar">
+      <div class="search"><input type="text" id="docket-search" placeholder="Search assignments, courses, dates…"></div>
+      <div class="filters" id="docket-filters">
+        <span class="filter filter--on" data-filter="upcoming">Upcoming</span>
+        <span class="filter" data-filter="missing">Missing</span>
+        <span class="filter" data-filter="done">Done</span>
+      </div>
+    </div>
+
+    <div class="docket" id="docket"></div>
+
+    <section class="closing" aria-label="In closing">
+      <p class="closing__line" id="docket-closing-line">Two before the bell, two long overdue. Clear the morning and the column reads almost empty.</p>
+      <p class="closing__byline" id="docket-closing-by">Nine entries across six courses</p>
+    </section>
+  </section>
+
+  <!-- ================================================================
+       SCREEN 4 — CALENDAR
+       ================================================================ -->
+  <section class="screen" id="s-calendar">
+    <div class="standfirst">
+      <div class="standfirst__head">
+        <span class="label standfirst__kicker">The Month</span>
+        <h2>June, <em>in full</em>.</h2>
+      </div>
+      <p class="standfirst__intro" id="cal-standfirst">Deadlines set against the days that hold them. Two entries are owed today; the week ahead carries more.</p>
+    </div>
+
+    <div class="calbar">
+      <h3 id="cal-title">June <em>2026</em></h3>
+      <div class="calnav" id="cal-nav">
+        <span class="calbtn" data-cal="prev" id="cal-prev">‹ May</span>
+        <span class="calbtn calbtn--solid" data-cal="today">Today</span>
+        <span class="calbtn" data-cal="next" id="cal-next">July ›</span>
+      </div>
+    </div>
+
+    <div class="caldow"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
+    <div class="calgrid" id="calgrid"></div>
+
+    <div class="day-strip" id="day-strip">
+      <div class="day-strip__top">
+        <span class="day-strip__date" id="day-strip-date"></span>
+        <button class="day-strip__close" id="day-strip-close" type="button">Close ×</button>
+      </div>
+      <div id="day-strip-rows"></div>
+    </div>
+
+    <section class="closing" aria-label="In closing">
+      <p class="closing__line" id="cal-closing-line">Two notes on today, three more before the month is out. The page does not crowd.</p>
+      <p class="closing__byline" id="cal-closing-by">June 2026 · Semester 2</p>
+    </section>
+  </section>
+
+  <!-- ================================================================
+       SCREEN 5 — ANNOUNCEMENTS (bulletins)
+       ================================================================ -->
+  <section class="screen" id="s-announcements">
+    <div class="standfirst">
+      <div class="standfirst__head">
+        <span class="label standfirst__kicker">The Bulletins</span>
+        <h2>From the <em>faculty</em>.</h2>
+      </div>
+      <p class="standfirst__intro">Notices as they were posted, newest at the top. Star an item to keep it; the column refreshes on request.</p>
+    </div>
+
+    <div class="bullbar">
+      <span class="label" id="bull-count">Six notices · Marked items kept</span>
+      <span class="calbtn" id="bull-refresh">↻ Refresh</span>
+    </div>
+
+    <div class="bulletins" id="bulletins"></div>
+
+    <section class="closing" aria-label="In closing">
+      <p class="closing__line" id="bull-closing-line">One starred, five standing by. The faculty has little to add this week.</p>
+      <p class="closing__byline" id="bull-closing-by">Posted across six courses · Refreshed Jun 22</p>
+    </section>
+  </section>
+
+  <!-- ================================================================
+       SCREEN 6 — MATERIALS
+       ================================================================ -->
+  <section class="screen" id="s-materials">
+    <div class="standfirst">
+      <div class="standfirst__head">
+        <span class="label standfirst__kicker">The Materials</span>
+        <h2>Files &amp; <em>resources</em>.</h2>
+      </div>
+      <p class="standfirst__intro">Biology’s shelf, indexed by folder. The Cell Energetics lab is open on the right, still awaiting a submission.</p>
+    </div>
+
+    <div class="mat">
+      <aside class="mat__index" id="mat-index" aria-label="File index"></aside>
+      <div class="mat__panel" id="mat-panel"></div>
+    </div>
+
+    <section class="closing" aria-label="In closing">
+      <p class="closing__line">Everything for the lab is on the shelf. Only the write-up is missing.</p>
+      <p class="closing__byline">Biology · Unit 7 · Ms. Carrington</p>
+    </section>
+  </section>
+
+  <!-- ================================================================
+       SCREEN 7 — ARCADE (Games)
+       ================================================================ -->
+  <section class="screen" id="s-arcade">
+    <div class="standfirst">
+      <div class="standfirst__head">
+        <span class="label standfirst__kicker">The Arcade</span>
+        <h2>Four <em>diversions</em>.</h2>
+      </div>
+      <p class="standfirst__intro">A page of word games for the idle minute, set in type and played in earnest. Keyboard or touch throughout; the record is kept against you.</p>
+    </div>
+
+    <!-- Arcade home: ruled game cards -->
+    <div class="arcade" id="arcade-home">
+      <div class="gcard" data-game="typing" role="button" tabindex="0">
+        <div class="gcard__top"><span class="gcard__no">No. I</span><span class="gcard__best" data-best="typing">Best —</span></div>
+        <div class="gcard__diag" aria-hidden="true">
+          <svg viewBox="0 0 120 84" preserveAspectRatio="xMidYMid meet">
+            <rect x="2" y="2" width="116" height="80" fill="none" stroke="#000" stroke-width="1.4"/>
+            <line x1="2" y1="26" x2="118" y2="26" stroke="#000" stroke-width=".7" opacity=".4"/>
+            <line x1="2" y1="46" x2="118" y2="46" stroke="#000" stroke-width=".7" opacity=".4"/>
+            <line x1="12" y1="16" x2="92" y2="16" stroke="#000" stroke-width="2.4"/>
+            <line x1="12" y1="36" x2="68" y2="36" stroke="#000" stroke-width="2.4"/>
+            <rect x="70" y="30" width="2.4" height="12" fill="#000"/>
+            <line x1="12" y1="56" x2="48" y2="56" stroke="#000" stroke-width="2.4" opacity=".35"/>
+            <rect x="12" y="68" width="96" height="8" fill="none" stroke="#000" stroke-width="1"/>
+          </svg>
+        </div>
+        <h3 class="gcard__name">Typing Test</h3>
+        <p class="gcard__desc">Set a passage line for line. Speed and accuracy are read off as you go; the words per minute are recorded.</p>
+        <span class="gcard__cta">Play →</span>
+      </div>
+
+      <div class="gcard" data-game="anagram" role="button" tabindex="0">
+        <div class="gcard__top"><span class="gcard__no">No. II</span><span class="gcard__best" data-best="anagram">Best —</span></div>
+        <div class="gcard__diag" aria-hidden="true">
+          <svg viewBox="0 0 120 84" preserveAspectRatio="xMidYMid meet">
+            <rect x="2" y="2" width="116" height="80" fill="none" stroke="#000" stroke-width="1.4"/>
+            <g fill="none" stroke="#000" stroke-width="1">
+              <rect x="14" y="16" width="20" height="24"/><rect x="40" y="16" width="20" height="24"/>
+              <rect x="66" y="16" width="20" height="24"/>
+            </g>
+            <text x="24" y="34" fill="#000" font-family="Georgia,serif" font-size="14" font-weight="700" text-anchor="middle">Y</text>
+            <text x="50" y="34" fill="#000" font-family="Georgia,serif" font-size="14" font-weight="700" text-anchor="middle">S</text>
+            <text x="76" y="34" fill="#000" font-family="Georgia,serif" font-size="14" font-weight="700" text-anchor="middle">A</text>
+            <g stroke="#000" stroke-width="1" stroke-dasharray="2 2">
+              <rect x="40" y="52" width="20" height="24"/><rect x="66" y="52" width="20" height="24"/><rect x="92" y="52" width="16" height="24"/>
+            </g>
+          </svg>
+        </div>
+        <h3 class="gcard__name">Anagram</h3>
+        <p class="gcard__desc">A scrambled word from the term's vocabulary. Order the letters; a hint names the field. Solve in a run.</p>
+        <span class="gcard__cta">Play →</span>
+      </div>
+
+      <div class="gcard" data-game="ttt" role="button" tabindex="0">
+        <div class="gcard__top"><span class="gcard__no">No. III</span><span class="gcard__best" data-best="ttt">Best —</span></div>
+        <div class="gcard__diag" aria-hidden="true">
+          <svg viewBox="0 0 120 84" preserveAspectRatio="xMidYMid meet">
+            <rect x="2" y="2" width="116" height="80" fill="none" stroke="#000" stroke-width="1.4"/>
+            <g stroke="#000" stroke-width="1">
+              <line x1="41" y1="8" x2="41" y2="76"/><line x1="79" y1="8" x2="79" y2="76"/>
+              <line x1="8" y1="29" x2="112" y2="29"/><line x1="8" y1="55" x2="112" y2="55"/>
+            </g>
+            <g stroke="#000" stroke-width="2" fill="none">
+              <line x1="14" y1="11" x2="30" y2="25"/><line x1="30" y1="11" x2="14" y2="25"/>
+              <circle cx="60" cy="42" r="8"/>
+              <line x1="89" y1="59" x2="103" y2="73"/><line x1="103" y1="59" x2="89" y2="73"/>
+            </g>
+          </svg>
+        </div>
+        <h3 class="gcard__name">Tic-Tac-Toe</h3>
+        <p class="gcard__desc">You take the cross against a CPU that does not blunder. A draw is the honest result; a win is earned.</p>
+        <span class="gcard__cta">Play →</span>
+      </div>
+
+      <div class="gcard" data-game="search" role="button" tabindex="0">
+        <div class="gcard__top"><span class="gcard__no">No. IV</span><span class="gcard__best" data-best="search">Best —</span></div>
+        <div class="gcard__diag" aria-hidden="true">
+          <svg viewBox="0 0 120 84" preserveAspectRatio="xMidYMid meet">
+            <rect x="2" y="2" width="116" height="80" fill="none" stroke="#000" stroke-width="1.4"/>
+            <g stroke="#000" stroke-width=".5" opacity=".3">
+              <line x1="24" y1="2" x2="24" y2="82"/><line x1="46" y1="2" x2="46" y2="82"/>
+              <line x1="68" y1="2" x2="68" y2="82"/><line x1="90" y1="2" x2="90" y2="82"/>
+              <line x1="2" y1="22" x2="118" y2="22"/><line x1="2" y1="42" x2="118" y2="42"/>
+              <line x1="2" y1="62" x2="118" y2="62"/>
+            </g>
+            <rect x="24" y="22" width="44" height="20" fill="#000"/>
+            <text x="13" y="16" fill="#000" font-family="Helvetica,sans-serif" font-size="9" font-weight="700">E</text>
+            <text x="35" y="16" fill="#000" font-family="Helvetica,sans-serif" font-size="9" font-weight="700">S</text>
+            <text x="57" y="16" fill="#000" font-family="Helvetica,sans-serif" font-size="9" font-weight="700">A</text>
+            <text x="35" y="37" fill="#fff" font-family="Helvetica,sans-serif" font-size="9" font-weight="700">E</text>
+            <text x="57" y="37" fill="#fff" font-family="Helvetica,sans-serif" font-size="9" font-weight="700">S</text>
+          </svg>
+        </div>
+        <h3 class="gcard__name">Word Search</h3>
+        <p class="gcard__desc">Six course words hidden in a field of ten by ten. Drag from first letter to last; the clock is running.</p>
+        <span class="gcard__cta">Play →</span>
+      </div>
+    </div>
+
+    <!-- Arcade home extras: best scores · sound · daily challenge -->
+    <div class="arcade-extras" id="arcade-extras">
+      <div class="scores-panel">
+        <div class="scores-panel__head"><span>Best Scores</span><span>Kept locally</span></div>
+        <div id="best-scores"></div>
+      </div>
+      <div class="arcade-aside">
+        <div class="sfx-toggle" id="sfx-toggle" role="button" tabindex="0" aria-label="Toggle sound effects">
+          <div><div class="sfx-toggle__name">Sound effects</div><div class="sfx-toggle__desc">Spare blips on key events. Off by design.</div></div>
+          <span class="switch switch--off" id="sfx-switch">Off</span>
+        </div>
+        <div class="daily-card">
+          <span class="label">The Daily Challenge<span class="daily-tag">Daily</span></span>
+          <p class="daily-card__line" id="daily-line">A fixed word search, the same for every reader today. Beat the clock and return tomorrow for a new field.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arcade play stage: one game at a time -->
+    <div class="arcade-stage" id="arcade-stage" hidden>
+      <div class="stage__bar">
+        <button class="gbtn gbtn--ghost" id="arcade-back" type="button">← Back</button>
+        <span class="stage__title" id="stage-title">—</span>
+        <button class="gbtn" id="arcade-restart" type="button">Restart</button>
+      </div>
+
+      <div class="stage__scores">
+        <div class="gscore"><span class="gscore__label">Score</span><span class="gscore__val" id="stage-score">0</span></div>
+        <div class="gscore"><span class="gscore__label" id="stage-meta-label">Best</span><span class="gscore__val" id="stage-meta">—</span></div>
+      </div>
+
+      <div class="stage__board" id="stage-board"></div>
+
+      <p class="stage__hint" id="stage-hint"></p>
+
+      <!-- win/lose overlay -->
+      <div class="goverlay" id="stage-overlay" hidden>
+        <div class="goverlay__card">
+          <span class="goverlay__kicker" id="overlay-kicker">The Result</span>
+          <h3 class="goverlay__head" id="overlay-head">—</h3>
+          <p class="goverlay__sub" id="overlay-sub">—</p>
+          <button class="gbtn" id="overlay-again" type="button">Play again</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================
+       SCREEN 8 — NOSTALGIA (the archive)
+       ================================================================ -->
+  <section class="screen" id="s-nostalgia">
+    <div class="standfirst">
+      <div class="standfirst__head">
+        <span class="label standfirst__kicker">The Archive</span>
+        <h2>Back <em>issues</em>.</h2>
+      </div>
+      <p class="standfirst__intro">File the term as it stands and shelve it. The figures keep moving; the archive does not. Read an old issue when you want to remember where the line was.</p>
+    </div>
+
+    <div class="capture">
+      <div class="capture__head">
+        <div class="capture__term">Capture this term — <em>2025–2026 · Freshman · Semester 2</em></div>
+        <div class="capture__meta">Six courses on the page · the figure as printed today</div>
+      </div>
+      <div class="capture__side">
+        <div class="capture__big" id="nos-current">96.2<span class="pct">%</span></div>
+        <button class="capture__file" id="nos-capture" type="button">File this term</button>
+        <span class="capture__note" id="nos-capture-note">Re-filing overwrites the standing issue.</span>
+      </div>
+    </div>
+
+    <div class="sechead"><h3>The Archive</h3><span class="label count" id="nos-count">—</span></div>
+    <div class="archive" id="nos-archive"></div>
+
+    <div class="backissue" id="nos-backissue" aria-label="Saved snapshot">
+      <div class="backissue__top">
+        <span class="backissue__title" id="nos-bi-title">—</span>
+        <button class="backissue__close" id="nos-bi-close" type="button">Close ×</button>
+      </div>
+      <div id="nos-bi-rows"></div>
+    </div>
+
+    <section class="closing" aria-label="In closing">
+      <p class="closing__line">A term is a line, then a number, then a memory. The archive keeps the number so the line can keep moving.</p>
+      <p class="closing__byline">Filed locally · nothing leaves the page</p>
+    </section>
+  </section>
+
+  <!-- ================================================================
+       SCREEN 9 — SETTINGS
+       ================================================================ -->
+  <section class="screen" id="s-settings">
+    <div class="standfirst">
+      <div class="standfirst__head">
+        <span class="label standfirst__kicker">The Settings</span>
+        <h2>House <em>style</em>.</h2>
+      </div>
+      <p class="standfirst__intro">Four looks for one gradebook. Slate is set today: black on white, ruled and quiet. The connection is live and accounted for.</p>
+    </div>
+
+    <div class="setblock">
+      <div class="setblock__head"><h3>UI Style</h3><span class="setblock__note">Pick the dress; the data does not change.</span></div>
+      <div class="styles" id="styles">
+        <a class="style" data-style="apple" href="mockup-app-apple.html"><div class="style__name">Apple</div><div class="style__desc">Soft, spacious, system-native calm.</div><div class="style__state"></div></a>
+        <a class="style" data-style="halo" href="mockup-app-halo.html"><div class="style__name">Halo</div><div class="style__desc">Glassy, luminous, depth and blur.</div><div class="style__state"></div></a>
+        <a class="style" data-style="slate" href="mockup-app-slate.html"><div class="style__name">Slate</div><div class="style__desc">Swiss, editorial, black on white.</div><div class="style__state"></div></a>
+        <a class="style" data-style="friendly" href="mockup-app-forge.html"><div class="style__name">Friendly</div><div class="style__desc">Rounded, warm, approachable tone.</div><div class="style__state"></div></a>
+        <a class="style" data-style="carbon" href="mockup-app-carbon.html"><div class="style__name">Carbon</div><div class="style__desc">Sleek, bluish-dark.</div><div class="style__state"></div></a>
+      </div>
+    </div>
+
+    <div class="setblock">
+      <div class="setblock__head"><h3>Connection</h3><span class="setblock__note">Where the figures come from.</span></div>
+      <div class="detected">
+        <span class="detected__label">Detected</span>
+        <span class="detected__host">yourschool.schoology.com</span>
+        <span class="tag">Active</span>
+      </div>
+    </div>
+
+    <div class="setblock">
+      <div class="setblock__head"><h3>Sections &amp; Tabs</h3><span class="setblock__note">Show or retire what appears in the nav.</span></div>
+      <div class="toggles" id="toggles-sections">
+        <div class="toggle" data-toggle="nav-overview"><div><div class="toggle__name">Overview</div><div class="toggle__desc">The cumulative figure and standing.</div></div><span class="switch switch--on">On</span></div>
+        <div class="toggle" data-toggle="nav-grades"><div><div class="toggle__name">Grades</div><div class="toggle__desc">Per-course ledger with categories.</div></div><span class="switch switch--on">On</span></div>
+        <div class="toggle" data-toggle="nav-assignments"><div><div class="toggle__name">Assignments</div><div class="toggle__desc">The combined docket.</div></div><span class="switch switch--on">On</span></div>
+        <div class="toggle" data-toggle="nav-calendar"><div><div class="toggle__name">Calendar</div><div class="toggle__desc">Deadlines on a month grid.</div></div><span class="switch switch--on">On</span></div>
+        <div class="toggle" data-toggle="nav-announcements"><div><div class="toggle__name">Bulletins</div><div class="toggle__desc">Faculty notices, newest first.</div></div><span class="switch switch--on">On</span></div>
+        <div class="toggle" data-toggle="nav-materials"><div><div class="toggle__name">Materials</div><div class="toggle__desc">Files, links, and submissions.</div></div><span class="switch switch--on">On</span></div>
+        <div class="toggle" data-toggle="nav-arcade"><div><div class="toggle__name">Games</div><div class="toggle__desc">Four word games for the idle minute.</div></div><span class="switch switch--on">On</span></div>
+        <div class="toggle" data-toggle="nav-nostalgia"><div><div class="toggle__name">Nostalgia</div><div class="toggle__desc">Term snapshots, filed and shelved.</div></div><span class="switch switch--on">On</span></div>
+        <div class="toggle" data-toggle="compact"><div><div class="toggle__name">Compact density</div><div class="toggle__desc">Tighten the rules and rows.</div></div><span class="switch switch--off">Off</span></div>
+      </div>
+    </div>
+
+    <div class="setblock">
+      <div class="setblock__head"><h3>Notices</h3><span class="setblock__note">Desktop pings for graded work and bulletins.</span></div>
+      <div class="toggles" id="toggles-notices">
+        <div class="toggle" data-toggle="notify"><div><div class="toggle__name">Notifications</div><div class="toggle__desc">Pop a bulletin when a grade or notice arrives.</div></div><span class="switch switch--on">On</span></div>
+      </div>
+      <div class="panel__actions" style="border-top:none;padding-top:14px">
+        <span class="btn" id="test-ping">Test notification</span>
+        <span class="panel__rev" id="ping-note">Pops a sample bulletin, top-right.</span>
+      </div>
+    </div>
+
+    <div class="setblock">
+      <div class="setblock__head"><h3>Appearance</h3><span class="setblock__note">Slate stays monochrome by design.</span></div>
+      <div class="styles styles--three" id="appearance">
+        <div class="style" data-appearance="light"><div class="style__name">Light</div><div class="style__desc">Black ink on white paper. The standing edition.</div><div class="style__state"></div></div>
+        <div class="style" data-appearance="dark"><div class="style__name">Dark</div><div class="style__desc">White ink on black paper. Reversed for night reading.</div><div class="style__state"></div></div>
+        <div class="style" data-appearance="auto"><div class="style__name">Auto</div><div class="style__desc">Follows the system setting, light or dark.</div><div class="style__state"></div></div>
+      </div>
+      <div class="toggles" id="toggles-theme" style="margin-top:18px">
+        <div class="toggle" data-toggle="contrast"><div><div class="toggle__name">High contrast rules</div><div class="toggle__desc">Heavier hairlines throughout.</div></div><span class="switch switch--off">Off</span></div>
+      </div>
+    </div>
+
+    <div class="setblock">
+      <div class="setblock__head"><h3>The Reader's Guide</h3><span class="setblock__note">A short tour of the shortcuts and features.</span></div>
+      <div class="tour-launch">
+        <button class="btn" id="take-tour" type="button" style="cursor:pointer">Take the tour</button>
+        <span class="panel__rev">Replays the seven-step guided walkthrough.</span>
+      </div>
+    </div>
+
+    <section class="closing" aria-label="In closing">
+      <p class="closing__line">Set in Slate, connected, and accounted for. Change the dress whenever the mood turns.</p>
+      <p class="closing__byline">Better SGY · Local settings</p>
+    </section>
+  </section>
+
+  <!-- ===================== PERSISTENT COLOPHON ===================== -->
+  <footer class="colophon">
+    <span class="mark"><svg class="brandmark" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px;margin-right:6px"><rect x="3.5" y="5.5" width="17" height="13" rx="1.4"/><path d="M7 9h6M7 12h6M7 15h4"/><rect x="15" y="9" width="3.2" height="6" rx=".5"/></svg>Better&nbsp;SGY</span>
+    <span>Set in Georgia &amp; Helvetica</span>
+    <span>Printed locally · Black on White</span>
+    <span>Semester 2 Edition</span>
+  </footer>
+
+</main>
+
+<!-- ===================== PING DOCK (desktop-style toasts) ===================== -->
+<div class="ping-dock" id="ping-dock" aria-live="polite"></div>
+
+<!-- ===================== COMMAND PALETTE (⌘K) ===================== -->
+<div class="ov-scrim" id="pal-scrim" aria-hidden="true">
+  <div class="pal" role="dialog" aria-modal="true" aria-label="Search">
+    <div class="pal__top">
+      <div class="pal__kicker"><span>The Index — Search</span><span id="pal-count"></span></div>
+      <input class="pal__field" id="pal-field" type="text" autocomplete="off"
+             autocorrect="off" autocapitalize="off" spellcheck="false"
+             placeholder="Courses, assignments, bulletins, materials, screens…">
+    </div>
+    <div class="pal__results" id="pal-results"></div>
+    <div class="pal__foot">
+      <span><span class="k">↑</span> <span class="k">↓</span> Move</span>
+      <span><span class="k">↵</span> Open</span>
+      <span><span class="k">Esc</span> Close</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SHORTCUTS HELP ===================== -->
+<div class="ov-scrim" id="help-scrim" aria-hidden="true">
+  <div class="help" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts">
+    <div class="help__top">
+      <span class="help__title">Keyboard <em>shortcuts</em></span>
+      <button class="help__close" id="help-close" type="button">Close ×</button>
+    </div>
+    <div class="help__grp">Navigation</div>
+    <div class="help__row"><span class="help__what">Go to a section</span><span class="help__keys"><span class="key">g</span><span class="then">then</span><span class="key">o g a c n m e r s</span></span></div>
+    <div class="help__row"><span class="help__what">Overview · Grades · Assignments</span><span class="help__keys"><span class="key">g o</span><span class="key">g g</span><span class="key">g a</span></span></div>
+    <div class="help__row"><span class="help__what">Calendar · Bulletins · Materials</span><span class="help__keys"><span class="key">g c</span><span class="key">g n</span><span class="key">g m</span></span></div>
+    <div class="help__row"><span class="help__what">Games · Nostalgia · Settings</span><span class="help__keys"><span class="key">g e</span><span class="key">g r</span><span class="key">g s</span></span></div>
+    <div class="help__grp">Commands</div>
+    <div class="help__row"><span class="help__what">Open search</span><span class="help__keys"><span class="key" id="help-cmdk">⌘K</span></span></div>
+    <div class="help__row"><span class="help__what">This help card</span><span class="help__keys"><span class="key">?</span></span></div>
+    <div class="help__row"><span class="help__what">Cycle looks</span><span class="help__keys"><span class="key">\</span></span></div>
+    <div class="help__row"><span class="help__what">Close any overlay</span><span class="help__keys"><span class="key">Esc</span></span></div>
+    <div class="help__grp">The Guide</div>
+    <div class="help__row"><span class="help__what"><button class="tour__skip" id="help-take-tour" type="button" style="padding:0;letter-spacing:.04em;font-size:15px;font-family:var(--serif);text-transform:none;color:var(--ink)">Take the reader's guide tour →</button></span><span class="help__keys"></span></div>
+  </div>
+</div>
+
+<!-- ===================== GUIDED TUTORIAL (a reader's guide) ===================== -->
+<div class="tour" id="tour" aria-hidden="true">
+  <div class="tour__veil"></div>
+  <div class="tour__spot" id="tour-spot"></div>
+  <div class="tour__card" id="tour-card" role="dialog" aria-modal="true" aria-label="Guided tour" aria-live="polite">
+    <div class="tour__band"><span>The Reader's Guide</span><span class="tour__no" id="tour-no">No. 1</span></div>
+    <div class="tour__body">
+      <div class="tour__kicker" id="tour-kicker">Slate Edition</div>
+      <h2 class="tour__head" id="tour-head">—</h2>
+      <div id="tour-text"></div>
+    </div>
+    <div class="tour__foot">
+      <span class="tour__prog" id="tour-prog">1 / 7</span>
+      <span class="tour__ticks" id="tour-ticks" aria-hidden="true"></span>
+      <span class="tour__spacer"></span>
+      <button class="tour__skip" id="tour-skip" type="button">Skip</button>
+      <button class="tour__btn" id="tour-back" type="button">Back</button>
+      <button class="tour__btn tour__btn--solid" id="tour-next" type="button">Next</button>
+    </div>
+  </div>
+</div>
+
+<script src="./mockup-app-slate.s0.js"></script>
+</body>
+</html>
